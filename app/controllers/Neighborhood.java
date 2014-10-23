@@ -26,7 +26,6 @@ public class Neighborhood extends Controller {
     	}
 
     	return ok(views.html.neighborhood.index.render(boroughs));
-    	//return ok();
     }
 	
 }

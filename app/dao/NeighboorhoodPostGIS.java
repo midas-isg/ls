@@ -23,7 +23,6 @@ public class NeighboorhoodPostGIS implements NeighborhoodDAO {
 		EntityManager em = JPA.em();
 		Query q = em.createQuery ("FROM NycNeighborhood WHERE boroname = ?1");
 		q.setParameter(1, borough);
-		Logger.debug("q=" + q.toString());
 		
 		@SuppressWarnings("unchecked")
 		List<NycNeighborhood> results = q.getResultList();
