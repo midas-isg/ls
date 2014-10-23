@@ -1,0 +1,13 @@
+/*
+	index.css
+*/
+
+body {
+	margin: 0px;
+	padding: 0px;
+}
+
+.map {
+	width: 600px;
+	height: 450px;
+}
