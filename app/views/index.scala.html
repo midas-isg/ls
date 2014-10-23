@@ -1,0 +1,12 @@
+@(message: String)
+
+@main("Welcome to PlayGIS 0.1") {
+    
+   	<h1>@message</h1>
+    <a href="http://workshops.opengeo.org/postgis-intro/" target="_blank">PostGIS Intro</a>
+      
+    <br/>
+    <br/>
+     <a href="@controllers.routes.Neighborhood.index()">Neighborhoods</a>
+
+}

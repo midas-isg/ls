@@ -1,0 +1,48 @@
+Play Framework 2.3, PostGIS, and Hibernate Spatial
+==================================================
+
+This project created by following examples from http://blog.motilio.com.
+
+The setup consisted of:
+-----------------------
+Play Framework 2.3.5
+hibernate-entitymanager-4.2.2.Final
+hibernate-spatial-4.0-M1 from http://www.hibernatespatial.org/repository
+Google Guice didn't work and was not used
+
+Create a Spatial Database by following the instructions from
+http://workshops.boundlessgeo.com/postgis-intro/creating_db.html
+
+Load spatial data about 
+http://workshops.boundlessgeo.com/postgis-intro/about_data.html by editting and 
+running the loadfiles.cmd script. The last output should look like:
+
+                    List of relations
+ Schema |            Name             |   Type   | Owner
+--------+-----------------------------+----------+-------
+ public | geography_columns           | view     | aus
+ public | geometry_columns            | view     | aus
+ public | nyc_census_blocks           | table    | aus
+ public | nyc_census_blocks_gid_seq   | sequence | aus
+ public | nyc_census_sociodata        | table    | aus
+ public | nyc_homicides               | table    | aus
+ public | nyc_homicides_gid_seq       | sequence | aus
+ public | nyc_neighborhoods           | table    | aus
+ public | nyc_neighborhoods_gid_seq   | sequence | aus
+ public | nyc_streets                 | table    | aus
+ public | nyc_streets_gid_seq         | sequence | aus
+ public | nyc_subway_stations         | table    | aus
+ public | nyc_subway_stations_gid_seq | sequence | aus
+ public | raster_columns              | view     | aus
+ public | raster_overviews            | view     | aus
+ public | spatial_ref_sys             | table    | aus
+(16 rows)
+
+
+Test application:
+activator run
+
+Go to http://localhost:9000/map
+
+The page should look like
+http://2.bp.blogspot.com/-xivMhBe3Ofc/UgXA0c0ic4I/AAAAAAAAAb0/JKJOJnjK7_8/s1600/Captura.PNG

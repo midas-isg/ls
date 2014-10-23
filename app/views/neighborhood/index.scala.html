@@ -1,0 +1,52 @@
+@(boroughs: List[Borough])
+
+@main("Neighborhood SVG map") {
+
+	<link type="text/css" href="//code.jquery.com/ui/1.10.3/themes/start/jquery-ui.min.css" rel="stylesheet" ></link>
+	<script type="text/javascript" src="//code.jquery.com/jquery-1.10.0.min.js" ></script>
+	<script type="text/javascript" src="//code.jquery.com/ui/1.10.3/jquery-ui.min.js" ></script>
+
+	<h2>Borough map</h2>
+	
+	<table>
+	@for(b <-boroughs) {
+		<tr>
+			<td>
+				<strong style="color: @b.color; ">@b.name</strong>
+			</td>
+		</tr>
+	}
+	</table>
+		
+	<!-- Draw map -->
+	<div style="width: 100%; text-align: center" id="ny-map">
+		<svg height="1000" height="4000" viewBox="590000 -4550000 20000 80000" xmlns="http://www.w3.org/2000/svg" version="1.1">
+			<g>
+				@for(b <-boroughs) {
+					@for(n <- b.neighborhoods) {
+						<path d="@utils.GeomUtils.GeomToSVGPath(n.geom)" fill="@b.color" title="@n.name"/>
+					} 
+				}
+			</g>
+		</svg>
+	</div>
+
+	<!-- Name tooltips -->
+	<script type="text/javascript">
+		$(document).ready(
+			function() {
+				console.log($);
+				console.log(window.jQuery.ui);
+				$(document).tooltip({
+				      show: {
+				          effect: "slideDown",
+				          delay: 25
+				        }
+				      });
+				
+			}
+		);
+	</script>
+}
+
+
