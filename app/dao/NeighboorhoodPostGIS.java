@@ -8,9 +8,8 @@ import javax.persistence.Query;
 
 import models.Borough;
 import models.Neighborhood;
-import dao.entities.NycNeighborhood;
-import play.Logger;
 import play.db.jpa.JPA;
+import dao.entities.NycNeighborhood;
 
 
 public class NeighboorhoodPostGIS implements NeighborhoodDAO {
