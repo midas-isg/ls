@@ -1,5 +1,6 @@
 package controllers;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -62,12 +63,15 @@ public class Neighborhood extends Controller {
 		Map<String, Object> feature = new HashMap<>();
 		feature.put("geometry", toGeometry(borough));
 		feature.put("properties", toProperties(borough));
+		feature.put("type", "Feature");
 		return feature;
 	}
 
 	private static Map<String, Object> toGeometry(Borough borough) {
 		Map<String, Object> geometry = new HashMap<>();
-		geometry.put("coordinates", toCoordinates(borough.neighborhoods));
+		List<Object> list = new ArrayList<Object>();
+		list.add(toCoordinates(borough.neighborhoods));
+		geometry.put("coordinates", list);
 		geometry.put("type", "MultiPolygon");
 		return geometry;
 	}
@@ -91,8 +95,8 @@ public class Neighborhood extends Controller {
 
 	private static List<Object> toCoordinate(Coordinate coordinate1) {
 		List<Object> coordinate = new LinkedList<>();
-		coordinate.add(coordinate1.x);
-		coordinate.add(coordinate1.y);
+		coordinate.add(coordinate1.x);// / 100000f);
+		coordinate.add(coordinate1.y);// / 100000f);
 		return coordinate;
 	}
 
