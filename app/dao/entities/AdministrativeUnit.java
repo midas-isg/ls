@@ -87,12 +87,12 @@ public class AdministrativeUnit {
 		this.geom = geom;
 	}
 
-	public boolean isPretected() {
+	public boolean isLocked() {
 		return locked;
 	}
 
-	public void setPretected(boolean pretected) {
-		this.locked = pretected;
+	public void setLocked(boolean locked) {
+		this.locked = locked;
 	}
 
 	public Date getUpdateDate() {
