@@ -74,12 +74,15 @@ public class Neighborhood extends Controller {
 		Map<String, Object> feature = new HashMap<>();
 		feature.put("geometry", toGeometry(borough));
 		feature.put("properties", toProperties(borough));
+		feature.put("type", "Feature");
 		return feature;
 	}
 
 	private static Map<String, Object> toGeometry(County borough) {
 		Map<String, Object> geometry = new HashMap<>();
-		geometry.put("coordinates", toCoordinates(borough.geom));
+		Object[] list = new Object[1];
+		list[0] = toCoordinates(borough.geom);
+		geometry.put("coordinates", list);
 		geometry.put("type", "MultiPolygon");
 		return geometry;
 	}
@@ -112,7 +115,7 @@ public class Neighborhood extends Controller {
 		Map<String, Object> properties = new HashMap<>();
 		String name = borough.name;
 		properties.put("description", name);
-		properties.put("id", borough.gid);
+		properties.put("id", borough.gid + "");
 		properties.put("title", name);
 		return properties;
 	}
