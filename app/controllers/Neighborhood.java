@@ -114,9 +114,9 @@ public class Neighborhood extends Controller {
 
 	private static Map<String, Object> toProperties(County borough) {
 		Map<String, Object> properties = new HashMap<>();
-		String name = borough.name;
-		properties.put("description", name);
-		properties.put("id", borough.gid + "");
+		String name = borough.namelsad;
+		properties.put("description", borough.name + " in statefp="+ borough.statefp);
+		properties.put("id", borough.geoid);
 		properties.put("title", name);
 		return properties;
 	}

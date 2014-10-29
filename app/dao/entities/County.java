@@ -22,7 +22,11 @@ public class County {
 	@Id
 	public Long gid;
 	
+	public String geoid;
 	public String name;
+	public String namelsad;
+	public String statefp;
+	
 	
 	@Type(type = "org.hibernate.spatial.GeometryType")
 	@Column(name = "geom", nullable = true, columnDefinition="")
