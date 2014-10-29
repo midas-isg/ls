@@ -1,5 +1,6 @@
 package controllers;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -106,8 +107,8 @@ public class Neighborhood extends Controller {
 
 	private static List<Object> toCoordinate(Coordinate coordinate1) {
 		List<Object> coordinate = new LinkedList<>();
-		coordinate.add(coordinate1.x);
-		coordinate.add(coordinate1.y);
+		coordinate.add(coordinate1.x);// / 100000f);
+		coordinate.add(coordinate1.y);// / 100000f);
 		return coordinate;
 	}
 
