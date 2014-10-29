@@ -13,9 +13,12 @@ import play.mvc.Controller;
 import play.mvc.Result;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
 
+import dao.CountyDAO;
 import dao.NeighboorhoodPostGIS;
 import dao.NeighborhoodDAO;
+import dao.entities.County;
 
 public class Neighborhood extends Controller {
 
@@ -38,12 +41,21 @@ public class Neighborhood extends Controller {
 	
 	@Transactional
     public static Result leaflet() {
-    	List<Borough> boroughs = neighborhoodDAO.boroughList();
+    	/*List<Borough> boroughs = neighborhoodDAO.boroughList();
     	Map<String, Object> result = toMap(boroughs);
+    	return ok(Json.toJson(result));*/
+		List<County> all = new CountyDAO().findAllCounties();
+		/*for (County c : all){
+			System.out.println(c);
+			c.geomText = (c.geom == null) ? null : c.geom.toText();
+			//c.geom = null;
+		}
+		return ok();//Json.toJson(all));*/
+		Map<String, Object> result = toMap(all);
     	return ok(Json.toJson(result));
     }
 
-	private static Map<String, Object> toMap(List<Borough> boroughs) {
+	private static Map<String, Object> toMap(List<County> boroughs) {
 		Map<String, Object> result = new HashMap<>();
     	result.put("id", "nyc.Neighborhood");
     	result.put("type", "FeatureCollection");
@@ -51,15 +63,15 @@ public class Neighborhood extends Controller {
 		return result;
 	}
 
-	private static List<Object> toFeatures(List<Borough> boroughs) {
+	private static List<Object> toFeatures(List<County> boroughs) {
 		List<Object> features = new LinkedList<>();
-    	for (Borough borough : boroughs) {
+    	for (County borough : boroughs) {
     		features.add(toFeature(borough));
     	}
     	return features;
 	}
 
-	private static Map<String, Object> toFeature(Borough borough) {
+	private static Map<String, Object> toFeature(County borough) {
 		Map<String, Object> feature = new HashMap<>();
 		feature.put("geometry", toGeometry(borough));
 		feature.put("properties", toProperties(borough));
@@ -67,21 +79,21 @@ public class Neighborhood extends Controller {
 		return feature;
 	}
 
-	private static Map<String, Object> toGeometry(Borough borough) {
+	private static Map<String, Object> toGeometry(County borough) {
 		Map<String, Object> geometry = new HashMap<>();
-		List<Object> list = new ArrayList<Object>();
-		list.add(toCoordinates(borough.neighborhoods));
+		Object[] list = new Object[1];
+		list[0] = toCoordinates(borough.geom);
 		geometry.put("coordinates", list);
 		geometry.put("type", "MultiPolygon");
 		return geometry;
 	}
 
-	private static List<Object> toCoordinates(List<models.Neighborhood> neighborhoods) {
+	private static List<Object> toCoordinates(Geometry geom) {
 		List<Object> coordinates = new LinkedList<>();
-    	for (models.Neighborhood neighborhood : neighborhoods) {
-    		List<Object> coordinate = toCondinates(neighborhood.geom.getCoordinates());
+    	//for (models.Neighborhood neighborhood : neighborhoods) {
+    		List<Object> coordinate = toCondinates(geom.getCoordinates());
     		coordinates.add(coordinate);
-    	}
+    	//}
     	return coordinates;
 	}
 
@@ -100,11 +112,11 @@ public class Neighborhood extends Controller {
 		return coordinate;
 	}
 
-	private static Map<String, Object> toProperties(Borough borough) {
+	private static Map<String, Object> toProperties(County borough) {
 		Map<String, Object> properties = new HashMap<>();
 		String name = borough.name;
 		properties.put("description", name);
-		properties.put("id", name);
+		properties.put("id", borough.gid + "");
 		properties.put("title", name);
 		return properties;
 	}
