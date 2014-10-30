@@ -3,6 +3,12 @@ var MAP_DRIVER = null;
 $(document).ready(function() {
 	MAP_DRIVER = new MapDriver();
 	
+	$('#upload_button').click(function() {
+		MAP_DRIVER.upload();
+		
+		return;
+	});
+	
 	$('#download_button').click(function() {
 		MAP_DRIVER.download();
 		
@@ -15,7 +21,7 @@ $(document).ready(function() {
 function MapDriver(){
 	this.title = '<strong>Pitt</strong>sburgh';
 	this.mapID = 'tps23.k1765f0g';
-	this.geojsonFile = 'http://localhost:9000/leaflet/nyc'; //'http://localhost/countries.geo.json';
+	this.geojsonFile = 'http://localhost/pittsburgh.json'; //'http://localhost:9000/leaflet/nyc'; //'http://localhost/countries.geo.json';
 	this.featureLayerObject = null;
 	this.startingCoordinates = [40.45826240784896, -79.93491411209106]; //[44.95167427365481, 582771.4257198056];
 	this.zoom = 12;
@@ -52,6 +58,7 @@ MapDriver.prototype.initialize = function() {
 		
 		MAP_DRIVER.map.on('draw:created', function(e) {
 			MAP_DRIVER.featureLayer.addLayer(e.layer);
+console.log(e);
 		});
 	});
 	
@@ -73,10 +80,58 @@ MapDriver.prototype.initialize = function() {
 			}).addTo(MAP_DRIVER.map);
 			
 			MAP_DRIVER.map.on('draw:created', function(e) {
+console.log(e);
 				MAP_DRIVER.featureLayer.addLayer(e.layer);
 			});
 		});
 	});
+	
+	return;
+}
+
+MapDriver.prototype.loadJSON = function(jsonData) {
+	this.featureLayer.setGeoJSON(jsonData);
+	
+	/*
+	this.featureLayer.on('ready', function() {
+		MAP_DRIVER.featureLayer.addTo(MAP_DRIVER.map);
+		
+		var drawControl = new L.Control.Draw({
+			edit: {
+			  featureGroup: MAP_DRIVER.featureLayer
+			}
+		}).addTo(MAP_DRIVER.map);
+		
+		MAP_DRIVER.map.on('draw:created', function(e) {
+			MAP_DRIVER.featureLayer.addLayer(e.layer);
+console.log(e);
+		});
+	});
+	
+	this.featureLayer.on('error', function(err) {
+		console.log("Error: " + err['error']['statusText']);
+		
+		if((MAP_DRIVER.featureLayer.getLayers().length == 0) && MAP_DRIVER.mapID) {
+			console.log("Attempting to load via mapID");
+			MAP_DRIVER.featureLayer = L.mapbox.featureLayer().loadID(MAP_DRIVER.mapID);
+		}
+		
+		MAP_DRIVER.featureLayer.on('ready', function() {
+			MAP_DRIVER.featureLayer.addTo(MAP_DRIVER.map);
+			
+			var drawControl = new L.Control.Draw({
+				edit: {
+				  featureGroup: MAP_DRIVER.featureLayer
+				}
+			}).addTo(MAP_DRIVER.map);
+			
+			MAP_DRIVER.map.on('draw:created', function(e) {
+console.log(e);
+				MAP_DRIVER.featureLayer.addLayer(e.layer);
+			});
+		});
+	});
+	*/
 	
 	return;
 }
@@ -92,4 +147,19 @@ MapDriver.prototype.download = function() {
 	location.assign("data:'" + data);
 	
 	return jsonData;
+}
+
+MapDriver.prototype.upload = function() {
+	var file = $('#json-input').get(0).files[0];
+	var fileReader = new FileReader();
+	
+	fileReader.onload = (function() {
+		var jsonData = JSON.parse(fileReader['result']);
+		
+		MAP_DRIVER.loadJSON(jsonData);
+	});
+	
+	var fileString = fileReader.readAsText(file);
+	
+	return;
 }
