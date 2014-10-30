@@ -92,47 +92,6 @@ console.log(e);
 MapDriver.prototype.loadJSON = function(jsonData) {
 	this.featureLayer.setGeoJSON(jsonData);
 	
-	/*
-	this.featureLayer.on('ready', function() {
-		MAP_DRIVER.featureLayer.addTo(MAP_DRIVER.map);
-		
-		var drawControl = new L.Control.Draw({
-			edit: {
-			  featureGroup: MAP_DRIVER.featureLayer
-			}
-		}).addTo(MAP_DRIVER.map);
-		
-		MAP_DRIVER.map.on('draw:created', function(e) {
-			MAP_DRIVER.featureLayer.addLayer(e.layer);
-console.log(e);
-		});
-	});
-	
-	this.featureLayer.on('error', function(err) {
-		console.log("Error: " + err['error']['statusText']);
-		
-		if((MAP_DRIVER.featureLayer.getLayers().length == 0) && MAP_DRIVER.mapID) {
-			console.log("Attempting to load via mapID");
-			MAP_DRIVER.featureLayer = L.mapbox.featureLayer().loadID(MAP_DRIVER.mapID);
-		}
-		
-		MAP_DRIVER.featureLayer.on('ready', function() {
-			MAP_DRIVER.featureLayer.addTo(MAP_DRIVER.map);
-			
-			var drawControl = new L.Control.Draw({
-				edit: {
-				  featureGroup: MAP_DRIVER.featureLayer
-				}
-			}).addTo(MAP_DRIVER.map);
-			
-			MAP_DRIVER.map.on('draw:created', function(e) {
-console.log(e);
-				MAP_DRIVER.featureLayer.addLayer(e.layer);
-			});
-		});
-	});
-	*/
-	
 	return;
 }
 
