@@ -3,6 +3,12 @@ var MAP_DRIVER = null;
 $(document).ready(function() {
 	MAP_DRIVER = new MapDriver();
 	
+	$('#upload_button').click(function() {
+		MAP_DRIVER.upload();
+		
+		return;
+	});
+	
 	$('#download_button').click(function() {
 		MAP_DRIVER.download();
 		
@@ -52,6 +58,7 @@ MapDriver.prototype.initialize = function() {
 		
 		MAP_DRIVER.map.on('draw:created', function(e) {
 			MAP_DRIVER.featureLayer.addLayer(e.layer);
+console.log(e);
 		});
 	});
 	
@@ -73,6 +80,7 @@ MapDriver.prototype.initialize = function() {
 			}).addTo(MAP_DRIVER.map);
 			
 			MAP_DRIVER.map.on('draw:created', function(e) {
+console.log(e);
 				MAP_DRIVER.featureLayer.addLayer(e.layer);
 			});
 		});
@@ -90,6 +98,36 @@ MapDriver.prototype.download = function() {
 	//$('<a href="data:' + data + '" download="data.json">download JSON</a>').appendTo('#container');
 	
 	location.assign("data:'" + data);
+	
+	return jsonData;
+}
+
+MapDriver.prototype.upload = function() {
+	$(window).load(function() {
+		$("#filename").change(function(e) {
+			var ext = $("input#filename").val().split(".").pop().toLowerCase();
+			
+			if (e.target.files != undefined) {
+				var reader = new FileReader();
+				
+				reader.onload = function(e) {
+					var csvval=e.target.result.split("\n");
+					var csvvalue=csvval[0].split(",");
+					var inputrad="";
+	
+					for(var i=0;i<csvvalue.length;i++) {
+						var temp=csvvalue[i];
+						var inputrad=inputrad+" "+temp;
+					}
+					
+					$("#csvimporthint").html(inputrad);
+					$("#csvimporthinttitle").show();
+				};
+				
+				reader.readAsText(e.target.files.item(0));
+			}
+		}
+	}
 	
 	return jsonData;
 }
