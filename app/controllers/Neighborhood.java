@@ -2,11 +2,14 @@ package controllers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import models.Borough;
+import models.geo.Feature;
+import models.geo.FeatureCollection;
+import models.geo.FeatureGeometry;
+import models.geo.MultiPolygon;
 import play.db.jpa.Transactional;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -41,83 +44,69 @@ public class Neighborhood extends Controller {
 	
 	@Transactional
     public static Result leaflet() {
-    	/*List<Borough> boroughs = neighborhoodDAO.boroughList();
-    	Map<String, Object> result = toMap(boroughs);
-    	return ok(Json.toJson(result));*/
 		List<County> all = new CountyDAO().findAllCounties();
-		/*for (County c : all){
-			System.out.println(c);
-			c.geomText = (c.geom == null) ? null : c.geom.toText();
-			//c.geom = null;
-		}
-		return ok();//Json.toJson(all));*/
-		Map<String, Object> result = toMap(all);
+		Object result = toFeatureCollection(all);
     	return ok(Json.toJson(result));
     }
 
-	private static Map<String, Object> toMap(List<County> boroughs) {
-		Map<String, Object> result = new HashMap<>();
-    	result.put("id", "nyc.Neighborhood");
-    	result.put("type", "FeatureCollection");
-    	result.put("features", toFeatures(boroughs));
-		return result;
+	private static FeatureCollection toFeatureCollection(List<County> countys) {
+		FeatureCollection fc = new FeatureCollection();
+		fc.features = toFeatures(countys);
+		return fc;
 	}
 
-	private static List<Object> toFeatures(List<County> boroughs) {
-		List<Object> features = new LinkedList<>();
-    	for (County borough : boroughs) {
-    		features.add(toFeature(borough));
+	private static List<Feature> toFeatures(List<County> countys) {
+		List<Feature> features = new ArrayList<>();
+    	for (County county : countys) {
+    		features.add(toFeature(county));
     	}
     	return features;
 	}
 
-	private static Map<String, Object> toFeature(County borough) {
-		Map<String, Object> feature = new HashMap<>();
-		feature.put("geometry", toGeometry(borough));
-		feature.put("properties", toProperties(borough));
-		feature.put("type", "Feature");
+	private static Feature toFeature(County county) {
+		Feature feature = new Feature();
+		feature.properties = toProperties(county);
+		feature.geometry = toFeatureGeometry(county.geom);
 		return feature;
 	}
 
-	private static Map<String, Object> toGeometry(County borough) {
-		Map<String, Object> geometry = new HashMap<>();
-		Object[] list = new Object[1];
-		list[0] = toCoordinates(borough.geom);
-		geometry.put("coordinates", list);
-		geometry.put("type", "MultiPolygon");
-		return geometry;
+
+	private static Map<String, String> toProperties(County county) {
+		Map<String, String> properties = new HashMap<>();
+		String name = county.namelsad;
+		properties.put("description", county.name + " in statefp="+ county.statefp);
+		properties.put("id", county.geoid);
+		properties.put("title", name);
+		return properties;
 	}
 
-	private static List<Object> toCoordinates(Geometry geom) {
-		List<Object> coordinates = new LinkedList<>();
-    	//for (models.Neighborhood neighborhood : neighborhoods) {
-    		List<Object> coordinate = toCondinates(geom.getCoordinates());
-    		coordinates.add(coordinate);
-    	//}
+	private static FeatureGeometry toFeatureGeometry(Geometry geom) {
+		List<List<List<double[]>>> list = new ArrayList<>();
+		list.add(toCoordinates(geom));
+		MultiPolygon g = new MultiPolygon();
+		g.coordinates = list;
+		return g; 
+	}
+
+	private static List<List<double[]>> toCoordinates(Geometry geom) {
+		List<List<double[]>> coordinates = new ArrayList<>();
+   		List<double[]> coordinate = toCondinates(geom.getCoordinates());
+   		coordinates.add(coordinate);
     	return coordinates;
 	}
 
-	private static List<Object> toCondinates(Coordinate[] coordinates) {
-		List<Object> result = new LinkedList<>();
+	private static List<double[]> toCondinates(Coordinate[] coordinates) {
+		List<double[]> result = new ArrayList<>();
 		for (Coordinate coordinate1: coordinates){
 			result.add(toCoordinate(coordinate1));
 		}
 		return result;
 	}
 
-	private static List<Object> toCoordinate(Coordinate coordinate1) {
-		List<Object> coordinate = new LinkedList<>();
-		coordinate.add(coordinate1.x);// / 100000f);
-		coordinate.add(coordinate1.y);// / 100000f);
+	private static double[] toCoordinate(Coordinate coordinate1) {
+		double[] coordinate = new double[2];
+		coordinate[0] = coordinate1.x;
+		coordinate[1] = coordinate1.y;
 		return coordinate;
-	}
-
-	private static Map<String, Object> toProperties(County borough) {
-		Map<String, Object> properties = new HashMap<>();
-		String name = borough.namelsad;
-		properties.put("description", borough.name + " in statefp="+ borough.statefp);
-		properties.put("id", borough.geoid);
-		properties.put("title", name);
-		return properties;
 	}
 }

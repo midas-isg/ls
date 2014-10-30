@@ -17,8 +17,8 @@ function MapDriver(){
 	this.mapID = 'tps23.k1765f0g';
 	this.geojsonFile = 'http://localhost:9000/leaflet/nyc'; //'http://localhost/countries.geo.json';
 	this.featureLayerObject = null;
-	this.startingCoordinates = [40.45826240784896, -79.93491411209106]; //[44.95167427365481, 582771.4257198056];
-	this.zoom = 12;
+	this.startingCoordinates = [42.004097, -97.019516]; //[44.95167427365481, 582771.4257198056];
+	this.zoom = 6;
 	this.accessToken = 'pk.eyJ1IjoidHBzMjMiLCJhIjoiVHEzc0tVWSJ9.0oYZqcggp29zNZlCcb2esA';
 	this.featureLayer = null;
 	this.map = null;
