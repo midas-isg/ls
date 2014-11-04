@@ -14,8 +14,9 @@
 
 @main("Welcome to PlayGIS 0.1", imports) {
 	<h1>@message</h1>
-	<a href="http://workshops.opengeo.org/postgis-intro/" target="_blank">PostGIS Intro</a>
+	<div><a href="http://workshops.opengeo.org/postgis-intro/" target="_blank">PostGIS Intro</a></div>
 	
-	<br/>
+	<div><input id="json-input" accept=".json, .geojson" type="file"><button id="upload_button">Load Map</button></div>
 	<div id='map-one' class='map'></div>
+	<button id='download_button' >Download</button>
 }
