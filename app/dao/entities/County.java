@@ -4,7 +4,6 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 
 import org.hibernate.annotations.Type;
 
@@ -31,8 +30,4 @@ public class County {
 	@Type(type = "org.hibernate.spatial.GeometryType")
 	@Column(name = "geom", nullable = true, columnDefinition="")
 	public Geometry geom;
-	
-	@Transient
-	public String geomText;
-
 }
