@@ -26,22 +26,22 @@ public class Application extends Controller {
 	}
 	
 	@Transactional
-	public static Result createJSON() {
+	public static Result createMap() {
 		return ok(views.html.index.render("TODO: Replace w/ createJSON service"));
 	}
 	
 	@Transactional
-	public static Result retrieveJSON() {
+	public static Result retrieveMap() {
 		return ok(views.html.index.render("TODO: Replace w/ retrieveJSON service"));
 	}
 	
 	@Transactional
-	public static Result updateJSON() {
+	public static Result updateMap() {
 		return ok(views.html.index.render("TODO: Replace w/ updateJSON service"));
 	}
 	
 	@Transactional
-	public static Result deleteJSON() {
+	public static Result deleteMap() {
 		return ok(views.html.index.render("TODO: Replace w/ deleteJSON service"));
 	}
 }
