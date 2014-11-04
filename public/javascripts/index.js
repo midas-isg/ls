@@ -3,6 +3,12 @@ var MAP_DRIVER = null;
 $(document).ready(function() {
 	MAP_DRIVER = new MapDriver();
 	
+	$('#upload_button').click(function() {
+		MAP_DRIVER.upload();
+		
+		return;
+	});
+	
 	$('#download_button').click(function() {
 		MAP_DRIVER.download();
 		
@@ -52,6 +58,7 @@ MapDriver.prototype.initialize = function() {
 		
 		MAP_DRIVER.map.on('draw:created', function(e) {
 			MAP_DRIVER.featureLayer.addLayer(e.layer);
+console.log(e);
 		});
 	});
 	
@@ -73,10 +80,17 @@ MapDriver.prototype.initialize = function() {
 			}).addTo(MAP_DRIVER.map);
 			
 			MAP_DRIVER.map.on('draw:created', function(e) {
+console.log(e);
 				MAP_DRIVER.featureLayer.addLayer(e.layer);
 			});
 		});
 	});
+	
+	return;
+}
+
+MapDriver.prototype.loadJSON = function(jsonData) {
+	this.featureLayer.setGeoJSON(jsonData);
 	
 	return;
 }
@@ -92,4 +106,19 @@ MapDriver.prototype.download = function() {
 	location.assign("data:'" + data);
 	
 	return jsonData;
+}
+
+MapDriver.prototype.upload = function() {
+	var file = $('#json-input').get(0).files[0];
+	var fileReader = new FileReader();
+	
+	fileReader.onload = (function() {
+		var jsonData = JSON.parse(fileReader['result']);
+		
+		MAP_DRIVER.loadJSON(jsonData);
+	});
+	
+	var fileString = fileReader.readAsText(file);
+	
+	return;
 }

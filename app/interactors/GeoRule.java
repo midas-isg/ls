@@ -1,19 +1,13 @@
 package interactors;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import models.geo.Feature;
-import models.geo.FeatureCollection;
 import models.geo.FeatureGeometry;
 import models.geo.MultiPolygon;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
-
-import dao.entities.County;
 
 public class GeoRule {
 
