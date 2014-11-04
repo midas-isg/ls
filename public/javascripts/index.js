@@ -15,6 +15,12 @@ $(document).ready(function() {
 		return;
 	});
 	
+	$('#save_button').click(function() {
+		MAP_DRIVER.saveMap();
+		
+		return;
+	});
+	
 	return;
 });
 
@@ -91,6 +97,13 @@ console.log(e);
 
 MapDriver.prototype.loadJSON = function(jsonData) {
 	this.featureLayer.setGeoJSON(jsonData);
+	
+	return;
+}
+
+MapDriver.prototype.saveMap = function() {
+	//POST /create/json
+	//PUT /update/json
 	
 	return;
 }
