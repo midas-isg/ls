@@ -7,5 +7,11 @@ GET		/							controllers.Application.index()
 
 GET		/counties					controllers.Application.leaflet()
 
+# GEO-JSON Map CRUD Operations
+POST	/create/json					controllers.Application.createJSON()
+GET		/retrieve/json					controllers.Application.retrieveJSON()
+PUT		/update/json					controllers.Application.updateJSON()
+DELETE	/delete/json					controllers.Application.deleteJSON()
+
 # Map static resources from the /public folder to the /assets URL path
 GET		/assets/*file				controllers.Assets.at(path="/public", file)
