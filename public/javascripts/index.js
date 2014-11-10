@@ -1,3 +1,5 @@
+
+var path = ".";
 var MAP_DRIVER = null;
 
 $(document).ready(function() {
@@ -27,7 +29,7 @@ $(document).ready(function() {
 function MapDriver(){
 	this.title = '<strong>Pitt</strong>sburgh';
 	this.mapID = 'tps23.k1765f0g';
-	this.geojsonFile = 'http://localhost:9000/counties'; //'http://localhost/countries.geo.json';
+	this.geojsonFile = "http://tps23-nb.univ.pitt.edu/test2.json"; //'http://localhost:9000/counties'; //'http://localhost/countries.geo.json';
 	this.featureLayerObject = null;
 	this.startingCoordinates = [42.004097, -97.019516]; //[44.95167427365481, 582771.4257198056];
 	this.zoom = 6;
@@ -102,8 +104,77 @@ MapDriver.prototype.loadJSON = function(jsonData) {
 }
 
 MapDriver.prototype.saveMap = function() {
-	//POST /create/json
-	//PUT /update/json
+	// Create //POST /resources/aus
+	var httpType = "POST";
+	var URL = path + "/resources/aus";
+	
+	/*
+	if(isUpdate) {
+		// Update //PUT /resources/aus
+		httpType = "PUT";
+	}
+	*/
+	
+	var data = this.featureLayer.getGeoJSON();
+	//var featuresText = JSON.stringify(data.features);
+	//delete data.features;
+	//data.text = featuresText;
+	/*
+	data = {
+		type: 'FeatureCollection',
+		features: [
+			{
+				geometry: [
+					12,
+					54
+				],
+				properties: 'props'
+			},
+			{
+				geometry: [
+					42,
+					28
+				],
+				properties: 'props'
+			},
+			{
+				geometry: [
+					33,
+					99
+				],
+				properties: 'props'
+			}
+		]
+	}
+	*/
+	
+console.log("Sending JSON.stringify([" + data.type + "]):");
+console.log(JSON.stringify(data));
+console.log("Length: " + JSON.stringify(data).length);
+	
+	/**/
+	$.ajax({
+		type: httpType,
+		url: URL,
+		data: JSON.stringify(data),
+		contentType: "application/json; charset=UTF-8",
+		//dataType: "json",
+		//processData: false,
+		success: function(data, status) {
+			//indexingObject.informationObject.setURI(indexingObject.successChange(data, status, "added"));
+			console.log(data);
+			console.log(status);
+		},
+		error: function(data, status) {
+			//if(data['responseJSON'] && data['responseJSON']['duplicatedUri']) {
+			//	indexingObject.duplicateDialog(data['responseJSON']['duplicatedUri']);
+			//}
+			//else {
+			//	indexingObject.successChange(data, status, "error");
+			//}
+		}
+	});
+	/**/
 	
 	return;
 }

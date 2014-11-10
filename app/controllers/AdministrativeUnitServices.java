@@ -1,20 +1,90 @@
 package controllers;
 
-import interactors.CountyRule;
+//import interactors.CountyRule;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import models.geo.FeatureCollection;
+import play.Logger;
 import play.db.jpa.Transactional;
 import play.libs.Json;
 import play.mvc.Controller;
+import play.mvc.Http.Context;
+import play.mvc.Http.MultipartFormData;
+import play.mvc.Http.Request;
+import play.mvc.Http.RequestBody;
 import play.mvc.Result;
-import dao.CountyDAO;
-import dao.entities.County;
+import play.data.DynamicForm;
+import play.data.Form;
 
-public class AdministrativeUnitServices extends Controller {	
+import play.mvc.BodyParser;
+import com.fasterxml.jackson.databind.JsonNode;
+
+//import dao.CountyDAO;
+//import dao.entities.County;
+
+public class AdministrativeUnitServices extends Controller {
+	static Status okJson(Object resultObject) {
+		return ok(Json.toJson(resultObject));
+	}
+	
+	private static Status forbiddenJson(Exception e) {
+		Logger.error(e.toString());
+		e.printStackTrace();
+		
+		return forbidden(Json.toJson(e.toString()));
+	}
+	
+	private static Result okCRUD(Object result) {
+		Map<String, String> resultMap = new HashMap<String, String>();
+		//resultMap.put("id", String.valueOf(result));
+		
+		//return okJson(resultMap);
+		return okJson(result);
+	}
+	
 	@Transactional
+	//@BodyParser.Of(BodyParser.Json.class)
 	public static Result create() {
-		return ok(views.html.index.render("TODO: Replace w/ create service"));
+		try {
+			Object result = null;
+			Request request = Context.current().request();
+			RequestBody requestBody = null;
+			JsonNode requestJSON = null;
+			
+			if(request != null) {
+				requestBody = request.body();
+				
+				String requestBodyText = requestBody.toString();
+				Logger.debug("\nRequest [" + request.getHeader("Content-Type") + "], Length: " + requestBodyText.length() + "\nRequest Body:\n");
+				
+				Logger.debug(requestBodyText + "\n=====");
+				
+				requestJSON = requestBody.asJson();
+				if(requestJSON == null) {
+					return badRequest("Expecting JSON data");
+				}
+				else {
+					String type = requestJSON.findPath("type").textValue();
+					
+					if(type == null) {
+						return badRequest("Missing parameter [type]");
+					}
+				}
+				
+				result = requestJSON;
+			}
+			else {
+				Logger.debug("\nRequest is null\n");
+			}
+			
+			return okCRUD(result);
+		}
+		catch (Exception e) {
+			return forbiddenJson(e);
+		}
 	}
 	
 	@Transactional
