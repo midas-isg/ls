@@ -2,6 +2,7 @@ package controllers;
 
 //import interactors.CountyRule;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,8 +19,8 @@ import play.mvc.Http.RequestBody;
 import play.mvc.Result;
 import play.data.DynamicForm;
 import play.data.Form;
-
 import play.mvc.BodyParser;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 //import dao.CountyDAO;
@@ -79,6 +80,15 @@ public class AdministrativeUnitServices extends Controller {
 			else {
 				Logger.debug("\nRequest is null\n");
 			}
+			
+			Logger.debug("What we want: " + requestJSON.get("features").size())/*.get(0).get("geometry").get("coordinates").().toString())*/;
+			
+			FeatureCollection featureCollection = new FeatureCollection();
+			featureCollection.id = requestJSON.get("id").textValue();
+			featureCollection.type = requestJSON.get("type").textValue();
+			featureCollection.features = requestJSON.withArray("features");
+			
+			Logger.debug("MORE: " + featureCollection.features.get(0).toString());
 			
 			return okCRUD(result);
 		}

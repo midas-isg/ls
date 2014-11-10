@@ -116,9 +116,6 @@ MapDriver.prototype.saveMap = function() {
 	*/
 	
 	var data = this.featureLayer.getGeoJSON();
-	//var featuresText = JSON.stringify(data.features);
-	//delete data.features;
-	//data.text = featuresText;
 	/*
 	data = {
 		type: 'FeatureCollection',
@@ -152,7 +149,6 @@ console.log("Sending JSON.stringify([" + data.type + "]):");
 console.log(JSON.stringify(data));
 console.log("Length: " + JSON.stringify(data).length);
 	
-	/**/
 	$.ajax({
 		type: httpType,
 		url: URL,
@@ -174,7 +170,6 @@ console.log("Length: " + JSON.stringify(data).length);
 			//}
 		}
 	});
-	/**/
 	
 	return;
 }
