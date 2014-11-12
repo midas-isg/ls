@@ -2,12 +2,16 @@ package controllers;
 
 //import interactors.CountyRule;
 
+import interactors.GeoJSONParser;
+
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
-import models.geo.FeatureCollection;
+import models.geo.*;
 import play.Logger;
 import play.db.jpa.Transactional;
 import play.libs.Json;
@@ -39,7 +43,7 @@ public class AdministrativeUnitServices extends Controller {
 	}
 	
 	private static Result okCRUD(Object result) {
-		Map<String, String> resultMap = new HashMap<String, String>();
+		//Map<String, String> resultMap = new HashMap<String, String>();
 		//resultMap.put("id", String.valueOf(result));
 		
 		//return okJson(resultMap);
@@ -55,13 +59,15 @@ public class AdministrativeUnitServices extends Controller {
 			RequestBody requestBody = null;
 			JsonNode requestJSON = null;
 			
+			Logger.debug("\n");
+			Logger.debug("=====");
+			
 			if(request != null) {
 				requestBody = request.body();
 				
 				String requestBodyText = requestBody.toString();
-				Logger.debug("\nRequest [" + request.getHeader("Content-Type") + "], Length: " + requestBodyText.length() + "\nRequest Body:\n");
-				
-				Logger.debug(requestBodyText + "\n=====");
+				Logger.debug("Request [" + request.getHeader("Content-Type") + "], Length: " + requestBodyText.length());
+				//Logger.debug("Request Body:\n" + requestBodyText);
 				
 				requestJSON = requestBody.asJson();
 				if(requestJSON == null) {
@@ -81,14 +87,9 @@ public class AdministrativeUnitServices extends Controller {
 				Logger.debug("\nRequest is null\n");
 			}
 			
-			Logger.debug("What we want: " + requestJSON.get("features").size())/*.get(0).get("geometry").get("coordinates").().toString())*/;
-			
-			FeatureCollection featureCollection = new FeatureCollection();
-			featureCollection.id = requestJSON.get("id").textValue();
-			featureCollection.type = requestJSON.get("type").textValue();
-			featureCollection.features = requestJSON.withArray("features");
-			
-			Logger.debug("MORE: " + featureCollection.features.get(0).toString());
+			FeatureCollection parsed = GeoJSONParser.parse(requestJSON);
+			Logger.debug(parsed.toString());
+			Logger.debug("=====");
 			
 			return okCRUD(result);
 		}

@@ -29,7 +29,7 @@ $(document).ready(function() {
 function MapDriver(){
 	this.title = '<strong>Pitt</strong>sburgh';
 	this.mapID = 'tps23.k1765f0g';
-	this.geojsonFile = "http://tps23-nb.univ.pitt.edu/test2.json"; //'http://localhost:9000/counties'; //'http://localhost/countries.geo.json';
+	this.geojsonFile = "http://tps23-nb.univ.pitt.edu/counties.json"; //'http://localhost:9000/counties'; //'http://localhost/countries.geo.json';
 	this.featureLayerObject = null;
 	this.startingCoordinates = [42.004097, -97.019516]; //[44.95167427365481, 582771.4257198056];
 	this.zoom = 6;
