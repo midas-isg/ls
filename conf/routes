@@ -4,9 +4,14 @@
 
 # Home page
 GET		/							controllers.Application.index()
-GET		/map						controllers.Neighborhood.index()
 GET		/test						controllers.Application.test()
-GET		/leaflet/nyc				controllers.Neighborhood.leaflet()
+GET		/counties					controllers.Application.leaflet()
+
+# GEO-JSON & KML Map CRUD Operations
+POST	/resources/aus					controllers.AdministrativeUnitServices.create()
+GET		/resources/aus					controllers.AdministrativeUnitServices.read()
+PUT		/resources/aus					controllers.AdministrativeUnitServices.update()
+DELETE	/resources/aus					controllers.AdministrativeUnitServices.delete()
 
 # Map static resources from the /public folder to the /assets URL path
 GET		/assets/*file				controllers.Assets.at(path="/public", file)
