@@ -68,24 +68,25 @@ public class GeoJSONParser {
 		multiPolygon.type = geometryNode.get("type").textValue();
 		
 		for(int i = 0; i < coordinatesNode.size(); i++) {
-			multiPolygon.coordinates.add(new ArrayList<List<Double>>());
-			JsonNode polygons = coordinatesNode.get(i);
-			for(int j = 0; j < polygons.size(); j++) {
-				JsonNode points = polygons.get(j);
+			multiPolygon.coordinates.add(new ArrayList<>());
+			List<List<double []>> polygonToFill = multiPolygon.coordinates.get(i);
+			
+			JsonNode polygon = coordinatesNode.get(i);
+			for(int j = 0; j < polygon.size(); j++) {
+				polygonToFill.add(new ArrayList<>());
+				List<double []> componentToFill = polygonToFill.get(j);
 				
-				List<Double> point = new ArrayList<Double>();
-				for(int k = 0; k < points.size(); k++) {
-					for(int l = 0; l < points.get(k).size(); l++) {
-						point.add(points.get(k).get(l).asDouble());
+				JsonNode polygonComponent = polygon.get(j);
+				for(int k = 0; k < polygonComponent.size(); k++){
+					componentToFill.add(new double[polygonComponent.get(k).size()]);
+					double[] pointToFill = componentToFill.get(k);
+					
+					JsonNode point = polygonComponent.get(k);
+					for(int l = 0; l < point.size(); l++) {
+						//point.add(points.get(k).get(l).asDouble());
+						pointToFill[l] = point.get(l).asDouble();
 					}
 				}
-				multiPolygon.coordinates.get(i).add(point);
-				
-/*
-if((i == 0) && (j == 0)){
-	Logger.debug("Point[" + j + "]: " + multiPolygon.coordinates.get(i).get(j));
-}
-*/
 			}
 		}
 		

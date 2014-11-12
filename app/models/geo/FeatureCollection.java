@@ -14,6 +14,6 @@ public class FeatureCollection {
 	
 	@Override
 	public String toString() {
-		return "FeatureCollection [id=" + id + ", type=" + type + ", features=" + features.toString() + "]";
+		return "FeatureCollection [id=" + id + ", type=" + type + ", " + features.size() + " features=" + features.toString() + "]";
 	}
 }
