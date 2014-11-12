@@ -1,52 +1,36 @@
 package dao.entities;
 
-import java.sql.Date;
-
+import javax.persistence.AttributeOverride;
+import javax.persistence.AttributeOverrides;
 import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import org.hibernate.annotations.Type;
-
 import play.db.jpa.JPA;
-
-import com.vividsolutions.jts.geom.Geometry;
 
 @Entity
 @Table(name = "audit_administrative_unit")
 public class AuditAdministrativeUnit {
 
-	@Id
-	@Column(name = "id", columnDefinition = "serial")
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	private String name;
+	private Long gid;
 
-	@Column(name = "start_date")
-	private Date startDate;
+	private Data data;
 
-	@Column(name = "end_date")
-	private Date endDate;
-
-	@Type(type = "org.hibernate.spatial.GeometryType")
-	private Geometry geom;
-
-	private boolean locked;
-
-	@Column(name = "update_date")
-	private Date updateDate;
-
-	@Column(name = "user_id")
-	private String userId;
+	private String operation;
 
 	public static AuditAdministrativeUnit findById(Long id) {
 		return JPA.em().find(AuditAdministrativeUnit.class, id);
 	}
 
+	@Id
+	@Column(name = "id", columnDefinition = "serial")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	public Long getId() {
 		return id;
 	}
@@ -55,60 +39,33 @@ public class AuditAdministrativeUnit {
 		this.id = id;
 	}
 
-	public String getName() {
-		return name;
+	@Column(name = "gid")
+	public Long getGid() {
+		return gid;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setGid(Long gid) {
+		this.gid = gid;
 	}
 
-	public Date getStartDate() {
-		return startDate;
+	@Embedded
+	@AttributeOverrides({
+			@AttributeOverride(name = "locked", column = @Column(name = "locked", nullable = true)),
+			@AttributeOverride(name = "startDate", column = @Column(name = "start_date", nullable = true)) })
+	public Data getData() {
+		return data;
 	}
 
-	public void setStartDate(Date startDate) {
-		this.startDate = startDate;
+	public void setData(Data data) {
+		this.data = data;
 	}
 
-	public Date getEndDate() {
-		return endDate;
+	public String getOperation() {
+		return operation;
 	}
 
-	public void setEndDate(Date endDate) {
-		this.endDate = endDate;
-	}
-
-	public Geometry getGeom() {
-		return geom;
-	}
-
-	public void setGeom(Geometry geom) {
-		this.geom = geom;
-	}
-
-	public boolean isLocked() {
-		return locked;
-	}
-
-	public void setLocked(boolean locked) {
-		this.locked = locked;
-	}
-
-	public Date getUpdateDate() {
-		return updateDate;
-	}
-
-	public void setUpdateDate(Date updateDate) {
-		this.updateDate = updateDate;
-	}
-
-	public String getUser() {
-		return userId;
-	}
-
-	public void setUser(String user) {
-		this.userId = user;
+	public void setOperation(String operation) {
+		this.operation = operation;
 	}
 
 }
