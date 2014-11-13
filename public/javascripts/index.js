@@ -59,14 +59,28 @@ MapDriver.prototype.initialize = function() {
 		MAP_DRIVER.featureLayer.addTo(MAP_DRIVER.map);
 		
 		var drawControl = new L.Control.Draw({
+			draw: {
+				polyline: false,
+				rectangle: false,
+				circle: false,
+				marker: false
+			},
 			edit: {
-			  featureGroup: MAP_DRIVER.featureLayer
+				featureGroup: MAP_DRIVER.featureLayer
 			}
 		}).addTo(MAP_DRIVER.map);
 		
 		MAP_DRIVER.map.on('draw:created', function(e) {
 			MAP_DRIVER.featureLayer.addLayer(e.layer);
 console.log(e);
+		});
+		
+		MAP_DRIVER.map.on('draw:deleted', function(e) {
+			var layers = e.layers;
+			layers.eachLayer(function(layer) {
+				MAP_DRIVER.featureLayer.removeLayer(layer);
+				console.log(layer);
+			});
 		});
 	});
 	
@@ -90,6 +104,14 @@ console.log(e);
 			MAP_DRIVER.map.on('draw:created', function(e) {
 console.log(e);
 				MAP_DRIVER.featureLayer.addLayer(e.layer);
+			});
+			
+			MAP_DRIVER.map.on('draw:deleted', function(e) {
+				var layers = e.layers;
+				layers.eachLayer(function(layer) {
+					MAP_DRIVER.featureLayer.removeLayer(layer);
+					console.log(layer);
+				});
 			});
 		});
 	});
@@ -115,7 +137,8 @@ MapDriver.prototype.saveMap = function() {
 	}
 	*/
 	
-	var data = this.featureLayer.getGeoJSON();
+	var data = this.featureLayer.toGeoJSON();
+	data.id = this.mapID;
 	/*
 	data = {
 		type: 'FeatureCollection',
@@ -176,7 +199,7 @@ console.log("Length: " + JSON.stringify(data).length);
 
 MapDriver.prototype.download = function() {
 	var jsonData = this.featureLayer.toGeoJSON();
-	jsonData['id'] = this.mapID;
+	jsonData.id = this.mapID;
 	
 	var data = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(jsonData));
 	
