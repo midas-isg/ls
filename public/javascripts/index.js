@@ -139,34 +139,24 @@ MapDriver.prototype.saveMap = function() {
 	
 	var data = this.featureLayer.toGeoJSON();
 	data.id = this.mapID;
-	/*
-	data = {
-		type: 'FeatureCollection',
-		features: [
-			{
-				geometry: [
-					12,
-					54
-				],
-				properties: 'props'
-			},
-			{
-				geometry: [
-					42,
-					28
-				],
-				properties: 'props'
-			},
-			{
-				geometry: [
-					33,
-					99
-				],
-				properties: 'props'
+	
+	function polygonToMultiPolygon(geoJSON) {
+		var i;
+		var geometry;
+		
+		for(i = 0; i < geoJSON.features.length; i++) {
+			geometry = geoJSON.features[i].geometry;
+			
+			if(geometry.type == "Polygon") {
+				geometry.coordinates = [geometry.coordinates];
+				geometry.type = "MultiPolygon";
 			}
-		]
+		}
+		
+		return geoJSON;
 	}
-	*/
+	
+	polygonToMultiPolygon(data);
 	
 console.log("Sending JSON.stringify([" + data.type + "]):");
 console.log(JSON.stringify(data));
