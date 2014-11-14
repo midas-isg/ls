@@ -140,11 +140,22 @@ MapDriver.prototype.saveMap = function() {
 	var data = this.featureLayer.toGeoJSON();
 	data.id = this.mapID;
 	
-	function polygonToMultiPolygon(geoJSON) {
+	function formatGeoJSON(geoJSON) {
 		var i;
 		var geometry;
+		var startDate = $("#start-date").val();
+		var endDate = $("#end-date").val();
+		
+		if(!validDate(startDate)) {
+			alert("Not a valid start date: " + startDate);
+			
+			return null;
+		}
 		
 		for(i = 0; i < geoJSON.features.length; i++) {
+			geoJSON.features[i].properties["startDate"] = startDate;
+			geoJSON.features[i].properties["endDate"] = endDate;
+			
 			geometry = geoJSON.features[i].geometry;
 			
 			if(geometry.type == "Polygon") {
@@ -156,7 +167,9 @@ MapDriver.prototype.saveMap = function() {
 		return geoJSON;
 	}
 	
-	polygonToMultiPolygon(data);
+	if(!formatGeoJSON(data)) {
+		return;
+	}
 	
 console.log("Sending JSON.stringify([" + data.type + "]):");
 console.log(JSON.stringify(data));
@@ -213,4 +226,52 @@ MapDriver.prototype.upload = function() {
 	var fileString = fileReader.readAsText(file);
 	
 	return;
+}
+
+/* Helper Functions */
+function validDate(dateString) {
+	var date = new Date(dateString);
+	
+	if(date.valueOf()) {
+		var tokens;
+		
+		if(dateString.search("-") != -1) {
+			tokens = dateString.split("-");
+		}
+		else {
+			tokens = dateString.split("/");
+		}
+		
+		return tokens.length;
+	}
+	
+	return 0;
+}
+
+function dateToServerDate(inputDate, fields) {
+	var serverDate = "";
+	
+	serverDate = serverDate.concat(inputDate.getUTCFullYear());
+	
+	if(fields > 1) {
+		serverDate = serverDate.concat("-");
+		
+		if(inputDate.getUTCMonth() < 9) {
+			serverDate = serverDate.concat("0");
+		}
+		
+		serverDate = serverDate.concat((inputDate.getUTCMonth() + 1));
+		
+		if(fields > 2) {
+			serverDate = serverDate.concat("-");
+			
+			if(inputDate.getUTCDate() < 10) {
+				serverDate = serverDate.concat("0");
+			}
+			
+			serverDate = serverDate.concat(inputDate.getUTCDate());
+		}
+	}
+	
+	return serverDate;
 }
