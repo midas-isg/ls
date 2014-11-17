@@ -7,6 +7,12 @@ public class MultiPolygon extends FeatureGeometry {
 	public List<List<List<double []>>> coordinates = new ArrayList<>();
 	//public List<Polygon> coordinates = new ArrayList<Polygon>();
 
+	public MultiPolygon() {
+		type = MultiPolygon.class.getSimpleName();
+		
+		return;
+	}
+	
 	public List<List<List<double []>>> getCoordinates() {
 		return coordinates;
 	}

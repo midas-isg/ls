@@ -7,7 +7,7 @@ import java.util.List;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class FeatureCollection {
-	public String type;// = FeatureCollection.class.getSimpleName();
+	public String type = FeatureCollection.class.getSimpleName();
 	public List<Feature> features = new ArrayList<Feature>();
 	//public JsonNode featuresNode;
 	public String id;
