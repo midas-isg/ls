@@ -9,7 +9,6 @@ public class MultiPolygon extends FeatureGeometry {
 
 	public MultiPolygon() {
 		setType(MultiPolygon.class.getSimpleName());
-		coordinates = new ArrayList<>();
 		
 		return;
 	}

@@ -5,7 +5,6 @@ public class Point extends FeatureGeometry {
 	
 	public Point() {
 		setType(Point.class.getSimpleName());
-		coordinates = new double[2];
 		
 		return;
 	}

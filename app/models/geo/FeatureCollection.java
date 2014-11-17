@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 public class FeatureCollection {
 	private String type;
 	private List<Feature> features;
-	//public JsonNode featuresNode;
 	private String id;
 	
 	public String getType() {

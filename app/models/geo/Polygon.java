@@ -4,21 +4,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Polygon extends FeatureGeometry {
-	private List<double[]> coordinates;
-	//private List<Point> coordinates = new ArrayList<Point>();
+	/* list of lists because polygons can have 'holes' */
+	private List<List<double[]>> coordinates;
+	//private List<List<Point>> coordinates = new ArrayList<>();
 	
 	public Polygon() {
 		setType(Polygon.class.getSimpleName());
-		coordinates = new ArrayList<double[]>();
 		
 		return;
 	}
 	
-	public List<double[]> getCoordinates() {
+	public List<List<double[]>> getCoordinates() {
 		return coordinates;
 	}
 
-	public void setCoordinates(List<double[]> coordinates) {
+	public void setCoordinates(List<List<double[]>> coordinates) {
 		this.coordinates = coordinates;
 	}
 }
