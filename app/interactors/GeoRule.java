@@ -14,7 +14,7 @@ public class GeoRule {
 		List<List<List<double[]>>> list = new ArrayList<>();
 		list.add(toBodyArray(geom));
 		MultiPolygon g = new MultiPolygon();
-		g.coordinates = list;
+		g.setCoordinates(list);
 		
 		return g; 
 	}

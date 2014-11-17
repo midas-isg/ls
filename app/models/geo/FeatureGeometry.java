@@ -1,5 +1,13 @@
 package models.geo;
 
 public abstract class FeatureGeometry {
-	public String type;
+	private String type;
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
 }

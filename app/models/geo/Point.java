@@ -1,8 +1,15 @@
 package models.geo;
 
 public class Point extends FeatureGeometry {
-	private double[] coordinates = new double[2];
-
+	private double[] coordinates;
+	
+	public Point() {
+		setType(Point.class.getSimpleName());
+		coordinates = new double[2];
+		
+		return;
+	}
+	
 	public double[] getCoordinates() {
 		return coordinates;
 	}

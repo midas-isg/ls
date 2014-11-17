@@ -1,8 +1,10 @@
 package interactors;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import play.Logger;
@@ -17,26 +19,28 @@ public class GeoJSONParser {
 	
 	public static FeatureCollection parse(JsonNode inputJsonNode) {
 		FeatureCollection featureCollection = new FeatureCollection();
-		featureCollection.id = inputJsonNode.get("id").textValue();
-		featureCollection.type = inputJsonNode.get("type").textValue();
+		featureCollection.setId(inputJsonNode.get("id").textValue());
+		featureCollection.setType(inputJsonNode.get("type").textValue());
 		
 		JsonNode featuresArrayNode = inputJsonNode.withArray("features");
+		Map<String, String> properties = new HashMap<>();
+		FeatureGeometry geometry;
 		
 		for(int i = 0; i < featuresArrayNode.size(); i++) {
 			JsonNode currentNode = featuresArrayNode.get(i);
 			Feature feature = new Feature();
-			feature.type = currentNode.get("type").textValue();
+			feature.setType(currentNode.get("type").textValue());
 			
 			Iterator<Entry<String, JsonNode>> propertiesIterator = currentNode.get("properties").fields();
 			while(propertiesIterator.hasNext()) {
 				Entry<String, JsonNode> mapping = propertiesIterator.next();
-				feature.properties.put(mapping.getKey(), mapping.getValue().textValue());
+				properties.put(mapping.getKey(), mapping.getValue().textValue());
 			}
 			
 			String type = currentNode.get("geometry").get("type").textValue();
 			switch(type){
 			case "MultiPolygon":
-				feature.geometry = parseMultiPolygon(currentNode.get("geometry"));
+				geometry = parseMultiPolygon(currentNode.get("geometry"));
 				break;
 				
 			case "Point":
@@ -46,8 +50,13 @@ public class GeoJSONParser {
 				throw (new RuntimeException("Unsupported Geometry: " + type + "\n"));
 			}
 			
-			featureCollection.features.add(feature);
+			feature.setProperties(properties);
+			feature.setGeometry(geometry);
+			
+			featureCollection.getFeatures().add(feature);
 		}
+		
+		
 		
 		return featureCollection;
 	}
@@ -65,11 +74,12 @@ public class GeoJSONParser {
 		JsonNode coordinatesNode = geometryNode.withArray("coordinates");
 		
 		MultiPolygon multiPolygon = new MultiPolygon();
-		multiPolygon.type = geometryNode.get("type").textValue();
+		multiPolygon.setType(geometryNode.get("type").textValue());
+		List<List<List<double []>>> coordinates = new ArrayList<>();
 		
 		for(int i = 0; i < coordinatesNode.size(); i++) {
-			multiPolygon.coordinates.add(new ArrayList<>());
-			List<List<double []>> polygonToFill = multiPolygon.coordinates.get(i);
+			coordinates.add(new ArrayList<>());
+			List<List<double []>> polygonToFill = coordinates.get(i);
 			
 			JsonNode polygon = coordinatesNode.get(i);
 			for(int j = 0; j < polygon.size(); j++) {
@@ -89,6 +99,8 @@ public class GeoJSONParser {
 				}
 			}
 		}
+		
+		multiPolygon.setCoordinates(coordinates);
 		
 		return multiPolygon;
 	}

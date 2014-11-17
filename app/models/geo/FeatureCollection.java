@@ -7,10 +7,41 @@ import java.util.List;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class FeatureCollection {
-	public String type = FeatureCollection.class.getSimpleName();
-	public List<Feature> features = new ArrayList<Feature>();
+	private String type;
+	private List<Feature> features;
 	//public JsonNode featuresNode;
-	public String id;
+	private String id;
+	
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public List<Feature> getFeatures() {
+		return features;
+	}
+
+	public void setFeatures(List<Feature> features) {
+		this.features = features;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+	
+	public FeatureCollection() {
+		type = FeatureCollection.class.getSimpleName();
+		features = new ArrayList<Feature>();
+		
+		return;
+	}
 	
 	@Override
 	public String toString() {

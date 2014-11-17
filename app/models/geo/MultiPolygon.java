@@ -4,11 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MultiPolygon extends FeatureGeometry {
-	public List<List<List<double []>>> coordinates = new ArrayList<>();
+	private List<List<List<double []>>> coordinates;
 	//public List<Polygon> coordinates = new ArrayList<Polygon>();
 
 	public MultiPolygon() {
-		type = MultiPolygon.class.getSimpleName();
+		setType(MultiPolygon.class.getSimpleName());
+		coordinates = new ArrayList<>();
 		
 		return;
 	}

@@ -12,9 +12,9 @@ import dao.entities.County;
 public class CountyRule {
 	public static FeatureCollection toFeatureCollection(List<County> counties) {
 		FeatureCollection fc = new FeatureCollection();
-		fc.features = toFeatures(counties);
+		fc.setFeatures(toFeatures(counties));
 		//fc.id = ;
-		fc.type = "FeatureCollection";
+		fc.setType("FeatureCollection");
 		
 		return fc;
 	}
@@ -30,8 +30,8 @@ public class CountyRule {
 
 	private static Feature toFeature(County county) {
 		Feature feature = new Feature();
-		feature.properties = toProperties(county);
-		feature.geometry = GeoRule.toFeatureGeometry(county.geom);
+		feature.setProperties(toProperties(county));
+		feature.setGeometry(GeoRule.toFeatureGeometry(county.geom));
 		
 		return feature;
 	}

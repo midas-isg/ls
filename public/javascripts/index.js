@@ -152,6 +152,10 @@ MapDriver.prototype.saveMap = function() {
 			return null;
 		}
 		
+		if(endDate.length == 0) {
+			endDate = null;
+		}
+		
 		for(i = 0; i < geoJSON.features.length; i++) {
 			geoJSON.features[i].properties["startDate"] = startDate;
 			geoJSON.features[i].properties["endDate"] = endDate;
