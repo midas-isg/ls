@@ -83,12 +83,12 @@ public class GeoJSONParser {
 			List<List<List<double []>>> coordinates = new ArrayList<>();
 			
 			for(int i = 0; i < coordinatesNode.size(); i++) {
-				coordinates.add(new ArrayList<>());
+				coordinates.add(new ArrayList<List<double[]>>());
 				List<List<double []>> polygonToFill = coordinates.get(i);
 				
 				JsonNode polygon = coordinatesNode.get(i);
 				for(int j = 0; j < polygon.size(); j++) {
-					polygonToFill.add(new ArrayList<>());
+					polygonToFill.add(new ArrayList<double[]>());
 					List<double []> componentToFill = polygonToFill.get(j);
 					
 					JsonNode polygonComponent = polygon.get(j);
