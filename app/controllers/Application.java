@@ -5,7 +5,9 @@ import javax.persistence.EntityManager;
 import dao.entities.AdministrativeUnit;
 import dao.entities.Data;
 import play.db.jpa.JPA;
-import interactors.CountyRule;
+
+//import interactors.CountyRule;
+
 import java.util.List;
 import play.db.jpa.Transactional;
 import play.libs.Json;
@@ -42,28 +44,8 @@ public class Application extends Controller {
 
 	@Transactional
 	public static Result leaflet() {
-		List<County> all = new CountyDAO().findAllCounties();
-		Object result = CountyRule.toFeatureCollection(all);
+		//List<County> all = new CountyDAO().findAllCounties();
+		Object result = null;//CountyRule.toFeatureCollection(all);
 		return ok(Json.toJson(result));
-	}
-	
-	@Transactional
-	public static Result createMap() {
-		return ok(views.html.index.render("TODO: Replace w/ createJSON service"));
-	}
-	
-	@Transactional
-	public static Result retrieveMap() {
-		return ok(views.html.index.render("TODO: Replace w/ retrieveJSON service"));
-	}
-	
-	@Transactional
-	public static Result updateMap() {
-		return ok(views.html.index.render("TODO: Replace w/ updateJSON service"));
-	}
-	
-	@Transactional
-	public static Result deleteMap() {
-		return ok(views.html.index.render("TODO: Replace w/ deleteJSON service"));
 	}
 }
