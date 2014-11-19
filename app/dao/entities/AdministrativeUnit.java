@@ -1,5 +1,7 @@
 package dao.entities;
 
+import javax.persistence.AttributeOverride;
+import javax.persistence.AttributeOverrides;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -14,7 +16,7 @@ import play.db.jpa.JPA;
 
 @Entity
 @Check (constraints = "end_date > start_date")
-@Table(name = "administrative_unit")
+@Table(name = "AU")
 public class AdministrativeUnit {
 
 	private Long gid;
@@ -37,6 +39,8 @@ public class AdministrativeUnit {
 	}
 	
 	@Embedded
+	@AttributeOverrides({
+		@AttributeOverride(name = "protect", column = @Column(name = "protect", columnDefinition = "boolean default false"))})
 	public Data getData() {
 		return data;
 	}

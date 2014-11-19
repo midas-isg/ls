@@ -5,16 +5,20 @@ import java.sql.Date;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 
-import org.hibernate.annotations.Check;
 import org.hibernate.annotations.Type;
 
 import com.vividsolutions.jts.geom.Geometry;
 
 @Embeddable
-@Check (constraints = "end_date > start_date")
 public class Data {
 
 	private String name;
+	
+	private String pathName;
+	
+	private long parentId;
+	
+	private long auTypeId;
 
 	private Date startDate;
 
@@ -22,7 +26,7 @@ public class Data {
 
 	private Geometry multiPolygonGeom;
 
-	private boolean locked;
+	private boolean protect;
 
 	private Date updateDate;
 
@@ -56,7 +60,7 @@ public class Data {
 	}
 
 	@Type(type = "org.hibernate.spatial.GeometryType")
-	@Column(name = "multipolygon_geom")
+	@Column(name = "multipolygon")
 	public Geometry getMultiPolygonGeom() {
 		return multiPolygonGeom;
 	}
@@ -65,12 +69,12 @@ public class Data {
 		this.multiPolygonGeom = geom;
 	}
 
-	public boolean getLocked() {
-		return locked;
+	public boolean getProtect() {
+		return protect;
 	}
-
-	public void setLocked(boolean locked) {
-		this.locked = locked;
+	
+	public void setProtect(boolean protect) {
+		this.protect = protect;
 	}
 
 	@Column(name = "update_date", nullable = false)
@@ -89,5 +93,32 @@ public class Data {
 
 	public void setUserId(String userId) {
 		this.userId = userId;
+	}
+
+	@Column(name = "path_name")
+	public String getPathName() {
+		return pathName;
+	}
+
+	public void setPathName(String pathName) {
+		this.pathName = pathName;
+	}
+
+	@Column(name = "parent_id")
+	public long getParentId() {
+		return parentId;
+	}
+
+	public void setParentId(long parentId) {
+		this.parentId = parentId;
+	}
+
+	@Column(name = "au_type_id")
+	public long getAuTypeId() {
+		return auTypeId;
+	}
+
+	public void setAuTypeId(long auTypeId) {
+		this.auTypeId = auTypeId;
 	}
 }

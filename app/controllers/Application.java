@@ -28,18 +28,15 @@ public class Application extends Controller {
 		Data data = new Data();
 		data.setName("au1");
 		data.setStartDate(new Date(112,2,1));
-		data.setLocked(true);
+		data.setProtect(true);
 		data.setUpdateDate(new Date(114,1,1));
 		au.setData(data);
-		//em.getTransaction().begin();
 		try {
 			em.persist(au);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		//em.getTransaction().commit();
-		//em.close();
 		return ok();
 	}
 

@@ -13,7 +13,7 @@ import javax.persistence.Table;
 import play.db.jpa.JPA;
 
 @Entity
-@Table(name = "audit_administrative_unit")
+@Table(name = "AUDIT_AU")
 public class AuditAdministrativeUnit {
 
 	private Long id;
@@ -50,7 +50,7 @@ public class AuditAdministrativeUnit {
 
 	@Embedded
 	@AttributeOverrides({
-			@AttributeOverride(name = "locked", column = @Column(name = "locked", nullable = true)),
+			@AttributeOverride(name = "protect", column = @Column(name = "protect", nullable = true)),
 			@AttributeOverride(name = "startDate", column = @Column(name = "start_date", nullable = true)) })
 	public Data getData() {
 		return data;
