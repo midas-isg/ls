@@ -29,7 +29,7 @@ $(document).ready(function() {
 function MapDriver(){
 	this.title = '<strong>Pitt</strong>sburgh';
 	this.mapID = 'tps23.k1765f0g';
-	this.geojsonFile = "http://tps23-nb.univ.pitt.edu/counties.json"; //'http://localhost:9000/counties'; //'http://localhost/countries.geo.json';
+	this.geojsonFile = 'http://localhost:9000/counties'; //"http://tps23-nb.univ.pitt.edu/counties.json"; //'http://localhost/countries.geo.json';
 	this.featureLayerObject = null;
 	this.startingCoordinates = [42.004097, -97.019516]; //[44.95167427365481, 582771.4257198056];
 	this.zoom = 6;
@@ -59,14 +59,28 @@ MapDriver.prototype.initialize = function() {
 		MAP_DRIVER.featureLayer.addTo(MAP_DRIVER.map);
 		
 		var drawControl = new L.Control.Draw({
+			draw: {
+				polyline: false,
+				rectangle: false,
+				circle: false,
+				marker: false
+			},
 			edit: {
-			  featureGroup: MAP_DRIVER.featureLayer
+				featureGroup: MAP_DRIVER.featureLayer
 			}
 		}).addTo(MAP_DRIVER.map);
 		
 		MAP_DRIVER.map.on('draw:created', function(e) {
 			MAP_DRIVER.featureLayer.addLayer(e.layer);
 console.log(e);
+		});
+		
+		MAP_DRIVER.map.on('draw:deleted', function(e) {
+			var layers = e.layers;
+			layers.eachLayer(function(layer) {
+				MAP_DRIVER.featureLayer.removeLayer(layer);
+				console.log(layer);
+			});
 		});
 	});
 	
@@ -90,6 +104,14 @@ console.log(e);
 			MAP_DRIVER.map.on('draw:created', function(e) {
 console.log(e);
 				MAP_DRIVER.featureLayer.addLayer(e.layer);
+			});
+			
+			MAP_DRIVER.map.on('draw:deleted', function(e) {
+				var layers = e.layers;
+				layers.eachLayer(function(layer) {
+					MAP_DRIVER.featureLayer.removeLayer(layer);
+					console.log(layer);
+				});
 			});
 		});
 	});
@@ -115,35 +137,43 @@ MapDriver.prototype.saveMap = function() {
 	}
 	*/
 	
-	var data = this.featureLayer.getGeoJSON();
-	/*
-	data = {
-		type: 'FeatureCollection',
-		features: [
-			{
-				geometry: [
-					12,
-					54
-				],
-				properties: 'props'
-			},
-			{
-				geometry: [
-					42,
-					28
-				],
-				properties: 'props'
-			},
-			{
-				geometry: [
-					33,
-					99
-				],
-				properties: 'props'
+	var data = this.featureLayer.toGeoJSON();
+	data.id = this.mapID;
+	
+	function formatGeoJSON(geoJSON) {
+		var i;
+		var geometry;
+		var startDate = $("#start-date").val();
+		var endDate = $("#end-date").val();
+		
+		if(!validDate(startDate)) {
+			alert("Not a valid start date: " + startDate);
+			
+			return null;
+		}
+		
+		if(endDate.length == 0) {
+			endDate = null;
+		}
+		
+		for(i = 0; i < geoJSON.features.length; i++) {
+			geoJSON.features[i].properties["startDate"] = startDate;
+			geoJSON.features[i].properties["endDate"] = endDate;
+			
+			geometry = geoJSON.features[i].geometry;
+			
+			if(geometry.type == "Polygon") {
+				geometry.coordinates = [geometry.coordinates];
+				geometry.type = "MultiPolygon";
 			}
-		]
+		}
+		
+		return geoJSON;
 	}
-	*/
+	
+	if(!formatGeoJSON(data)) {
+		return;
+	}
 	
 console.log("Sending JSON.stringify([" + data.type + "]):");
 console.log(JSON.stringify(data));
@@ -176,7 +206,7 @@ console.log("Length: " + JSON.stringify(data).length);
 
 MapDriver.prototype.download = function() {
 	var jsonData = this.featureLayer.toGeoJSON();
-	jsonData['id'] = this.mapID;
+	jsonData.id = this.mapID;
 	
 	var data = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(jsonData));
 	
@@ -200,4 +230,52 @@ MapDriver.prototype.upload = function() {
 	var fileString = fileReader.readAsText(file);
 	
 	return;
+}
+
+/* Helper Functions */
+function validDate(dateString) {
+	var date = new Date(dateString);
+	
+	if(date.valueOf()) {
+		var tokens;
+		
+		if(dateString.search("-") != -1) {
+			tokens = dateString.split("-");
+		}
+		else {
+			tokens = dateString.split("/");
+		}
+		
+		return tokens.length;
+	}
+	
+	return 0;
+}
+
+function dateToServerDate(inputDate, fields) {
+	var serverDate = "";
+	
+	serverDate = serverDate.concat(inputDate.getUTCFullYear());
+	
+	if(fields > 1) {
+		serverDate = serverDate.concat("-");
+		
+		if(inputDate.getUTCMonth() < 9) {
+			serverDate = serverDate.concat("0");
+		}
+		
+		serverDate = serverDate.concat((inputDate.getUTCMonth() + 1));
+		
+		if(fields > 2) {
+			serverDate = serverDate.concat("-");
+			
+			if(inputDate.getUTCDate() < 10) {
+				serverDate = serverDate.concat("0");
+			}
+			
+			serverDate = serverDate.concat(inputDate.getUTCDate());
+		}
+	}
+	
+	return serverDate;
 }

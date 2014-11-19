@@ -11,12 +11,11 @@ import dao.entities.County;
 
 public class CountyDAO {
 	public List<County> findAllCounties() {
-		
 		EntityManager em = JPA.em();
 		Query q = em.createQuery ("FROM County").setMaxResults(3);
 
 		@SuppressWarnings("unchecked")
-		List<County> result = q.getResultList();	
+		List<County> result = q.getResultList();
 		
 		return result;
 	}
