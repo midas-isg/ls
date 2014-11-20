@@ -30,7 +30,6 @@ function MapDriver(){
 	this.title = '<strong>Pitt</strong>sburgh';
 	this.mapID = 'tps23.k1765f0g';
 	this.geojsonFile = 'http://localhost:9000/counties'; //"http://tps23-nb.univ.pitt.edu/counties.json"; //'http://localhost/countries.geo.json';
-	this.featureLayerObject = null;
 	this.startingCoordinates = [42.004097, -97.019516]; //[44.95167427365481, 582771.4257198056];
 	this.zoom = 6;
 	this.accessToken = 'pk.eyJ1IjoidHBzMjMiLCJhIjoiVHEzc0tVWSJ9.0oYZqcggp29zNZlCcb2esA';
@@ -72,14 +71,15 @@ MapDriver.prototype.initialize = function() {
 		
 		MAP_DRIVER.map.on('draw:created', function(e) {
 			MAP_DRIVER.featureLayer.addLayer(e.layer);
-console.log(e);
+			console.log(e);
 		});
 		
 		MAP_DRIVER.map.on('draw:deleted', function(e) {
 			var layers = e.layers;
 			layers.eachLayer(function(layer) {
-				MAP_DRIVER.featureLayer.removeLayer(layer);
-				console.log(layer);
+				if(MAP_DRIVER.featureLayer.hasLayer(layer._leaflet_id + 1)) {
+					console.log(MAP_DRIVER.featureLayer.removeLayer(layer._leaflet_id + 1));
+				}
 			});
 		});
 	});
@@ -102,15 +102,16 @@ console.log(e);
 			}).addTo(MAP_DRIVER.map);
 			
 			MAP_DRIVER.map.on('draw:created', function(e) {
-console.log(e);
 				MAP_DRIVER.featureLayer.addLayer(e.layer);
+				console.log(e);
 			});
 			
 			MAP_DRIVER.map.on('draw:deleted', function(e) {
 				var layers = e.layers;
 				layers.eachLayer(function(layer) {
-					MAP_DRIVER.featureLayer.removeLayer(layer);
-					console.log(layer);
+					if(MAP_DRIVER.featureLayer.hasLayer(layer._leaflet_id + 1)) {
+						console.log(MAP_DRIVER.featureLayer.removeLayer(layer._leaflet_id + 1));
+					}
 				});
 			});
 		});
