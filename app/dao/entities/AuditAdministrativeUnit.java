@@ -24,6 +24,8 @@ public class AuditAdministrativeUnit {
 
 	private String operation;
 
+	private Long parentId;
+
 	public static AuditAdministrativeUnit findById(Long id) {
 		return JPA.em().find(AuditAdministrativeUnit.class, id);
 	}
@@ -68,4 +70,12 @@ public class AuditAdministrativeUnit {
 		this.operation = operation;
 	}
 
+	@Column(name = "parent_id")
+	public Long getParent() {
+		return parentId;
+	}
+
+	public void setParent(Long parent) {
+		this.parentId = parent;
+	}
 }

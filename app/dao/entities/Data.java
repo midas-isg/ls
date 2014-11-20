@@ -13,11 +13,9 @@ import com.vividsolutions.jts.geom.Geometry;
 public class Data {
 
 	private String name;
-	
+
 	private String pathName;
-	
-	private long parentId;
-	
+
 	private long auTypeId;
 
 	private Date startDate;
@@ -40,7 +38,7 @@ public class Data {
 	public void setName(String name) {
 		this.name = name;
 	}
-	
+
 	@Column(name = "start_date", nullable = false)
 	public Date getStartDate() {
 		return startDate;
@@ -72,7 +70,7 @@ public class Data {
 	public boolean getProtect() {
 		return protect;
 	}
-	
+
 	public void setProtect(boolean protect) {
 		this.protect = protect;
 	}
@@ -104,15 +102,6 @@ public class Data {
 		this.pathName = pathName;
 	}
 
-	@Column(name = "parent_id")
-	public long getParentId() {
-		return parentId;
-	}
-
-	public void setParentId(long parentId) {
-		this.parentId = parentId;
-	}
-
 	@Column(name = "au_type_id")
 	public long getAuTypeId() {
 		return auTypeId;
@@ -121,4 +110,5 @@ public class Data {
 	public void setAuTypeId(long auTypeId) {
 		this.auTypeId = auTypeId;
 	}
+
 }
