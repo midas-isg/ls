@@ -144,6 +144,8 @@ MapDriver.prototype.saveMap = function() {
 	function formatGeoJSON(geoJSON) {
 		var i;
 		var geometry;
+		var auName = $("#au-name").val();
+		var auCode = $("#au-code").val();
 		var startDate = $("#start-date").val();
 		var endDate = $("#end-date").val();
 		
@@ -153,11 +155,25 @@ MapDriver.prototype.saveMap = function() {
 			return null;
 		}
 		
+		if(auName.length == 0) {
+			alert("Please enter the Administrative Unit's name");
+			
+			return  null;
+		}
+		
+		if(auCode.length == 0) {
+			alert("Please enter the Administrative Unit's code");
+			
+			return null;
+		}
+		
 		if(endDate.length == 0) {
 			endDate = null;
 		}
 		
 		for(i = 0; i < geoJSON.features.length; i++) {
+			geoJSON.features[i].properties["name"] = auName;
+			geoJSON.features[i].properties["code"] = auCode;
 			geoJSON.features[i].properties["startDate"] = startDate;
 			geoJSON.features[i].properties["endDate"] = endDate;
 			
