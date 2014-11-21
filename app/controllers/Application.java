@@ -5,8 +5,7 @@ import javax.persistence.EntityManager;
 import dao.entities.AdministrativeUnit;
 import dao.entities.Data;
 import play.db.jpa.JPA;
-
-//import interactors.CountyRule;
+import interactors.CountyRule;
 
 import java.util.List;
 import play.db.jpa.Transactional;
@@ -44,8 +43,8 @@ public class Application extends Controller {
 
 	@Transactional
 	public static Result leaflet() {
-		//List<County> all = new CountyDAO().findAllCounties();
-		Object result = null;//CountyRule.toFeatureCollection(all);
+		List<County> all = new CountyDAO().findAllCounties();
+		Object result = CountyRule.toFeatureCollection(all);
 		return ok(Json.toJson(result));
 	}
 }
