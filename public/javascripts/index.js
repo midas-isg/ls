@@ -148,6 +148,21 @@ MapDriver.prototype.saveMap = function() {
 		var auCode = $("#au-code").val();
 		var startDate = $("#start-date").val();
 		var endDate = $("#end-date").val();
+		var auParent = getParent();
+		
+		function getParent() {
+			var tree = $("#au-parent input");
+			var choice;
+			
+			for(var c = 0; c < tree.length; c++) {
+				if(tree[c].checked) {
+					choice = tree[c].value;
+					break;
+				}
+			}
+			
+			return choice;
+		}
 		
 		if(!validDate(startDate)) {
 			alert("Not a valid start date: " + startDate);
@@ -174,6 +189,7 @@ MapDriver.prototype.saveMap = function() {
 		for(i = 0; i < geoJSON.features.length; i++) {
 			geoJSON.features[i].properties["name"] = auName;
 			geoJSON.features[i].properties["code"] = auCode;
+			geoJSON.features[i].properties["parent"] = auParent;
 			geoJSON.features[i].properties["startDate"] = startDate;
 			geoJSON.features[i].properties["endDate"] = endDate;
 			
