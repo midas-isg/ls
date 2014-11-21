@@ -14,7 +14,11 @@ public class Data {
 
 	private String name;
 
-	private String pathName;
+	private String code;
+	
+	private String codePath;
+	
+	private long codeTypeId;
 
 	private long auTypeId;
 
@@ -28,7 +32,9 @@ public class Data {
 
 	private Date updateDate;
 
-	private String userId;
+	private long userId;
+	
+	private String gisSource;
 
 	@Column(name = "name")
 	public String getName() {
@@ -85,21 +91,12 @@ public class Data {
 	}
 
 	@Column(name = "user_id")
-	public String getUserId() {
+	public long getUserId() {
 		return userId;
 	}
 
-	public void setUserId(String userId) {
+	public void setUserId(long userId) {
 		this.userId = userId;
-	}
-
-	@Column(name = "path_name")
-	public String getPathName() {
-		return pathName;
-	}
-
-	public void setPathName(String pathName) {
-		this.pathName = pathName;
 	}
 
 	@Column(name = "au_type_id")
@@ -109,6 +106,41 @@ public class Data {
 
 	public void setAuTypeId(long auTypeId) {
 		this.auTypeId = auTypeId;
+	}
+
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
+	}
+
+	@Column (name = "code_path" )
+	public String getCodePath() {
+		return codePath;
+	}
+
+	public void setCodePath(String codePath) {
+		this.codePath = codePath;
+	}
+
+	@Column (name = "code_type_id")
+	public long getCodeTypeId() {
+		return codeTypeId;
+	}
+
+	public void setCodeTypeId(long codeTypeId) {
+		this.codeTypeId = codeTypeId;
+	}
+
+	@Column (name = "gis_src")
+	public String getGisSource() {
+		return gisSource;
+	}
+
+	public void setGisSource(String gisSource) {
+		this.gisSource = gisSource;
 	}
 
 }
