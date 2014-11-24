@@ -2,33 +2,19 @@ package controllers;
 
 //import interactors.CountyRule;
 
+import interactors.CountyRule;
 import interactors.GeoJSONParser;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import models.geo.*;
+import models.geo.FeatureCollection;
 import play.Logger;
 import play.db.jpa.Transactional;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http.Context;
-import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.Request;
 import play.mvc.Http.RequestBody;
 import play.mvc.Result;
-import play.data.DynamicForm;
-import play.data.Form;
-import play.mvc.BodyParser;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
-//import dao.CountyDAO;
-//import dao.entities.County;
 
 public class AdministrativeUnitServices extends Controller {
 	static Status okJson(Object resultObject) {
@@ -43,15 +29,10 @@ public class AdministrativeUnitServices extends Controller {
 	}
 	
 	private static Result okCRUD(Object result) {
-		//Map<String, String> resultMap = new HashMap<String, String>();
-		//resultMap.put("id", String.valueOf(result));
-		
-		//return okJson(resultMap);
 		return okJson(result);
 	}
 	
 	@Transactional
-	//@BodyParser.Of(BodyParser.Json.class)
 	public static Result create() {
 		try {
 			Object result = null;
@@ -88,7 +69,8 @@ public class AdministrativeUnitServices extends Controller {
 			}
 			
 			FeatureCollection parsed = GeoJSONParser.parse(requestJSON);
-			Logger.debug(parsed.toString());
+			Long id = CountyRule.save(parsed);
+			Logger.debug("CountyRule save =" + id);
 			Logger.debug("=====");
 			
 			return okCRUD(result);

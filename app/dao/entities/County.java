@@ -30,4 +30,6 @@ public class County {
 	@Type(type = "org.hibernate.spatial.GeometryType")
 	@Column(name = "geom", nullable = true, columnDefinition="")
 	public Geometry geom;
+	
+	
 }

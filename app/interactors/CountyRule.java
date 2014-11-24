@@ -7,6 +7,7 @@ import java.util.Map;
 
 import models.geo.Feature;
 import models.geo.FeatureCollection;
+import dao.CountyDAO;
 import dao.entities.County;
 
 public class CountyRule {
@@ -31,7 +32,7 @@ public class CountyRule {
 	private static Feature toFeature(County county) {
 		Feature feature = new Feature();
 		feature.setProperties(toProperties(county));
-		feature.setGeometry(GeoRule.toFeatureGeometry(county.geom));
+		feature.setGeometry(GeoOutputRule.toFeatureGeometry(county.geom));
 		
 		return feature;
 	}
@@ -45,5 +46,23 @@ public class CountyRule {
 		
 		return properties;
 	}
+	
+	public static Long save(FeatureCollection fc){
+		County c = toCounty(fc);
+		CountyDAO dao = new CountyDAO();
+		return dao.save(c);
+	}
 
+	private static County toCounty(FeatureCollection fc){
+		County c = new County();
+		c.statefp = "1";
+		c.geoid = "1";
+		c.name = extractName(fc);
+		c.geom = GeoInputRule.toMultiPolygon(fc);
+		return c;
+	}
+	
+	private static String extractName(FeatureCollection fc) {
+		return fc.getFeatures().get(0).getProperties().get("name");
+	}
 }
