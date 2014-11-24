@@ -151,11 +151,39 @@ MapDriver.prototype.saveMap = function() {
 		var auCode = $("#au-code").val();
 		var startDate = $("#start-date").val();
 		var endDate = $("#end-date").val();
+		var auParent = $("#au-parent").val();
 		
-		if(!validDate(startDate)) {
-			alert("Not a valid start date: " + startDate);
+		var dateTokens = validDate(startDate);
+		if(startDate == "today") {
+			startDate = new Date().toString();
+			dateTokens = 3;
+		}
+		
+		if(dateTokens != 0) {
+			startDate = toServerDate(new Date(startDate), dateTokens);
+		}
+		else {
+			alert("Invalid date: " + startDate);
 			
 			return null;
+		}
+		
+		dateTokens = validDate(endDate);
+		if(endDate == "today") {
+			endDate = new Date().toString();
+			dateTokens = 3;
+		}
+		
+		if(dateTokens != 0) {
+			endDate = toServerDate(new Date(endDate), dateTokens);
+		}
+		else if(endDate.length > 0) {
+			alert("Invalid date: " + endDate);
+			
+			return null;
+		}
+		else {
+			endDate = null;
 		}
 		
 		if(auName.length == 0) {
@@ -170,13 +198,16 @@ MapDriver.prototype.saveMap = function() {
 			return null;
 		}
 		
-		if(endDate.length == 0) {
-			endDate = null;
+		if(auParent.length == 0) {
+			alert("Please enter the Administrative Unit's parent");
+			
+			return null;
 		}
 		
 		for(i = 0; i < geoJSON.features.length; i++) {
 			geoJSON.features[i].properties["name"] = auName;
 			geoJSON.features[i].properties["code"] = auCode;
+			geoJSON.features[i].properties["parent"] = auParent;
 			geoJSON.features[i].properties["startDate"] = startDate;
 			geoJSON.features[i].properties["endDate"] = endDate;
 			
@@ -272,7 +303,7 @@ function validDate(dateString) {
 	return 0;
 }
 
-function dateToServerDate(inputDate, fields) {
+function toServerDate(inputDate, fields) {
 	var serverDate = "";
 	
 	serverDate = serverDate.concat(inputDate.getUTCFullYear());
