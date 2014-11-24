@@ -21,7 +21,7 @@ import play.db.jpa.JPA;
 
 @Entity
 @Check(constraints = "end_date > start_date")
-@Table(name = "AU")
+@Table(name = "au")
 public class AdministrativeUnit {
 
 	private Long gid;
@@ -37,7 +37,7 @@ public class AdministrativeUnit {
 	}
 
 	@Id
-	@Column(name = "gid", columnDefinition = "serial")
+	@Column(name = "gid")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	public Long getGid() {
 		return gid;
@@ -58,7 +58,7 @@ public class AdministrativeUnit {
 	}
 
 	@ManyToOne
-	@JoinColumn(name = "parent_id")
+	@JoinColumn(name = "parent_gid", nullable = true)
 	public AdministrativeUnit getParent() {
 		return parent;
 	}
