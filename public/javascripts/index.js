@@ -195,6 +195,12 @@ MapDriver.prototype.saveMap = function() {
 			return null;
 		}
 		
+		if(auParent.length == 0) {
+			alert("Please enter the Administrative Unit's parent");
+			
+			return null;
+		}
+		
 		for(i = 0; i < geoJSON.features.length; i++) {
 			geoJSON.features[i].properties["name"] = auName;
 			geoJSON.features[i].properties["code"] = auCode;
