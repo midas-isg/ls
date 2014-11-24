@@ -47,13 +47,21 @@ public class AuRule {
 		String name = au.getData().getName();
 		String start = String.valueOf(au.getData().getStartDate());
 		String end = String.valueOf(au.getData().getEndDate());
-		String parent = String.valueOf(au.getParent().getData().getName());
+		String parentName = getParentName(au);
 		String des = gid + ": " + name + " " + start + " to " + end
-				+ " parent=" + parent;
+				+ " parent=" + parentName;
 		
 		properties.put("description", des);
 		
 		return properties;
+	}
+
+	private static String getParentName(AdministrativeUnit au) {
+		AdministrativeUnit parent = au.getParent();
+		String parentName = (parent == null) 
+				? "null" 
+				: String.valueOf(parent.getData().getName());
+		return parentName;
 	}
 	
 
