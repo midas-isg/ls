@@ -69,7 +69,7 @@ public class AdministrativeUnitServices extends Controller {
 			}
 			
 			FeatureCollection parsed = GeoJSONParser.parse(requestJSON);
-			Long id = AuRule.save(parsed);
+			Long id = AuRule.create(parsed);
 			Logger.debug("CountyRule save =" + id);
 			Logger.debug("=====");
 			
@@ -82,7 +82,7 @@ public class AdministrativeUnitServices extends Controller {
 	
 	@Transactional
 	public static Result read(String gid) {
-		return okCRUD(AuRule.findByGid(Long.parseLong(gid)));
+		return okCRUD(AuRule.getFeatureCollection(Long.parseLong(gid)));
 	}
 	
 	@Transactional

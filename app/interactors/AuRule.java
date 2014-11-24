@@ -47,31 +47,53 @@ public class AuRule {
 		String name = au.getData().getName();
 		String start = String.valueOf(au.getData().getStartDate());
 		String end = String.valueOf(au.getData().getEndDate());
-		String des = gid + ": " + name + " " + start + " to " + end;
+		String parentName = getParentName(au);
+		String des = gid + ": " + name + " " + start + " to " + end
+				+ " parent=" + parentName;
+		
 		properties.put("description", des);
 		
 		return properties;
 	}
-	
 
-	public static Long save(FeatureCollection fc){
-		AdministrativeUnit au = toAu(fc);
-		AuDao dao = new AuDao();
-		return dao.save(au);
+	private static String getParentName(AdministrativeUnit au) {
+		AdministrativeUnit parent = au.getParent();
+		String parentName = (parent == null) 
+				? "null" 
+				: String.valueOf(parent.getData().getName());
+		return parentName;
 	}
 	
+
+	public static Long create(FeatureCollection fc){
+		AdministrativeUnit au = toAu(fc);
+		AuDao dao = new AuDao();
+		return dao.create(au);
+	}
+	
+	public static void delete(long gid){
+		AuDao dao = new AuDao();
+		dao.delete(dao.read(gid));
+	}
+
 	private static AdministrativeUnit toAu(FeatureCollection fc){
 		AdministrativeUnit c = new AdministrativeUnit();
 		Data data = new Data();
 		data.setMultiPolygonGeom(GeoInputRule.toMultiPolygon(fc));
-		String name = extractName(fc, "name");
+		String name = getString(fc, "name");
 		data.setName(name);
-		String date = extractName(fc, "startDate");
+		String date = getString(fc, "startDate");
 		Date startDate = newDate(date);
 		data.setStartDate(startDate);
 		data.setUpdateDate(startDate);
-		data.setCode(extractName(fc, "code"));
+		data.setCode(getString(fc, "code"));
 		c.setData(data);
+		String parentGid = getString(fc, "parent");
+		AdministrativeUnit parent = findByGid(Long.parseLong(parentGid));
+		if (parent == null){
+			throw new RuntimeException("Cannot find parent gid=" + parentGid);
+		}
+		c.setParent(parent);
 		return c;
 	}
 
@@ -79,15 +101,20 @@ public class AuRule {
 		return java.sql.Date.valueOf(date);
 	}
 	
-	private static String extractName(FeatureCollection fc, String key) {
+	private static String getString(FeatureCollection fc, String key) {
 		return fc.getFeatures().get(0).getProperties().get(key);
 	}
 
-	public static FeatureCollection findByGid(long gid) {
-		AdministrativeUnit au = new AuDao().findByGid(gid);
+	public static FeatureCollection getFeatureCollection(long gid) {
+		AdministrativeUnit au = findByGid(gid);
 		List<AdministrativeUnit> list = new ArrayList<>();
 		list.add(au);
 		return toFeatureCollection(list);
+	}
+
+	private static AdministrativeUnit findByGid(long gid) {
+		AdministrativeUnit au = new AuDao().read(gid);
+		return au;
 	}
 
 }

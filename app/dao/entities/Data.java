@@ -18,9 +18,9 @@ public class Data {
 	
 	private String codePath;
 	
-	private long codeTypeId;
+	private Long codeTypeId;
 
-	private long auTypeId;
+	private Long auTypeId;
 
 	private Date startDate;
 
@@ -32,7 +32,7 @@ public class Data {
 
 	private Date updateDate;
 
-	private long userId;
+	private Long userId;
 	
 	private String gisSource;
 
@@ -91,20 +91,20 @@ public class Data {
 	}
 
 	@Column(name = "user_id")
-	public long getUserId() {
+	public Long getUserId() {
 		return userId;
 	}
 
-	public void setUserId(long userId) {
+	public void setUserId(Long userId) {
 		this.userId = userId;
 	}
 
 	@Column(name = "au_type_id")
-	public long getAuTypeId() {
+	public Long getAuTypeId() {
 		return auTypeId;
 	}
 
-	public void setAuTypeId(long auTypeId) {
+	public void setAuTypeId(Long auTypeId) {
 		this.auTypeId = auTypeId;
 	}
 
@@ -126,11 +126,11 @@ public class Data {
 	}
 
 	@Column (name = "code_type_id")
-	public long getCodeTypeId() {
+	public Long getCodeTypeId() {
 		return codeTypeId;
 	}
 
-	public void setCodeTypeId(long codeTypeId) {
+	public void setCodeTypeId(Long codeTypeId) {
 		this.codeTypeId = codeTypeId;
 	}
 
