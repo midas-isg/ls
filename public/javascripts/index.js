@@ -5,19 +5,28 @@ var MAP_DRIVER = null;
 $(document).ready(function() {
 	MAP_DRIVER = new MapDriver();
 	
-	$('#upload_button').click(function() {
+	$('#upload-button').click(function() {
 		MAP_DRIVER.upload();
 		
 		return;
 	});
 	
-	$('#download_button').click(function() {
+	$('#download-button').click(function() {
 		MAP_DRIVER.download();
 		
 		return;
 	});
 	
-	$('#save_button').click(function() {
+	$('#db-load-button').click(function() {
+		var mapID = $("#map-id").val();
+		MAP_DRIVER.geojsonFile = "http://tps23-nb.univ.pitt.edu/test.json"; //'http://localhost:9000/resources/aus/' + mapID;
+		
+		MAP_DRIVER.loadJSON(JSON.parse(MAP_DRIVER.geojsonFile));
+		
+		return;
+	});
+	
+	$('#save-button').click(function() {
 		MAP_DRIVER.saveMap();
 		
 		return;
@@ -30,9 +39,9 @@ function MapDriver(){
 	this.title = '<strong>Pitt</strong>sburgh';
 	this.mapID = 'tps23.k1765f0g';
 	this.geojsonFile = 
-			'http://localhost:9000/counties'; 
-	//'http://localhost:9000/resources/aus/7';
-	//"http://tps23-nb.univ.pitt.edu/counties.json"; //'http://localhost/countries.geo.json';
+	//'http://localhost:9000/counties'; 
+	//'http://localhost:9000/resources/aus/14';
+	"http://tps23-nb.univ.pitt.edu/counties.json";
 	this.startingCoordinates = [42.004097, -97.019516]; //[44.95167427365481, 582771.4257198056];
 	this.zoom = 6;
 	this.accessToken = 'pk.eyJ1IjoidHBzMjMiLCJhIjoiVHEzc0tVWSJ9.0oYZqcggp29zNZlCcb2esA';
