@@ -31,7 +31,7 @@ public class AuditAdministrativeUnit {
 	}
 
 	@Id
-	@Column(name = "id", columnDefinition = "serial")
+	@Column(name = "id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	public Long getId() {
 		return id;
@@ -70,7 +70,7 @@ public class AuditAdministrativeUnit {
 		this.operation = operation;
 	}
 
-	@Column(name = "parent_id")
+	@Column(name = "parent_gid")
 	public Long getParent() {
 		return parentId;
 	}

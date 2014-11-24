@@ -1,10 +1,7 @@
 package models.geo;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-
-import com.fasterxml.jackson.databind.JsonNode;
 
 public class FeatureCollection {
 	private String type;
@@ -44,6 +41,7 @@ public class FeatureCollection {
 	
 	@Override
 	public String toString() {
-		return "FeatureCollection [id=" + id + ", type=" + type + ", " + features.size() + " features=" + features.toString() + "]";
+		return "FeatureCollection [id=" + id + ", type=" + type + ", " +
+				features.size() + " features=" + features.toString() + "]";
 	}
 }

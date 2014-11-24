@@ -7,8 +7,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import play.Logger;
-import models.geo.*;
+import models.geo.Feature;
+import models.geo.FeatureCollection;
+import models.geo.FeatureGeometry;
+import models.geo.MultiPolygon;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
