@@ -2,7 +2,7 @@ package controllers;
 
 //import interactors.CountyRule;
 
-import interactors.CountyRule;
+import interactors.AuRule;
 import interactors.GeoJSONParser;
 import models.geo.FeatureCollection;
 import play.Logger;
@@ -69,7 +69,7 @@ public class AdministrativeUnitServices extends Controller {
 			}
 			
 			FeatureCollection parsed = GeoJSONParser.parse(requestJSON);
-			Long id = CountyRule.save(parsed);
+			Long id = AuRule.save(parsed);
 			Logger.debug("CountyRule save =" + id);
 			Logger.debug("=====");
 			
@@ -81,8 +81,8 @@ public class AdministrativeUnitServices extends Controller {
 	}
 	
 	@Transactional
-	public static Result read() {
-		return ok(views.html.index.render("TODO: Replace w/ read service"));
+	public static Result read(String gid) {
+		return okCRUD(AuRule.findByGid(Long.parseLong(gid)));
 	}
 	
 	@Transactional

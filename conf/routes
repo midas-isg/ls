@@ -9,7 +9,7 @@ GET		/counties					controllers.Application.leaflet()
 
 # GEO-JSON & KML Map CRUD Operations
 POST	/resources/aus					controllers.AdministrativeUnitServices.create()
-GET		/resources/aus					controllers.AdministrativeUnitServices.read()
+GET		/resources/aus/:gid				controllers.AdministrativeUnitServices.read(gid)
 PUT		/resources/aus					controllers.AdministrativeUnitServices.update()
 DELETE	/resources/aus					controllers.AdministrativeUnitServices.delete()
 

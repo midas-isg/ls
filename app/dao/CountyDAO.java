@@ -14,7 +14,7 @@ public class CountyDAO {
 	public List<County> findAllCounties() {
 		EntityManager em = JPA.em();
 		String qs = "FROM County "
-				+ "where gid=12345"
+				//+ "where gid=12345"
 				;
 		Query q = em.createQuery (qs)
 				//.setFirstResult(1)
