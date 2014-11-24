@@ -72,6 +72,14 @@ MapDriver.prototype.initialize = function() {
 	this.featureLayer.on('ready', function() {
 		MAP_DRIVER.featureLayer.addTo(MAP_DRIVER.map);
 		
+		var feature = MAP_DRIVER.featureLayer.getGeoJSON().features[0];
+		
+		//$("#au-name").val();
+		$("#au-code").val(feature.properties.title);
+		//$("#start-date").val();
+		//$("#end-date").val();
+		$("#au-parent").val(feature.properties.description);
+		
 		var drawControl = new L.Control.Draw({
 			draw: {
 				polyline: false,
@@ -103,7 +111,7 @@ MapDriver.prototype.initialize = function() {
 		console.log("Error: " + err['error']['statusText']);
 		
 		if((MAP_DRIVER.featureLayer.getLayers().length == 0) && MAP_DRIVER.mapID) {
-			console.log("Attempting to load via mapID");
+			console.log("Attempting to load via mapbox ID");
 			MAP_DRIVER.featureLayer = L.mapbox.featureLayer().loadID(MAP_DRIVER.mapID);
 		}
 		
