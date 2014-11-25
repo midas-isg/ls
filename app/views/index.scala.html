@@ -3,6 +3,7 @@
 @imports = {
 	<!--<script src='https://api.tiles.mapbox.com/mapbox.js/v2.0.1/mapbox.js'></script>-->
 	<!--<script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-draw/v0.2.2/leaflet.draw.js'></script>-->
+	<script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-omnivore/v0.2.0/leaflet-omnivore.min.js'></script>
 	
 	<script src='@routes.Assets.at("external_packages/Mapbox/mapbox-2.0.1.js")'></script>
 	<script src='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet.draw-0.2.2.js")'></script>
@@ -37,7 +38,7 @@
 			</div>
 			
 			<div style="clear: both;">
-				<input id="json-input" accept=".json, .geojson" type="file"><button id="upload-button">Load Map</button>
+				<input id="json-input" accept=".json, .geojson, .kml" type="file"><button id="upload-button">Load Map</button>
 				<button id='download-button'>Download</button>
 			</div>
 		</div>

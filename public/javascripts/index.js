@@ -46,7 +46,7 @@ function MapDriver(){
 	"http://localhost:9000/resources/aus/14";
 	//"http://tps23-nb.univ.pitt.edu/counties.json";
 	this.startingCoordinates = [42.004097, -97.019516]; //[44.95167427365481, 582771.4257198056];
-	this.zoom = 6;
+	this.zoom = 4;
 	this.accessToken = 'pk.eyJ1IjoidHBzMjMiLCJhIjoiVHEzc0tVWSJ9.0oYZqcggp29zNZlCcb2esA';
 	this.featureLayer = null;
 	this.map = null;
@@ -74,11 +74,13 @@ MapDriver.prototype.initialize = function() {
 		
 		var feature = MAP_DRIVER.featureLayer.getGeoJSON().features[0];
 		
-		//$("#au-name").val();
-		$("#au-code").val(feature.properties.title);
-		//$("#start-date").val();
-		//$("#end-date").val();
-		$("#au-parent").val(feature.properties.description);
+		$("#au-name").val(feature.properties.name);
+		$("#au-code").val(feature.properties.code);
+		$("#start-date").val(feature.properties.startDate);
+		$("#end-date").val(feature.properties.endDate);
+		$("#au-parent").val(feature.properties.parentGid);
+		feature.properties.title = feature.properties.name + " [" + feature.properties.code + "] " + "parent: " + feature.properties.parentGid +
+			"; " + feature.properties.startDate + "-" + feature.properties.endDate;
 		
 		var drawControl = new L.Control.Draw({
 			draw: {
@@ -293,7 +295,14 @@ MapDriver.prototype.upload = function() {
 	var fileReader = new FileReader();
 	
 	fileReader.onload = (function() {
-		var jsonData = JSON.parse(fileReader['result']);
+		var kmlData = fileReader['result'];
+		var kmlDOM = (new DOMParser()).parseFromString(kmlData, 'text/xml');
+		
+		var jsonData = toGeoJSON.kml(kmlDOM);
+		
+		if(jsonData.features.length == 0) {
+			jsonData = JSON.parse(kmlData);
+		}
 		
 		MAP_DRIVER.loadJSON(jsonData);
 	});
