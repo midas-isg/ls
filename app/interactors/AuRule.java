@@ -41,29 +41,34 @@ public class AuRule {
 
 	private static Map<String, String> toProperties(AdministrativeUnit au) {
 		Map<String, String> properties = new HashMap<>();
-		properties.put("title",  au.getData().getCode());
-		String gid = String.valueOf(au.getGid());
-		properties.put("id", gid);
-		String name = au.getData().getName();
-		String start = String.valueOf(au.getData().getStartDate());
-		String end = String.valueOf(au.getData().getEndDate());
-		String parentName = getParentName(au);
-		String des = gid + ": " + name + " " + start + " to " + end
-				+ " parent=" + parentName;
-		
-		properties.put("description", des);
-		
+		putAsStringIfNotNull(properties, "gid", getParentGid(au));
+		putAsStringIfNotNull(properties, "name", au.getData().getName());
+		putAsStringIfNotNull(properties, "code", au.getData().getCode());
+		putAsStringIfNotNull(properties, "startDate", au.getData().getStartDate());
+		putAsStringIfNotNull(properties, "endDate", au.getData().getEndDate());
+		AdministrativeUnit parent = au.getParent();
+		putAsStringIfNotNull(properties, "parentGid", getParentGid(parent));
 		return properties;
 	}
 
-	private static String getParentName(AdministrativeUnit au) {
-		AdministrativeUnit parent = au.getParent();
-		String parentName = (parent == null) 
-				? "null" 
-				: String.valueOf(parent.getData().getName());
-		return parentName;
+	private static String toString(Object object) {
+		if (object == null)
+			return null;
+		return String.valueOf(object);
 	}
-	
+
+	private static String getParentGid(AdministrativeUnit parent) {
+		if (parent == null)
+			return null;
+		return String.valueOf(parent.getGid());
+	}
+
+	private static void putAsStringIfNotNull(Map<String, String> properties,
+			String key, Object value) {
+		if (value == null)
+			return;
+		properties.put(key, toString(value));
+	}
 
 	public static Long create(FeatureCollection fc){
 		AdministrativeUnit au = toAu(fc);
