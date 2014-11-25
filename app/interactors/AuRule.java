@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.vividsolutions.jts.geom.Geometry;
+
 import models.geo.Feature;
 import models.geo.FeatureCollection;
 import dao.AuDao;
@@ -34,20 +36,23 @@ public class AuRule {
 	private static Feature toFeature(AdministrativeUnit au) {
 		Feature feature = new Feature();
 		feature.setProperties(toProperties(au));
-		feature.setGeometry(GeoOutputRule.toFeatureGeometry(au.getData().getMultiPolygonGeom()));
+		Geometry multiPolygonGeom = au.getData().getMultiPolygonGeom();
+		feature.setGeometry(GeoOutputRule.toFeatureGeometry(multiPolygonGeom));
 		
 		return feature;
 	}
 
 	private static Map<String, String> toProperties(AdministrativeUnit au) {
 		Map<String, String> properties = new HashMap<>();
-		putAsStringIfNotNull(properties, "gid", getParentGid(au));
-		putAsStringIfNotNull(properties, "name", au.getData().getName());
-		putAsStringIfNotNull(properties, "code", au.getData().getCode());
-		putAsStringIfNotNull(properties, "startDate", au.getData().getStartDate());
-		putAsStringIfNotNull(properties, "endDate", au.getData().getEndDate());
+		putAsStringIfNotNull(properties, "gid", getGid(au));
+		Data data = au.getData();
+		putAsStringIfNotNull(properties, "name", data.getName());
+		putAsStringIfNotNull(properties, "code", data.getCode());
+		putAsStringIfNotNull(properties, "codePath", data.getCodePath());
+		putAsStringIfNotNull(properties, "startDate", data.getStartDate());
+		putAsStringIfNotNull(properties, "endDate", data.getEndDate());
 		AdministrativeUnit parent = au.getParent();
-		putAsStringIfNotNull(properties, "parentGid", getParentGid(parent));
+		putAsStringIfNotNull(properties, "parentGid", getGid(parent));
 		return properties;
 	}
 
@@ -57,7 +62,7 @@ public class AuRule {
 		return String.valueOf(object);
 	}
 
-	private static String getParentGid(AdministrativeUnit parent) {
+	private static String getGid(AdministrativeUnit parent) {
 		if (parent == null)
 			return null;
 		return String.valueOf(parent.getGid());
@@ -82,7 +87,7 @@ public class AuRule {
 	}
 
 	private static AdministrativeUnit toAu(FeatureCollection fc){
-		AdministrativeUnit c = new AdministrativeUnit();
+		AdministrativeUnit au = new AdministrativeUnit();
 		Data data = new Data();
 		data.setMultiPolygonGeom(GeoInputRule.toMultiPolygon(fc));
 		String name = getString(fc, "name");
@@ -91,15 +96,17 @@ public class AuRule {
 		Date startDate = newDate(date);
 		data.setStartDate(startDate);
 		data.setUpdateDate(startDate);
-		data.setCode(getString(fc, "code"));
-		c.setData(data);
+		String code = getString(fc, "code");
+		data.setCode(code);
+		au.setData(data);
 		String parentGid = getString(fc, "parent");
 		AdministrativeUnit parent = findByGid(Long.parseLong(parentGid));
 		if (parent == null){
 			throw new RuntimeException("Cannot find parent gid=" + parentGid);
 		}
-		c.setParent(parent);
-		return c;
+		au.setParent(parent);
+		data.setCodePath(parent.getData().getCodePath() + "." + code);
+		return au;
 	}
 
 	private static Date newDate(String date) {

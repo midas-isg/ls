@@ -17,8 +17,6 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.Check;
 
-import play.db.jpa.JPA;
-
 @Entity
 @Check(constraints = "end_date > start_date")
 @Table(name = "au")
@@ -31,10 +29,6 @@ public class AdministrativeUnit {
 	private AdministrativeUnit parent;
 
 	private List<AdministrativeUnit> children;
-
-	public static AdministrativeUnit findById(Long id) {
-		return JPA.em().find(AdministrativeUnit.class, id);
-	}
 
 	@Id
 	@Column(name = "gid")
