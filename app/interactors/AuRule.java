@@ -124,7 +124,7 @@ public class AuRule {
 		return toFeatureCollection(list);
 	}
 
-	private static AdministrativeUnit findByGid(long gid) {
+	public static AdministrativeUnit findByGid(long gid) {
 		AdministrativeUnit au = new AuDao().read(gid);
 		return au;
 	}

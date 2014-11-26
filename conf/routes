@@ -7,11 +7,16 @@ GET		/							controllers.Application.index()
 GET		/test						controllers.Application.test()
 GET		/counties					controllers.Application.leaflet()
 
-# GEO-JSON & KML Map CRUD Operations
+# GEO-JSON Map CRUD Operations
 POST	/resources/aus					controllers.AdministrativeUnitServices.create()
 GET		/resources/aus/:gid				controllers.AdministrativeUnitServices.read(gid)
 PUT		/resources/aus					controllers.AdministrativeUnitServices.update()
 DELETE	/resources/aus					controllers.AdministrativeUnitServices.delete()
+
+GET		/resources/epidemic-zones/:gid	controllers.EpidemicZoneServices.epidemicZones(gid)
+GET		/resources/administrative-locations/:gid	controllers.EpidemicZoneServices.administrativeLocations(gid)
+
+GET		/api/locations/:gid			controllers.EpidemicZoneServices.locations(gid)
 
 # Map static resources from the /public folder to the /assets URL path
 GET		/assets/*file				controllers.Assets.at(path="/public", file)
