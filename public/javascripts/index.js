@@ -19,11 +19,11 @@ $(document).ready(function() {
 	
 	$('#db-load-button').click(function() {
 		var mapID = $("#map-id").val();
-		MAP_DRIVER.geojsonFile = 'http://localhost:9000/resources/aus/' + mapID;
+		MAP_DRIVER.geoJSONURL = 'http://localhost:9000/resources/aus/' + mapID;
 		//"http://tps23-nb.univ.pitt.edu/test.json";
 		
-		if(MAP_DRIVER.geojsonFile) {
-			MAP_DRIVER.featureLayer.loadURL(MAP_DRIVER.geojsonFile);
+		if(MAP_DRIVER.geoJSONURL) {
+			MAP_DRIVER.featureLayer.loadURL(MAP_DRIVER.geoJSONURL);
 		}
 		
 		return;
@@ -41,7 +41,7 @@ $(document).ready(function() {
 function MapDriver(){
 	this.title = '<strong>Pitt</strong>sburgh';
 	this.mapID = 'tps23.k1765f0g';
-	this.geojsonFile = 
+	this.geoJSONURL = 
 	//'http://localhost:9000/counties';
 	"http://localhost:9000/resources/aus/14";
 	//"http://tps23-nb.univ.pitt.edu/counties.json";
@@ -62,8 +62,8 @@ MapDriver.prototype.initialize = function() {
 	this.map = L.mapbox.map('map-one', 'examples.map-i86l3621', { worldCopyJump: true /*crs: L.CRS.EPSG385*/}).setView(this.startingCoordinates, this.zoom);
 	this.map.legendControl.addLegend(this.title);
 	
-	if(this.geojsonFile) {
-		this.featureLayer = L.mapbox.featureLayer().loadURL(this.geojsonFile);
+	if(this.geoJSONURL) {
+		this.featureLayer = L.mapbox.featureLayer().loadURL(this.geoJSONURL);
 	}
 	else if(this.mapID) {
 		this.featureLayer = L.mapbox.featureLayer().loadID(this.mapID);
