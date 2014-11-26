@@ -45,7 +45,7 @@ function MapDriver(){
 	this.geoJSONURL = 
 	//'http://localhost:9000/counties';
 	"http://localhost:9000/resources/aus/14";
-	//"http://tps23-nb.univ.pitt.edu/counties.json";
+	//"http://tps23-nb.univ.pitt.edu/test.json";
 	this.startingCoordinates = [42.004097, -97.019516]; //[44.95167427365481, 582771.4257198056];
 	this.zoom = 4;
 	this.accessToken = 'pk.eyJ1IjoidHBzMjMiLCJhIjoiVHEzc0tVWSJ9.0oYZqcggp29zNZlCcb2esA';
@@ -92,20 +92,19 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		feature.properties.title = feature.properties.name + " [" + feature.properties.code + "] " + "parent: " +
 			feature.properties.parentGid + "; " + feature.properties.startDate + "-" + feature.properties.endDate;
 		
-		if(MAP_DRIVER.drawControl) {
-			MAP_DRIVER.map.removeControl(MAP_DRIVER.drawControl);
+		if(!MAP_DRIVER.drawControl) {
+			MAP_DRIVER.drawControl = new L.Control.Draw({
+				draw: {
+					polyline: false,
+					rectangle: false,
+					circle: false,
+					marker: false
+				},
+				edit: {
+					featureGroup: MAP_DRIVER.featureLayer
+				}
+			}).addTo(MAP_DRIVER.map);
 		}
-		MAP_DRIVER.drawControl = new L.Control.Draw({
-			draw: {
-				polyline: false,
-				rectangle: false,
-				circle: false,
-				marker: false
-			},
-			edit: {
-				featureGroup: MAP_DRIVER.featureLayer
-			}
-		}).addTo(MAP_DRIVER.map);
 		
 		MAP_DRIVER.map.on('draw:created', function(e) {
 			MAP_DRIVER.featureLayer.addLayer(e.layer);
@@ -133,20 +132,19 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		MAP_DRIVER.featureLayer.on('ready', function() {
 			MAP_DRIVER.featureLayer.addTo(MAP_DRIVER.map);
 			
-			if(MAP_DRIVER.drawControl) {
-				MAP_DRIVER.map.removeControl(MAP_DRIVER.drawControl);
+			if(!MAP_DRIVER.drawControl) {
+				MAP_DRIVER.drawControl = new L.Control.Draw({
+					draw: {
+						polyline: false,
+						rectangle: false,
+						circle: false,
+						marker: false
+					},
+					edit: {
+						featureGroup: MAP_DRIVER.featureLayer
+					}
+				}).addTo(MAP_DRIVER.map);
 			}
-			MAP_DRIVER.drawControl = new L.Control.Draw({
-				draw: {
-					polyline: false,
-					rectangle: false,
-					circle: false,
-					marker: false
-				},
-				edit: {
-					featureGroup: MAP_DRIVER.featureLayer
-				}
-			}).addTo(MAP_DRIVER.map);
 			
 			MAP_DRIVER.map.on('draw:created', function(e) {
 				MAP_DRIVER.featureLayer.addLayer(e.layer);
