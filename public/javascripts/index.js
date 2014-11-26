@@ -5,19 +5,31 @@ var MAP_DRIVER = null;
 $(document).ready(function() {
 	MAP_DRIVER = new MapDriver();
 	
-	$('#upload_button').click(function() {
+	$('#upload-button').click(function() {
 		MAP_DRIVER.upload();
 		
 		return;
 	});
 	
-	$('#download_button').click(function() {
+	$('#download-button').click(function() {
 		MAP_DRIVER.download();
 		
 		return;
 	});
 	
-	$('#save_button').click(function() {
+	$('#db-load-button').click(function() {
+		var mapID = $("#map-id").val();
+		MAP_DRIVER.geojsonFile = 'http://localhost:9000/resources/aus/' + mapID;
+		//"http://tps23-nb.univ.pitt.edu/test.json";
+		
+		if(MAP_DRIVER.geojsonFile) {
+			MAP_DRIVER.featureLayer.loadURL(MAP_DRIVER.geojsonFile);
+		}
+		
+		return;
+	});
+	
+	$('#save-button').click(function() {
 		MAP_DRIVER.saveMap();
 		
 		return;
@@ -30,11 +42,11 @@ function MapDriver(){
 	this.title = '<strong>Pitt</strong>sburgh';
 	this.mapID = 'tps23.k1765f0g';
 	this.geojsonFile = 
-			'http://localhost:9000/counties'; 
-	//'http://localhost:9000/resources/aus/7';
-	//"http://tps23-nb.univ.pitt.edu/counties.json"; //'http://localhost/countries.geo.json';
+	//'http://localhost:9000/counties';
+	"http://localhost:9000/resources/aus/14";
+	//"http://tps23-nb.univ.pitt.edu/counties.json";
 	this.startingCoordinates = [42.004097, -97.019516]; //[44.95167427365481, 582771.4257198056];
-	this.zoom = 6;
+	this.zoom = 4;
 	this.accessToken = 'pk.eyJ1IjoidHBzMjMiLCJhIjoiVHEzc0tVWSJ9.0oYZqcggp29zNZlCcb2esA';
 	this.featureLayer = null;
 	this.map = null;
@@ -59,6 +71,16 @@ MapDriver.prototype.initialize = function() {
 	
 	this.featureLayer.on('ready', function() {
 		MAP_DRIVER.featureLayer.addTo(MAP_DRIVER.map);
+		
+		var feature = MAP_DRIVER.featureLayer.getGeoJSON().features[0];
+		
+		$("#au-name").val(feature.properties.name);
+		$("#au-code").val(feature.properties.code);
+		$("#start-date").val(feature.properties.startDate);
+		$("#end-date").val(feature.properties.endDate);
+		$("#au-parent").val(feature.properties.parentGid);
+		feature.properties.title = feature.properties.name + " [" + feature.properties.code + "] " + "parent: " + feature.properties.parentGid +
+			"; " + feature.properties.startDate + "-" + feature.properties.endDate;
 		
 		var drawControl = new L.Control.Draw({
 			draw: {
@@ -91,7 +113,7 @@ MapDriver.prototype.initialize = function() {
 		console.log("Error: " + err['error']['statusText']);
 		
 		if((MAP_DRIVER.featureLayer.getLayers().length == 0) && MAP_DRIVER.mapID) {
-			console.log("Attempting to load via mapID");
+			console.log("Attempting to load via mapbox ID");
 			MAP_DRIVER.featureLayer = L.mapbox.featureLayer().loadID(MAP_DRIVER.mapID);
 		}
 		
@@ -273,7 +295,14 @@ MapDriver.prototype.upload = function() {
 	var fileReader = new FileReader();
 	
 	fileReader.onload = (function() {
-		var jsonData = JSON.parse(fileReader['result']);
+		var kmlData = fileReader['result'];
+		var kmlDOM = (new DOMParser()).parseFromString(kmlData, 'text/xml');
+		
+		var jsonData = toGeoJSON.kml(kmlDOM);
+		
+		if(jsonData.features.length == 0) {
+			jsonData = JSON.parse(kmlData);
+		}
 		
 		MAP_DRIVER.loadJSON(jsonData);
 	});
