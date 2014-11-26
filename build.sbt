@@ -1,4 +1,4 @@
-name := """play23.gis"""
+name := """ls"""
 
 version := "1.0-SNAPSHOT"
 
