@@ -10,10 +10,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import play.db.jpa.JPA;
-
 @Entity
-@Table(name = "AUDIT_AU")
+@Table(name = "audit_au")
 public class AuditAdministrativeUnit {
 
 	private Long id;
@@ -25,10 +23,6 @@ public class AuditAdministrativeUnit {
 	private String operation;
 
 	private Long parentId;
-
-	public static AuditAdministrativeUnit findById(Long id) {
-		return JPA.em().find(AuditAdministrativeUnit.class, id);
-	}
 
 	@Id
 	@Column(name = "id")

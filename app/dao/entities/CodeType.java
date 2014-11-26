@@ -8,19 +8,19 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table (name = "CODE_TYPE")
+@Table (name = "code_type")
 public class CodeType {
 
-	private long id;
+	private Long id;
 	private String name;
 	
 	@Id
-	@Column(name = "id", columnDefinition = "serial")
+	@Column(name = "id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	public long getId() {
+	public Long getId() {
 		return id;
 	}
-	public void setId(long id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 	public String getName() {
