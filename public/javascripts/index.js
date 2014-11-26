@@ -24,6 +24,7 @@ $(document).ready(function() {
 		
 		if(MAP_DRIVER.geoJSONURL) {
 			MAP_DRIVER.featureLayer.loadURL(MAP_DRIVER.geoJSONURL);
+			//MAP_DRIVER.loadFeatureLayer();
 		}
 		
 		return;
@@ -59,9 +60,18 @@ function MapDriver(){
 MapDriver.prototype.initialize = function() {
 	L.mapbox.accessToken = this.accessToken;
 	
-	this.map = L.mapbox.map('map-one', 'examples.map-i86l3621', { worldCopyJump: true /*crs: L.CRS.EPSG385*/}).setView(this.startingCoordinates, this.zoom);
+	this.map = L.mapbox.map('map-one', 'examples.map-i86l3621', { worldCopyJump: true /*crs: L.CRS.EPSG385*/})
+		.setView(this.startingCoordinates, this.zoom);
 	this.map.legendControl.addLegend(this.title);
 	
+	this.drawControl = null;
+	
+	this.loadFeatureLayer();
+	
+	return;
+}
+
+MapDriver.prototype.loadFeatureLayer = function() {
 	if(this.geoJSONURL) {
 		this.featureLayer = L.mapbox.featureLayer().loadURL(this.geoJSONURL);
 	}
@@ -79,10 +89,13 @@ MapDriver.prototype.initialize = function() {
 		$("#start-date").val(feature.properties.startDate);
 		$("#end-date").val(feature.properties.endDate);
 		$("#au-parent").val(feature.properties.parentGid);
-		feature.properties.title = feature.properties.name + " [" + feature.properties.code + "] " + "parent: " + feature.properties.parentGid +
-			"; " + feature.properties.startDate + "-" + feature.properties.endDate;
+		feature.properties.title = feature.properties.name + " [" + feature.properties.code + "] " + "parent: " +
+			feature.properties.parentGid + "; " + feature.properties.startDate + "-" + feature.properties.endDate;
 		
-		var drawControl = new L.Control.Draw({
+		if(MAP_DRIVER.drawControl) {
+			MAP_DRIVER.map.removeControl(MAP_DRIVER.drawControl);
+		}
+		MAP_DRIVER.drawControl = new L.Control.Draw({
 			draw: {
 				polyline: false,
 				rectangle: false,
@@ -120,9 +133,18 @@ MapDriver.prototype.initialize = function() {
 		MAP_DRIVER.featureLayer.on('ready', function() {
 			MAP_DRIVER.featureLayer.addTo(MAP_DRIVER.map);
 			
-			var drawControl = new L.Control.Draw({
+			if(MAP_DRIVER.drawControl) {
+				MAP_DRIVER.map.removeControl(MAP_DRIVER.drawControl);
+			}
+			MAP_DRIVER.drawControl = new L.Control.Draw({
+				draw: {
+					polyline: false,
+					rectangle: false,
+					circle: false,
+					marker: false
+				},
 				edit: {
-				  featureGroup: MAP_DRIVER.featureLayer
+					featureGroup: MAP_DRIVER.featureLayer
 				}
 			}).addTo(MAP_DRIVER.map);
 			
