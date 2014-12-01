@@ -92,6 +92,8 @@ MapDriver.prototype.loadFeatureLayer = function() {
 	}
 	
 	this.featureLayer.on('ready', function() {
+		MAP_DRIVER.loadJSON(MAP_DRIVER.featureLayer.getGeoJSON());
+		
 		MAP_DRIVER.featureLayer.addTo(MAP_DRIVER.map);
 		
 		var feature = MAP_DRIVER.featureLayer.getGeoJSON().features[0];
@@ -179,6 +181,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 }
 
 MapDriver.prototype.loadJSON = function(jsonData) {
+	multiPolygonsToPolygons(jsonData);
 	this.featureLayer.setGeoJSON(jsonData);
 	
 	return;
@@ -367,6 +370,26 @@ MapDriver.prototype.upload = function() {
 }
 
 /* Helper Functions */
+function multiPolygonsToPolygons(geoJSON) {
+	var features = geoJSON.features;
+	var count = features.length;
+	
+	for(var i = 0; i < count; i++) {
+		if(features[i].geometry.type == "MultiPolygon") {
+			for(var j = 0; j < features[i].geometry.coordinates.length; j++) {
+				var addedFeatureID = features.push({"type": "Feature", "geometry": {"type": "Polygon", "coordinates": null}, "properties": features[i].properties}) - 1;
+				var addedFeature = features[addedFeatureID];
+				addedFeature.geometry.coordinates = features[i].geometry.coordinates[j];
+			}
+			
+			features.splice(i, 1);
+			i--;
+		}
+	}
+	
+	return geoJSON;
+}
+
 function validDate(dateString) {
 	var date = new Date(dateString);
 	
