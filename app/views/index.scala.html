@@ -22,6 +22,10 @@
 	
 	<div style="background-color: #f0f0f0; padding-left: 2%;">
 		<div>
+			<button id="new-button">New Administrative Unit</button>
+		</div>
+		
+		<div>
 			<input id="map-id" type="text" placeholder="Map ID#"><button id="db-load-button">Load from Database</button>
 			<button id="save-button">Save to Database</button>
 		</div>
@@ -36,14 +40,14 @@
 				<input id="start-date" type="text" placeholder="Start Date"><input id="end-date" type="text" placeholder="End Date"><br>
 				<input id="au-parent" type="text" placeholder="Parent">
 			</div>
-			
-			<div style="clear: both;">
-				<div>
-					<input id="json-input" accept=".json, .geojson, .kml" type="file" style="float: left;">
-					<button id="upload-button" style="float: left;">Upload from file</button>
-				</div>
-				<button id="download-button">Download</button>
+		</div>
+		
+		<div style="clear: both;">
+			<div>
+				<input id="json-input" accept=".json, .geojson, .kml" type="file" style="float: left;">
+				<button id="upload-button" style="float: left;">Upload from file</button>
 			</div>
+			<button id="download-button">Download</button>
 		</div>
 	</div>
 }

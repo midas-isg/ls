@@ -5,6 +5,18 @@ var MAP_DRIVER = null;
 $(document).ready(function() {
 	MAP_DRIVER = new MapDriver();
 	
+	$("#new-button").click(function() {
+		MAP_DRIVER.mapID = Date().valueOf();
+		MAP_DRIVER.featureLayer.clearLayers();
+		$("#au-name").val("");
+		$("#au-code").val("");
+		
+		var today = new Date();
+		$("#start-date").val(today.getUTCFullYear() + "-" + (today.getUTCMonth() + 1) + "-" + today.getUTCDate());
+		$("#end-date").val("");
+		$("#au-parent").val("");
+	});
+	
 	$('#upload-button').click(function() {
 		MAP_DRIVER.upload();
 		
@@ -47,7 +59,7 @@ function MapDriver(){
 	"http://localhost:9000/resources/aus/14";
 	//"http://tps23-nb.univ.pitt.edu/test.json";
 	this.startingCoordinates = [42.004097, -97.019516]; //[44.95167427365481, 582771.4257198056];
-	this.zoom = 4;
+	this.zoom = 2;
 	this.accessToken = 'pk.eyJ1IjoidHBzMjMiLCJhIjoiVHEzc0tVWSJ9.0oYZqcggp29zNZlCcb2esA';
 	this.featureLayer = null;
 	this.map = null;
