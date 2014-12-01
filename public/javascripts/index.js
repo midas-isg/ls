@@ -312,6 +312,17 @@ console.log("Length: " + JSON.stringify(data).length);
 
 MapDriver.prototype.download = function() {
 	var jsonData = this.featureLayer.toGeoJSON();
+	var properties = null;
+	
+	for(var i = 0; i < jsonData.features.length; i++) {
+		properties = jsonData.features[i].properties;
+		properties.name = $("#au-name").val();
+		properties.code = $("#au-code").val();
+		properties.startDate = $("#start-date").val();
+		properties.endDate = $("#end-date").val();
+		properties.parentGid = $("#au-parent").val();
+		properties.description = properties.name + ";" + properties.code + ";" + properties.startDate + ";" + properties.endDate + ";" + properties.parentGid;
+	}
 	
 	if(!jsonData.id) {
 		jsonData.id = this.mapID;
@@ -339,6 +350,13 @@ MapDriver.prototype.upload = function() {
 		if(jsonData.features.length == 0) {
 			jsonData = JSON.parse(kmlData);
 		}
+		
+		var properties = jsonData.features[0].properties;
+		$("#au-name").val(properties.name);
+		$("#au-code").val(properties.code);
+		$("#start-date").val(properties.startDate);
+		$("#end-date").val(properties.endDate);
+		$("#au-parent").val(properties.parentGid);
 		
 		MAP_DRIVER.loadJSON(jsonData);
 	});
