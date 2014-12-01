@@ -1,5 +1,5 @@
 
-var path = ".";
+var ausPath = context + '/resources/aus';
 var MAP_DRIVER = null;
 
 $(document).ready(function() {
@@ -31,7 +31,7 @@ $(document).ready(function() {
 	
 	$('#db-load-button').click(function() {
 		var mapID = $("#map-id").val();
-		MAP_DRIVER.geoJSONURL = 'http://localhost:9000/resources/aus/' + mapID;
+		MAP_DRIVER.geojsonFile = ausPath + "/" + mapID;
 		//"http://tps23-nb.univ.pitt.edu/test.json";
 		
 		if(MAP_DRIVER.geoJSONURL) {
@@ -52,13 +52,13 @@ $(document).ready(function() {
 });
 
 function MapDriver(){
-	this.title = '<strong>Pitt</strong>sburgh';
-	this.mapID = 'tps23.k1765f0g';
-	this.geoJSONURL = 
-	//'http://localhost:9000/counties';
-	"http://localhost:9000/resources/aus/14";
+<<<<<<< HEAD
+	var id = '11';
+	this.title = '<strong>Sierra Leone</strong> 0001-01-01 to now';
+	this.mapID = id;//'tps23.k1765f0g';
+	this.geojsonFile = ausPath + "/" + id;
 	//"http://tps23-nb.univ.pitt.edu/test.json";
-	this.startingCoordinates = [42.004097, -97.019516]; //[44.95167427365481, 582771.4257198056];
+	this.startingCoordinates = [6.944028854370401, -11.534582138061467];
 	this.zoom = 2;
 	this.accessToken = 'pk.eyJ1IjoidHBzMjMiLCJhIjoiVHEzc0tVWSJ9.0oYZqcggp29zNZlCcb2esA';
 	this.featureLayer = null;
@@ -187,7 +187,7 @@ MapDriver.prototype.loadJSON = function(jsonData) {
 MapDriver.prototype.saveMap = function() {
 	// Create //POST /resources/aus
 	var httpType = "POST";
-	var URL = path + "/resources/aus";
+	var URL = ausPath;
 	
 	/*
 	if(isUpdate) {
