@@ -84,6 +84,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		
 		var feature = MAP_DRIVER.featureLayer.getGeoJSON().features[0];
 		
+		MAP_DRIVER.mapID = MAP_DRIVER.featureLayer.getGeoJSON().id;
 		$("#au-name").val(feature.properties.name);
 		$("#au-code").val(feature.properties.code);
 		$("#start-date").val(feature.properties.startDate);
@@ -299,7 +300,10 @@ console.log("Length: " + JSON.stringify(data).length);
 
 MapDriver.prototype.download = function() {
 	var jsonData = this.featureLayer.toGeoJSON();
-	jsonData.id = this.mapID;
+	
+	if(!jsonData.id) {
+		jsonData.id = this.mapID;
+	}
 	
 	var data = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(jsonData));
 	
