@@ -24,8 +24,7 @@ public class EpidemicZoneServices  extends Controller {
 	public static Result locations(String gid){
 		AdministrativeUnit au = AuRule.findByGid(Long.parseLong(gid));
 		Long auTypeId = au.getData().getAuTypeId();
-		Logger.debug("AuTypeId=" + auTypeId);
-		if (auTypeId.equals(7))
+		if (auTypeId.longValue() == 7)
 			return okJson(toEpidemicZones(au));
 		else 
 			return okJson(toAdministrativeLocations(au));
@@ -51,8 +50,11 @@ public class EpidemicZoneServices  extends Controller {
 		
 		public MultiPolygon(AdministrativeUnit au){
 			textualDescription = au.getData().getName();
-			polygons =new ArrayList<>();
+			polygons = new ArrayList<>();
 			Geometry mpg = au.getData().getMultiPolygonGeom();
+			if (mpg == null){
+				return;
+			}
 			int l = mpg.getNumGeometries();
 			for (int i = 0; i < l; i++){
 				Geometry p = mpg.getGeometryN(i);
@@ -84,17 +86,38 @@ public class EpidemicZoneServices  extends Controller {
 	private static Object toAdministrativeLocations(AdministrativeUnit au) {
 		Map<String, Object> map = new HashMap<>();
 		map.put("locationDefinition", new LocationDefinition(au));
+		map.put("textualDescription", au.getData().getName());
 		return new Object[] {map};
 	}
 	
 	private static class LocationDefinition {
 		public List<String> locationsIncluded = new ArrayList<>();
 		public List<String> locationsExcluded = new ArrayList<>();
-		public List<MultiPolygon> multiGeometries = new ArrayList<>();
+		public List<MultiPolygon> multiGeometries = null;
 
 		public LocationDefinition(AdministrativeUnit au){
-			locationsIncluded.add(au.getData().getCode());
-			multiGeometries.add(new MultiPolygon(au));
+			List<AdministrativeUnit> locations = au.getLocationsIncluded();
+			if (locations == null || locations.isEmpty())
+				locationsIncluded.add(au.getData().getCodePath());
+			else{
+				for (AdministrativeUnit l : locations){
+					locationsIncluded.add(l.getData().getCodePath());
+				}
+			}
+			multiGeometries = getMultiPolygons(au);
+		}
+
+		private List<MultiPolygon>  getMultiPolygons(AdministrativeUnit au) {
+			List<MultiPolygon> multiGeometries = new ArrayList<>();
+			List<AdministrativeUnit> locations = au.getLocationsIncluded();
+			if (locations != null && ! locations.isEmpty()){
+				for (AdministrativeUnit l : locations){
+					multiGeometries.add(new MultiPolygon(l));
+				}
+			} else {
+				multiGeometries.add(new MultiPolygon(au));
+			}
+			return multiGeometries;
 		}
 	}
 

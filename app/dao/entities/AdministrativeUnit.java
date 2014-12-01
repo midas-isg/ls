@@ -11,6 +11,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -30,6 +32,8 @@ public class AdministrativeUnit {
 
 	private List<AdministrativeUnit> children;
 
+	private List<AdministrativeUnit> locationsIncluded;
+	
 	@Id
 	@Column(name = "gid")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,7 +46,15 @@ public class AdministrativeUnit {
 	}
 
 	@Embedded
-	@AttributeOverrides({ @AttributeOverride(name = "protect", column = @Column(name = "protect", columnDefinition = "boolean default false")) })
+	@AttributeOverrides({ 
+		@AttributeOverride(
+				name = "protect", 
+				column = @Column(
+						name = "protect", 
+						columnDefinition = "boolean default false"
+				)
+		) 
+	})
 	public Data getData() {
 		return data;
 	}
@@ -68,6 +80,25 @@ public class AdministrativeUnit {
 
 	public void setChildren(List<AdministrativeUnit> children) {
 		this.children = children;
+	}
+
+	@ManyToMany
+	@JoinTable(
+			name = "location_definition", 
+			joinColumns = {
+					@JoinColumn(name = "gid", nullable = false)
+			},
+			inverseJoinColumns ={
+					@JoinColumn(name = "included_gid", nullable = false)
+			}
+			
+	)
+	public List<AdministrativeUnit> getLocationsIncluded() {
+		return locationsIncluded;
+	}
+
+	public void setLocationsIncluded(List<AdministrativeUnit> locations) {
+		this.locationsIncluded = locations;
 	}
 
 }
