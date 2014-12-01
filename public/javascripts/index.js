@@ -5,6 +5,18 @@ var MAP_DRIVER = null;
 $(document).ready(function() {
 	MAP_DRIVER = new MapDriver();
 	
+	$("#new-button").click(function() {
+		MAP_DRIVER.mapID = Date().valueOf();
+		MAP_DRIVER.featureLayer.clearLayers();
+		$("#au-name").val("");
+		$("#au-code").val("");
+		
+		var today = new Date();
+		$("#start-date").val(today.getUTCFullYear() + "-" + (today.getUTCMonth() + 1) + "-" + today.getUTCDate());
+		$("#end-date").val("");
+		$("#au-parent").val("");
+	});
+	
 	$('#upload-button').click(function() {
 		MAP_DRIVER.upload();
 		
@@ -22,8 +34,9 @@ $(document).ready(function() {
 		MAP_DRIVER.geojsonFile = ausPath + "/" + mapID;
 		//"http://tps23-nb.univ.pitt.edu/test.json";
 		
-		if(MAP_DRIVER.geojsonFile) {
-			MAP_DRIVER.featureLayer.loadURL(MAP_DRIVER.geojsonFile);
+		if(MAP_DRIVER.geoJSONURL) {
+			MAP_DRIVER.featureLayer.loadURL(MAP_DRIVER.geoJSONURL);
+			//MAP_DRIVER.loadFeatureLayer();
 		}
 		
 		return;
@@ -39,12 +52,14 @@ $(document).ready(function() {
 });
 
 function MapDriver(){
+<<<<<<< HEAD
 	var id = '11';
 	this.title = '<strong>Sierra Leone</strong> 0001-01-01 to now';
 	this.mapID = id;//'tps23.k1765f0g';
 	this.geojsonFile = ausPath + "/" + id;
+	//"http://tps23-nb.univ.pitt.edu/test.json";
 	this.startingCoordinates = [6.944028854370401, -11.534582138061467];
-	this.zoom = 4;
+	this.zoom = 2;
 	this.accessToken = 'pk.eyJ1IjoidHBzMjMiLCJhIjoiVHEzc0tVWSJ9.0oYZqcggp29zNZlCcb2esA';
 	this.featureLayer = null;
 	this.map = null;
@@ -57,11 +72,20 @@ function MapDriver(){
 MapDriver.prototype.initialize = function() {
 	L.mapbox.accessToken = this.accessToken;
 	
-	this.map = L.mapbox.map('map-one', 'examples.map-i86l3621', { worldCopyJump: true /*crs: L.CRS.EPSG385*/}).setView(this.startingCoordinates, this.zoom);
+	this.map = L.mapbox.map('map-one', 'examples.map-i86l3621', { worldCopyJump: true /*crs: L.CRS.EPSG385*/})
+		.setView(this.startingCoordinates, this.zoom);
 	this.map.legendControl.addLegend(this.title);
 	
-	if(this.geojsonFile) {
-		this.featureLayer = L.mapbox.featureLayer().loadURL(this.geojsonFile);
+	this.drawControl = null;
+	
+	this.loadFeatureLayer();
+	
+	return;
+}
+
+MapDriver.prototype.loadFeatureLayer = function() {
+	if(this.geoJSONURL) {
+		this.featureLayer = L.mapbox.featureLayer().loadURL(this.geoJSONURL);
 	}
 	else if(this.mapID) {
 		this.featureLayer = L.mapbox.featureLayer().loadID(this.mapID);
@@ -72,25 +96,28 @@ MapDriver.prototype.initialize = function() {
 		
 		var feature = MAP_DRIVER.featureLayer.getGeoJSON().features[0];
 		
+		MAP_DRIVER.mapID = MAP_DRIVER.featureLayer.getGeoJSON().id;
 		$("#au-name").val(feature.properties.name);
 		$("#au-code").val(feature.properties.code);
 		$("#start-date").val(feature.properties.startDate);
 		$("#end-date").val(feature.properties.endDate);
 		$("#au-parent").val(feature.properties.parentGid);
-		feature.properties.title = feature.properties.name + " [" + feature.properties.code + "] " + "parent: " + feature.properties.parentGid +
-			"; " + feature.properties.startDate + "-" + feature.properties.endDate;
+		feature.properties.title = feature.properties.name + " [" + feature.properties.code + "] " + "parent: " +
+			feature.properties.parentGid + "; " + feature.properties.startDate + "-" + feature.properties.endDate;
 		
-		var drawControl = new L.Control.Draw({
-			draw: {
-				polyline: false,
-				rectangle: false,
-				circle: false,
-				marker: false
-			},
-			edit: {
-				featureGroup: MAP_DRIVER.featureLayer
-			}
-		}).addTo(MAP_DRIVER.map);
+		if(!MAP_DRIVER.drawControl) {
+			MAP_DRIVER.drawControl = new L.Control.Draw({
+				draw: {
+					polyline: false,
+					rectangle: false,
+					circle: false,
+					marker: false
+				},
+				edit: {
+					featureGroup: MAP_DRIVER.featureLayer
+				}
+			}).addTo(MAP_DRIVER.map);
+		}
 		
 		MAP_DRIVER.map.on('draw:created', function(e) {
 			MAP_DRIVER.featureLayer.addLayer(e.layer);
@@ -118,11 +145,19 @@ MapDriver.prototype.initialize = function() {
 		MAP_DRIVER.featureLayer.on('ready', function() {
 			MAP_DRIVER.featureLayer.addTo(MAP_DRIVER.map);
 			
-			var drawControl = new L.Control.Draw({
-				edit: {
-				  featureGroup: MAP_DRIVER.featureLayer
-				}
-			}).addTo(MAP_DRIVER.map);
+			if(!MAP_DRIVER.drawControl) {
+				MAP_DRIVER.drawControl = new L.Control.Draw({
+					draw: {
+						polyline: false,
+						rectangle: false,
+						circle: false,
+						marker: false
+					},
+					edit: {
+						featureGroup: MAP_DRIVER.featureLayer
+					}
+				}).addTo(MAP_DRIVER.map);
+			}
 			
 			MAP_DRIVER.map.on('draw:created', function(e) {
 				MAP_DRIVER.featureLayer.addLayer(e.layer);
@@ -277,7 +312,21 @@ console.log("Length: " + JSON.stringify(data).length);
 
 MapDriver.prototype.download = function() {
 	var jsonData = this.featureLayer.toGeoJSON();
-	jsonData.id = this.mapID;
+	var properties = null;
+	
+	for(var i = 0; i < jsonData.features.length; i++) {
+		properties = jsonData.features[i].properties;
+		properties.name = $("#au-name").val();
+		properties.code = $("#au-code").val();
+		properties.startDate = $("#start-date").val();
+		properties.endDate = $("#end-date").val();
+		properties.parentGid = $("#au-parent").val();
+		properties.description = properties.name + ";" + properties.code + ";" + properties.startDate + ";" + properties.endDate + ";" + properties.parentGid;
+	}
+	
+	if(!jsonData.id) {
+		jsonData.id = this.mapID;
+	}
 	
 	var data = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(jsonData));
 	
@@ -301,6 +350,13 @@ MapDriver.prototype.upload = function() {
 		if(jsonData.features.length == 0) {
 			jsonData = JSON.parse(kmlData);
 		}
+		
+		var properties = jsonData.features[0].properties;
+		$("#au-name").val(properties.name);
+		$("#au-code").val(properties.code);
+		$("#start-date").val(properties.startDate);
+		$("#end-date").val(properties.endDate);
+		$("#au-parent").val(properties.parentGid);
 		
 		MAP_DRIVER.loadJSON(jsonData);
 	});
