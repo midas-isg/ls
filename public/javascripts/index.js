@@ -377,8 +377,8 @@ function multiPolygonsToPolygons(geoJSON) {
 	for(var i = 0; i < count; i++) {
 		if(features[i].geometry.type == "MultiPolygon") {
 			for(var j = 0; j < features[i].geometry.coordinates.length; j++) {
-				var addedFeatureID = features.push({"type": "Feature", "geometry": {"type": "Polygon", "coordinates": null}, "properties": features[i].properties}) - 1;
-				var addedFeature = features[addedFeatureID];
+				features.push({"type": "Feature", "geometry": {"type": "Polygon", "coordinates": null}, "properties": features[i].properties});
+				var addedFeature = features[features.length - 1];
 				addedFeature.geometry.coordinates = features[i].geometry.coordinates[j];
 			}
 			
