@@ -21,6 +21,8 @@ public class GeoOutputRule {
 
 	private static List<List<double[]>> toMultipolygonCoordinates(Geometry geom) {
 		List<List<double[]>> multipolygon = new ArrayList<>();
+		if (geom == null)
+			return multipolygon;
 		int n = geom.getNumGeometries();
 		for (int i = 0; i < n; i++){
 			Geometry polygonGeo = geom.getGeometryN(i);
