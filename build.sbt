@@ -1,6 +1,10 @@
-name := """play23.gis"""
+import com.typesafe.config._
 
-version := "1.0-SNAPSHOT"
+val conf = ConfigFactory.parseFile(new File("conf/application.conf")).resolve()
+
+name := """ls"""
+
+version := conf.getString("app.version")
 
 lazy val root = (project in file(".")).enablePlugins(PlayJava)
 
