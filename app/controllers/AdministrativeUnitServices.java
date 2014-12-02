@@ -35,16 +35,14 @@ public class AdministrativeUnitServices extends Controller {
 	@Transactional
 	public static Result create() {
 		try {
-			Object result = null;
 			Request request = Context.current().request();
-			RequestBody requestBody = null;
 			JsonNode requestJSON = null;
 			
 			Logger.debug("\n");
 			Logger.debug("=====");
 			
 			if(request != null) {
-				requestBody = request.body();
+				RequestBody requestBody = request.body();
 				
 				String requestBodyText = requestBody.toString();
 				Logger.debug("Request [" + request.getHeader("Content-Type") + "], Length: " + requestBodyText.length());
@@ -61,27 +59,33 @@ public class AdministrativeUnitServices extends Controller {
 						return badRequest("Missing parameter [type]");
 					}
 				}
-				
-				result = requestJSON;
+				FeatureCollection parsed = GeoJSONParser.parse(requestJSON);
+				Long id = AuRule.create(parsed);
+				String uri = getUri(request, id);
+				response().setHeader(LOCATION, uri);
+				//response().setHeader(CONTENT_LOCATION, uri);
+				return created();
 			}
 			else {
-				Logger.debug("\nRequest is null\n");
+				String message = "Request is null";
+				Logger.debug("\n" + message + "\n");
+				return  badRequest(message);
 			}
-			
-			FeatureCollection parsed = GeoJSONParser.parse(requestJSON);
-			Long id = AuRule.create(parsed);
-			Logger.debug("CountyRule save =" + id);
-			Logger.debug("=====");
-			
-			return okCRUD(result);
 		}
 		catch (Exception e) {
 			return forbiddenJson(e);
 		}
 	}
+
+	private static String getUri(Request request, Long id) {
+		Logger.debug(""+ request.headers());
+		String url = request.getHeader(ORIGIN) + request.path();
+		return url + "/" + id;
+	}
 	
 	@Transactional
 	public static Result read(String gid) {
+		response().setContentType("application/vnd.geo+json");
 		return okCRUD(AuRule.getFeatureCollection(Long.parseLong(gid)));
 	}
 	

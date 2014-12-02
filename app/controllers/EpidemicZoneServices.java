@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import play.Logger;
 import play.db.jpa.Transactional;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -24,7 +23,7 @@ public class EpidemicZoneServices  extends Controller {
 	public static Result locations(String gid){
 		AdministrativeUnit au = AuRule.findByGid(Long.parseLong(gid));
 		Long auTypeId = au.getData().getAuTypeId();
-		if (auTypeId.longValue() == 7)
+		if (auTypeId.longValue() == AuRule.EPIDEMIC_ZONE_ID)
 			return okJson(toEpidemicZones(au));
 		else 
 			return okJson(toAdministrativeLocations(au));
@@ -44,7 +43,7 @@ public class EpidemicZoneServices  extends Controller {
 		return new Object[] {new MultiPolygon(ez)};
 	}
 	
-	private static class MultiPolygon {
+	static class MultiPolygon {
 		public String textualDescription;
 		public List<Object> polygons;
 		
@@ -63,7 +62,7 @@ public class EpidemicZoneServices  extends Controller {
 		}
 	}
 	
-	private static class Polygon {
+	static class Polygon {
 		public String linearRing ;
 
 		public Polygon(Geometry polygon){
@@ -90,7 +89,7 @@ public class EpidemicZoneServices  extends Controller {
 		return new Object[] {map};
 	}
 	
-	private static class LocationDefinition {
+	static class LocationDefinition {
 		public List<String> locationsIncluded = new ArrayList<>();
 		public List<String> locationsExcluded = new ArrayList<>();
 		public List<MultiPolygon> multiGeometries = null;
