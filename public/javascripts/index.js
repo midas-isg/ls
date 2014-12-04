@@ -31,7 +31,7 @@ $(document).ready(function() {
 	
 	$('#db-load-button').click(function() {
 		var mapID = $("#map-id").val();
-		MAP_DRIVER.geojsonFile = ausPath + "/" + mapID;
+		MAP_DRIVER.geoJSONURL = ausPath + "/" + mapID;
 		//"http://tps23-nb.univ.pitt.edu/test.json";
 		
 		if(MAP_DRIVER.geoJSONURL) {
@@ -52,11 +52,10 @@ $(document).ready(function() {
 });
 
 function MapDriver(){
-<<<<<<< HEAD
 	var id = '11';
 	this.title = '<strong>Sierra Leone</strong> 0001-01-01 to now';
 	this.mapID = id;//'tps23.k1765f0g';
-	this.geojsonFile = ausPath + "/" + id;
+	this.geoJSONURL = ausPath + "/" + id;
 	//"http://tps23-nb.univ.pitt.edu/test.json";
 	this.startingCoordinates = [6.944028854370401, -11.534582138061467];
 	this.zoom = 2;
