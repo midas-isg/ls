@@ -299,6 +299,7 @@ console.log("Length: " + JSON.stringify(data).length);
 			//indexingObject.informationObject.setURI(indexingObject.successChange(data, status, "added"));
 			console.log(data);
 			console.log(status);
+			$("#map-id").val(data.features[0].properties.gid);
 		},
 		error: function(data, status) {
 			//if(data['responseJSON'] && data['responseJSON']['duplicatedUri']) {
