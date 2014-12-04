@@ -16,6 +16,9 @@ import dao.entities.AdministrativeUnit;
 import dao.entities.Data;
 
 public class AuRule {
+	public static final long EPIDEMIC_ZONE_ID = 7L;
+	public static final long ISG_CODE_TYPE_ID = 2L;
+
 	public static FeatureCollection toFeatureCollection(List<AdministrativeUnit> aus) {
 		FeatureCollection fc = new FeatureCollection();
 		fc.setFeatures(toFeatures(aus));
@@ -89,13 +92,16 @@ public class AuRule {
 	private static AdministrativeUnit toAu(FeatureCollection fc){
 		AdministrativeUnit au = new AdministrativeUnit();
 		Data data = new Data();
+		data.setAuTypeId(EPIDEMIC_ZONE_ID);
+		data.setCodeTypeId(ISG_CODE_TYPE_ID);
+		data.setGisSource("LS");
 		data.setMultiPolygonGeom(GeoInputRule.toMultiPolygon(fc));
 		String name = getString(fc, "name");
 		data.setName(name);
 		String date = getString(fc, "startDate");
 		Date startDate = newDate(date);
 		data.setStartDate(startDate);
-		data.setUpdateDate(startDate);
+		data.setUpdateDate(getNowDate());
 		String code = getString(fc, "code");
 		data.setCode(code);
 		au.setData(data);
@@ -107,6 +113,11 @@ public class AuRule {
 		au.setParent(parent);
 		data.setCodePath(parent.getData().getCodePath() + "." + code);
 		return au;
+	}
+
+	private static Date getNowDate() {
+		java.util.Date now = new java.util.Date();
+		return new Date(now.getTime());
 	}
 
 	private static Date newDate(String date) {
