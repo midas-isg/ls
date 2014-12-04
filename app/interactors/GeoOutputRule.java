@@ -8,6 +8,7 @@ import models.geo.MultiPolygon;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Polygon;
 
 public class GeoOutputRule {
 	static FeatureGeometry toFeatureGeometry(Geometry geom) {
@@ -26,8 +27,18 @@ public class GeoOutputRule {
 		int n = geom.getNumGeometries();
 		for (int i = 0; i < n; i++){
 			Geometry polygonGeo = geom.getGeometryN(i);
-			List<double[]> polygon = toPolygonCoordinates(polygonGeo.getCoordinates());
-			multipolygon.add(polygon);
+			if (polygonGeo instanceof Polygon){
+				Polygon poly = (Polygon)polygonGeo;
+				//List<double[]> polygon = toPolygonCoordinates(polygonGeo.getCoordinates());
+				//multipolygon.add(polygon);
+				List<double[]> exteriorRing = toPolygonCoordinates(poly.getExteriorRing().getCoordinates());
+				multipolygon.add(exteriorRing);
+				int rings = poly.getNumInteriorRing();
+				for (int j = 0 ; j < rings; j++){
+					List<double[]> interiorRing = toPolygonCoordinates(poly.getInteriorRingN(j).getCoordinates());
+					multipolygon.add(interiorRing);
+				}
+			}
 		}
 		
 		return multipolygon;
