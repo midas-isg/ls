@@ -46,7 +46,7 @@ public class AdministrativeUnitServices extends Controller {
 				
 				String requestBodyText = requestBody.toString();
 				Logger.debug("Request [" + request.getHeader("Content-Type") + "], Length: " + requestBodyText.length());
-				//Logger.debug("Request Body:\n" + requestBodyText);
+Logger.debug("Request Body:\n" + requestBodyText);
 				
 				requestJSON = requestBody.asJson();
 				if(requestJSON == null) {
