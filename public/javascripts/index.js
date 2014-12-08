@@ -294,10 +294,11 @@ console.log("Length: " + JSON.stringify(data).length);
 		contentType: "application/json; charset=UTF-8",
 		//dataType: "json",
 		//processData: false,
-		success: function(data, status) {
+		success: function(data, status, response) {
 			//indexingObject.informationObject.setURI(indexingObject.successChange(data, status, "added"));
 			console.log(data);
 			console.log(status);
+			$("#map-id").val(getIDFromURI(response.getResponseHeader("Location")));
 		},
 		error: function(data, status) {
 			//if(data['responseJSON'] && data['responseJSON']['duplicatedUri']) {
@@ -369,6 +370,12 @@ MapDriver.prototype.upload = function() {
 }
 
 /* Helper Functions */
+function getIDFromURI(URI) {
+	var components = URI.split('/');
+	var id = components[components.length - 1];
+	return id;
+}
+
 function multiPolygonsToPolygons(geoJSON) {
 	var features = geoJSON.features;
 	var count = features.length;
