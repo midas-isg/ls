@@ -106,6 +106,10 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		function centerMap(geoJSON) {
 			var geometry = geoJSON.features[0].geometry;
 			
+			if(!geometry) {
+				return;
+			}
+			
 			var geometryCount = geometry.coordinates.length;
 			var latitude = geometry.coordinates[0][0][1];
 			var longitude = geometry.coordinates[0][0][0];
@@ -140,13 +144,9 @@ MapDriver.prototype.loadFeatureLayer = function() {
 				}
 			}
 			
-			var height = maxLat - minLat;
-			var width = maxLng - minLng;
-			var center = [((minLat + maxLat) >> 1), ((minLng + maxLng) >> 1)];
-			
-			console.log(center);
-			console.log((height + width) >> 1);
-			
+			//var height = maxLat - minLat;
+			//var width = maxLng - minLng;
+			//var center = [((minLat + maxLat) >> 1), ((minLng + maxLng) >> 1)];
 			//var zoom = ((height + width) >> 1);
 			
 			var southWest = L.latLng(minLat, minLng);
@@ -166,7 +166,11 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		$("#start-date").val(feature.properties.startDate);
 		$("#end-date").val(feature.properties.endDate);
 		$("#au-parent").text(feature.properties.parentGid);
-		$("#au-parent").prop("href", "./read-only?id=" + feature.properties.parentGid);
+		
+		if(feature.properties.parentGid) {
+			$("#au-parent").prop("href", "./read-only?id=" + feature.properties.parentGid);
+		}
+		
 		$("#gid").val(feature.properties.gid);
 		feature.properties.title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
 			
