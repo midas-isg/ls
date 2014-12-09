@@ -11,4 +11,9 @@ public class Application extends Controller {
 	public static Result index() {
 		return ok(views.html.index.render("Location Services"));
 	}
+	
+	@Transactional
+	public static Result readOnly() {
+		return ok(views.html.read_only.render("Location Services"));
+	}
 }
