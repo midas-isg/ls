@@ -171,7 +171,10 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		feature.properties.title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
 			
 		if(feature.properties.endDate){
-			feature.properties.title = feature.properties.title + "-" + feature.properties.endDate;
+			feature.properties.title = feature.properties.title + " to " + feature.properties.endDate;
+		}
+		else {
+			feature.properties.title += " to present";
 		}
 		
 		MAP_DRIVER.map.legendControl.removeLegend(MAP_DRIVER.title);
