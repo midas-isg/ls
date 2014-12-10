@@ -9,11 +9,11 @@ public class Application extends Controller {
 	
 	@Transactional
 	public static Result index() {
-		return ok(views.html.index.render("Location Services"));
+		return ok(views.html.index.render("Apollo Location Services"));
 	}
 	
 	@Transactional
 	public static Result readOnly() {
-		return ok(views.html.read_only.render("Location Services"));
+		return ok(views.html.read_only.render("Apollo Location Services"));
 	}
 }

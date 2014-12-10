@@ -19,18 +19,18 @@
 @main("Welcome to PlayGIS 0.1", imports) {
 	<h1>@message</h1>
 	
-	<div style="background-color: #f0f0f0; padding-left: 2%;">
-		<div style="background-color: #f8f8f8;">
-			<div><em>ID:</em> <input id="gid" type="text" placeholder="ID"><button id="db-load-button">Load from database</button></div>
-			<em>Name:</em> <input type="text" id="au-name" placeholder="Name" disabled> <br>
-			<em>Code:</em> <input id="au-code" placeholder="Code" disabled> <br>
-			<em>Code path:</em> <input id="au-codepath" placeholder="Code path" disabled> <br>
+	<div style="padding-left: 10px;">
+		<div>
+			<div><em>Location ID:</em> <input id="gid" type="text" placeholder="ID"><button id="db-load-button" hidden>Load from database</button></div>
+			<em>Location name:</em> <input type="text" id="au-name" placeholder="Name" disabled> <br>
+			<em>Location code:</em> <input id="au-code" placeholder="Code" disabled> <br>
+			<em>Location code path:</em> <input id="au-codepath" placeholder="Code path" disabled> <br>
 			<em>Start date:</em> <input id="start-date" placeholder="Start date" disabled> <br>
 			<em>End date:</em> <input id="end-date" placeholder="End date" disabled> <br>
-			<em>Parent ID:</em> <a id="au-parent"></a> <br>
+			<em>Parent location ID:</em> <a id="au-parent"></a> <br>
 		</div>
 		
-		<div style="float: left;">
+		<div>
 			<div id='map-one' class='map'></div>
 		</div>
 		

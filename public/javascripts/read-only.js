@@ -165,10 +165,14 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		$("#au-codepath").val(feature.properties.codePath);
 		$("#start-date").val(feature.properties.startDate);
 		$("#end-date").val(feature.properties.endDate);
-		$("#au-parent").text(feature.properties.parentGid);
 		
 		if(feature.properties.parentGid) {
 			$("#au-parent").prop("href", "./read-only?id=" + feature.properties.parentGid);
+			$("#au-parent").text(feature.properties.parentGid);
+		}
+		else {
+			$("#au-parent").prop("href", "");
+			$("#au-parent").text("");
 		}
 		
 		$("#gid").val(feature.properties.gid);
@@ -182,7 +186,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		}
 		
 		MAP_DRIVER.map.legendControl.removeLegend(MAP_DRIVER.title);
-		MAP_DRIVER.map.legendControl.addLegend(feature.properties.title);
+		MAP_DRIVER.map.legendControl.addLegend("<strong>" + feature.properties.title + "</strong>");
 		MAP_DRIVER.title = feature.properties.title;
 	});
 	

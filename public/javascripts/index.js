@@ -10,6 +10,7 @@ $(document).ready(function() {
 		MAP_DRIVER.featureLayer.clearLayers();
 		$("#au-name").val("");
 		$("#au-code").val("");
+		$("#au-codepath").val("");
 		
 		var today = new Date();
 		$("#start-date").val(today.getUTCFullYear() + "-" + (today.getUTCMonth() + 1) + "-" + today.getUTCDate());
@@ -100,6 +101,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		MAP_DRIVER.mapID = MAP_DRIVER.featureLayer.getGeoJSON().id;
 		$("#au-name").val(feature.properties.name);
 		$("#au-code").val(feature.properties.code);
+		$("#au-codepath").val("feature.properties.codePath");
 		$("#start-date").val(feature.properties.startDate);
 		$("#end-date").val(feature.properties.endDate);
 		$("#au-parent").val(feature.properties.parentGid);
@@ -206,6 +208,7 @@ MapDriver.prototype.saveMap = function() {
 		var geometry;
 		var auName = $("#au-name").val();
 		var auCode = $("#au-code").val();
+		var auCodePath = $("#au-codepath").val();
 		var startDate = $("#start-date").val();
 		var endDate = $("#end-date").val();
 		var auParent = $("#au-parent").val();
@@ -235,7 +238,7 @@ MapDriver.prototype.saveMap = function() {
 			endDate = toServerDate(new Date(endDate), dateTokens);
 		}
 		else if(endDate.length > 0) {
-			alert("Invalid date: " + endDate);
+			alert("Invalid date: " + endDate); //TODO: append month/year OR change back-end to accomodate dates without months & days
 			
 			return null;
 		}
@@ -255,15 +258,20 @@ MapDriver.prototype.saveMap = function() {
 			return null;
 		}
 		
-		if(auParent.length == 0) {
-			alert("Please enter the Administrative Unit's parent");
+		if(auCodePath.length == 0) {
+			alert("Please enter the Administrative Unit's codepath");
 			
 			return null;
+		}
+		
+		if(auParent.length == 0) {
+			auParent = null;
 		}
 		
 		for(i = 0; i < geoJSON.features.length; i++) {
 			geoJSON.features[i].properties["name"] = auName;
 			geoJSON.features[i].properties["code"] = auCode;
+			geoJSON.features[i].properties["codePath"] = auCodePath;
 			geoJSON.features[i].properties["parent"] = auParent;
 			geoJSON.features[i].properties["startDate"] = startDate;
 			geoJSON.features[i].properties["endDate"] = endDate;
@@ -321,6 +329,7 @@ MapDriver.prototype.download = function() {
 		properties = jsonData.features[i].properties;
 		properties.name = $("#au-name").val();
 		properties.code = $("#au-code").val();
+		properties.code = $("#au-codepath").val();
 		properties.startDate = $("#start-date").val();
 		properties.endDate = $("#end-date").val();
 		properties.parentGid = $("#au-parent").val();
@@ -357,6 +366,7 @@ MapDriver.prototype.upload = function() {
 		var properties = jsonData.features[0].properties;
 		$("#au-name").val(properties.name);
 		$("#au-code").val(properties.code);
+		$("#au-codepath").val(properties.codePath);
 		$("#start-date").val(properties.startDate);
 		$("#end-date").val(properties.endDate);
 		$("#au-parent").val(properties.parentGid);

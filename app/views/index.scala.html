@@ -25,21 +25,18 @@
 			<button id="new-button">New Administrative Unit</button>
 		</div>
 		
-		<div>
-			<input id="map-id" type="text" placeholder="Map ID#"><button id="db-load-button">Load from Database</button>
-			<button id="save-button">Save to Database</button>
+		<div style="background-color: #f8f8f8;">
+			<div><em>ID:</em> <input id="gid" type="text" placeholder="ID"><button id="db-load-button">Load from database</button> <button id="save-button">Save to Database</button></div>
+			<em>Name:</em> <input type="text" id="au-name" placeholder="Name"> <br>
+			<em>Code:</em> <input id="au-code" placeholder="Code"> <br>
+			<em>Code path:</em> <input id="au-codepath" placeholder="Code path"> <br>
+			<em>Start date:</em> <input id="start-date" placeholder="Start date"> <br>
+			<em>End date:</em> <input id="end-date" placeholder="End date"> <br>
+			<em>Parent ID:</em> <a><input id="au-parent" type="text"></a> <br>
 		</div>
 		
 		<div>
-			<div style="float: left;">
-				<div id='map-one' class='map'></div>
-			</div>
-			
-			<div style= "float: left;">
-				<input id="au-name" type="text" placeholder="Name"><input id="au-code" type="text" placeholder="Code"><br>
-				<input id="start-date" type="text" placeholder="Start Date"><input id="end-date" type="text" placeholder="End Date"><br>
-				<input id="au-parent" type="text" placeholder="Parent">
-			</div>
+			<div id='map-one' class='map'></div>
 		</div>
 		
 		<div style="clear: both;">
