@@ -21,16 +21,30 @@
 	
 	<div style="padding-left: 10px;">
 		<div>
-			<div><em>Location ID:</em> <input id="gid" type="text" placeholder="ID"><button id="db-load-button" hidden>Load from database</button></div>
-			<em>Location name:</em> <input type="text" id="au-name" placeholder="Name" disabled> <br>
-			<em>Location code:</em> <input id="au-code" placeholder="Code" disabled> <br>
-			<em>Location code path:</em> <input id="au-codepath" placeholder="Code path" disabled> <br>
-			<em>Start date:</em> <input id="start-date" placeholder="Start date" disabled> <br>
-			<em>End date:</em> <input id="end-date" placeholder="End date" disabled> <br>
-			<em>Parent location ID:</em> <a id="au-parent"></a> <br>
+			<div>
+				<em class="pull-left">Location ID:</em> <div id="gid"></div><button id="db-load-button" hidden>Load from database</button>
+			</div>
+			<div style="clear: both;">
+				<em class="pull-left">Location name:</em> <div id="au-name"></div>
+			</div>
+			<div style="clear: both;">
+				<em class="pull-left">Location code:</em> <div id="au-code"></div>
+			</div>
+			<div style="clear: both;">
+				<em class="pull-left">Location code path:</em> <div id="au-codepath"></div>
+			</div>
+			<div style="clear: both;">
+				<em class="pull-left">Start date:</em> <div id="start-date"></div>
+			</div style="clear: both;">
+			<div style="clear: both;">
+				<em class="pull-left">End date:</em> <div id="end-date"></div>
+			</div>
+			<div style="clear: both;">
+				<em class="pull-left">Parent location ID:</em> <a id="au-parent"></a>
+			</div>
 		</div>
 		
-		<div>
+		<div style="clear: both;">
 			<div id='map-one' class='map'></div>
 		</div>
 		

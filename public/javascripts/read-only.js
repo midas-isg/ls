@@ -10,13 +10,13 @@ $(document).ready(function() {
 	$("#new-button").click(function() {
 		MAP_DRIVER.mapID = Date().valueOf();
 		MAP_DRIVER.featureLayer.clearLayers();
-		$("#au-name").val("");
-		$("#au-code").val("");
-		$("#au-codepath").val("");
+		$("#au-name").text("");
+		$("#au-code").text("");
+		$("#au-codepath").text("");
 		
 		var today = new Date();
-		$("#start-date").val(today.getUTCFullYear() + "-" + (today.getUTCMonth() + 1) + "-" + today.getUTCDate());
-		$("#end-date").val("");
+		$("#start-date").text(today.getUTCFullYear() + "-" + (today.getUTCMonth() + 1) + "-" + today.getUTCDate());
+		$("#end-date").text("");
 		$("#au-parent").text("");
 	});
 	
@@ -33,7 +33,7 @@ $(document).ready(function() {
 	});
 	
 	$('#db-load-button').click(function() {
-		var mapID = $("#gid").val();
+		var mapID = $("#gid").text();
 		MAP_DRIVER.geoJSONURL = ausPath + "/" + mapID;
 		//"http://tps23-nb.univ.pitt.edu/test.json";
 		
@@ -160,11 +160,11 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		centerMap(MAP_DRIVER.featureLayer.getGeoJSON());
 		
 		MAP_DRIVER.mapID = MAP_DRIVER.featureLayer.getGeoJSON().id;
-		$("#au-name").val(feature.properties.name);
-		$("#au-code").val(feature.properties.code);
-		$("#au-codepath").val(feature.properties.codePath);
-		$("#start-date").val(feature.properties.startDate);
-		$("#end-date").val(feature.properties.endDate);
+		$("#au-name").text(feature.properties.name);
+		$("#au-code").text(feature.properties.code);
+		$("#au-codepath").text(feature.properties.codePath);
+		$("#start-date").text(feature.properties.startDate);
+		$("#end-date").text(feature.properties.endDate);
 		
 		if(feature.properties.parentGid) {
 			$("#au-parent").prop("href", "./read-only?id=" + feature.properties.parentGid);
@@ -175,7 +175,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			$("#au-parent").text("");
 		}
 		
-		$("#gid").val(feature.properties.gid);
+		$("#gid").text(feature.properties.gid);
 		feature.properties.title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
 			
 		if(feature.properties.endDate){
@@ -231,11 +231,11 @@ MapDriver.prototype.saveMap = function() {
 	function formatGeoJSON(geoJSON) {
 		var i;
 		var geometry;
-		var auName = $("#au-name").val();
-		var auCode = $("#au-code").val();
-		var auCodePath = $("#au-codepath").val();
-		var startDate = $("#start-date").val();
-		var endDate = $("#end-date").val();
+		var auName = $("#au-name").text();
+		var auCode = $("#au-code").text();
+		var auCodePath = $("#au-codepath").text();
+		var startDate = $("#start-date").text();
+		var endDate = $("#end-date").text();
 		var auParent = $("#au-parent").text();
 		
 		var dateTokens = validDate(startDate);
@@ -327,7 +327,7 @@ console.log("Length: " + JSON.stringify(data).length);
 			//indexingObject.informationObject.setURI(indexingObject.successChange(data, status, "added"));
 			console.log(data);
 			console.log(status);
-			$("#gid").val(getIDFromURI(response.getResponseHeader("Location")));
+			$("#gid").text(getIDFromURI(response.getResponseHeader("Location")));
 		},
 		error: function(data, status) {
 			//if(data['responseJSON'] && data['responseJSON']['duplicatedUri']) {
@@ -348,11 +348,11 @@ MapDriver.prototype.download = function() {
 	
 	for(var i = 0; i < jsonData.features.length; i++) {
 		properties = jsonData.features[i].properties;
-		properties.name = $("#au-name").val();
-		properties.code = $("#au-code").val();
+		properties.name = $("#au-name").text();
+		properties.code = $("#au-code").text();
 		//add codePath
-		properties.startDate = $("#start-date").val();
-		properties.endDate = $("#end-date").val();
+		properties.startDate = $("#start-date").text();
+		properties.endDate = $("#end-date").text();
 		properties.parentGid = $("#au-parent").text();
 		properties.description = properties.name + ";" + properties.code + ";" + properties.startDate + ";" + properties.endDate + ";" + properties.parentGid;
 	}
@@ -385,11 +385,11 @@ MapDriver.prototype.upload = function() {
 		}
 		
 		var properties = jsonData.features[0].properties;
-		$("#au-name").val(properties.name);
-		$("#au-code").val(properties.code);
-		$("#au-codepath").val(properties.codePath);
-		$("#start-date").val(properties.startDate);
-		$("#end-date").val(properties.endDate);
+		$("#au-name").text(properties.name);
+		$("#au-code").text(properties.code);
+		$("#au-codepath").text(properties.codePath);
+		$("#start-date").text(properties.startDate);
+		$("#end-date").text(properties.endDate);
 		$("#au-parent").text(properties.parentGid);
 		
 		MAP_DRIVER.loadJSON(jsonData);
