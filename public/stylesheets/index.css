@@ -13,3 +13,7 @@ body {
 	margin-left: auto;
 	margin-right: auto;
 }
+
+.pre-spaced {
+	margin-left: 6px;
+}
