@@ -1,12 +1,22 @@
+function IndexingTermsTree() {
+	var tree = null;
+	var activatedNodes = [];
+	
+	
+	
+	return;
+}
 
+//IndexingTermsTree.prototype.initInteractBetweenTreeAndTable = function(picklistName, callbackFunctionAfterTreeInitialized) {
 function initInteractBetweenTreeAndTable(picklistName, callbackFunctionAfterTreeInitialized){
 	initTree(picklistName, callbackFunctionAfterTreeInitialized);
-	interactBetweenTreeAndTable();
+	//interactBetweenTreeAndTable();
 	//makeTableSelectable();
-	bindAllButtons();
+	//bindAllButtons();
 	resetIsAboutlist();
 }
 
+//IndexingTermsTree.prototype.
 function makeTableSelectable(){
 	/* Get all rows from your 'table' but not the first one 
 	 * that includes headers. */
@@ -30,6 +40,7 @@ function makeTableSelectable(){
 	});
 }
 
+//IndexingTermsTree.prototype.
 function addHighlighForRow(rows, row, e){
 	if ((e.ctrlKey || e.metaKey) || e.shiftKey) {
 		row.addClass('highlight');
@@ -39,19 +50,23 @@ function addHighlighForRow(rows, row, e){
 	}
 }
 
+//IndexingTermsTree.prototype.
 function unHighLightAll(rows){
 	rows.removeClass('highlight');
 }
 
+//IndexingTermsTree.prototype.
 function interactBetweenTreeAndTable(){
 }
 
+//IndexingTermsTree.prototype.
 function bindAllButtons(){
 	bindRemoveButton();
 	bindAddButton();
 	bindClearButton();
 }
 
+//IndexingTermsTree.prototype.
 function bindRemoveButton(){
 	$("#remove_button").bind('click', function(e){
 		e.preventDefault()
@@ -64,6 +79,8 @@ function bindRemoveButton(){
 			});
 	})
 }
+
+//IndexingTermsTree.prototype.
 function bindAddButton(){
 	$("#add_button").bind('click', function(e){
 		e.preventDefault()
@@ -78,11 +95,13 @@ function bindAddButton(){
 	})
 }
 
+//IndexingTermsTree.prototype.
 function select(node){
 	if (node.data.type)
 		node.setSelected(true)
 }
 
+//IndexingTermsTree.prototype.
 function bindClearButton(){
 	$("#clear_button").click(function(e){
 		e.preventDefault();
@@ -90,16 +109,19 @@ function bindClearButton(){
 	})
 }
 
+//IndexingTermsTree.prototype.
 function resetIsAboutlist(){
 	resetIsAboutCheckboxes();
 	collapseAllFolders();
 }
 
+//IndexingTermsTree.prototype.
 function collapseAllFolders(){
 	if (tree)
 		tree.reload()
 }
 
+//IndexingTermsTree.prototype.resetIsAboutCheckboxes = function() {
 function resetIsAboutCheckboxes(){
 	if (! tree)
 		return
@@ -110,15 +132,17 @@ function resetIsAboutCheckboxes(){
 	}
 }
 
+//IndexingTermsTree.prototype.
 function style(text){
 	return '<font size="2">' + text + '</font>';
 }
 
 var tree = null;
 var activatedNodes = [];
-var data;
-function initTree(picklistName, callbackFunction){
+//IndexingTermsTree.prototype.initTree = function(picklistName, callbackFunction) {
+function initTree(picklistName, callbackFunction) {
 	//var url = ausPath + "/services/" + picklistName
+	var data;
 	
 	 data = [
 		{"title":"abiotic ecosystem","key":null,"icon":false,"hideCheckbox":false,"folder":true,"unselectable":true,"expanded":false,"children":[
@@ -299,17 +323,22 @@ function initTree(picklistName, callbackFunction){
 	return;
 }
 
+//IndexingTermsTree.prototype.
 function changeState(event, data){
 	var node = data.node;
+	
 	if (!isMultiSelect(event)){
 		while (activatedNodes.length > 0){
-			var node1 = activatedNodes.pop()
+			var node1 = activatedNodes.pop();
 			node1.extraClasses = "";
 			node1.render();
 		}
 	}
-	if (node.unselectable)
+	
+	if (node.unselectable) {
 		return
+	}
+	
 	if (node.extraClasses){
 		node.extraClasses = "";
 		var index = activatedNodes.indexOf(node);
@@ -321,22 +350,27 @@ function changeState(event, data){
 		node.extraClasses = "highlight";
 		activatedNodes.push(node);
 	}
+	
 	node.render();
 }
 
+//IndexingTermsTree.prototype.
 function isMultiSelect(e){
 	return (e.ctrlKey || e.metaKey) || e.shiftKey;
 }
 
+//IndexingTermsTree.prototype.
 function encodeId(id){
 	return replaceAll(replaceAll(replaceAll(id, "\\.", "_"), "/", "_"), 
 			":", "_")
 }
 
+//IndexingTermsTree.prototype.
 function replaceAll(str, find, replace) {
   return str.replace(new RegExp(find, 'g'), replace);
 }
 
+//IndexingTermsTree.prototype.
 function getAbouts(){
 	var nodes = tree.getSelectedNodes();
 	return $.map(nodes, function(node) {
@@ -344,6 +378,7 @@ function getAbouts(){
 	});
 }
 
+//IndexingTermsTree.prototype.
 function selectAbouts(abouts){
 	if (abouts){
 		for (i = 0, l = abouts.length; i < l; i++){
@@ -352,6 +387,7 @@ function selectAbouts(abouts){
 	}
 }
 
+//IndexingTermsTree.prototype.
 function clickIsAboutByValue(key){
 	if (tree)
 		tree.getNodeByKey(key).setSelected(true);

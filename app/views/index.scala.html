@@ -36,15 +36,17 @@
 			<em>Code path:</em> <input id="au-codepath" placeholder="Code path"> <br>
 			<em>Start date:</em> <input id="start-date" placeholder="Start date"> <br>
 			<em>End date:</em> <input id="end-date" placeholder="End date"> <br>
-			<em>Parent ID:</em> <a><input id="au-parent" type="text"></a> <br>
 		</div>
 		
 		<div>
 			<div id="picklist">
-				<label>Filter:</label>
-				<input name="search" placeholder="Filter...">
-				<button id="btnResetSearch">&times;</button>
-				<span id="matches"></span>
+				<legend><em>Parent ID(s):</legend>
+				<div hidden>
+					<label>Filter:</label>
+					<input name="search" placeholder="Filter...">
+					<button id="btnResetSearch">&times;</button>
+					<span id="matches"></span>
+				</div>
 				<div id="tree" style="padding-top: 5px"></div>
 				
 				<!--
