@@ -7,12 +7,16 @@
 	<script src='@routes.Assets.at("external_packages/MapBox/mapbox-2.0.1.js")'></script>
 	<script src='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet.draw-0.2.2.js")'></script>
 	<script src='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet-omnivore-0.2.0.min.js")'></script>
+	<script src="@routes.Assets.at("external_packages/jquery-ui.min.js")" type="text/javascript"></script>
+	<script src='@routes.Assets.at("external_packages/fancytree/jquery.fancytree.js")'></script>
 	
 	<script src='@routes.Assets.at("javascripts/index.js")'></script>
+	<script src='@routes.Assets.at("javascripts/indexing-terms.js")'></script>
+	<script src='@routes.Assets.at("javascripts/fancytree-ext-filter.js")'></script>
 	
 	<link href='@routes.Assets.at("external_packages/MapBox/mapbox-2.0.1.css")' rel='stylesheet'/>
 	<link href='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet.draw-0.2.2.css")' rel='stylesheet'/>
-	
+	<link href='@routes.Assets.at("external_packages/fancytree/ui.fancytree.css")' rel='stylesheet'/>
 	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'/>
 }
 
@@ -36,6 +40,20 @@
 		</div>
 		
 		<div>
+			<div id="picklist">
+				<label>Filter:</label>
+				<input name="search" placeholder="Filter...">
+				<button id="btnResetSearch">&times;</button>
+				<span id="matches"></span>
+				<div id="tree" style="padding-top: 5px"></div>
+				
+				<!--
+				<div id="indexing-terms-buttons-group">
+					<button class='btn btn-primary btn-small' id='add_button'><span class="glyphicon icon-white glyphicon-arrow-down"></span><div style="float:right;">Add Terms</div></button>
+					<button class='btn btn-primary btn-small' id='remove_button'><span class="glyphicon icon-white glyphicon-arrow-up"></span> <div style="float:right;">Remove Terms</div><div style="font-size: medium;"></div></button>
+				</div>
+				-->
+			</div>
 			<div id='map-one' class='map'></div>
 		</div>
 		
