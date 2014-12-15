@@ -1,25 +1,24 @@
 var ausPath = context;
+var INDEXING_TERMS_TREE = new IndexingTermsTree();
 
 function IndexingTermsTree() {
-	var tree = null;
-	var activatedNodes = [];
-	
-	
+	this.tree = null;
+	this.activatedNodes = [];
 	
 	return;
 }
 
-//IndexingTermsTree.prototype.initInteractBetweenTreeAndTable = function(picklistName, callbackFunctionAfterTreeInitialized) {
-function initInteractBetweenTreeAndTable(picklistName, callbackFunctionAfterTreeInitialized){
-	initTree(picklistName, callbackFunctionAfterTreeInitialized);
+IndexingTermsTree.prototype.initInteractBetweenTreeAndTable = function(picklistName, callbackFunctionAfterTreeInitialized) {
+	this.initTree(picklistName, callbackFunctionAfterTreeInitialized);
 	//interactBetweenTreeAndTable();
 	//makeTableSelectable();
 	//bindAllButtons();
-	resetIsAboutlist();
+	this.resetIsAboutCheckboxes();
+	
+	return;
 }
 
-//IndexingTermsTree.prototype.
-function makeTableSelectable(){
+IndexingTermsTree.prototype.makeTableSelectable = function() {
 	/* Get all rows from your 'table' but not the first one 
 	 * that includes headers. */
 	var rows = $('tr').not(':first');
@@ -40,35 +39,39 @@ function makeTableSelectable(){
 	$('#indexingTerms').bind('selectstart dragstart', function(e) { 
 		e.preventDefault(); return false; 
 	});
+	
+	return;
 }
 
-//IndexingTermsTree.prototype.
-function addHighlighForRow(rows, row, e){
+IndexingTermsTree.prototype.addHighlighForRow = function(rows, row, e) {
+//function addHighlighForRow(rows, row, e){
 	if ((e.ctrlKey || e.metaKey) || e.shiftKey) {
 		row.addClass('highlight');
 	} else {
 		unHighLightAll(rows);
 		row.addClass('highlight');
 	}
+	
+	return;
 }
 
-//IndexingTermsTree.prototype.
-function unHighLightAll(rows){
+IndexingTermsTree.prototype.unHighLightAll = function(rows) {
+//function unHighLightAll(rows){
 	rows.removeClass('highlight');
 }
 
-//IndexingTermsTree.prototype.
+//IndexingTermsTree.prototype.interactBetweenTreeAndTable = function() {
 function interactBetweenTreeAndTable(){
 }
 
-//IndexingTermsTree.prototype.
+//IndexingTermsTree.prototype.bindAllButtons = function() {
 function bindAllButtons(){
 	bindRemoveButton();
 	bindAddButton();
 	bindClearButton();
 }
 
-//IndexingTermsTree.prototype.
+//IndexingTermsTree.prototype.bindRemoveButton = function() {
 function bindRemoveButton(){
 	$("#remove_button").bind('click', function(e){
 		e.preventDefault()
@@ -76,34 +79,38 @@ function bindRemoveButton(){
 		$(highlightedTr).each(function() {
 			  $this = $(this)
 			  var key = $this.find("td:first").html();
-			  var node = tree.getNodeByKey(key);
+			  var node = this.tree.getNodeByKey(key);
 			  node.setSelected(false)
 			});
-	})
+	});
+	
+	return;
 }
 
-//IndexingTermsTree.prototype.
+//IndexingTermsTree.prototype.bindAddButton = function() {
 function bindAddButton(){
 	$("#add_button").bind('click', function(e){
 		e.preventDefault()
-		if (activatedNodes){
-			while (activatedNodes.length > 0){
-				var node = activatedNodes.shift()
+		if (this.activatedNodes){
+			while (this.activatedNodes.length > 0){
+				var node = this.activatedNodes.shift()
 				node.extraClasses = "";
 				select(node);
 				node.render();
 			}
 		} 
-	})
+	});
+	
+	return;
 }
 
-//IndexingTermsTree.prototype.
+//IndexingTermsTree.prototype.select = function(node) {
 function select(node){
 	if (node.data.type)
 		node.setSelected(true)
 }
 
-//IndexingTermsTree.prototype.
+//IndexingTermsTree.prototype.bindClearButton = function() {
 function bindClearButton(){
 	$("#clear_button").click(function(e){
 		e.preventDefault();
@@ -111,38 +118,41 @@ function bindClearButton(){
 	})
 }
 
-//IndexingTermsTree.prototype.
+//IndexingTermsTree.prototype.resetIsAboutlist = function() {
 function resetIsAboutlist(){
 	resetIsAboutCheckboxes();
 	collapseAllFolders();
 }
 
-//IndexingTermsTree.prototype.
+//IndexingTermsTree.prototype.collapseAllFolders = function() {
 function collapseAllFolders(){
-	if (tree)
-		tree.reload()
-}
-
-//IndexingTermsTree.prototype.resetIsAboutCheckboxes = function() {
-function resetIsAboutCheckboxes(){
-	if (! tree)
-		return
-	var nodes = tree.getSelectedNodes()
-	for (var i in nodes){
-		var node = nodes[i]
-		node.setSelected(false)
+	if (this.tree) {
+		this.tree.reload();
 	}
+	
+	return;
 }
 
-//IndexingTermsTree.prototype.
+IndexingTermsTree.prototype.resetIsAboutCheckboxes = function() {
+	if (! this.tree) {
+		return;
+	}
+	
+	var nodes = this.tree.getSelectedNodes();
+	for (var i in nodes){
+		var node = nodes[i];
+		node.setSelected(false);
+	}
+	
+	return;
+}
+
+//IndexingTermsTree.prototype.style = function(text) {
 function style(text){
 	return '<font size="2">' + text + '</font>';
 }
 
-var tree = null;
-var activatedNodes = [];
-//IndexingTermsTree.prototype.initTree = function(picklistName, callbackFunction) {
-function initTree(picklistName, callbackFunction) {
+IndexingTermsTree.prototype.initTree = function(picklistName, callbackFunction) {
 	var url = ausPath + "/api/locations/tree";
 	var data;
 	
@@ -203,13 +213,13 @@ function initTree(picklistName, callbackFunction) {
 			click: function(event, data) {
 				var node = data.node;
 				if(node.isActive()) {
-					changeState(event, data);
+					INDEXING_TERMS_TREE.changeState(event, data);
 				}
 				
 				return true;
 			},
 			activate: function(event, data) {
-				changeState(event, data);
+				INDEXING_TERMS_TREE.changeState(event, data);
 				
 				return false;
 			},
@@ -245,11 +255,13 @@ function initTree(picklistName, callbackFunction) {
 				//makeTableSelectable(); //TODO TBR
 			}
 		});
-		tree = treeDiv.fancytree("getTree");
+		this.tree = treeDiv.fancytree("getTree");
 		initFilterForTree();
 		if(callbackFunction) {
 			callbackFunction();
 		}
+		
+		return;
 	}
 	
 	$.get(url, function(data, status) {
@@ -269,10 +281,12 @@ function initTree(picklistName, callbackFunction) {
 				$("button#btnResetSearch").click();
 				return;
 			}
-			n = tree.filterNodes(match, leavesOnly);
+			n = this.tree.filterNodes(match, leavesOnly);
 			$("button#btnResetSearch").attr("disabled", false);
 			$("span#matches").text("(" + n + " matches)");
 		}).focus();
+		
+		return;
 	}
 	
 	function bindResetSearchButton(){
@@ -280,39 +294,40 @@ function initTree(picklistName, callbackFunction) {
 			e.preventDefault();
 			$("input[name=search]").val("");
 			$("span#matches").text("");
-			tree.clearFilter();
+			this.tree.clearFilter();
 		}).attr("disabled", true);
+		
+		return;
 	}
 	
 	return;
 }
 
-//IndexingTermsTree.prototype.
-function changeState(event, data){
+IndexingTermsTree.prototype.changeState = function(event, data) {
 	var node = data.node;
 	
 	if(!isMultiSelect(event)){
-		while (activatedNodes.length > 0){
-			var node1 = activatedNodes.pop();
+		while (this.activatedNodes.length > 0){
+			var node1 = this.activatedNodes.pop();
 			node1.extraClasses = "";
 			node1.render();
 		}
 	}
 	
 	if(node.unselectable) {
-		return
+		return;
 	}
 	
 	if (node.extraClasses){
 		node.extraClasses = "";
-		var index = activatedNodes.indexOf(node);
+		var index = this.activatedNodes.indexOf(node);
 		if(index > -1) {
-			activatedNodes.splice(index, 1);
+			this.activatedNodes.splice(index, 1);
 		}
 	}
 	else {
 		node.extraClasses = "highlight";
-		activatedNodes.push(node);
+		this.activatedNodes.push(node);
 	}
 	
 	node.render();
@@ -320,31 +335,31 @@ function changeState(event, data){
 	return;
 }
 
-//IndexingTermsTree.prototype.
+//IndexingTermsTree.prototype.isMultiSelect = function(e) {
 function isMultiSelect(e){
 	return (e.ctrlKey || e.metaKey) || e.shiftKey;
 }
 
-//IndexingTermsTree.prototype.
+//IndexingTermsTree.prototype.encodeId = function(id) {
 function encodeId(id){
 	return replaceAll(replaceAll(replaceAll(id, "\\.", "_"), "/", "_"), 
 			":", "_")
 }
 
-//IndexingTermsTree.prototype.
+//IndexingTermsTree.prototype.replaceAll = function(str, find, replace) {
 function replaceAll(str, find, replace) {
   return str.replace(new RegExp(find, 'g'), replace);
 }
 
-//IndexingTermsTree.prototype.
+//IndexingTermsTree.prototype.getAbouts  = function(node) {
 function getAbouts(){
-	var nodes = tree.getSelectedNodes();
+	var nodes = this.tree.getSelectedNodes();
 	return $.map(nodes, function(node) {
 		return node.key;
 	});
 }
 
-//IndexingTermsTree.prototype.
+//IndexingTermsTree.prototype.selectAbouts = function(abouts) {
 function selectAbouts(abouts){
 	if (abouts){
 		for (i = 0, l = abouts.length; i < l; i++){
@@ -353,8 +368,11 @@ function selectAbouts(abouts){
 	}
 }
 
-//IndexingTermsTree.prototype.
+//IndexingTermsTree.prototype.clickIsAboutByValue = function(key) {
 function clickIsAboutByValue(key){
-	if (tree)
-		tree.getNodeByKey(key).setSelected(true);
+	if (this.tree) {
+		this.tree.getNodeByKey(key).setSelected(true);
+	}
+	
+	return;
 }

@@ -49,7 +49,7 @@ $(document).ready(function() {
 		return;
 	});
 	
-	initInteractBetweenTreeAndTable("picklist");
+	INDEXING_TERMS_TREE.initInteractBetweenTreeAndTable("picklist");
 	
 	return;
 });
