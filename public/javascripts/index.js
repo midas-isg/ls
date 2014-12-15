@@ -1,5 +1,5 @@
 
-var ausPath = context + '/resources/aus';
+var crudPath = context + '/resources/aus';
 var MAP_DRIVER = null;
 
 $(document).ready(function() {
@@ -32,7 +32,7 @@ $(document).ready(function() {
 	
 	$('#db-load-button').click(function() {
 		var mapID = $("#map-id").val();
-		MAP_DRIVER.geoJSONURL = ausPath + "/" + mapID;
+		MAP_DRIVER.geoJSONURL = crudPath + "/" + mapID;
 		//"http://tps23-nb.univ.pitt.edu/test.json";
 		
 		if(MAP_DRIVER.geoJSONURL) {
@@ -54,17 +54,18 @@ $(document).ready(function() {
 	return;
 });
 
-function MapDriver(){
+function MapDriver() {
 	var id = '11';
 	this.title = '<strong>Sierra Leone</strong> 0001-01-01 to now';
 	this.mapID = id;//'tps23.k1765f0g';
-	this.geoJSONURL = ausPath + "/" + id;
+	this.geoJSONURL = crudPath + "/" + id;
 	//"http://tps23-nb.univ.pitt.edu/test.json";
 	this.startingCoordinates = [6.944028854370401, -11.534582138061467];
 	this.zoom = 2;
 	this.accessToken = 'pk.eyJ1IjoidHBzMjMiLCJhIjoiVHEzc0tVWSJ9.0oYZqcggp29zNZlCcb2esA';
 	this.featureLayer = null;
 	this.map = null;
+	this.parents = [];
 	
 	this.initialize();
 	
@@ -193,7 +194,7 @@ MapDriver.prototype.loadJSON = function(jsonData) {
 MapDriver.prototype.saveMap = function() {
 	// Create //POST /resources/aus
 	var httpType = "POST";
-	var URL = ausPath;
+	var URL = crudPath;
 	
 	/*
 	if(isUpdate) {
@@ -213,7 +214,7 @@ MapDriver.prototype.saveMap = function() {
 		var auCodePath = $("#au-codepath").val();
 		var startDate = $("#start-date").val();
 		var endDate = $("#end-date").val();
-		var auParent = $("#au-parent").val();
+		var auParent = MAP_DRIVER.getParents();
 		
 		var dateTokens = validDate(startDate);
 		if(startDate == "today") {
@@ -334,7 +335,7 @@ MapDriver.prototype.download = function() {
 		properties.code = $("#au-codepath").val();
 		properties.startDate = $("#start-date").val();
 		properties.endDate = $("#end-date").val();
-		properties.parentGid = $("#au-parent").val();
+		properties.parentGid = this.getParents();
 		properties.description = properties.name + ";" + properties.code + ";" + properties.startDate + ";" + properties.endDate + ";" + properties.parentGid;
 	}
 	
@@ -378,6 +379,30 @@ MapDriver.prototype.upload = function() {
 	
 	var fileString = fileReader.readAsText(file);
 	
+	return;
+}
+
+MapDriver.prototype.getParents = function() {
+	return this.parents;
+}
+
+MapDriver.prototype.addParent = function(parentID) {
+	this.parents.push(parentID)
+	console.log(this.parents);
+	
+	return;
+}
+
+MapDriver.prototype.removeParent = function(parentID) {
+	var i;
+	for(i = 0; i < this.parents.length; i++) {
+		if(this.parents[i] == parentID) {
+			this.parents.splice(i, 1);
+			break;
+		}
+	}
+	
+	console.log(this.parents);
 	return;
 }
 

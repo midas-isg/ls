@@ -1,3 +1,5 @@
+var ausPath = context;
+
 function IndexingTermsTree() {
 	var tree = null;
 	var activatedNodes = [];
@@ -141,7 +143,7 @@ var tree = null;
 var activatedNodes = [];
 //IndexingTermsTree.prototype.initTree = function(picklistName, callbackFunction) {
 function initTree(picklistName, callbackFunction) {
-	//var url = ausPath + "/services/" + picklistName
+	var url = ausPath + "/api/locations/tree";
 	var data;
 	
 	 data = [
@@ -200,24 +202,30 @@ function initTree(picklistName, callbackFunction) {
 			source: data,
 			click: function(event, data) {
 				var node = data.node;
-				if (node.isActive())
-					changeState(event, data)
+				if(node.isActive()) {
+					changeState(event, data);
+				}
+				
 				return true;
 			},
 			activate: function(event, data) {
-				changeState(event, data)
+				changeState(event, data);
+				
 				return false;
 			},
 			dblclick: function(event, data) {
 				var node = data.node;
-				if (! node.unselectable)
+				if(! node.unselectable) {
 					node.setSelected(! (node.selected));
+				}
+				
 				return false;
 			},
 			select : function(event, data) {
 				var node = data.node;
-				var uri = node.key
-				var id = encodeId(uri)
+				var uri = node.key;
+				var id = encodeId(uri);
+				
 				if(node.selected) {
 					var key = node.title;
 					var type = node.data.type;
@@ -226,9 +234,13 @@ function initTree(picklistName, callbackFunction) {
 									+ uri + '</td><td>' + style(type)
 									+ '</td><td>' + style(key)
 									+ '</td></tr>');
+					
+					MAP_DRIVER.addParent(node.key);
 				}
 				else {
 					$('#tr' + id).remove();
+					
+					MAP_DRIVER.removeParent(node.key);
 				}
 				//makeTableSelectable(); //TODO TBR
 			}
@@ -240,59 +252,11 @@ function initTree(picklistName, callbackFunction) {
 		}
 	}
 	
-	loadTree(data);
-	
-	/*
-	$.get(url, function(data, status){
-		var treeDiv = $("#tree").fancytree({
-			extensions: ["filter"],
-			filter: {
-				mode: "hide"
-			},
-			checkbox: true,
-			selectMode: 2,
-			source: data,
-			click: function(event, data) {
-				var node = data.node;
-				if (node.isActive())
-					changeState(event, data)
-				return true;
-			},
-			activate: function(event, data){
-				changeState(event, data)
-				return false;
-			},
-			dblclick: function(event, data) {
-				var node = data.node;
-				if (! node.unselectable)
-					node.setSelected(! (node.selected));
-				return false;
-			},
-			select : function(event, data) {
-				var node = data.node;
-				var uri = node.key
-				var id = encodeId(uri)
-				if (node.selected) {
-					var key = node.title;
-					var type = node.data.type;
-					var row = $('#indexingTerms > tbody:last').append(
-							'<tr id="tr' + id + '"><td class="hide">'
-									+ uri + '</td><td>' + style(type)
-									+ '</td><td>' + style(key)
-									+ '</td></tr>');
-				} else {
-					$('#tr' + id).remove();
-				}
-				makeTableSelectable(); //TODO TBR
-			},
-		});
-		tree = treeDiv.fancytree("getTree");
-		initFilterForTree();
-		if(callbackFunction) {
-			callbackFunction();
-		}
+	$.get(url, function(data, status) {
+		loadTree(data);
+		
+		return;
 	});
-	*/
 	
 	function initFilterForTree(){
 		bindResetSearchButton();
@@ -327,7 +291,7 @@ function initTree(picklistName, callbackFunction) {
 function changeState(event, data){
 	var node = data.node;
 	
-	if (!isMultiSelect(event)){
+	if(!isMultiSelect(event)){
 		while (activatedNodes.length > 0){
 			var node1 = activatedNodes.pop();
 			node1.extraClasses = "";
@@ -335,14 +299,14 @@ function changeState(event, data){
 		}
 	}
 	
-	if (node.unselectable) {
+	if(node.unselectable) {
 		return
 	}
 	
 	if (node.extraClasses){
 		node.extraClasses = "";
 		var index = activatedNodes.indexOf(node);
-		if (index > -1) {
+		if(index > -1) {
 			activatedNodes.splice(index, 1);
 		}
 	}
@@ -352,6 +316,8 @@ function changeState(event, data){
 	}
 	
 	node.render();
+	
+	return;
 }
 
 //IndexingTermsTree.prototype.
