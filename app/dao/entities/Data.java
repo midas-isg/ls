@@ -2,8 +2,10 @@ package dao.entities;
 
 import java.sql.Date;
 
+import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
+import javax.persistence.FetchType;
 
 import org.hibernate.annotations.Type;
 
@@ -63,6 +65,7 @@ public class Data {
 		this.endDate = endDate;
 	}
 
+	@Basic(fetch=FetchType.LAZY)
 	@Type(type = "org.hibernate.spatial.GeometryType")
 	@Column(name = "multipolygon")
 	public Geometry getMultiPolygonGeom() {

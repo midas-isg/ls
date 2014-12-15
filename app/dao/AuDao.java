@@ -1,13 +1,15 @@
 package dao;
 
+import java.util.List;
+
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 
 import play.Logger;
 import play.db.jpa.JPA;
 import dao.entities.AdministrativeUnit;
 
 public class AuDao {
-
 	public Long create(AdministrativeUnit au) {
 		EntityManager em = JPA.em();
 		em.persist(au);
@@ -36,5 +38,13 @@ public class AuDao {
 		em.remove(au);
 		Logger.debug("removed " + gid);
 		return gid;
+	}
+	
+	public List<AdministrativeUnit> findRoots() {
+		EntityManager em = JPA.em();
+		Query query = em.createQuery("from AdministrativeUnit where parent=null");//.setMaxResults(1);
+		@SuppressWarnings("unchecked")
+		List<AdministrativeUnit> result = (List<AdministrativeUnit>)query.getResultList();
+		return result;
 	}
 }
