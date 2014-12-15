@@ -1,9 +1,11 @@
 package controllers;
 
-//import interactors.CountyRule;
-
 import interactors.AuRule;
 import interactors.GeoJSONParser;
+
+import java.util.List;
+
+import models.FancyTreeNode;
 import models.geo.FeatureCollection;
 import play.Logger;
 import play.db.jpa.Transactional;
@@ -97,5 +99,11 @@ Logger.debug("Request Body:\n" + requestBodyText);
 	@Transactional
 	public static Result delete() {
 		return ok(views.html.index.render("TODO: Replace w/ delete service"));
+	}
+	
+	@Transactional
+	public static Result tree() {
+		List<FancyTreeNode> tree = TreeViewAdapter.toFancyTree(AuRule.getHierarchy());
+		return okJson(tree);
 	}
 }

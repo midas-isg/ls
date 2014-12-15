@@ -140,4 +140,8 @@ public class AuRule {
 		return au;
 	}
 
+	public static List<AdministrativeUnit> getHierarchy() {
+		return new AuDao().findRoots();
+	}
+
 }
