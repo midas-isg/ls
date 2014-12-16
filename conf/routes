@@ -13,6 +13,7 @@ PUT		/resources/aus				controllers.AdministrativeUnitServices.update()
 DELETE	/resources/aus				controllers.AdministrativeUnitServices.delete()
 
 GET		/api/locations/tree			controllers.AdministrativeUnitServices.tree()
+GET		/api/locations/tree2		controllers.AdministrativeUnitServices.tree2()
 GET		/api/locations/:gid			controllers.EpidemicZoneServices.locations(gid)
 
 # Map static resources from the /public folder to the /assets URL path
