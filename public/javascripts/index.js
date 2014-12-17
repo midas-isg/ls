@@ -107,7 +107,9 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		$("#au-codepath").val("feature.properties.codePath");
 		$("#start-date").val(feature.properties.startDate);
 		$("#end-date").val(feature.properties.endDate);
-		$("#au-parent").val(feature.properties.parentGid);
+		INDEXING_TERMS_TREE.resetIsAboutList();
+		INDEXING_TERMS_TREE.clickIsAboutByValue(feature.properties.parentGid);
+		
 		feature.properties.title = feature.properties.name + " [" + feature.properties.code + "] " + "parent: " +
 			feature.properties.parentGid + "; " + feature.properties.startDate + "-" + feature.properties.endDate;
 		
@@ -373,6 +375,8 @@ MapDriver.prototype.upload = function() {
 		$("#start-date").val(properties.startDate);
 		$("#end-date").val(properties.endDate);
 		$("#au-parent").val(properties.parentGid);
+		INDEXING_TERMS_TREE.resetIsAboutList();
+		INDEXING_TERMS_TREE.clickIsAboutByValue(properties.parentGid);
 		
 		MAP_DRIVER.loadJSON(jsonData);
 	});

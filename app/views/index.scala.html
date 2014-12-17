@@ -26,12 +26,12 @@
 	<h1>@message</h1>
 	<div><a href="http://workshops.opengeo.org/postgis-intro/" target="_blank">PostGIS Intro</a></div>
 	
-	<div style="background-color: #f0f0f0; padding-left: 2%;">
+	<div style="padding-left: 2%;">
 		<div>
 			<button id="new-button">New Administrative Unit</button>
 		</div>
 		
-		<div style="background-color: #f8f8f8;">
+		<div>
 			<div><em>ID:</em> <input id="gid" type="text" placeholder="ID"><button id="db-load-button">Load from database</button> <button id="save-button">Save to Database</button></div>
 			<em>Name:</em> <input type="text" id="au-name" placeholder="Name"> <br>
 			<em>Code:</em> <input id="au-code" placeholder="Code"> <br>
@@ -42,7 +42,7 @@
 		
 		<div>
 			<div id="picklist">
-				<legend><em>Parent Location ID(s):</legend>
+				<legend><em>Parent location ID(s):</legend>
 				<div hidden>
 					<label>Filter:</label>
 					<input name="search" placeholder="Filter...">
