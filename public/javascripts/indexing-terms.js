@@ -154,52 +154,6 @@ function style(text){
 
 IndexingTermsTree.prototype.initTree = function(picklistName, callbackFunction) {
 	var url = ausPath + "/api/locations/tree";
-	var data;
-	
-	 data = [
-		{"title":"abiotic ecosystem","key":null,"icon":false,"hideCheckbox":false,"folder":true,"unselectable":true,"expanded":false,"children":[
-				{"title":"abiotic ecosystem of West Africa","key":"http://www.pitt.edu/obc/IDE_0000000090","icon":false,"hideCheckbox":false,"folder":null,"unselectable":false,"expanded":true,"children":null,"tooltip":"abiotic ecosystem:abiotic ecosystem of West Africa","type":"abiotic ecosystem","path":"abiotic ecosystem:abiotic ecosystem of West Africa"}
-			],"tooltip":"abiotic ecosystem","type":null,"path":"abiotic ecosystem"},
-		{"title":"biotic ecosystem","key":null,"icon":false,"hideCheckbox":false,"folder":true,"unselectable":true,"expanded":false,"children":[
-			{"title":"biotic ecosystem of West Africa","key":"http://www.pitt.edu/obc/IDE_0000000053","icon":false,"hideCheckbox":false,"folder":null,"unselectable":false,"expanded":true,"children":null,"tooltip":"biotic ecosystem:biotic ecosystem of West Africa","type":"biotic ecosystem","path":"biotic ecosystem:biotic ecosystem of West Africa"}
-		],"tooltip":"biotic ecosystem","type":null,"path":"biotic ecosystem"},
-		{"title":"geographical region","key":null,"icon":false,"hideCheckbox":false,"folder":true,"unselectable":true,"expanded":false,"children":[
-			{"title":"Earth","key":"http://purl.obolibrary.org/obo/GEO_000000345","icon":false,"hideCheckbox":false,"folder":null,"unselectable":false,"expanded":true,"children":null,"tooltip":"geographical region:Earth","type":"geographical region","path":"geographical region:Earth"},
-			{"title":"region of Allegheny County, PA","key":"http://purl.obolibrary.org/obo/GEO_000000786","icon":false,"hideCheckbox":false,"folder":null,"unselectable":false,"expanded":true,"children":null,"tooltip":"geographical region:region of Allegheny County, PA","type":"geographical region","path":"geographical region:region of Allegheny County, PA"},
-			{"title":"region of Florida","key":"http://purl.obolibrary.org/obo/GEO_000000380","icon":false,"hideCheckbox":false,"folder":null,"unselectable":false,"expanded":true,"children":null,"tooltip":"geographical region:region of Florida","type":"geographical region","path":"geographical region:region of Florida"},
-			{"title":"region of Uganda","key":"http://purl.obolibrary.org/obo/GEO_000000554","icon":false,"hideCheckbox":false,"folder":null,"unselectable":false,"expanded":true,"children":null,"tooltip":"geographical region:region of Uganda","type":"geographical region","path":"geographical region:region of Uganda"},
-			{"title":"region of United States of America","key":"http://purl.obolibrary.org/obo/GEO_000000587","icon":false,"hideCheckbox":false,"folder":null,"unselectable":false,"expanded":true,"children":null,"tooltip":"geographical region:region of United States of America","type":"geographical region","path":"geographical region:region of United States of America"},
-			{"title":"UN Western Africa geographical region","key":"http://purl.obolibrary.org/obo/GEO_000000729","icon":false,"hideCheckbox":false,"folder":null,"unselectable":false,"expanded":true,"children":null,"tooltip":"geographical region:UN Western Africa geographical region","type":"geographical region","path":"geographical region:UN Western Africa geographical region"}
-		],"tooltip":"geographical region","type":null,"path":"geographical region"},
-		{"title":"host population","key":null,"icon":false,"hideCheckbox":false,"folder":true,"unselectable":true,"expanded":false,"children":[
-			{"title":"Homo sapiens","key":null,"icon":false,"hideCheckbox":false,"folder":true,"unselectable":true,"expanded":true,"children":[
-				{"title":"humans in Sierra Leone","key":"http://www.pitt.edu/obc/IDE_0000000075","icon":false,"hideCheckbox":false,"folder":null,"unselectable":false,"expanded":true,"children":null,"tooltip":"host population>Homo sapiens:humans in Sierra Leone","type":"host population","path":"host population>Homo sapiens:humans in Sierra Leone"},
-				{"title":"humans in the United States","key":"http://www.pitt.edu/obc/IDE_0000000021","icon":false,"hideCheckbox":false,"folder":null,"unselectable":false,"expanded":true,"children":null,"tooltip":"host population>Homo sapiens:humans in the United States","type":"host population","path":"host population>Homo sapiens:humans in the United States"}
-			],"tooltip":"host population>Homo sapiens","type":null,"path":"host population>Homo sapiens"}
-		],"tooltip":"host population","type":null,"path":"host population"},
-		{"title":"infection in ecosystem","key":null,"icon":false,"hideCheckbox":false,"folder":true,"unselectable":true,"expanded":false,"children":[
-			{"title":"epidemic","key":"http://purl.obolibrary.org/obo/APOLLO_SV_00000298","icon":false,"hideCheckbox":false,"folder":null,"unselectable":false,"expanded":true,"children":[
-				{"title":"H1N1 subtype, humans, global, 2009-2010","key":"http://www.pitt.edu/obc/IDE_0000000002","icon":false,"hideCheckbox":false,"folder":null,"unselectable":false,"expanded":true,"children":null,"tooltip":"infection in ecosystem>epidemic:H1N1 subtype, humans, global, 2009-2010","type":"infection in ecosystem","path":"infection in ecosystem>epidemic:H1N1 subtype, humans, global, 2009-2010"},
-				{"title":"H2N2 subtype, humans, global, 1957 to 1958","key":"http://www.pitt.edu/obc/IDE_0000000098","icon":false,"hideCheckbox":false,"folder":null,"unselectable":false,"expanded":true,"children":null,"tooltip":"infection in ecosystem>epidemic:H2N2 subtype, humans, global, 1957 to 1958","type":"infection in ecosystem","path":"infection in ecosystem>epidemic:H2N2 subtype, humans, global, 1957 to 1958"},
-				{"title":"H3N2 subtype, humans, global, 1968 to 1969","key":"http://www.pitt.edu/obc/IDE_0000000099","icon":false,"hideCheckbox":false,"folder":null,"unselectable":false,"expanded":true,"children":null,"tooltip":"infection in ecosystem>epidemic:H3N2 subtype, humans, global, 1968 to 1969","type":"infection in ecosystem","path":"infection in ecosystem>epidemic:H3N2 subtype, humans, global, 1968 to 1969"},
-				{"title":"Sudan ebolavirus, humans, Sudan, 1976","key":"http://www.pitt.edu/obc/IDE_0000000081","icon":false,"hideCheckbox":false,"folder":null,"unselectable":false,"expanded":true,"children":null,"tooltip":"infection in ecosystem>epidemic:Sudan ebolavirus, humans, Sudan, 1976","type":"infection in ecosystem","path":"infection in ecosystem>epidemic:Sudan ebolavirus, humans, Sudan, 1976"},
-				{"title":"Zaire ebolavirus, humans, Democratic Republic of Congo, 2014 to present","key":"http://www.pitt.edu/obc/IDE_0000000106","icon":false,"hideCheckbox":false,"folder":null,"unselectable":false,"expanded":true,"children":null,"tooltip":"infection in ecosystem>epidemic:Zaire ebolavirus, humans, Democratic Republic of Congo, 2014 to present","type":"infection in ecosystem","path":"infection in ecosystem>epidemic:Zaire ebolavirus, humans, Democratic Republic of Congo, 2014 to present"},
-				{"title":"Zaire ebolavirus, humans, Guinea, 2014 to present","key":"http://www.pitt.edu/obc/IDE_0000000103","icon":false,"hideCheckbox":false,"folder":null,"unselectable":false,"expanded":true,"children":null,"tooltip":"infection in ecosystem>epidemic:Zaire ebolavirus, humans, Guinea, 2014 to present","type":"infection in ecosystem","path":"infection in ecosystem>epidemic:Zaire ebolavirus, humans, Guinea, 2014 to present"},
-				{"title":"Zaire ebolavirus, humans, Liberia, 2014 to present","key":"http://www.pitt.edu/obc/IDE_0000000105","icon":false,"hideCheckbox":false,"folder":null,"unselectable":false,"expanded":true,"children":null,"tooltip":"infection in ecosystem>epidemic:Zaire ebolavirus, humans, Liberia, 2014 to present","type":"infection in ecosystem","path":"infection in ecosystem>epidemic:Zaire ebolavirus, humans, Liberia, 2014 to present"},
-				{"title":"Zaire ebolavirus, humans, Nigeria, 2014-07-25 to 2014-09-05","key":"http://www.pitt.edu/obc/IDE_0000000055","icon":false,"hideCheckbox":false,"folder":null,"unselectable":false,"expanded":true,"children":null,"tooltip":"infection in ecosystem>epidemic:Zaire ebolavirus, humans, Nigeria, 2014-07-25 to 2014-09-05","type":"infection in ecosystem","path":"infection in ecosystem>epidemic:Zaire ebolavirus, humans, Nigeria, 2014-07-25 to 2014-09-05"},
-				{"title":"Zaire ebolavirus, humans, Sierra Leone, 2014 to present","key":"http://www.pitt.edu/obc/IDE_0000000104","icon":false,"hideCheckbox":false,"folder":null,"unselectable":false,"expanded":true,"children":null,"tooltip":"infection in ecosystem>epidemic:Zaire ebolavirus, humans, Sierra Leone, 2014 to present","type":"infection in ecosystem","path":"infection in ecosystem>epidemic:Zaire ebolavirus, humans, Sierra Leone, 2014 to present"},
-				{"title":"Zaire ebolavirus, humans, West Africa, 2014 to present","key":"http://www.pitt.edu/obc/IDE_0000000050","icon":false,"hideCheckbox":false,"folder":null,"unselectable":false,"expanded":true,"children":null,"tooltip":"infection in ecosystem>epidemic:Zaire ebolavirus, humans, West Africa, 2014 to present","type":"infection in ecosystem","path":"infection in ecosystem>epidemic:Zaire ebolavirus, humans, West Africa, 2014 to present"}],"tooltip":"infection in ecosystem>epidemic:epidemic","type":"infection in ecosystem","path":"infection in ecosystem>epidemic:epidemic"}
-			],"tooltip":"infection in ecosystem","type":null,"path":"infection in ecosystem"},
-		{"title":"infectious disease control strategy","key":null,"icon":false,"hideCheckbox":false,"folder":true,"unselectable":true,"expanded":false,"children":[
-			{"title":"case quarantine control strategy","key":"http://purl.obolibrary.org/obo/APOLLO_SV_00000230","icon":false,"hideCheckbox":false,"folder":null,"unselectable":false,"expanded":true,"children":[],"tooltip":"infectious disease control strategy>case quarantine control strategy:case quarantine control strategy","type":"infectious disease control strategy","path":"infectious disease control strategy>case quarantine control strategy:case quarantine control strategy"},
-			{"title":"individual treatment control strategy","key":null,"icon":false,"hideCheckbox":false,"folder":true,"unselectable":true,"expanded":true,"children":[
-				{"title":"antiviral control strategy","key":"http://purl.obolibrary.org/obo/APOLLO_SV_00000181","icon":false,"hideCheckbox":false,"folder":null,"unselectable":false,"expanded":true,"children":[],"tooltip":"infectious disease control strategy>individual treatment control strategy>anti-infective individual treatment control strategy>antiviral control strategy:antiviral control strategy","type":"infectious disease control strategy","path":"infectious disease control strategy>individual treatment control strategy>anti-infective individual treatment control strategy>antiviral control strategy:antiviral control strategy"},
-				{"title":"vaccination control strategy","key":"http://purl.obolibrary.org/obo/APOLLO_SV_00000136","icon":false,"hideCheckbox":false,"folder":null,"unselectable":false,"expanded":true,"children":[],"tooltip":"infectious disease control strategy>individual treatment control strategy>vaccination control strategy:vaccination control strategy","type":"infectious disease control strategy","path":"infectious disease control strategy>individual treatment control strategy>vaccination control strategy:vaccination control strategy"}
-			],"tooltip":"infectious disease control strategy>individual treatment control strategy","type":null,"path":"infectious disease control strategy>individual treatment control strategy"},
-			{"title":"school closure control strategy","key":"http://purl.obolibrary.org/obo/APOLLO_SV_00000123","icon":false,"hideCheckbox":false,"folder":null,"unselectable":false,"expanded":true,"children":[],"tooltip":"infectious disease control strategy>place closure control strategy>school closure control strategy:school closure control strategy","type":"infectious disease control strategy","path":"infectious disease control strategy>place closure control strategy>school closure control strategy:school closure control strategy"},
-			{"title":"travel restriction control strategy","key":"http://purl.obolibrary.org/obo/APOLLO_SV_00000231","icon":false,"hideCheckbox":false,"folder":null,"unselectable":false,"expanded":true,"children":[],"tooltip":"infectious disease control strategy>travel restriction control strategy:travel restriction control strategy","type":"infectious disease control strategy","path":"infectious disease control strategy>travel restriction control strategy:travel restriction control strategy"}
-		],"tooltip":"infectious disease control strategy","type":null,"path":"infectious disease control strategy"}
-	];
 	
 	function loadTree(data) {
 		var treeDiv = $("#tree").fancytree({
@@ -264,11 +218,15 @@ IndexingTermsTree.prototype.initTree = function(picklistName, callbackFunction) 
 		return;
 	}
 	
+	loadTree(treeData);
+	
+	/*
 	$.get(url, function(data, status) {
 		loadTree(data);
 		
 		return;
 	});
+	*/
 	
 	function initFilterForTree(){
 		bindResetSearchButton();

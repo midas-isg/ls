@@ -31,7 +31,7 @@ $(document).ready(function() {
 	});
 	
 	$('#db-load-button').click(function() {
-		var mapID = $("#map-id").val();
+		var mapID = $("#gid").val();
 		MAP_DRIVER.geoJSONURL = crudPath + "/" + mapID;
 		//"http://tps23-nb.univ.pitt.edu/test.json";
 		
@@ -55,7 +55,7 @@ $(document).ready(function() {
 });
 
 function MapDriver() {
-	var id = '11';
+	var id = '12';
 	this.title = '<strong>Sierra Leone</strong> 0001-01-01 to now';
 	this.mapID = id;//'tps23.k1765f0g';
 	this.geoJSONURL = crudPath + "/" + id;
@@ -309,7 +309,7 @@ console.log("Length: " + JSON.stringify(data).length);
 			//indexingObject.informationObject.setURI(indexingObject.successChange(data, status, "added"));
 			console.log(data);
 			console.log(status);
-			$("#map-id").val(getIDFromURI(response.getResponseHeader("Location")));
+			$("#gid").val(getIDFromURI(response.getResponseHeader("Location")));
 		},
 		error: function(data, status) {
 			//if(data['responseJSON'] && data['responseJSON']['duplicatedUri']) {
