@@ -10,7 +10,7 @@
 	<script src="@routes.Assets.at("external_packages/jquery-ui.min.js")" type="text/javascript"></script>
 	<script src='@routes.Assets.at("external_packages/fancytree/jquery.fancytree.js")'></script>
 	
-	<script src='@routes.Assets.at("javascripts/index.js")'></script>
+	<script src='@routes.Assets.at("javascripts/map-driver.js")'></script>
 	<script src='@routes.Assets.at("javascripts/indexing-terms.js")'></script>
 	<script src='@routes.Assets.at("javascripts/fancytree-ext-filter.js")'></script>
 	
@@ -19,46 +19,44 @@
 	<link href='@routes.Assets.at("external_packages/fancytree/ui.fancytree.css")' rel='stylesheet'/>
 	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'/>
 	
+	<!-- Local Data -->
 	<script src='@routes.Assets.at("tree-data.js")'></script>
 }
 
 @main("Welcome to PlayGIS 0.1", imports) {
 	<h1>@message</h1>
-	<div><a href="http://workshops.opengeo.org/postgis-intro/" target="_blank">PostGIS Intro</a></div>
+	<div hidden><a href="http://workshops.opengeo.org/postgis-intro/" target="_blank">PostGIS Intro</a></div>
 	
 	<div style="padding-left: 2%;">
 		<div>
 			<button id="new-button">New Administrative Unit</button>
+			<div><em>ID:</em> <input id="gid" type="text" placeholder="ID"><button id="db-load-button">Load from database</button></div>
+			<em>Name:</em> <input type="text" id="au-name" placeholder="Name"><br>
+			<em>Code:</em> <input id="au-code" placeholder="Code"><br>
+			<em>Code path:</em> <input id="au-codepath" placeholder="Code path"><br>
+			<em>Start date:</em> <input id="start-date" placeholder="Start date"><br>
+			<div><em>End date:</em> <input id="end-date" placeholder="End date"><button id="save-button">Save to Database</button></div>
 		</div>
 		
 		<div>
-			<div><em>ID:</em> <input id="gid" type="text" placeholder="ID"><button id="db-load-button">Load from database</button> <button id="save-button">Save to Database</button></div>
-			<em>Name:</em> <input type="text" id="au-name" placeholder="Name"> <br>
-			<em>Code:</em> <input id="au-code" placeholder="Code"> <br>
-			<em>Code path:</em> <input id="au-codepath" placeholder="Code path"> <br>
-			<em>Start date:</em> <input id="start-date" placeholder="Start date"> <br>
-			<em>End date:</em> <input id="end-date" placeholder="End date"> <br>
-		</div>
-		
-		<div>
-			<div id="picklist">
-				<legend><em>Parent location ID(s):</legend>
-				<div hidden>
-					<label>Filter:</label>
-					<input name="search" placeholder="Filter...">
-					<button id="btnResetSearch">&times;</button>
-					<span id="matches"></span>
-				</div>
-				<div id="tree" style="padding-top: 5px"></div>
-				
-				<!--
-				<div id="indexing-terms-buttons-group">
-					<button class='btn btn-primary btn-small' id='add_button'><span class="glyphicon icon-white glyphicon-arrow-down"></span><div style="float:right;">Add Terms</div></button>
-					<button class='btn btn-primary btn-small' id='remove_button'><span class="glyphicon icon-white glyphicon-arrow-up"></span> <div style="float:right;">Remove Terms</div><div style="font-size: medium;"></div></button>
-				</div>
-				-->
+			<div id='map-one' class="map pull-left"></div>
+			<div id="picklist" class="pull-left">
+					<legend><em>Parent location ID(s):</legend>
+					<div hidden>
+						<label>Filter:</label>
+						<input name="search" placeholder="Filter...">
+						<button id="btnResetSearch">&times;</button>
+						<span id="matches"></span>
+					</div>
+					<div id="tree" style="padding-top: 5px"></div>
+					
+					<!--
+					<div id="indexing-terms-buttons-group">
+						<button class='btn btn-primary btn-small' id='add_button'><span class="glyphicon icon-white glyphicon-arrow-down"></span><div style="float:right;">Add Terms</div></button>
+						<button class='btn btn-primary btn-small' id='remove_button'><span class="glyphicon icon-white glyphicon-arrow-up"></span> <div style="float:right;">Remove Terms</div><div style="font-size: medium;"></div></button>
+					</div>
+					-->
 			</div>
-			<div id='map-one' class='map'></div>
 		</div>
 		
 		<div style="clear: both;">

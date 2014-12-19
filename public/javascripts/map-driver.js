@@ -1,3 +1,4 @@
+//!!!!!!!!!TODO: use http://localhost:9000/ls/api/locations/1169 for back information!!!!!!!!!
 
 var crudPath = context + '/resources/aus';
 var MAP_DRIVER = null;
@@ -8,14 +9,14 @@ $(document).ready(function() {
 	$("#new-button").click(function() {
 		MAP_DRIVER.mapID = Date().valueOf();
 		MAP_DRIVER.featureLayer.clearLayers();
-		$("#au-name").val("");
-		$("#au-code").val("");
-		$("#au-codepath").val("");
+		setTextValue("#au-name", "");
+		setTextValue("#au-code", "");
+		setTextValue("#au-codepath", "");
 		
 		var today = new Date();
-		$("#start-date").val(today.getUTCFullYear() + "-" + (today.getUTCMonth() + 1) + "-" + today.getUTCDate());
-		$("#end-date").val("");
-		$("#au-parent").val("");
+		setTextValue("#start-date", today.getUTCFullYear() + "-" + (today.getUTCMonth() + 1) + "-" + today.getUTCDate());
+		setTextValue("#end-date", "");
+		setTextValue("#au-parent", "");
 	});
 	
 	$('#upload-button').click(function() {
@@ -31,7 +32,7 @@ $(document).ready(function() {
 	});
 	
 	$('#db-load-button').click(function() {
-		var mapID = $("#gid").val();
+		var mapID = getValueText("#gid");
 		MAP_DRIVER.geoJSONURL = crudPath + "/" + mapID;
 		//"http://tps23-nb.univ.pitt.edu/test.json";
 		
@@ -61,7 +62,7 @@ function MapDriver() {
 	this.geoJSONURL = crudPath + "/" + id;
 	//"http://tps23-nb.univ.pitt.edu/test.json";
 	this.startingCoordinates = [6.944028854370401, -11.534582138061467];
-	this.zoom = 2;
+	this.zoom = 5;
 	this.accessToken = 'pk.eyJ1IjoidHBzMjMiLCJhIjoiVHEzc0tVWSJ9.0oYZqcggp29zNZlCcb2esA';
 	this.featureLayer = null;
 	this.map = null;
@@ -101,17 +102,78 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		
 		var feature = MAP_DRIVER.featureLayer.getGeoJSON().features[0];
 		
+		function centerMap(geoJSON) {
+			var geometry = geoJSON.features[0].geometry;
+			
+			if(!geometry) {
+				return;
+			}
+			
+			var geometryCount = geometry.coordinates.length;
+			var latitude = geometry.coordinates[0][0][1];
+			var longitude = geometry.coordinates[0][0][0];
+			var minLat = latitude;
+			var maxLat = minLat;
+			var minLng = longitude;
+			var maxLng = minLng;
+			
+			var vertices;
+			var coordinatesBody;
+			for(var i = 0; i < geometryCount; i++) {
+				coordinatesBody = geometry.coordinates[i];
+				vertices = geometry.coordinates[i].length;
+				
+				for(var j = 0; j < vertices; j++) {
+					latitude = geometry.coordinates[i][j][1];
+					longitude = geometry.coordinates[i][j][0];
+					
+					if(latitude < minLat) {
+						minLat = latitude;
+					}
+					else if(latitude > maxLat) {
+						maxLat = latitude;
+					}
+					
+					if(longitude < minLng) {
+						minLng = longitude;
+					}
+					else if(longitude > maxLng) {
+						maxLng = longitude;
+					}
+				}
+			}
+			
+			var southWest = L.latLng(minLat, minLng);
+			var northEast = L.latLng(maxLat, maxLng);
+			var bounds = L.latLngBounds(southWest, northEast);
+			
+			return MAP_DRIVER.map.fitBounds(bounds);
+		}
+		
+		centerMap(MAP_DRIVER.featureLayer.getGeoJSON());
+		
 		MAP_DRIVER.mapID = MAP_DRIVER.featureLayer.getGeoJSON().id;
-		$("#au-name").val(feature.properties.name);
-		$("#au-code").val(feature.properties.code);
-		$("#au-codepath").val("feature.properties.codePath");
-		$("#start-date").val(feature.properties.startDate);
-		$("#end-date").val(feature.properties.endDate);
+		setTextValue("#au-name", feature.properties.name);
+		setTextValue("#au-code", feature.properties.code);
+		setTextValue("#au-codepath", feature.properties.codePath);
+		setTextValue("#start-date", feature.properties.startDate);
+		setTextValue("#end-date", feature.properties.endDate);
 		INDEXING_TERMS_TREE.resetIsAboutList();
 		INDEXING_TERMS_TREE.clickIsAboutByValue(feature.properties.parentGid);
 		
-		feature.properties.title = feature.properties.name + " [" + feature.properties.code + "] " + "parent: " +
-			feature.properties.parentGid + "; " + feature.properties.startDate + "-" + feature.properties.endDate;
+		setTextValue("#gid", feature.properties.gid);
+		feature.properties.title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
+		
+		if(feature.properties.endDate) {
+			feature.properties.title = feature.properties.title + " to " + feature.properties.endDate;
+		}
+		else {
+			feature.properties.title += " to present";
+		}
+		
+		MAP_DRIVER.map.legendControl.removeLegend(MAP_DRIVER.title);
+		MAP_DRIVER.title = "<strong>" + feature.properties.title + "</strong>";
+		MAP_DRIVER.map.legendControl.addLegend(MAP_DRIVER.title);
 		
 		if(!MAP_DRIVER.drawControl) {
 			MAP_DRIVER.drawControl = new L.Control.Draw({
@@ -211,11 +273,11 @@ MapDriver.prototype.saveMap = function() {
 	function formatGeoJSON(geoJSON) {
 		var i;
 		var geometry;
-		var auName = $("#au-name").val();
-		var auCode = $("#au-code").val();
-		var auCodePath = $("#au-codepath").val();
-		var startDate = $("#start-date").val();
-		var endDate = $("#end-date").val();
+		var auName = getValueText("#au-name");
+		var auCode = getValueText("#au-code");
+		var auCodePath = getValueText("#au-codepath");
+		var startDate = getValueText("#start-date");
+		var endDate = getValueText("#end-date");
 		var auParent = MAP_DRIVER.getParents();
 		
 		var dateTokens = validDate(startDate);
@@ -311,7 +373,7 @@ console.log("Length: " + JSON.stringify(data).length);
 			//indexingObject.informationObject.setURI(indexingObject.successChange(data, status, "added"));
 			console.log(data);
 			console.log(status);
-			$("#gid").val(getIDFromURI(response.getResponseHeader("Location")));
+			setTextValue("#gid", getIDFromURI(response.getResponseHeader("Location")));
 		},
 		error: function(data, status) {
 			//if(data['responseJSON'] && data['responseJSON']['duplicatedUri']) {
@@ -332,11 +394,11 @@ MapDriver.prototype.download = function() {
 	
 	for(var i = 0; i < jsonData.features.length; i++) {
 		properties = jsonData.features[i].properties;
-		properties.name = $("#au-name").val();
-		properties.code = $("#au-code").val();
-		properties.code = $("#au-codepath").val();
-		properties.startDate = $("#start-date").val();
-		properties.endDate = $("#end-date").val();
+		properties.name = getValueText("#au-name");
+		properties.code = getValueText("#au-code");
+		properties.codePath = getValueText("#au-codepath");
+		properties.startDate = getValueText("#start-date");
+		properties.endDate = getValueText("#end-date");
 		properties.parentGid = this.getParents();
 		properties.description = properties.name + ";" + properties.code + ";" + properties.startDate + ";" + properties.endDate + ";" + properties.parentGid;
 	}
@@ -369,12 +431,12 @@ MapDriver.prototype.upload = function() {
 		}
 		
 		var properties = jsonData.features[0].properties;
-		$("#au-name").val(properties.name);
-		$("#au-code").val(properties.code);
-		$("#au-codepath").val(properties.codePath);
-		$("#start-date").val(properties.startDate);
-		$("#end-date").val(properties.endDate);
-		$("#au-parent").val(properties.parentGid);
+		setTextValue("#au-name", properties.name);
+		setTextValue("#au-code", properties.code);
+		setTextValue("#au-codepath", properties.codePath);
+		setTextValue("#start-date", properties.startDate);
+		setTextValue("#end-date", properties.endDate);
+		setTextValue("#au-parent", properties.parentGid);
 		INDEXING_TERMS_TREE.resetIsAboutList();
 		INDEXING_TERMS_TREE.clickIsAboutByValue(properties.parentGid);
 		
@@ -414,6 +476,7 @@ MapDriver.prototype.removeParent = function(parentID) {
 function getIDFromURI(URI) {
 	var components = URI.split('/');
 	var id = components[components.length - 1];
+	
 	return id;
 }
 
@@ -424,7 +487,7 @@ function multiPolygonsToPolygons(geoJSON) {
 	for(var i = 0; i < count; i++) {
 		if(features[i].geometry.type == "MultiPolygon") {
 			var properties = features[i].properties;
-			properties.description = properties.name + ";" + properties.code + ";" + properties.startDate + ";" + properties.endDate + ";" + properties.parentGid;
+			properties.description = properties.name; //+ ";" + properties.code + ";" + properties.startDate + ";" + properties.endDate + ";" + properties.parentGid;
 			
 			for(var j = 0; j < features[i].geometry.coordinates.length; j++) {
 				features.push({"type": "Feature", "geometry": {"type": "Polygon", "coordinates": null}, "properties": properties});
@@ -485,4 +548,29 @@ function toServerDate(inputDate, fields) {
 	}
 	
 	return serverDate;
+}
+
+function setTextValue(selector, input) {
+	$(selector).text(input);
+	$(selector).val(input);
+	
+	return;
+}
+
+function getValueText(selector) {
+	var value = $(selector).val();
+	
+	if(value == "") {
+		return $(selector).text();
+	}
+	
+	return value;
+}
+
+function getURLParameterByName(name) {
+	name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+	var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+		results = regex.exec(location.search);
+	
+	return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 }

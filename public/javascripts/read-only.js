@@ -1,7 +1,6 @@
-
 //!!!!!!!!!TODO: use http://localhost:9000/ls/api/locations/1169 for back information!!!!!!!!!
 
-var ausPath = context + '/resources/aus';
+var crudPath = context + '/resources/aus';
 var MAP_DRIVER = null;
 
 $(document).ready(function() {
@@ -10,14 +9,14 @@ $(document).ready(function() {
 	$("#new-button").click(function() {
 		MAP_DRIVER.mapID = Date().valueOf();
 		MAP_DRIVER.featureLayer.clearLayers();
-		$("#au-name").text("");
-		$("#au-code").text("");
-		$("#au-codepath").text("");
+		setTextValue("#au-name", "");
+		setTextValue("#au-code", "");
+		setTextValue("#au-codepath", "");
 		
 		var today = new Date();
-		$("#start-date").text(today.getUTCFullYear() + "-" + (today.getUTCMonth() + 1) + "-" + today.getUTCDate());
-		$("#end-date").text("");
-		$("#au-parent").text("");
+		setTextValue("#start-date", today.getUTCFullYear() + "-" + (today.getUTCMonth() + 1) + "-" + today.getUTCDate());
+		setTextValue("#end-date", "");
+		setTextValue("#au-parent", "");
 	});
 	
 	$('#upload-button').click(function() {
@@ -33,8 +32,8 @@ $(document).ready(function() {
 	});
 	
 	$('#db-load-button').click(function() {
-		var mapID = $("#gid").text();
-		MAP_DRIVER.geoJSONURL = ausPath + "/" + mapID;
+		var mapID = getValueText("#gid");
+		MAP_DRIVER.geoJSONURL = crudPath + "/" + mapID;
 		//"http://tps23-nb.univ.pitt.edu/test.json";
 		
 		if(MAP_DRIVER.geoJSONURL) {
@@ -51,23 +50,23 @@ $(document).ready(function() {
 		return;
 	});
 	
+	//INDEXING_TERMS_TREE.initInteractBetweenTreeAndTable("picklist");
+	
 	return;
 });
 
 function MapDriver(){
 	var id = getURLParameterByName("id");
-	//TODO: use id to GET /ls/api/locations/:id
-	//TODO: post information to output
-	
 	this.title = "<strong>Sierra Leone</strong> 0001-01-01 to now";
 	this.mapID = id;//'tps23.k1765f0g';
-	this.geoJSONURL = ausPath + "/" + id;
+	this.geoJSONURL = crudPath + "/" + id;
 	//"http://tps23-nb.univ.pitt.edu/test.json";
 	this.startingCoordinates = [6.944028854370401, -11.534582138061467];
 	this.zoom = 5;
 	this.accessToken = 'pk.eyJ1IjoidHBzMjMiLCJhIjoiVHEzc0tVWSJ9.0oYZqcggp29zNZlCcb2esA';
 	this.featureLayer = null;
 	this.map = null;
+	this.parents = [];
 	
 	this.initialize();
 	
@@ -144,41 +143,35 @@ MapDriver.prototype.loadFeatureLayer = function() {
 				}
 			}
 			
-			//var height = maxLat - minLat;
-			//var width = maxLng - minLng;
-			//var center = [((minLat + maxLat) >> 1), ((minLng + maxLng) >> 1)];
-			//var zoom = ((height + width) >> 1);
-			
 			var southWest = L.latLng(minLat, minLng);
 			var northEast = L.latLng(maxLat, maxLng);
 			var bounds = L.latLngBounds(southWest, northEast);
-	
-			//return MAP_DRIVER.map.setView(center, zoom);
+			
 			return MAP_DRIVER.map.fitBounds(bounds);
 		}
 		
 		centerMap(MAP_DRIVER.featureLayer.getGeoJSON());
 		
 		MAP_DRIVER.mapID = MAP_DRIVER.featureLayer.getGeoJSON().id;
-		$("#au-name").text(feature.properties.name);
-		$("#au-code").text(feature.properties.code);
-		$("#au-codepath").text(feature.properties.codePath);
-		$("#start-date").text(feature.properties.startDate);
-		$("#end-date").text(feature.properties.endDate);
+		setTextValue("#au-name", feature.properties.name);
+		setTextValue("#au-code", feature.properties.code);
+		setTextValue("#au-codepath", feature.properties.codePath);
+		setTextValue("#start-date", feature.properties.startDate);
+		setTextValue("#end-date", feature.properties.endDate);
 		
 		if(feature.properties.parentGid) {
 			$("#au-parent").prop("href", "./read-only?id=" + feature.properties.parentGid);
-			$("#au-parent").text(feature.properties.parentGid);
+			setTextValue("#au-parent", feature.properties.parentGid);
 		}
 		else {
 			$("#au-parent").prop("href", "");
-			$("#au-parent").text("");
+			setTextValue("#au-parent", "");
 		}
 		
-		$("#gid").text(feature.properties.gid);
+		setTextValue("#gid", feature.properties.gid);
 		feature.properties.title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
-			
-		if(feature.properties.endDate){
+		
+		if(feature.properties.endDate) {
 			feature.properties.title = feature.properties.title + " to " + feature.properties.endDate;
 		}
 		else {
@@ -186,8 +179,8 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		}
 		
 		MAP_DRIVER.map.legendControl.removeLegend(MAP_DRIVER.title);
-		MAP_DRIVER.map.legendControl.addLegend("<strong>" + feature.properties.title + "</strong>");
-		MAP_DRIVER.title = feature.properties.title;
+		MAP_DRIVER.title = "<strong>" + feature.properties.title + "</strong>";
+		MAP_DRIVER.map.legendControl.addLegend(MAP_DRIVER.title);
 	});
 	
 	this.featureLayer.on('error', function(err) {
@@ -213,147 +206,18 @@ MapDriver.prototype.loadJSON = function(jsonData) {
 	return;
 }
 
-MapDriver.prototype.saveMap = function() {
-	// Create //POST /resources/aus
-	var httpType = "POST";
-	var URL = ausPath;
-	
-	/*
-	if(isUpdate) {
-		// Update //PUT /resources/aus
-		httpType = "PUT";
-	}
-	*/
-	
-	var data = this.featureLayer.toGeoJSON();
-	data.id = this.mapID;
-	
-	function formatGeoJSON(geoJSON) {
-		var i;
-		var geometry;
-		var auName = $("#au-name").text();
-		var auCode = $("#au-code").text();
-		var auCodePath = $("#au-codepath").text();
-		var startDate = $("#start-date").text();
-		var endDate = $("#end-date").text();
-		var auParent = $("#au-parent").text();
-		
-		var dateTokens = validDate(startDate);
-		if(startDate == "today") {
-			startDate = new Date().toString();
-			dateTokens = 3;
-		}
-		
-		if(dateTokens != 0) {
-			startDate = toServerDate(new Date(startDate), dateTokens);
-		}
-		else {
-			alert("Invalid date: " + startDate);
-			
-			return null;
-		}
-		
-		dateTokens = validDate(endDate);
-		if(endDate == "today") {
-			endDate = new Date().toString();
-			dateTokens = 3;
-		}
-		
-		if(dateTokens != 0) {
-			endDate = toServerDate(new Date(endDate), dateTokens);
-		}
-		else if(endDate.length > 0) {
-			alert("Invalid date: " + endDate);
-			
-			return null;
-		}
-		else {
-			endDate = null;
-		}
-		
-		if(auName.length == 0) {
-			alert("Please enter the Administrative Unit's name");
-			
-			return  null;
-		}
-		
-		if(auCode.length == 0) {
-			alert("Please enter the Administrative Unit's code");
-			
-			return null;
-		}
-		
-		if(auParent.length == 0) {
-			alert("Please enter the Administrative Unit's parent");
-			
-			return null;
-		}
-		
-		for(i = 0; i < geoJSON.features.length; i++) {
-			geoJSON.features[i].properties["name"] = auName;
-			geoJSON.features[i].properties["code"] = auCode;
-			geoJSON.features[i].properties["codePath"] = auCodePath;
-			geoJSON.features[i].properties["parent"] = auParent;
-			geoJSON.features[i].properties["startDate"] = startDate;
-			geoJSON.features[i].properties["endDate"] = endDate;
-			
-			geometry = geoJSON.features[i].geometry;
-			
-			if(geometry.type == "Polygon") {
-				geometry.coordinates = [geometry.coordinates];
-				geometry.type = "MultiPolygon";
-			}
-		}
-		
-		return geoJSON;
-	}
-	
-	if(!formatGeoJSON(data)) {
-		return;
-	}
-	
-console.log("Sending JSON.stringify([" + data.type + "]):");
-console.log(JSON.stringify(data));
-console.log("Length: " + JSON.stringify(data).length);
-	
-	$.ajax({
-		type: httpType,
-		url: URL,
-		data: JSON.stringify(data),
-		contentType: "application/json; charset=UTF-8",
-		//dataType: "json",
-		//processData: false,
-		success: function(data, status, response) {
-			//indexingObject.informationObject.setURI(indexingObject.successChange(data, status, "added"));
-			console.log(data);
-			console.log(status);
-			$("#gid").text(getIDFromURI(response.getResponseHeader("Location")));
-		},
-		error: function(data, status) {
-			//if(data['responseJSON'] && data['responseJSON']['duplicatedUri']) {
-			//	indexingObject.duplicateDialog(data['responseJSON']['duplicatedUri']);
-			//}
-			//else {
-			//	indexingObject.successChange(data, status, "error");
-			//}
-		}
-	});
-	
-	return;
-}
-
 MapDriver.prototype.download = function() {
 	var jsonData = this.featureLayer.toGeoJSON();
 	var properties = null;
 	
 	for(var i = 0; i < jsonData.features.length; i++) {
 		properties = jsonData.features[i].properties;
-		properties.name = $("#au-name").text();
-		properties.code = $("#au-code").text();
-		//add codePath
-		properties.startDate = $("#start-date").text();
-		properties.endDate = $("#end-date").text();
-		properties.parentGid = $("#au-parent").text();
+		properties.name = getValueText("#au-name");
+		properties.code = getValueText("#au-code");
+		properties.codePath = getValueText("#au-codepath");
+		properties.startDate = getValueText("#start-date");
+		properties.endDate = getValueText("#end-date");
+		properties.parentGid = getValueText("#au-parent");
 		properties.description = properties.name + ";" + properties.code + ";" + properties.startDate + ";" + properties.endDate + ";" + properties.parentGid;
 	}
 	
@@ -385,12 +249,12 @@ MapDriver.prototype.upload = function() {
 		}
 		
 		var properties = jsonData.features[0].properties;
-		$("#au-name").text(properties.name);
-		$("#au-code").text(properties.code);
-		$("#au-codepath").text(properties.codePath);
-		$("#start-date").text(properties.startDate);
-		$("#end-date").text(properties.endDate);
-		$("#au-parent").text(properties.parentGid);
+		setTextValue("#au-name", properties.name);
+		setTextValue("#au-code", properties.code);
+		setTextValue("#au-codepath", properties.codePath);
+		setTextValue("#start-date", properties.startDate);
+		setTextValue("#end-date", properties.endDate);
+		setTextValue("#au-parent", properties.parentGid);
 		
 		MAP_DRIVER.loadJSON(jsonData);
 	});
@@ -415,7 +279,7 @@ function multiPolygonsToPolygons(geoJSON) {
 	for(var i = 0; i < count; i++) {
 		if(features[i].geometry.type == "MultiPolygon") {
 			var properties = features[i].properties;
-			properties.description = properties.name;//+ ";" + properties.code + ";" + properties.startDate + ";" + properties.endDate + ";" + properties.parentGid;
+			properties.description = properties.name; //+ ";" + properties.code + ";" + properties.startDate + ";" + properties.endDate + ";" + properties.parentGid;
 			
 			for(var j = 0; j < features[i].geometry.coordinates.length; j++) {
 				features.push({"type": "Feature", "geometry": {"type": "Polygon", "coordinates": null}, "properties": properties});
@@ -476,6 +340,23 @@ function toServerDate(inputDate, fields) {
 	}
 	
 	return serverDate;
+}
+
+function setTextValue(selector, input) {
+	$(selector).text(input);
+	$(selector).val(input);
+	
+	return;
+}
+
+function getValueText(selector) {
+	var value = $(selector).val();
+	
+	if(value == "") {
+		return $(selector).text();
+	}
+	
+	return value;
 }
 
 function getURLParameterByName(name) {
