@@ -103,54 +103,6 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		
 		var feature = MAP_DRIVER.featureLayer.getGeoJSON().features[0];
 		
-		function centerMap(geoJSON) {
-			var geometry = geoJSON.features[0].geometry;
-			
-			if(!geometry) {
-				return;
-			}
-			
-			var geometryCount = geometry.coordinates.length;
-			var latitude = geometry.coordinates[0][0][1];
-			var longitude = geometry.coordinates[0][0][0];
-			var minLat = latitude;
-			var maxLat = minLat;
-			var minLng = longitude;
-			var maxLng = minLng;
-			
-			var vertices;
-			var coordinatesBody;
-			for(var i = 0; i < geometryCount; i++) {
-				coordinatesBody = geometry.coordinates[i];
-				vertices = geometry.coordinates[i].length;
-				
-				for(var j = 0; j < vertices; j++) {
-					latitude = geometry.coordinates[i][j][1];
-					longitude = geometry.coordinates[i][j][0];
-					
-					if(latitude < minLat) {
-						minLat = latitude;
-					}
-					else if(latitude > maxLat) {
-						maxLat = latitude;
-					}
-					
-					if(longitude < minLng) {
-						minLng = longitude;
-					}
-					else if(longitude > maxLng) {
-						maxLng = longitude;
-					}
-				}
-			}
-			
-			var southWest = L.latLng(minLat, minLng);
-			var northEast = L.latLng(maxLat, maxLng);
-			var bounds = L.latLngBounds(southWest, northEast);
-			
-			return MAP_DRIVER.map.fitBounds(bounds);
-		}
-		
 		centerMap(MAP_DRIVER.featureLayer.getGeoJSON());
 		
 		MAP_DRIVER.mapID = MAP_DRIVER.featureLayer.getGeoJSON().id;
@@ -160,7 +112,14 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		setTextValue("#start-date", feature.properties.startDate);
 		setTextValue("#end-date", feature.properties.endDate);
 		INDEXING_TERMS_TREE.resetIsAboutList();
-		INDEXING_TERMS_TREE.clickIsAboutByValue(feature.properties.parentGid);
+		
+		var i;
+		var parentArray = feature.properties.parentGid;
+		if(parentArray) {
+			for(i = 0; i < parentArray.length; i++) {
+				INDEXING_TERMS_TREE.clickIsAboutByValue(parentArray[i]);
+			}
+		}
 		
 		setTextValue("#gid", feature.properties.gid);
 		feature.properties.title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
@@ -252,6 +211,12 @@ MapDriver.prototype.loadFeatureLayer = function() {
 MapDriver.prototype.loadJSON = function(jsonData) {
 	multiPolygonsToPolygons(jsonData);
 	this.featureLayer.setGeoJSON(jsonData);
+	
+	var feature = jsonData.features[0];
+	var title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
+	MAP_DRIVER.map.legendControl.removeLegend(MAP_DRIVER.title);
+	MAP_DRIVER.title = "<strong>" + title + "</strong>";
+	MAP_DRIVER.map.legendControl.addLegend(MAP_DRIVER.title);
 	
 	return;
 }
@@ -442,9 +407,11 @@ MapDriver.prototype.upload = function() {
 		
 		var i;
 		var parentArray = properties.parentGid;
-		for(i = 0; i < parentArray.length; i++) {
-			console.log(parentArray[i]);
-			INDEXING_TERMS_TREE.clickIsAboutByValue(parentArray[i]);
+		if(parentArray) {
+			for(i = 0; i < parentArray.length; i++) {
+				console.log(parentArray[i]);
+				INDEXING_TERMS_TREE.clickIsAboutByValue(parentArray[i]);
+			}
 		}
 		
 		MAP_DRIVER.loadJSON(jsonData);
@@ -495,7 +462,7 @@ function multiPolygonsToPolygons(geoJSON) {
 	for(var i = 0; i < count; i++) {
 		if(features[i].geometry.type == "MultiPolygon") {
 			var properties = features[i].properties;
-			properties.description = properties.name; //+ ";" + properties.code + ";" + properties.startDate + ";" + properties.endDate + ";" + properties.parentGid;
+			//properties.description = properties.name;
 			
 			for(var j = 0; j < features[i].geometry.coordinates.length; j++) {
 				features.push({"type": "Feature", "geometry": {"type": "Polygon", "coordinates": null}, "properties": properties});
@@ -581,4 +548,52 @@ function getURLParameterByName(name) {
 		results = regex.exec(location.search);
 	
 	return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
+function centerMap(geoJSON) {
+	var geometry = geoJSON.features[0].geometry;
+	
+	if(!geometry) {
+		return;
+	}
+	
+	var geometryCount = geometry.coordinates.length;
+	var latitude = geometry.coordinates[0][0][1];
+	var longitude = geometry.coordinates[0][0][0];
+	var minLat = latitude;
+	var maxLat = minLat;
+	var minLng = longitude;
+	var maxLng = minLng;
+	
+	var vertices;
+	var coordinatesBody;
+	for(var i = 0; i < geometryCount; i++) {
+		coordinatesBody = geometry.coordinates[i];
+		vertices = geometry.coordinates[i].length;
+		
+		for(var j = 0; j < vertices; j++) {
+			latitude = geometry.coordinates[i][j][1];
+			longitude = geometry.coordinates[i][j][0];
+			
+			if(latitude < minLat) {
+				minLat = latitude;
+			}
+			else if(latitude > maxLat) {
+				maxLat = latitude;
+			}
+			
+			if(longitude < minLng) {
+				minLng = longitude;
+			}
+			else if(longitude > maxLng) {
+				maxLng = longitude;
+			}
+		}
+	}
+	
+	var southWest = L.latLng(minLat, minLng);
+	var northEast = L.latLng(maxLat, maxLng);
+	var bounds = L.latLngBounds(southWest, northEast);
+	
+	return MAP_DRIVER.map.fitBounds(bounds);
 }
