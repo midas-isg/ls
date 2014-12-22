@@ -229,16 +229,17 @@ IndexingTermsTree.prototype.initTree = function(picklistName, callbackFunction) 
 	
 	function initFilterForTree(){
 		bindResetSearchButton();
-		$("input[name=search]").keyup(function(e){
-			var n,
-				leavesOnly = !true,
-				match = $(this).val();
-	
+		$("input[name=search]").keyup(function(e) {
+			var n;
+			var leavesOnly = !true;
+			var match = $(this).val();
+			
 			if(e && e.which === $.ui.keyCode.ESCAPE || $.trim(match) === ""){
 				$("button#btnResetSearch").click();
 				return;
 			}
-			n = this.tree.filterNodes(match, leavesOnly);
+			
+			n = INDEXING_TERMS_TREE.tree.filterNodes(match, leavesOnly);
 			$("button#btnResetSearch").attr("disabled", false);
 			$("span#matches").text("(" + n + " matches)");
 		}).focus();
@@ -251,7 +252,7 @@ IndexingTermsTree.prototype.initTree = function(picklistName, callbackFunction) 
 			e.preventDefault();
 			$("input[name=search]").val("");
 			$("span#matches").text("");
-			this.tree.clearFilter();
+			INDEXING_TERMS_TREE.tree.clearFilter();
 		}).attr("disabled", true);
 		
 		return;

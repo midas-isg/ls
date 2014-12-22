@@ -11,6 +11,7 @@ import models.geo.Feature;
 import models.geo.FeatureCollection;
 import models.geo.FeatureGeometry;
 import models.geo.MultiPolygon;
+import models.geo.Polygon;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -42,16 +43,18 @@ public class GeoJSONParser {
 			
 			try {
 				String type = currentNode.get("geometry").get("type").textValue();
-				switch(type){
-				case "MultiPolygon":
-					geometry = parseMultiPolygon(currentNode.get("geometry"));
+				switch(type) {
+					case "MultiPolygon":
+						geometry = parseMultiPolygon(currentNode.get("geometry"));
 					break;
 					
-				case "Point":
-				case "MultiLine":
-				case "Polygon":
-				default:
-					throw (new RuntimeException("Unsupported Geometry: " + type + "\n"));
+					case "Polygon":
+						geometry = parsePolygon(currentNode.get("geometry"));
+					break;
+					case "Point":
+					case "MultiLine":
+					default:
+						throw (new RuntimeException("Unsupported Geometry: " + type + "\n"));
 				}
 			}
 			catch(Exception e) {
@@ -75,6 +78,41 @@ public class GeoJSONParser {
 		return point;
 	}
 	*/
+	
+	private static Polygon parsePolygon(JsonNode geometryNode) throws Exception {
+		JsonNode coordinatesNode = geometryNode.withArray("coordinates");
+		Polygon polygon;
+		
+		if(geometryNode.get("type").textValue().equals(MultiPolygon.class.getSimpleName())) {
+			polygon = new Polygon();
+			List<List<double []>> coordinates = new ArrayList<>();
+			
+			JsonNode polygonNode = coordinatesNode.get(0);
+			for(int j = 0; j < polygonNode.size(); j++) {
+				coordinates.add(new ArrayList<double[]>());
+				List<double []> componentToFill = coordinates.get(j);
+				
+				JsonNode polygonComponent = polygonNode.get(j);
+				for(int k = 0; k < polygonComponent.size(); k++){
+					componentToFill.add(new double[polygonComponent.get(k).size()]);
+					double[] pointToFill = componentToFill.get(k);
+					
+					JsonNode point = polygonComponent.get(k);
+					for(int l = 0; l < point.size(); l++) {
+						//point.add(points.get(k).get(l).asDouble());
+						pointToFill[l] = point.get(l).asDouble();
+					}
+				}
+			}
+			
+			polygon.setCoordinates(coordinates);
+		}
+		else {
+			throw new Exception("Not Polygon");
+		}
+		
+		return polygon;
+	}
 	
 	private static MultiPolygon parseMultiPolygon(JsonNode geometryNode) throws Exception {
 		JsonNode coordinatesNode = geometryNode.withArray("coordinates");

@@ -40,14 +40,14 @@ public class AdministrativeUnitServices extends Controller {
 			Request request = Context.current().request();
 			JsonNode requestJSON = null;
 			
-			Logger.debug("\n");
-			Logger.debug("=====");
+Logger.debug("\n");
+Logger.debug("=====");
 			
 			if(request != null) {
 				RequestBody requestBody = request.body();
 				
 				String requestBodyText = requestBody.toString();
-				Logger.debug("Request [" + request.getHeader("Content-Type") + "], Length: " + requestBodyText.length());
+Logger.debug("Request [" + request.getHeader("Content-Type") + "], Length: " + requestBodyText.length());
 Logger.debug("Request Body:\n" + requestBodyText);
 				
 				requestJSON = requestBody.asJson();
@@ -70,7 +70,7 @@ Logger.debug("Request Body:\n" + requestBodyText);
 			}
 			else {
 				String message = "Request is null";
-				Logger.debug("\n" + message + "\n");
+Logger.debug("\n" + message + "\n");
 				return  badRequest(message);
 			}
 		}

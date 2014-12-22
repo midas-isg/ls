@@ -50,6 +50,8 @@ $(document).ready(function() {
 		return;
 	});
 	
+	
+	
 	INDEXING_TERMS_TREE.initInteractBetweenTreeAndTable("picklist");
 	
 	return;
@@ -76,8 +78,7 @@ function MapDriver() {
 MapDriver.prototype.initialize = function() {
 	L.mapbox.accessToken = this.accessToken;
 	
-	this.map = L.mapbox.map('map-one', 'examples.map-i86l3621', { worldCopyJump: true /*crs: L.CRS.EPSG385*/})
-		.setView(this.startingCoordinates, this.zoom);
+	this.map = L.mapbox.map('map-one', 'examples.map-i86l3621', { worldCopyJump: true /*crs: L.CRS.EPSG385*/});//.setView(this.startingCoordinates, this.zoom);
 	this.map.legendControl.addLegend(this.title);
 	
 	this.drawControl = null;
@@ -436,9 +437,15 @@ MapDriver.prototype.upload = function() {
 		setTextValue("#au-codepath", properties.codePath);
 		setTextValue("#start-date", properties.startDate);
 		setTextValue("#end-date", properties.endDate);
-		setTextValue("#au-parent", properties.parentGid);
+		
 		INDEXING_TERMS_TREE.resetIsAboutList();
-		INDEXING_TERMS_TREE.clickIsAboutByValue(properties.parentGid);
+		
+		var i;
+		var parentArray = properties.parentGid;
+		for(i = 0; i < parentArray.length; i++) {
+			console.log(parentArray[i]);
+			INDEXING_TERMS_TREE.clickIsAboutByValue(parentArray[i]);
+		}
 		
 		MAP_DRIVER.loadJSON(jsonData);
 	});
@@ -469,6 +476,7 @@ MapDriver.prototype.removeParent = function(parentID) {
 	}
 	
 	console.log(this.parents);
+	
 	return;
 }
 

@@ -13,7 +13,7 @@ public class Application extends Controller {
 	}
 	
 	@Transactional
-	public static Result readOnly() {
-		return ok(views.html.read_only.render("Apollo Location Services"));
+	public static Result browser() {
+		return ok(views.html.browser.render("Apollo Location Services"));
 	}
 }

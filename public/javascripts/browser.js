@@ -76,8 +76,7 @@ function MapDriver(){
 MapDriver.prototype.initialize = function() {
 	L.mapbox.accessToken = this.accessToken;
 	
-	this.map = L.mapbox.map('map-one', 'examples.map-i86l3621', { worldCopyJump: true /*crs: L.CRS.EPSG385*/})
-		.setView(this.startingCoordinates, this.zoom);
+	this.map = L.mapbox.map('map-one', 'examples.map-i86l3621', { worldCopyJump: true /*crs: L.CRS.EPSG385*/});
 	this.map.legendControl.addLegend(this.title);
 	
 	this.drawControl = null;
