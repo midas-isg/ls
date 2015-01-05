@@ -7,6 +7,11 @@ body {
 	padding: 0px;
 }
 
+em {
+	font-family: 'Times New Roman';
+	font-weight: normal;
+}
+
 .map {
 	width: 600px;
 	height: 450px;

@@ -1,6 +1,5 @@
-//!!!!!!!!!TODO: use http://localhost:9000/ls/api/locations/1169 for back information!!!!!!!!!
-
-var crudPath = context + '/resources/aus';
+var crudPath = context + "/resources/aus";
+var apolloJSONDataPath = context + "/api/locations/";
 var MAP_DRIVER = null;
 
 $(document).ready(function() {
@@ -10,12 +9,12 @@ $(document).ready(function() {
 		MAP_DRIVER.mapID = Date().valueOf();
 		MAP_DRIVER.featureLayer.clearLayers();
 		setTextValue("#au-name", "");
-		setTextValue("#au-code", "");
 		setTextValue("#au-codepath", "");
 		
 		var today = new Date();
 		setTextValue("#start-date", today.getUTCFullYear() + "-" + (today.getUTCMonth() + 1) + "-" + today.getUTCDate());
 		setTextValue("#end-date", "");
+		setTextValue("#au-geojson", "");
 		setTextValue("#au-parent", "");
 	});
 	
@@ -57,10 +56,13 @@ $(document).ready(function() {
 
 function MapDriver(){
 	var id = getURLParameterByName("id");
+	var format = getURLParameterByName("format");
 	this.title = "<strong>Sierra Leone</strong> 0001-01-01 to now";
 	this.mapID = id;//'tps23.k1765f0g';
 	this.geoJSONURL = crudPath + "/" + id;
 	//"http://tps23-nb.univ.pitt.edu/test.json";
+	this.apolloJSONURL = apolloJSONDataPath  + id;
+	
 	this.startingCoordinates = [6.944028854370401, -11.534582138061467];
 	this.zoom = 5;
 	this.accessToken = 'pk.eyJ1IjoidHBzMjMiLCJhIjoiVHEzc0tVWSJ9.0oYZqcggp29zNZlCcb2esA';
@@ -68,15 +70,36 @@ function MapDriver(){
 	this.map = null;
 	this.parents = [];
 	
-	this.initialize();
+	switch(format) {
+		case "apollojson":
+		case "ApolloJSON":
+			this.getJSONData(this.apolloJSONURL);
+		break;
+		
+		case "GeoJSON":
+		case "geojson":
+			this.getJSONData(this.geoJSONURL);
+		break;
+		
+		case "KML":
+		case "kml":
+			this.getKMLData();
+		break;
+		
+		default:
+			this.initialize();
+		break;
+	}
 	
 	return;
 }
 
 MapDriver.prototype.initialize = function() {
+	$("#header-data").show();
+	
 	L.mapbox.accessToken = this.accessToken;
 	
-	this.map = L.mapbox.map('map-one', 'examples.map-i86l3621', { worldCopyJump: true /*crs: L.CRS.EPSG385*/});
+	this.map = L.mapbox.map('map-data', 'examples.map-i86l3621', { worldCopyJump: true /*crs: L.CRS.EPSG385*/});
 	this.map.legendControl.addLegend(this.title);
 	
 	this.drawControl = null;
@@ -153,10 +176,13 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		
 		MAP_DRIVER.mapID = MAP_DRIVER.featureLayer.getGeoJSON().id;
 		setTextValue("#au-name", feature.properties.name);
-		setTextValue("#au-code", feature.properties.code);
 		setTextValue("#au-codepath", feature.properties.codePath);
 		setTextValue("#start-date", feature.properties.startDate);
 		setTextValue("#end-date", feature.properties.endDate);
+		
+		$("#au-geojson").prop("href", MAP_DRIVER.geoJSONURL);
+		$("#au-geojson").css("text-decoration", "underline");
+		setTextValue("#au-geojson", MAP_DRIVER.geoJSONURL);
 		
 		if(feature.properties.parentGid) {
 			$("#au-parent").prop("href", "./browser?id=" + feature.properties.parentGid);
@@ -213,10 +239,12 @@ MapDriver.prototype.download = function() {
 	for(var i = 0; i < jsonData.features.length; i++) {
 		properties = jsonData.features[i].properties;
 		properties.name = getValueText("#au-name");
-		properties.code = getValueText("#au-code");
 		properties.codePath = getValueText("#au-codepath");
 		properties.startDate = getValueText("#start-date");
 		properties.endDate = getValueText("#end-date");
+		
+		properties.code = getValueText("#au-geojson");
+		
 		properties.parentGid = getValueText("#au-parent");
 		properties.description = properties.name + ";" + properties.code + ";" + properties.startDate + ";" + properties.endDate + ";" + properties.parentGid;
 	}
@@ -250,16 +278,32 @@ MapDriver.prototype.upload = function() {
 		
 		var properties = jsonData.features[0].properties;
 		setTextValue("#au-name", properties.name);
-		setTextValue("#au-code", properties.code);
 		setTextValue("#au-codepath", properties.codePath);
 		setTextValue("#start-date", properties.startDate);
 		setTextValue("#end-date", properties.endDate);
+		
+		setTextValue("#au-geojson", properties.code);
+		
 		setTextValue("#au-parent", properties.parentGid);
 		
 		MAP_DRIVER.loadJSON(jsonData);
 	});
 	
 	var fileString = fileReader.readAsText(file);
+	
+	return;
+}
+
+MapDriver.prototype.getJSONData = function(URL) {
+	$.get(URL, function(data, status) {
+		$("#map-data").text(JSON.stringify(data));
+	});
+	
+	return;
+}
+
+MapDriver.prototype.getKMLData = function() {
+	
 	
 	return;
 }
