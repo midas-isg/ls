@@ -211,6 +211,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 MapDriver.prototype.loadJSON = function(jsonData) {
 	multiPolygonsToPolygons(jsonData);
 	this.featureLayer.setGeoJSON(jsonData);
+	centerMap(jsonData);
 	
 	var feature = jsonData.features[0];
 	var title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
