@@ -181,8 +181,19 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		setTextValue("#end-date", feature.properties.endDate);
 		
 		$("#au-geojson").prop("href", MAP_DRIVER.geoJSONURL);
-		$("#au-geojson").css("text-decoration", "underline");
-		setTextValue("#au-geojson", MAP_DRIVER.geoJSONURL);
+		if(MAP_DRIVER.geoJSONURL) {
+			$("#au-geojson").css("text-decoration", "underline");
+		}
+		
+		$("#au-kml").prop("href", MAP_DRIVER.kmlURL);
+		if(MAP_DRIVER.kmlURL) {
+			$("#au-kml").css("text-decoration", "underline");
+		}
+		
+		$("#au-apollojson").prop("href", MAP_DRIVER.apolloJSONURL);
+		if(MAP_DRIVER.apolloJSONURL) {
+			$("#au-apollojson").css("text-decoration", "underline");
+		}
 		
 		if(feature.properties.parentGid) {
 			$("#au-parent").prop("href", "./browser?id=" + feature.properties.parentGid);
@@ -295,9 +306,13 @@ MapDriver.prototype.upload = function() {
 }
 
 MapDriver.prototype.getJSONData = function(URL) {
+	/*
 	$.get(URL, function(data, status) {
 		$("#map-data").text(JSON.stringify(data));
 	});
+	*/
+	
+	window.location.assign(URL);
 	
 	return;
 }
