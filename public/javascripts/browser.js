@@ -159,7 +159,8 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		setTextValue("#end-date", feature.properties.endDate);
 		
 		if(feature.properties.parentGid) {
-			$("#au-parent").prop("href", "./read-only?id=" + feature.properties.parentGid);
+			$("#au-parent").prop("href", "./browser?id=" + feature.properties.parentGid);
+			$("#au-parent").css("text-decoration", "underline");
 			setTextValue("#au-parent", feature.properties.parentGid);
 		}
 		else {
