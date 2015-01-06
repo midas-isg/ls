@@ -39,8 +39,8 @@ public class AuRule {
 	private static Feature toFeature(AdministrativeUnit au) {
 		Feature feature = new Feature();
 		feature.setProperties(toProperties(au));
-		Geometry multiPolygonGeom = au.getData().getMultiPolygonGeom();
-		feature.setGeometry(GeoOutputRule.toFeatureGeometry(multiPolygonGeom));
+		//TODO Geometry multiPolygonGeom = au.getData().getGeometry();
+		//TODO feature.setGeometry(GeoOutputRule.toFeatureGeometry(multiPolygonGeom));
 		
 		return feature;
 	}
@@ -92,10 +92,10 @@ public class AuRule {
 	private static AdministrativeUnit toAu(FeatureCollection fc){
 		AdministrativeUnit au = new AdministrativeUnit();
 		Data data = new Data();
-		data.setAuTypeId(EPIDEMIC_ZONE_ID);
-		data.setCodeTypeId(ISG_CODE_TYPE_ID);
-		data.setGisSource("LS");
-		data.setMultiPolygonGeom(GeoInputRule.toMultiPolygon(fc));
+		//TODO data.setAuTypeId(EPIDEMIC_ZONE_ID);
+		//TODO data.setCodeTypeId(ISG_CODE_TYPE_ID);
+		//TODO data.setGisSource("LS");
+		//TODO data.setGeometry(GeoInputRule.toMultiPolygon(fc));
 		String name = getString(fc, "name");
 		data.setName(name);
 		String date = getString(fc, "startDate");

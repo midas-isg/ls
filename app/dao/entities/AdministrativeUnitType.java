@@ -8,7 +8,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table (name = "AU_TYPE")
+@Table (name = "location_type")
 public class AdministrativeUnitType {
 	
 	private long id;

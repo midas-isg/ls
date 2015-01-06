@@ -22,7 +22,7 @@ public class EpidemicZoneServices  extends Controller {
 	@Transactional
 	public static Result locations(String gid){
 		AdministrativeUnit au = AuRule.findByGid(Long.parseLong(gid));
-		Long auTypeId = au.getData().getAuTypeId();
+		Long auTypeId = au.getData().getLocationType().getId();
 		if (auTypeId.longValue() == AuRule.EPIDEMIC_ZONE_ID)
 			return okJson(toEpidemicZones(au));
 		else 
@@ -50,7 +50,7 @@ public class EpidemicZoneServices  extends Controller {
 		public MultiPolygon(AdministrativeUnit au){
 			textualDescription = au.getData().getName();
 			polygons = new ArrayList<>();
-			Geometry mpg = au.getData().getMultiPolygonGeom();
+			Geometry mpg = au.getData().getGeometry().getMultiPolygonGeom();
 			if (mpg == null){
 				return;
 			}

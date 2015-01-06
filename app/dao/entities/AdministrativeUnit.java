@@ -2,8 +2,6 @@ package dao.entities;
 
 import java.util.List;
 
-import javax.persistence.AttributeOverride;
-import javax.persistence.AttributeOverrides;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -21,19 +19,17 @@ import org.hibernate.annotations.Check;
 
 @Entity
 @Check(constraints = "end_date > start_date")
-@Table(name = "au")
+@Table(name = "location")
 public class AdministrativeUnit {
 
 	private Long gid;
-
 	private Data data;
-
 	private AdministrativeUnit parent;
-
 	private List<AdministrativeUnit> children;
-
 	private List<AdministrativeUnit> locationsIncluded;
-	
+	private List<Code> otherCodes;
+	private List<AdministrativeUnit> relatedLocations;
+
 	@Id
 	@Column(name = "gid")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,15 +42,6 @@ public class AdministrativeUnit {
 	}
 
 	@Embedded
-	@AttributeOverrides({ 
-		@AttributeOverride(
-				name = "protect", 
-				column = @Column(
-						name = "protect", 
-						columnDefinition = "boolean default false"
-				)
-		) 
-	})
 	public Data getData() {
 		return data;
 	}
@@ -91,7 +78,6 @@ public class AdministrativeUnit {
 			inverseJoinColumns ={
 					@JoinColumn(name = "included_gid", nullable = false)
 			}
-			
 	)
 	public List<AdministrativeUnit> getLocationsIncluded() {
 		return locationsIncluded;
@@ -101,4 +87,30 @@ public class AdministrativeUnit {
 		this.locationsIncluded = locations;
 	}
 
+	@OneToMany(mappedBy = "id")
+	public List<Code> getOtherCodes() {
+		return otherCodes;
+	}
+
+	public void setOtherCodes(List<Code> otherCodes) {
+		this.otherCodes = otherCodes;
+	}
+
+	@ManyToMany
+	@JoinTable(
+			name = "related_location", 
+			joinColumns = {
+					@JoinColumn(name = "gid1", nullable = false)
+			},
+			inverseJoinColumns ={
+					@JoinColumn(name = "gid2", nullable = false)
+			}
+	)
+	public List<AdministrativeUnit> getRelatedLocations() {
+		return relatedLocations;
+	}
+
+	public void setRelatedLocations(List<AdministrativeUnit> locations) {
+		this.relatedLocations = locations;
+	}
 }

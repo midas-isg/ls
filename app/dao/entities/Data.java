@@ -2,41 +2,30 @@ package dao.entities;
 
 import java.sql.Date;
 
-import javax.persistence.Basic;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.FetchType;
-
-import org.hibernate.annotations.Type;
-
-import com.vividsolutions.jts.geom.Geometry;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 
 @Embeddable
 public class Data {
 
 	private String name;
-
 	private String code;
-	
 	private String codePath;
-	
-	private Long codeTypeId;
-
-	private Long auTypeId;
-
+	private CodeType codeType;
+	private AdministrativeUnitType locationType;
 	private Date startDate;
-
 	private Date endDate;
-
-	private Geometry multiPolygonGeom;
-
-	private boolean protect;
-
+	private LocationGeometry multiPolygonGeom;
+	private Boolean protect;
 	private Date updateDate;
-
 	private Long userId;
-	
-	private String gisSource;
+	private GisSource gisSource;
+	private String description;
 
 	@Column(name = "name")
 	public String getName() {
@@ -65,22 +54,20 @@ public class Data {
 		this.endDate = endDate;
 	}
 
-	@Basic(fetch=FetchType.LAZY)
-	@Type(type = "org.hibernate.spatial.GeometryType")
-	@Column(name = "multipolygon")
-	public Geometry getMultiPolygonGeom() {
+	@OneToOne(fetch = FetchType.LAZY, mappedBy = "location", cascade = CascadeType.ALL)
+	public LocationGeometry getGeometry() {
 		return multiPolygonGeom;
 	}
 
-	public void setMultiPolygonGeom(Geometry geom) {
+	public void setGeometry(LocationGeometry geom) {
 		this.multiPolygonGeom = geom;
 	}
 
-	public boolean getProtect() {
+	public Boolean getProtect() {
 		return protect;
 	}
 
-	public void setProtect(boolean protect) {
+	public void setProtect(Boolean protect) {
 		this.protect = protect;
 	}
 
@@ -102,13 +89,14 @@ public class Data {
 		this.userId = userId;
 	}
 
-	@Column(name = "au_type_id")
-	public Long getAuTypeId() {
-		return auTypeId;
+	@ManyToOne
+	@JoinColumn(name = "location_type_id", nullable = false)
+	public AdministrativeUnitType getLocationType() {
+		return locationType;
 	}
 
-	public void setAuTypeId(Long auTypeId) {
-		this.auTypeId = auTypeId;
+	public void setLocationType(AdministrativeUnitType locationType) {
+		this.locationType = locationType;
 	}
 
 	public String getCode() {
@@ -119,7 +107,7 @@ public class Data {
 		this.code = code;
 	}
 
-	@Column (name = "code_path" )
+	@Column (name = "gid_path" )
 	public String getCodePath() {
 		return codePath;
 	}
@@ -128,22 +116,32 @@ public class Data {
 		this.codePath = codePath;
 	}
 
-	@Column (name = "code_type_id")
-	public Long getCodeTypeId() {
-		return codeTypeId;
+	@ManyToOne
+	@JoinColumn(name = "code_type_id", nullable = false)
+	public CodeType getCodeType() {
+		return codeType;
 	}
 
-	public void setCodeTypeId(Long codeTypeId) {
-		this.codeTypeId = codeTypeId;
+	public void setCodeType(CodeType codeType) {
+		this.codeType = codeType;
 	}
 
-	@Column (name = "gis_src")
-	public String getGisSource() {
+	@ManyToOne
+	@JoinColumn(name = "gis_src_id", nullable = false)
+	public GisSource getGisSource() {
 		return gisSource;
 	}
 
-	public void setGisSource(String gisSource) {
+	public void setGisSource(GisSource gisSource) {
 		this.gisSource = gisSource;
 	}
 
+	@Column(length=2500)
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
 }
