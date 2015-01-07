@@ -10,10 +10,10 @@ import javax.persistence.Query;
 
 import play.Logger;
 import play.db.jpa.JPA;
-import dao.entities.AdministrativeUnit;
+import dao.entities.Location;
 
 public class AuDao {
-	public Long create(AdministrativeUnit au) {
+	public Long create(Location au) {
 		EntityManager em = JPA.em();
 		em.persist(au);
 		Long gid = au.getGid();
@@ -21,13 +21,13 @@ public class AuDao {
 		return gid;
 	}
 
-	public AdministrativeUnit read(long gid) {
+	public Location read(long gid) {
 		EntityManager em = JPA.em();
-		AdministrativeUnit result = em.find(AdministrativeUnit.class, gid);
+		Location result = em.find(Location.class, gid);
 		return result;
 	}
 	
-	public Long update(AdministrativeUnit au) {
+	public Long update(Location au) {
 		EntityManager em = JPA.em();
 		em.merge(au);
 		Long gid = au.getGid();
@@ -35,7 +35,7 @@ public class AuDao {
 		return gid;
 	}
 
-	public Long delete(AdministrativeUnit au) {
+	public Long delete(Location au) {
 		EntityManager em = JPA.em();
 		Long gid = au.getGid();
 		em.remove(au);
@@ -43,43 +43,43 @@ public class AuDao {
 		return gid;
 	}
 	
-	public List<AdministrativeUnit> findRoots() {
+	public List<Location> findRoots() {
 		return putIntoHierarchy(findAll());
 	}
 
-	public List<AdministrativeUnit> findRoots2() {
+	public List<Location> findRoots2() {
 		EntityManager em = JPA.em();
 		Query query = em.createQuery("from AdministrativeUnit where parent=null");
 		@SuppressWarnings("unchecked")
-		List<AdministrativeUnit> result = (List<AdministrativeUnit>)query.getResultList();
+		List<Location> result = (List<Location>)query.getResultList();
 		return result;
 	}
 
-	private List<AdministrativeUnit> putIntoHierarchy(List<AdministrativeUnit> all) {
+	private List<Location> putIntoHierarchy(List<Location> all) {
 		EntityManager em = JPA.em();
-		List<AdministrativeUnit> result = new ArrayList<>();
-		Map<Long, AdministrativeUnit> gid2au = new HashMap<>();
-		Map<Long, List<AdministrativeUnit>> gid2orphans = new HashMap<>();
-		for (AdministrativeUnit au : all){
+		List<Location> result = new ArrayList<>();
+		Map<Long, Location> gid2au = new HashMap<>();
+		Map<Long, List<Location>> gid2orphans = new HashMap<>();
+		for (Location au : all){
 			em.detach(au);
-			List<AdministrativeUnit> children = null;
+			List<Location> children = null;
 			Long gid = au.getGid();
 			if (gid2orphans.containsKey(gid)){
 				children = gid2orphans.remove(gid);
 			} else {
-				children = new ArrayList<AdministrativeUnit>();
+				children = new ArrayList<Location>();
 			}
 			au.setChildren(children);
 			
 			gid2au.put(gid, au);
-			AdministrativeUnit parentFromDb = au.getParent();
+			Location parentFromDb = au.getParent();
 			if (parentFromDb == null){
 				result.add(au);
 			} else {
 				Long parentGid = parentFromDb.getGid();
-				AdministrativeUnit foundParent = gid2au.get(parentGid);
+				Location foundParent = gid2au.get(parentGid);
 				if (foundParent == null){
-					List<AdministrativeUnit> parentChildren = gid2orphans.get(parentGid);
+					List<Location> parentChildren = gid2orphans.get(parentGid);
 					if (parentChildren == null) {
 						parentChildren = new ArrayList<>();
 						gid2orphans.put(parentGid, parentChildren);
@@ -93,11 +93,11 @@ public class AuDao {
 		return result;
 	}
 
-	private List<AdministrativeUnit> findAll() {
+	private List<Location> findAll() {
 		EntityManager em = JPA.em();
 		Query query = em.createQuery("from AdministrativeUnit");
 		@SuppressWarnings("unchecked")
-		List<AdministrativeUnit> result = (List<AdministrativeUnit>)query.getResultList();
+		List<Location> result = (List<Location>)query.getResultList();
 		return result;
 	}
 }

@@ -15,7 +15,7 @@ public class Code {
 	private Long id;
 	private String code;
 	private CodeType codeType;
-	private AdministrativeUnit location;
+	private Location location;
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,11 +47,11 @@ public class Code {
 
 	@ManyToOne
 	@JoinColumn(name = "gid", nullable = true)
-	public AdministrativeUnit getLocation() {
+	public Location getLocation() {
 		return location;
 	}
 
-	public void setLocation(AdministrativeUnit location) {
+	public void setLocation(Location location) {
 		this.location = location;
 	}
 }

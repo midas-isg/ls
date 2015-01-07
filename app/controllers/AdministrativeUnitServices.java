@@ -1,13 +1,16 @@
 package controllers;
 
-import interactors.AuRule;
+import interactors.LocationRule;
 import interactors.GeoJSONParser;
 
 import java.util.List;
 
+import javax.persistence.EntityManager;
+
 import models.FancyTreeNode;
 import models.geo.FeatureCollection;
 import play.Logger;
+import play.db.jpa.JPA;
 import play.db.jpa.Transactional;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -64,7 +67,7 @@ Logger.debug("Request Body:\n" + requestBodyText);
 					}
 				}
 				FeatureCollection parsed = GeoJSONParser.parse(requestJSON);
-				Long id = AuRule.create(parsed);
+				Long id = LocationRule.create(parsed);
 				String uri = getUri(request, id);
 				response().setHeader(LOCATION, uri);
 				//response().setHeader(CONTENT_LOCATION, uri);
@@ -90,7 +93,7 @@ Logger.debug("Request Body:\n" + requestBodyText);
 	@Transactional
 	public static Result read(String gid) {
 		response().setContentType("application/vnd.geo+json");
-		return okCRUD(AuRule.getFeatureCollection(Long.parseLong(gid)));
+		return okCRUD(LocationRule.getFeatureCollection(Long.parseLong(gid)));
 	}
 	
 	@Transactional
@@ -105,7 +108,7 @@ Logger.debug("Request Body:\n" + requestBodyText);
 	
 	@Transactional
 	public static Result tree() {
-		List<FancyTreeNode> tree = TreeViewAdapter.toFancyTree(AuRule.getHierarchy());
+		List<FancyTreeNode> tree = TreeViewAdapter.toFancyTree(LocationRule.getHierarchy());
 		return okJson(tree);
 	}
 	
@@ -115,4 +118,11 @@ Logger.debug("Request Body:\n" + requestBodyText);
 		return okJson(tree);
 	}
 
+	@Transactional
+	public static Result asKml(long gid) {
+		EntityManager em = JPA.em();
+		String query = "select ST_AsKML(au.multipolygon) from au where gid = " + gid;
+		String result = em.createNativeQuery(query).getSingleResult().toString();
+		return ok(result);
+	}
 }

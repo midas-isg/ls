@@ -7,19 +7,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.vividsolutions.jts.geom.Geometry;
-
 import models.geo.Feature;
 import models.geo.FeatureCollection;
 import dao.AuDao;
-import dao.entities.AdministrativeUnit;
 import dao.entities.Data;
+import dao.entities.Location;
 
-public class AuRule {
+public class LocationRule {
 	public static final long EPIDEMIC_ZONE_ID = 7L;
 	public static final long ISG_CODE_TYPE_ID = 2L;
 
-	public static FeatureCollection toFeatureCollection(List<AdministrativeUnit> aus) {
+	public static FeatureCollection toFeatureCollection(List<Location> aus) {
 		FeatureCollection fc = new FeatureCollection();
 		fc.setFeatures(toFeatures(aus));
 		fc.setType("FeatureCollection");
@@ -27,16 +25,16 @@ public class AuRule {
 		return fc;
 	}
 
-	private static List<Feature> toFeatures(List<AdministrativeUnit> aus) {
+	private static List<Feature> toFeatures(List<Location> aus) {
 		List<Feature> features = new ArrayList<>();
-		for (AdministrativeUnit au : aus) {
+		for (Location au : aus) {
 			features.add(toFeature(au));
 		}
 		
 		return features;
 	}
 
-	private static Feature toFeature(AdministrativeUnit au) {
+	private static Feature toFeature(Location au) {
 		Feature feature = new Feature();
 		feature.setProperties(toProperties(au));
 		//TODO Geometry multiPolygonGeom = au.getData().getGeometry();
@@ -45,7 +43,7 @@ public class AuRule {
 		return feature;
 	}
 
-	private static Map<String, String> toProperties(AdministrativeUnit au) {
+	private static Map<String, String> toProperties(Location au) {
 		Map<String, String> properties = new HashMap<>();
 		putAsStringIfNotNull(properties, "gid", getGid(au));
 		Data data = au.getData();
@@ -54,7 +52,7 @@ public class AuRule {
 		putAsStringIfNotNull(properties, "codePath", data.getCodePath());
 		putAsStringIfNotNull(properties, "startDate", data.getStartDate());
 		putAsStringIfNotNull(properties, "endDate", data.getEndDate());
-		AdministrativeUnit parent = au.getParent();
+		Location parent = au.getParent();
 		putAsStringIfNotNull(properties, "parentGid", getGid(parent));
 		return properties;
 	}
@@ -65,7 +63,7 @@ public class AuRule {
 		return String.valueOf(object);
 	}
 
-	private static String getGid(AdministrativeUnit parent) {
+	private static String getGid(Location parent) {
 		if (parent == null)
 			return null;
 		return String.valueOf(parent.getGid());
@@ -79,7 +77,7 @@ public class AuRule {
 	}
 
 	public static Long create(FeatureCollection fc){
-		AdministrativeUnit au = toAu(fc);
+		Location au = toAu(fc);
 		AuDao dao = new AuDao();
 		return dao.create(au);
 	}
@@ -89,8 +87,8 @@ public class AuRule {
 		dao.delete(dao.read(gid));
 	}
 
-	private static AdministrativeUnit toAu(FeatureCollection fc){
-		AdministrativeUnit au = new AdministrativeUnit();
+	private static Location toAu(FeatureCollection fc){
+		Location au = new Location();
 		Data data = new Data();
 		//TODO data.setAuTypeId(EPIDEMIC_ZONE_ID);
 		//TODO data.setCodeTypeId(ISG_CODE_TYPE_ID);
@@ -106,7 +104,7 @@ public class AuRule {
 		data.setCode(code);
 		au.setData(data);
 		String parentGid = getString(fc, "parent");
-		AdministrativeUnit parent = findByGid(Long.parseLong(parentGid));
+		Location parent = findByGid(Long.parseLong(parentGid));
 		if (parent == null){
 			throw new RuntimeException("Cannot find parent gid=" + parentGid);
 		}
@@ -129,18 +127,18 @@ public class AuRule {
 	}
 
 	public static FeatureCollection getFeatureCollection(long gid) {
-		AdministrativeUnit au = findByGid(gid);
-		List<AdministrativeUnit> list = new ArrayList<>();
+		Location au = findByGid(gid);
+		List<Location> list = new ArrayList<>();
 		list.add(au);
 		return toFeatureCollection(list);
 	}
 
-	public static AdministrativeUnit findByGid(long gid) {
-		AdministrativeUnit au = new AuDao().read(gid);
+	public static Location findByGid(long gid) {
+		Location au = new AuDao().read(gid);
 		return au;
 	}
 
-	public static List<AdministrativeUnit> getHierarchy() {
+	public static List<Location> getHierarchy() {
 		return new AuDao().findRoots();
 	}
 

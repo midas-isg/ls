@@ -17,7 +17,7 @@ public class Data {
 	private String code;
 	private String codePath;
 	private CodeType codeType;
-	private AdministrativeUnitType locationType;
+	private LocationType locationType;
 	private Date startDate;
 	private Date endDate;
 	private LocationGeometry multiPolygonGeom;
@@ -91,11 +91,11 @@ public class Data {
 
 	@ManyToOne
 	@JoinColumn(name = "location_type_id", nullable = false)
-	public AdministrativeUnitType getLocationType() {
+	public LocationType getLocationType() {
 		return locationType;
 	}
 
-	public void setLocationType(AdministrativeUnitType locationType) {
+	public void setLocationType(LocationType locationType) {
 		this.locationType = locationType;
 	}
 

@@ -1,6 +1,6 @@
 package controllers;
 
-import interactors.AuRule;
+import interactors.LocationRule;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,15 +15,15 @@ import play.mvc.Result;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 
-import dao.entities.AdministrativeUnit;
+import dao.entities.Location;
 
 public class EpidemicZoneServices  extends Controller {
 	
 	@Transactional
 	public static Result locations(String gid){
-		AdministrativeUnit au = AuRule.findByGid(Long.parseLong(gid));
+		Location au = LocationRule.findByGid(Long.parseLong(gid));
 		Long auTypeId = au.getData().getLocationType().getId();
-		if (auTypeId.longValue() == AuRule.EPIDEMIC_ZONE_ID)
+		if (auTypeId.longValue() == LocationRule.EPIDEMIC_ZONE_ID)
 			return okJson(toEpidemicZones(au));
 		else 
 			return okJson(toAdministrativeLocations(au));
@@ -31,7 +31,7 @@ public class EpidemicZoneServices  extends Controller {
 	
 	@Transactional
 	public static Result epidemicZones(String gid) {
-		AdministrativeUnit ez = AuRule.findByGid(Long.parseLong(gid));
+		Location ez = LocationRule.findByGid(Long.parseLong(gid));
 		return okJson(toEpidemicZones(ez));
 	}
 
@@ -39,7 +39,7 @@ public class EpidemicZoneServices  extends Controller {
 		return ok(Json.toJson(result));
 	}
 
-	private static Object toEpidemicZones(AdministrativeUnit ez) {
+	private static Object toEpidemicZones(Location ez) {
 		return new Object[] {new MultiPolygon(ez)};
 	}
 	
@@ -47,7 +47,7 @@ public class EpidemicZoneServices  extends Controller {
 		public String textualDescription;
 		public List<Object> polygons;
 		
-		public MultiPolygon(AdministrativeUnit au){
+		public MultiPolygon(Location au){
 			textualDescription = au.getData().getName();
 			polygons = new ArrayList<>();
 			Geometry mpg = au.getData().getGeometry().getMultiPolygonGeom();
@@ -78,11 +78,11 @@ public class EpidemicZoneServices  extends Controller {
 	
 	@Transactional
 	public static Result administrativeLocations(String gid) {
-		AdministrativeUnit au = AuRule.findByGid(Long.parseLong(gid));
+		Location au = LocationRule.findByGid(Long.parseLong(gid));
 		return okJson(toAdministrativeLocations(au));
 	}
 
-	private static Object toAdministrativeLocations(AdministrativeUnit au) {
+	private static Object toAdministrativeLocations(Location au) {
 		Map<String, Object> map = new HashMap<>();
 		map.put("locationDefinition", new LocationDefinition(au));
 		map.put("textualDescription", au.getData().getName());
@@ -94,23 +94,23 @@ public class EpidemicZoneServices  extends Controller {
 		public List<String> locationsExcluded = new ArrayList<>();
 		public List<MultiPolygon> multiGeometries = null;
 
-		public LocationDefinition(AdministrativeUnit au){
-			List<AdministrativeUnit> locations = au.getLocationsIncluded();
+		public LocationDefinition(Location au){
+			List<Location> locations = au.getLocationsIncluded();
 			if (locations == null || locations.isEmpty())
 				locationsIncluded.add(au.getData().getCodePath());
 			else{
-				for (AdministrativeUnit l : locations){
+				for (Location l : locations){
 					locationsIncluded.add(l.getData().getCodePath());
 				}
 			}
 			multiGeometries = getMultiPolygons(au);
 		}
 
-		private List<MultiPolygon>  getMultiPolygons(AdministrativeUnit au) {
+		private List<MultiPolygon>  getMultiPolygons(Location au) {
 			List<MultiPolygon> multiGeometries = new ArrayList<>();
-			List<AdministrativeUnit> locations = au.getLocationsIncluded();
+			List<Location> locations = au.getLocationsIncluded();
 			if (locations != null && ! locations.isEmpty()){
-				for (AdministrativeUnit l : locations){
+				for (Location l : locations){
 					multiGeometries.add(new MultiPolygon(l));
 				}
 			} else {

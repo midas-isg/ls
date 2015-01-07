@@ -12,7 +12,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "audit_location")
-public class AuditAdministrativeUnit {
+public class AuditLocation {
 
 	private Long id;
 	private Long gid;

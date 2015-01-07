@@ -7,16 +7,16 @@ import java.util.Iterator;
 import java.util.List;
 
 import models.FancyTreeNode;
-import dao.entities.AdministrativeUnit;
+import dao.entities.Location;
 import dao.entities.Data;
 
 public class TreeViewAdapter {
 	private static boolean isHideCheckbox = false;
 
 	public static List<FancyTreeNode> toFancyTree(
-			List<AdministrativeUnit> roots) {
+			List<Location> roots) {
 		List<FancyTreeNode> newTree = new ArrayList<>();
-		for (AdministrativeUnit root : roots) {
+		for (Location root : roots) {
 			FancyTreeNode node = toNode(root);
 			newTree.add(node);
 			node.expanded = false;
@@ -25,7 +25,7 @@ public class TreeViewAdapter {
 		return newTree;
 	}
 
-	static FancyTreeNode toNode(AdministrativeUnit au) {
+	static FancyTreeNode toNode(Location au) {
 		FancyTreeNode node = new FancyTreeNode();
 		Data data = au.getData();
 		node.title = data.getName();
@@ -37,9 +37,9 @@ public class TreeViewAdapter {
 		node.hideCheckbox = isHideCheckbox;
 		node.unselectable = false;
 		node.children = new ArrayList<>();
-		List<AdministrativeUnit> children = au.getChildren();
+		List<Location> children = au.getChildren();
 		if (children != null){
-			for (AdministrativeUnit child : children) {
+			for (Location child : children) {
 				node.folder = true;
 				node.children.add(toNode(child));
 			}

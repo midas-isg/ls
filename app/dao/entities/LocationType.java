@@ -9,7 +9,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table (name = "location_type")
-public class AdministrativeUnitType {
+public class LocationType {
 	
 	private long id;
 	private String name;

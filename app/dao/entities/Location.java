@@ -20,15 +20,15 @@ import org.hibernate.annotations.Check;
 @Entity
 @Check(constraints = "end_date > start_date")
 @Table(name = "location")
-public class AdministrativeUnit {
+public class Location {
 
 	private Long gid;
 	private Data data;
-	private AdministrativeUnit parent;
-	private List<AdministrativeUnit> children;
-	private List<AdministrativeUnit> locationsIncluded;
+	private Location parent;
+	private List<Location> children;
+	private List<Location> locationsIncluded;
 	private List<Code> otherCodes;
-	private List<AdministrativeUnit> relatedLocations;
+	private List<Location> relatedLocations;
 
 	@Id
 	@Column(name = "gid")
@@ -52,20 +52,20 @@ public class AdministrativeUnit {
 
 	@ManyToOne
 	@JoinColumn(name = "parent_gid", nullable = true)
-	public AdministrativeUnit getParent() {
+	public Location getParent() {
 		return parent;
 	}
 
-	public void setParent(AdministrativeUnit parent) {
+	public void setParent(Location parent) {
 		this.parent = parent;
 	}
 
 	@OneToMany(mappedBy = "parent")
-	public List<AdministrativeUnit> getChildren() {
+	public List<Location> getChildren() {
 		return children;
 	}
 
-	public void setChildren(List<AdministrativeUnit> children) {
+	public void setChildren(List<Location> children) {
 		this.children = children;
 	}
 
@@ -79,11 +79,11 @@ public class AdministrativeUnit {
 					@JoinColumn(name = "included_gid", nullable = false)
 			}
 	)
-	public List<AdministrativeUnit> getLocationsIncluded() {
+	public List<Location> getLocationsIncluded() {
 		return locationsIncluded;
 	}
 
-	public void setLocationsIncluded(List<AdministrativeUnit> locations) {
+	public void setLocationsIncluded(List<Location> locations) {
 		this.locationsIncluded = locations;
 	}
 
@@ -106,11 +106,11 @@ public class AdministrativeUnit {
 					@JoinColumn(name = "gid2", nullable = false)
 			}
 	)
-	public List<AdministrativeUnit> getRelatedLocations() {
+	public List<Location> getRelatedLocations() {
 		return relatedLocations;
 	}
 
-	public void setRelatedLocations(List<AdministrativeUnit> locations) {
+	public void setRelatedLocations(List<Location> locations) {
 		this.relatedLocations = locations;
 	}
 }

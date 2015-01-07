@@ -22,7 +22,7 @@ public class LocationGeometry {
 	
 	private Long gid;
 	private Geometry multiPolygonGeom;
-	private AdministrativeUnit location;
+	private Location location;
 
 	@GenericGenerator(name = "generator", strategy = "foreign", 
 			parameters = @Parameter(name = "property", value = "location")
@@ -50,11 +50,11 @@ public class LocationGeometry {
 
 	@OneToOne(fetch = FetchType.LAZY)
 	@PrimaryKeyJoinColumn
-	public AdministrativeUnit getLocation() {
+	public Location getLocation() {
 		return location;
 	}
 
-	public void setLocation(AdministrativeUnit location) {
+	public void setLocation(Location location) {
 		this.location = location;
 	}
 }
