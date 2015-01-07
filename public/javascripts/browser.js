@@ -57,14 +57,14 @@ $(document).ready(function() {
 function MapDriver(){
 	var id = getURLParameterByName("id");
 	var format = getURLParameterByName("format");
-	this.title = "<strong>Sierra Leone</strong> 0001-01-01 to now";
-	this.mapID = id;//'tps23.k1765f0g';
-	this.geoJSONURL = crudPath + "/" + id;
-	//"http://tps23-nb.univ.pitt.edu/test.json";
-	this.apolloJSONURL = apolloJSONDataPath  + id;
+	this.title = "";
+	this.mapID = id; //'tps23.k1765f0g';
 	
-	this.startingCoordinates = [6.944028854370401, -11.534582138061467];
-	this.zoom = 5;
+	this.dataSourceURL = context + "/data-source/" + id;
+	this.geoJSONURL = this.dataSourceURL + "?format=geojson"; //crudPath + "/" + id;
+	this.apolloJSONURL = this.dataSourceURL + "?format=apollojson";
+	this.kmlURL = this.dataSourceURL + "?format=kml";
+	
 	this.accessToken = 'pk.eyJ1IjoidHBzMjMiLCJhIjoiVHEzc0tVWSJ9.0oYZqcggp29zNZlCcb2esA';
 	this.featureLayer = null;
 	this.map = null;
