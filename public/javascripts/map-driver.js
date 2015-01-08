@@ -1,5 +1,3 @@
-//!!!!!!!!!TODO: use http://localhost:9000/ls/api/locations/1169 for back information!!!!!!!!!
-
 var crudPath = context + '/resources/aus';
 var MAP_DRIVER = null;
 
@@ -110,11 +108,13 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		INDEXING_TERMS_TREE.resetIsAboutList();
 		
 		var i;
-		var parentArray = feature.properties.parentGid;
-		if(parentArray) {
-			for(i = 0; i < parentArray.length; i++) {
-				INDEXING_TERMS_TREE.clickIsAboutByValue(parentArray[i]);
-			}
+		var parentGID = feature.properties.parentGid;
+		if(parentGID) {
+			//for(i = 0; i < parentGID.length; i++) {
+			//	INDEXING_TERMS_TREE.clickIsAboutByValue(parentGID[i]);
+			//}
+			
+			INDEXING_TERMS_TREE.clickIsAboutByValue(parentGID);
 		}
 		
 		setTextValue("#gid", feature.properties.gid);
@@ -403,12 +403,14 @@ MapDriver.prototype.upload = function() {
 		INDEXING_TERMS_TREE.resetIsAboutList();
 		
 		var i;
-		var parentArray = properties.parentGid;
-		if(parentArray) {
-			for(i = 0; i < parentArray.length; i++) {
-				console.log(parentArray[i]);
-				INDEXING_TERMS_TREE.clickIsAboutByValue(parentArray[i]);
-			}
+		var parentGID = properties.parentGid;
+		if(parentGID) {
+			//for(i = 0; i < parentGID.length; i++) {
+			//	console.log(parentGID[i]);
+			//	INDEXING_TERMS_TREE.clickIsAboutByValue(parentGID[i]);
+			//}
+			console.log(parentGID);
+			INDEXING_TERMS_TREE.clickIsAboutByValue(parentGID);
 		}
 		
 		MAP_DRIVER.loadJSON(jsonData);
