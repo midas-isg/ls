@@ -82,7 +82,7 @@ $(document).ready( function() {
 		
 		function initFilterForTree(){
 			bindResetSearchButton();
-			$("input[name=search]").keyup(function(e) {
+			$("input[name=au-search]").keyup(function(e) {
 				var n;
 				var leavesOnly = !true;
 				var match = $(this).val();
@@ -103,7 +103,7 @@ $(document).ready( function() {
 		function bindResetSearchButton(){
 			$("button#btnResetSearch").click(function(e){
 				e.preventDefault();
-				$("input[name=search]").val("");
+				$("input[name=au-search]").val("");
 				$("span#matches").text("");
 				AU_COMPOSITE_TREE.tree.clearFilter();
 			}).attr("disabled", true);

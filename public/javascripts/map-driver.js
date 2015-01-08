@@ -361,7 +361,7 @@ MapDriver.prototype.download = function() {
 		properties.codePath = getValueText("#au-codepath");
 		properties.startDate = getValueText("#start-date");
 		properties.endDate = getValueText("#end-date");
-		properties.parentGid = this.getParents();
+		properties.parentGid = this.parent;
 		properties.description = properties.name + ";" + properties.code + ";" + properties.startDate + ";" + properties.endDate + ";" + properties.parentGid;
 	}
 	

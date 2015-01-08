@@ -86,6 +86,10 @@ function MapDriver(){
 			this.getKMLData();
 		break;
 		
+		case "banana":
+			location.assign("https://www.youtube.com/watch?v=ex0URF-hWj4");
+		break;
+		
 		default:
 			this.initialize();
 		break;
