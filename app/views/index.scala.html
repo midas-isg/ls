@@ -12,6 +12,8 @@
 	
 	<script src='@routes.Assets.at("javascripts/map-driver.js")'></script>
 	<script src='@routes.Assets.at("javascripts/indexing-terms.js")'></script>
+	<script src='@routes.Assets.at("javascripts/parent-tree.js")'></script>
+	<script src='@routes.Assets.at("javascripts/au-composite-tree.js")'></script>
 	<script src='@routes.Assets.at("javascripts/fancytree-ext-filter.js")'></script>
 	
 	<link href='@routes.Assets.at("external_packages/MapBox/mapbox-2.0.1.css")' rel='stylesheet'/>
@@ -41,7 +43,7 @@
 		<div>
 			<div id="map-one" class="map pull-left"></div>
 			
-			<div id="picklist" class="pull-left">
+			<div id="parent-list" class="pull-left">
 					<div>
 						<legend><em>Parent location ID:</em></legend>
 						<label>Filter:</label>
@@ -49,7 +51,25 @@
 						<button id="btnResetSearch">&times;</button>
 						<span id="matches"></span>
 					</div>
-					<div id="tree" style="padding-top: 5px"></div>
+					<div id="parent-tree" style="padding-top: 5px"></div>
+					
+					<!--
+					<div id="indexing-terms-buttons-group">
+						<button class='btn btn-primary btn-small' id='add_button'><span class="glyphicon icon-white glyphicon-arrow-down"></span><div style="float:right;">Add Terms</div></button>
+						<button class='btn btn-primary btn-small' id='remove_button'><span class="glyphicon icon-white glyphicon-arrow-up"></span> <div style="float:right;">Remove Terms</div><div style="font-size: medium;"></div></button>
+					</div>
+					-->
+			</div>
+			
+			<div id="au-list" class="pull-left">
+					<div>
+						<legend><em>AU Component IDs:</em></legend>
+						<label>Filter:</label>
+						<input name="search" placeholder="Filter...">
+						<button id="btnResetSearch">&times;</button>
+						<span id="matches"></span>
+					</div>
+					<div id="au-composite-tree" style="padding-top: 5px"></div>
 					
 					<!--
 					<div id="indexing-terms-buttons-group">

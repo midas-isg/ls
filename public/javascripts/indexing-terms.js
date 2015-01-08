@@ -1,5 +1,18 @@
-var ausPath = context;
-var INDEXING_TERMS_TREE = new IndexingTermsTree();
+var ausPath;
+//var INDEXING_TERMS_TREE;
+var treeData;
+
+$(document).ready( function() {
+	ausPath = context;
+	//INDEXING_TERMS_TREE = new IndexingTermsTree();
+	
+	var url = ausPath + "/api/locations/tree";
+	$.get(url, function(data, status) {
+		treeData = data;
+		
+		return;
+	});
+});
 
 function IndexingTermsTree() {
 	this.tree = null;
@@ -166,13 +179,13 @@ IndexingTermsTree.prototype.initTree = function(picklistName, callbackFunction) 
 			click: function(event, data) {
 				var node = data.node;
 				if(node.isActive()) {
-					INDEXING_TERMS_TREE.changeState(event, data);
+					//INDEXING_TERMS_TREE.changeState(event, data);
 				}
 				
 				return true;
 			},
 			activate: function(event, data) {
-				INDEXING_TERMS_TREE.changeState(event, data);
+				//INDEXING_TERMS_TREE.changeState(event, data);
 				
 				return false;
 			},
@@ -198,17 +211,17 @@ IndexingTermsTree.prototype.initTree = function(picklistName, callbackFunction) 
 									+ '</td><td>' + style(key)
 									+ '</td></tr>');
 					
-					MAP_DRIVER.addParent(node.key);
+					MAP_DRIVER.addAUComponent(node.key);
 				}
 				else {
 					$('#tr' + id).remove();
 					
-					MAP_DRIVER.removeParent(node.key);
+					MAP_DRIVER.removeAUComponent(node.key);
 				}
 				//makeTableSelectable(); //TODO TBR
 			}
 		});
-		INDEXING_TERMS_TREE.tree = treeDiv.fancytree("getTree");
+		//INDEXING_TERMS_TREE.tree = treeDiv.fancytree("getTree");
 		initFilterForTree();
 		if(callbackFunction) {
 			callbackFunction();
@@ -238,7 +251,7 @@ IndexingTermsTree.prototype.initTree = function(picklistName, callbackFunction) 
 				return;
 			}
 			
-			n = INDEXING_TERMS_TREE.tree.filterNodes(match, leavesOnly);
+			n = 0;//INDEXING_TERMS_TREE.tree.filterNodes(match, leavesOnly);
 			$("button#btnResetSearch").attr("disabled", false);
 			$("span#matches").text("(" + n + " matches)");
 		}).focus();
@@ -251,7 +264,7 @@ IndexingTermsTree.prototype.initTree = function(picklistName, callbackFunction) 
 			e.preventDefault();
 			$("input[name=search]").val("");
 			$("span#matches").text("");
-			INDEXING_TERMS_TREE.tree.clearFilter();
+			//INDEXING_TERMS_TREE.tree.clearFilter();
 		}).attr("disabled", true);
 		
 		return;

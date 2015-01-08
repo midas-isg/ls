@@ -14,7 +14,6 @@ $(document).ready(function() {
 		var today = new Date();
 		setTextValue("#start-date", today.getUTCFullYear() + "-" + (today.getUTCMonth() + 1) + "-" + today.getUTCDate());
 		setTextValue("#end-date", "");
-		setTextValue("#au-parent", "");
 	});
 	
 	$('#upload-button').click(function() {
@@ -48,8 +47,6 @@ $(document).ready(function() {
 		return;
 	});
 	
-	INDEXING_TERMS_TREE.initInteractBetweenTreeAndTable("picklist");
-	
 	return;
 });
 
@@ -62,7 +59,8 @@ function MapDriver() {
 	this.accessToken = 'pk.eyJ1IjoidHBzMjMiLCJhIjoiVHEzc0tVWSJ9.0oYZqcggp29zNZlCcb2esA';
 	this.featureLayer = null;
 	this.map = null;
-	this.parents = [];
+	this.parent;
+	this.auComponents = [];
 	
 	this.initialize();
 	
@@ -105,16 +103,17 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		setTextValue("#au-codepath", feature.properties.codePath);
 		setTextValue("#start-date", feature.properties.startDate);
 		setTextValue("#end-date", feature.properties.endDate);
-		INDEXING_TERMS_TREE.resetIsAboutList();
+		PARENT_TREE.resetIsAboutList();
+		AU_COMPOSITE_TREE.resetIsAboutList();
 		
 		var i;
 		var parentGID = feature.properties.parentGid;
 		if(parentGID) {
 			//for(i = 0; i < parentGID.length; i++) {
-			//	INDEXING_TERMS_TREE.clickIsAboutByValue(parentGID[i]);
+			//	AU_COMPOSITE_TREE.clickIsAboutByValue(parentGID[i]);
 			//}
 			
-			INDEXING_TERMS_TREE.clickIsAboutByValue(parentGID);
+			PARENT_TREE.clickIsAboutByValue(parentGID);
 		}
 		
 		setTextValue("#gid", feature.properties.gid);
@@ -241,7 +240,7 @@ MapDriver.prototype.saveMap = function() {
 		var auCodePath = getValueText("#au-codepath");
 		var startDate = getValueText("#start-date");
 		var endDate = getValueText("#end-date");
-		var auParent = MAP_DRIVER.getParents();
+		var auParent = MAP_DRIVER.parent;
 		
 		var dateTokens = validDate(startDate);
 		if(startDate == "today") {
@@ -400,17 +399,18 @@ MapDriver.prototype.upload = function() {
 		setTextValue("#start-date", properties.startDate);
 		setTextValue("#end-date", properties.endDate);
 		
-		INDEXING_TERMS_TREE.resetIsAboutList();
+		PARENT_TREE.resetIsAboutList();
+		AU_COMPOSITE_TREE.resetIsAboutList();
 		
 		var i;
 		var parentGID = properties.parentGid;
 		if(parentGID) {
 			//for(i = 0; i < parentGID.length; i++) {
 			//	console.log(parentGID[i]);
-			//	INDEXING_TERMS_TREE.clickIsAboutByValue(parentGID[i]);
+			//	AU_COMPOSITE_TREE.clickIsAboutByValue(parentGID[i]);
 			//}
 			console.log(parentGID);
-			INDEXING_TERMS_TREE.clickIsAboutByValue(parentGID);
+			PARENT_TREE.clickIsAboutByValue(parentGID);
 		}
 		
 		MAP_DRIVER.loadJSON(jsonData);
@@ -421,27 +421,27 @@ MapDriver.prototype.upload = function() {
 	return;
 }
 
-MapDriver.prototype.getParents = function() {
-	return this.parents;
+MapDriver.prototype.getAUComponents = function() {
+	return this.auComponents;
 }
 
-MapDriver.prototype.addParent = function(parentID) {
-	this.parents.push(parentID)
-	console.log(this.parents);
+MapDriver.prototype.addAUComponent = function(gID) {
+	this.auComponents.push(gID)
+	console.log(this.auComponents);
 	
 	return;
 }
 
-MapDriver.prototype.removeParent = function(parentID) {
+MapDriver.prototype.removeAUComponent = function(gID) {
 	var i;
-	for(i = 0; i < this.parents.length; i++) {
-		if(this.parents[i] == parentID) {
-			this.parents.splice(i, 1);
+	for(i = 0; i < this.auComponents.length; i++) {
+		if(this.auComponents[i] == gID) {
+			this.auComponents.splice(i, 1);
 			break;
 		}
 	}
 	
-	console.log(this.parents);
+	console.log(this.auComponents);
 	
 	return;
 }
