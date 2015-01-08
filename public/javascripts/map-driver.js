@@ -50,8 +50,6 @@ $(document).ready(function() {
 		return;
 	});
 	
-	
-	
 	INDEXING_TERMS_TREE.initInteractBetweenTreeAndTable("picklist");
 	
 	return;
@@ -63,8 +61,6 @@ function MapDriver() {
 	this.mapID = id;//'tps23.k1765f0g';
 	this.geoJSONURL = crudPath + "/" + id;
 	//"http://tps23-nb.univ.pitt.edu/test.json";
-	this.startingCoordinates = [6.944028854370401, -11.534582138061467];
-	this.zoom = 5;
 	this.accessToken = 'pk.eyJ1IjoidHBzMjMiLCJhIjoiVHEzc0tVWSJ9.0oYZqcggp29zNZlCcb2esA';
 	this.featureLayer = null;
 	this.map = null;
@@ -78,7 +74,7 @@ function MapDriver() {
 MapDriver.prototype.initialize = function() {
 	L.mapbox.accessToken = this.accessToken;
 	
-	this.map = L.mapbox.map('map-one', 'examples.map-i86l3621', { worldCopyJump: true /*crs: L.CRS.EPSG385*/});//.setView(this.startingCoordinates, this.zoom);
+	this.map = L.mapbox.map('map-one', 'examples.map-i86l3621', { worldCopyJump: true /*crs: L.CRS.EPSG385*/});
 	this.map.legendControl.addLegend(this.title);
 	
 	this.drawControl = null;

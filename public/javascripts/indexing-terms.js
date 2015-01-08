@@ -217,15 +217,14 @@ IndexingTermsTree.prototype.initTree = function(picklistName, callbackFunction) 
 		return;
 	}
 	
-	loadTree(treeData);
-	
-	/*
+	//loadTree(treeData);
+	/**/
 	$.get(url, function(data, status) {
 		loadTree(data);
 		
 		return;
 	});
-	*/
+	/**/
 	
 	function initFilterForTree(){
 		bindResetSearchButton();
