@@ -60,7 +60,7 @@ function MapDriver(){
 	this.title = "";
 	this.mapID = id; //'tps23.k1765f0g';
 	
-	this.dataSourceURL = context + "/data-source/" + id;
+	this.dataSourceURL = context + "/api/locations/" + id;
 	this.geoJSONURL = this.dataSourceURL + "?format=geojson"; //crudPath + "/" + id;
 	this.apolloJSONURL = this.dataSourceURL + "?format=apollojson";
 	this.kmlURL = this.dataSourceURL + "?format=kml";

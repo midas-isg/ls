@@ -6,7 +6,7 @@ $(document).ready( function() {
 	ausPath = context;
 	//INDEXING_TERMS_TREE = new IndexingTermsTree();
 	
-	var url = ausPath + "/api/locations/tree";
+	var url = ausPath + "/api/au-tree";
 	$.get(url, function(data, status) {
 		treeData = data;
 		
@@ -165,7 +165,7 @@ function style(text){
 }
 
 IndexingTermsTree.prototype.initTree = function(picklistName, callbackFunction) {
-	var url = ausPath + "/api/locations/tree";
+	var url = ausPath + "/api/au-tree";
 	
 	function loadTree(data) {
 		var treeDiv = $("#tree").fancytree({

@@ -4,7 +4,7 @@ $(document).ready( function() {
 	PARENT_TREE = new IndexingTermsTree();
 	
 	PARENT_TREE.initTree = function(picklistName, callbackFunction) {
-		var url = ausPath + "/api/locations/tree";
+		var url = ausPath + "/api/au-tree";
 		
 		function loadTree(data) {
 			var treeDiv = $("#parent-tree").fancytree({

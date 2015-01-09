@@ -6,7 +6,7 @@ $(document).ready( function() {
 	AU_COMPOSITE_TREE = new IndexingTermsTree();
 	
 	AU_COMPOSITE_TREE.initTree = function(picklistName, callbackFunction) {
-		var url = ausPath + "/api/locations/tree";
+		var url = ausPath + "/api/au-tree";
 		
 		function loadTree(data) {
 			var treeDiv = $("#au-composite-tree").fancytree({
