@@ -1,13 +1,17 @@
 package controllers;
 
-import interactors.AuRule;
+import interactors.AuHierarchyRule;
 import interactors.GeoJSONParser;
+import interactors.LocationRule;
 
 import java.util.List;
+
+import javax.persistence.EntityManager;
 
 import models.FancyTreeNode;
 import models.geo.FeatureCollection;
 import play.Logger;
+import play.db.jpa.JPA;
 import play.db.jpa.Transactional;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -17,6 +21,8 @@ import play.mvc.Http.RequestBody;
 import play.mvc.Result;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
+import dao.AuDao;
 
 public class AdministrativeUnitServices extends Controller {
 	static Status okJson(Object resultObject) {
@@ -62,7 +68,7 @@ Logger.debug("Request Body:\n" + requestBodyText);
 					}
 				}
 				FeatureCollection parsed = GeoJSONParser.parse(requestJSON);
-				Long id = AuRule.create(parsed);
+				Long id = LocationRule.create(parsed);
 				String uri = getUri(request, id);
 				response().setHeader(LOCATION, uri);
 				//response().setHeader(CONTENT_LOCATION, uri);
@@ -88,7 +94,7 @@ Logger.debug("\n" + message + "\n");
 	@Transactional
 	public static Result read(String gid) {
 		response().setContentType("application/vnd.geo+json");
-		return okCRUD(AuRule.getFeatureCollection(Long.parseLong(gid)));
+		return okCRUD(LocationRule.getFeatureCollection(Long.parseLong(gid)));
 	}
 	
 	@Transactional
@@ -103,7 +109,23 @@ Logger.debug("\n" + message + "\n");
 	
 	@Transactional
 	public static Result tree() {
-		List<FancyTreeNode> tree = TreeViewAdapter.toFancyTree(AuRule.getHierarchy());
+		List<FancyTreeNode> tree = TreeViewAdapter.toFancyTree(AuHierarchyRule.getHierarchy());
 		return okJson(tree);
+	}
+	
+	@Transactional
+	public static Result tree2() {
+		List<FancyTreeNode> tree = TreeViewAdapter.toFancyTree(new AuDao().findRoots());
+		return okJson(tree);
+	}
+
+	@Transactional
+	public static Result asKml(long gid) {
+		EntityManager em = JPA.em();
+		String query = "select ST_AsKML(multipolygon) from location_geometry where gid = " + gid;
+		String result = em.createNativeQuery(query).getSingleResult().toString();
+		//response().setContentType("application/vnd.google-earth.kml+xml");
+		response().setContentType("application/xml");
+		return ok(result);
 	}
 }

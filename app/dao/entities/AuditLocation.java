@@ -11,17 +11,13 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "audit_au")
-public class AuditAdministrativeUnit {
+@Table(name = "audit_location")
+public class AuditLocation {
 
 	private Long id;
-
 	private Long gid;
-
 	private Data data;
-
 	private String operation;
-
 	private Long parentId;
 
 	@Id
@@ -46,8 +42,15 @@ public class AuditAdministrativeUnit {
 
 	@Embedded
 	@AttributeOverrides({
-			@AttributeOverride(name = "protect", column = @Column(name = "protect", nullable = true)),
-			@AttributeOverride(name = "startDate", column = @Column(name = "start_date", nullable = true)) })
+		@AttributeOverride(
+			name = "startDate", 
+			column = @Column(name = "start_date", nullable = true)
+		), 
+		@AttributeOverride(
+				name = "protect", 
+				column =  @Column(nullable = true)
+		) 
+	})
 	public Data getData() {
 		return data;
 	}

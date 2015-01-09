@@ -7,11 +7,11 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table (name = "code_type")
-public class CodeType {
+@Table(name = "gis_src")
+public class GisSource {
 
 	private Long id;
-	private String name;
+	private String url;
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,12 +22,12 @@ public class CodeType {
 	public void setId(Long id) {
 		this.id = id;
 	}
-	
-	public String getName() {
-		return name;
+
+	public String getUrl() {
+		return url;
 	}
-	
-	public void setName(String name) {
-		this.name = name;
+
+	public void setUrl(String url) {
+		this.url = url;
 	}
 }

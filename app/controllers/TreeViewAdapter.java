@@ -7,17 +7,17 @@ import java.util.Iterator;
 import java.util.List;
 
 import models.FancyTreeNode;
-import dao.entities.AdministrativeUnit;
+import dao.entities.Location;
 import dao.entities.Data;
 
 public class TreeViewAdapter {
 	private static boolean isHideCheckbox = false;
 
 	public static List<FancyTreeNode> toFancyTree(
-			List<AdministrativeUnit> roots) {
+			List<Location> roots) {
 		List<FancyTreeNode> newTree = new ArrayList<>();
-		for (AdministrativeUnit root : roots) {
-			FancyTreeNode node = toNode(root);
+		for (Location root : roots) {
+			FancyTreeNode node = toNode(root, "");
 			newTree.add(node);
 			node.expanded = false;
 		}
@@ -25,23 +25,23 @@ public class TreeViewAdapter {
 		return newTree;
 	}
 
-	static FancyTreeNode toNode(AdministrativeUnit au) {
+	static FancyTreeNode toNode(Location au, String path) {
 		FancyTreeNode node = new FancyTreeNode();
 		Data data = au.getData();
 		node.title = data.getName();
-		node.path = data.getCodePath();
+		node.path = path + data.getName();
 		node.tooltip = node.path;
 		node.key = au.getGid() + "";
 		node.icon = false;
-		node.type = data.getCodePath().split("\\.")[0];
+		node.type = node.path.split("\\.")[0];
 		node.hideCheckbox = isHideCheckbox;
 		node.unselectable = false;
 		node.children = new ArrayList<>();
-		List<AdministrativeUnit> children = au.getChildren();
+		List<Location> children = au.getChildren();
 		if (children != null){
-			for (AdministrativeUnit child : children) {
+			for (Location child : children) {
 				node.folder = true;
-				node.children.add(toNode(child));
+				node.children.add(toNode(child, node.path +  "."));
 			}
 		}
 		Collections.sort(node.children);

@@ -18,7 +18,9 @@ public class FancyTreeNode implements Comparable<FancyTreeNode> {
 
 	@Override
 	public int compareTo(FancyTreeNode other) {
-		return title.toLowerCase().compareTo(other.title.toLowerCase());
+		String key = (title != null) ? title.toLowerCase() : "";
+		String key2 = (other.title != null) ? other.title.toLowerCase() : "";
+		return key.compareTo(key2);
 	}
 
 }

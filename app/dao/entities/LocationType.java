@@ -8,8 +8,8 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table (name = "AU_TYPE")
-public class AdministrativeUnitType {
+@Table (name = "location_type")
+public class LocationType {
 	
 	private long id;
 	private String name;

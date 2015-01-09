@@ -28,7 +28,7 @@ public class GeoJSONParser {
 		JsonNode featuresArrayNode = inputJsonNode.withArray("features");
 		
 		for(int i = 0; i < featuresArrayNode.size(); i++) {
-			Map<String, String> properties = new HashMap<>();
+			Map<String, Object> properties = new HashMap<>();
 			FeatureGeometry geometry;
 			
 			JsonNode currentNode = featuresArrayNode.get(i);

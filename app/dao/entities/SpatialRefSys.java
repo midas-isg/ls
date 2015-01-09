@@ -1,8 +1,9 @@
 package dao.entities;
 
-import javax.persistence.*;
-
-import play.db.jpa.JPA;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 @Entity
 @Table(name="spatial_ref_sys")
@@ -24,10 +25,6 @@ public class SpatialRefSys {
 	@Column(name="proj4text")
 	private String proj4text;
 	
-	public static SpatialRefSys findById(Long srid) {
-		return JPA.em().find(SpatialRefSys.class, srid);
-	}
-
 	public Long getSrid() {
 		return srid;
 	}

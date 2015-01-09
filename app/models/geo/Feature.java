@@ -6,7 +6,7 @@ import java.util.Map;
 public class Feature {
 	private String type;
 	private FeatureGeometry geometry;
-	private Map<String, String> properties;
+	private Map<String, Object> properties;
 	
 	public Feature() {
 		type = Feature.class.getSimpleName();
@@ -31,11 +31,11 @@ public class Feature {
 		this.geometry = geometry;
 	}
 
-	public Map<String, String> getProperties() {
+	public Map<String, Object> getProperties() {
 		return properties;
 	}
 
-	public void setProperties(Map<String, String> properties) {
+	public void setProperties(Map<String, Object> properties) {
 		this.properties = properties;
 	}
 

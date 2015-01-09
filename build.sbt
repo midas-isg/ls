@@ -19,6 +19,6 @@ libraryDependencies ++= Seq(
   ),
   cache,
   javaWs,
-  "org.hibernate" % "hibernate-entitymanager" % "4.3.6.Final",
+  "org.hibernate" % "hibernate-entitymanager" % "4.3.7.Final",
   "org.hibernate" % "hibernate-spatial" % "4.3"
 )
