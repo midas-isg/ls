@@ -139,7 +139,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			//	AU_COMPOSITE_TREE.clickIsAboutByValue(parentGID[i]);
 			//}
 			
-			PARENT_TREE.clickIsAboutByValue(parentGID);
+			//PARENT_TREE.clickIsAboutByValue(parentGID);
 		}
 		
 		setTextValue("#gid", feature.properties.gid);

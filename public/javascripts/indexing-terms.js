@@ -5,13 +5,6 @@ var treeData;
 $(document).ready( function() {
 	ausPath = context;
 	//INDEXING_TERMS_TREE = new IndexingTermsTree();
-	
-	var url = ausPath + "/api/au-tree";
-	$.get(url, function(data, status) {
-		treeData = data;
-		
-		return;
-	});
 });
 
 function IndexingTermsTree() {

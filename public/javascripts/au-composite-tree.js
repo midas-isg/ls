@@ -4,10 +4,7 @@ var AU_COMPOSITE_TREE;
 $(document).ready( function() {
 	ausPath = context;
 	AU_COMPOSITE_TREE = new IndexingTermsTree();
-	
 	AU_COMPOSITE_TREE.initTree = function(picklistName, callbackFunction) {
-		var url = ausPath + "/api/au-tree";
-		
 		function loadTree(data) {
 			var treeDiv = $("#au-composite-tree").fancytree({
 				extensions: ["filter"],
@@ -72,13 +69,6 @@ $(document).ready( function() {
 		}
 		
 		loadTree(treeData);
-		/*
-		$.get(url, function(data, status) {
-			loadTree(data);
-			
-			return;
-		});
-		*/
 		
 		function initFilterForTree(){
 			bindResetSearchButton();
@@ -113,8 +103,6 @@ $(document).ready( function() {
 		
 		return;
 	}
-	
-	AU_COMPOSITE_TREE.initInteractBetweenTreeAndTable("au-list");
 	
 	return;
 });
