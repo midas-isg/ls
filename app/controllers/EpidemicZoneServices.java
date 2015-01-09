@@ -95,14 +95,6 @@ public class EpidemicZoneServices  extends Controller {
 		public List<MultiPolygon> multiGeometries = null;
 
 		public LocationDefinition(Location au){
-			List<Location> locations = au.getLocationsIncluded();
-			if (locations == null || locations.isEmpty())
-				locationsIncluded.add(au.getData().getCodePath());
-			else{
-				for (Location l : locations){
-					locationsIncluded.add(l.getData().getCodePath());
-				}
-			}
 			multiGeometries = getMultiPolygons(au);
 		}
 

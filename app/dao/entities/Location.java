@@ -2,9 +2,11 @@ package dao.entities;
 
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -13,6 +15,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.Check;
@@ -29,6 +32,7 @@ public class Location {
 	private List<Location> locationsIncluded;
 	private List<Code> otherCodes;
 	private List<Location> relatedLocations;
+	private LocationGeometry multiPolygonGeom;
 
 	@Id
 	@Column(name = "gid")
@@ -50,7 +54,7 @@ public class Location {
 		this.data = data;
 	}
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "parent_gid", nullable = true)
 	public Location getParent() {
 		return parent;
@@ -69,7 +73,7 @@ public class Location {
 		this.children = children;
 	}
 
-	@ManyToMany
+	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(
 			name = "location_definition", 
 			joinColumns = {
@@ -87,7 +91,7 @@ public class Location {
 		this.locationsIncluded = locations;
 	}
 
-	@OneToMany(mappedBy = "id")
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "id")
 	public List<Code> getOtherCodes() {
 		return otherCodes;
 	}
@@ -96,7 +100,7 @@ public class Location {
 		this.otherCodes = otherCodes;
 	}
 
-	@ManyToMany
+	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(
 			name = "related_location", 
 			joinColumns = {
@@ -112,5 +116,15 @@ public class Location {
 
 	public void setRelatedLocations(List<Location> locations) {
 		this.relatedLocations = locations;
+	}
+
+	@OneToOne(fetch = FetchType.LAZY, mappedBy = "location", cascade = CascadeType.ALL)
+	@JoinColumn(name = "gid")
+	public LocationGeometry getGeometry() {
+		return multiPolygonGeom;
+	}
+
+	public void setGeometry(LocationGeometry geom) {
+		this.multiPolygonGeom = geom;
 	}
 }

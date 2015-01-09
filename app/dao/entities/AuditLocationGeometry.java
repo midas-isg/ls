@@ -18,7 +18,7 @@ public class AuditLocationGeometry {
 	private Long id;
 	private Long gid;
 	private Geometry multiPolygonGeom;
-	
+	private String operation;
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,6 +30,7 @@ public class AuditLocationGeometry {
 		this.id = id;
 	}
 	
+	@Column(nullable = true)
 	public Long getGid() {
 		return gid;
 	}
@@ -39,7 +40,7 @@ public class AuditLocationGeometry {
 	}
 	
 	@Type(type = "org.hibernate.spatial.GeometryType")
-	@Column(name = "multipolygon")
+	@Column(name = "multipolygon", nullable = true)
 	public Geometry getMultiPolygonGeom() {
 		return multiPolygonGeom;
 	}
@@ -47,4 +48,13 @@ public class AuditLocationGeometry {
 	public void setMultiPolygonGeom(Geometry multiPolygonGeom) {
 		this.multiPolygonGeom = multiPolygonGeom;
 	}
+	
+	public String getOperation() {
+		return operation;
+	}
+
+	public void setOperation(String operation) {
+		this.operation = operation;
+	}
+
 }

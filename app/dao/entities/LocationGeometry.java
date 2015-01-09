@@ -1,8 +1,11 @@
 package dao.entities;
 
+import javax.persistence.Basic;
 import javax.persistence.Column;
+import javax.persistence.ConstraintMode;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.ForeignKey;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
@@ -14,7 +17,6 @@ import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
 
 import com.vividsolutions.jts.geom.Geometry;
-
 
 @Entity
 @Table(name = "location_geometry")
@@ -38,6 +40,7 @@ public class LocationGeometry {
 		this.gid = gid;
 	}
 
+	@Basic(fetch = FetchType.LAZY)
 	@Type(type = "org.hibernate.spatial.GeometryType")
 	@Column(name = "multipolygon")
 	public Geometry getMultiPolygonGeom() {
@@ -49,7 +52,7 @@ public class LocationGeometry {
 	}
 
 	@OneToOne(fetch = FetchType.LAZY)
-	@PrimaryKeyJoinColumn
+	@PrimaryKeyJoinColumn(foreignKey=@ForeignKey(value=ConstraintMode.CONSTRAINT))
 	public Location getLocation() {
 		return location;
 	}

@@ -1,5 +1,6 @@
 package dao;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -8,8 +9,13 @@ import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
+import org.hibernate.SQLQuery;
+import org.hibernate.Session;
+import org.hibernate.transform.Transformers;
+
 import play.Logger;
 import play.db.jpa.JPA;
+import dao.entities.Data;
 import dao.entities.Location;
 
 public class AuDao {
@@ -49,7 +55,7 @@ public class AuDao {
 
 	public List<Location> findRoots2() {
 		EntityManager em = JPA.em();
-		Query query = em.createQuery("from AdministrativeUnit where parent=null");
+		Query query = em.createQuery("from Location where parent=null");
 		@SuppressWarnings("unchecked")
 		List<Location> result = (List<Location>)query.getResultList();
 		return result;
@@ -95,9 +101,61 @@ public class AuDao {
 
 	private List<Location> findAll() {
 		EntityManager em = JPA.em();
-		Query query = em.createQuery("from AdministrativeUnit");
+		Query query = em.createQuery("from Location");
 		@SuppressWarnings("unchecked")
 		List<Location> result = (List<Location>)query.getResultList();
 		return result;
+	}
+
+	public Map<Long, Location> getGid2location() {
+		Map<Long, Location> result = new HashMap<>();
+		EntityManager em = JPA.em();
+		Session s = em.unwrap(Session.class);
+		SQLQuery q = s.createSQLQuery("select gid, name, parent_gid from location");
+		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+		Map<Long, Long> orphants = new HashMap<>();
+		@SuppressWarnings("unchecked")
+		List<Map<String, Object>> l = (List<Map<String, Object>>)q.list();
+		for (Map<String, Object> m : l){
+			Long gid = getLong(m, "gid");
+			String name = String.valueOf(m.get("name"));
+			Long parentGid = getLong(m, "parent_gid");
+			
+			Location loc = new Location();
+			loc.setGid(gid);
+			Data data = new Data();
+			data.setName(name);
+			if (parentGid != null){
+				Location parent = result.get(parentGid);
+				loc.setParent(parent);
+				if (parent == null){
+					orphants.put(gid, parentGid);
+				} else {
+					parent.getChildren().add(loc);
+				}
+			}
+			loc.setData(data);
+			loc.setChildren(new ArrayList<Location>());
+			result.put(gid, loc);
+		}
+		for (Map.Entry<Long, Long> pair : orphants.entrySet()){
+			Long gid = pair.getKey();
+			Location parent = result.get(pair.getValue());
+			if (parent == null){
+				Logger.warn(gid + " has no parent!");
+			} else {
+				Location child = result.get(gid);
+				child.setParent(parent);
+				parent.getChildren().add(child);
+			}
+		}
+		return result;
+	}
+
+	private Long getLong(Map<String, Object> m, String key) {
+		Object object = m.get(key);
+		if (object == null)
+			return null;
+		return ((BigInteger)object).longValue();
 	}
 }

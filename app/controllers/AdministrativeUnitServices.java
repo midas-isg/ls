@@ -3,7 +3,9 @@ package controllers;
 import interactors.LocationRule;
 import interactors.GeoJSONParser;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.EntityManager;
 
@@ -22,6 +24,7 @@ import play.mvc.Result;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import dao.AuDao;
+import dao.entities.Location;
 
 public class AdministrativeUnitServices extends Controller {
 	static Status okJson(Object resultObject) {
@@ -114,7 +117,14 @@ Logger.debug("Request Body:\n" + requestBodyText);
 	
 	@Transactional
 	public static Result tree2() {
-		List<FancyTreeNode> tree = TreeViewAdapter.toFancyTree(new AuDao().findRoots2());
+		//List<FancyTreeNode> tree = TreeViewAdapter.toFancyTree(new AuDao().findRoots2());
+		Map<Long, Location> gid2location = new AuDao().getGid2location();
+		List<Location> roots = new ArrayList<>();
+		for (Location l: gid2location.values()){
+			if (l.getParent() == null)
+				roots.add(l);
+		}
+		List<FancyTreeNode> tree = TreeViewAdapter.toFancyTree(roots);
 		return okJson(tree);
 	}
 

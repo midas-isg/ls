@@ -7,15 +7,52 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.vividsolutions.jts.geom.Geometry;
+
 import models.geo.Feature;
 import models.geo.FeatureCollection;
 import dao.AuDao;
+import dao.entities.CodeType;
 import dao.entities.Data;
+import dao.entities.GisSource;
 import dao.entities.Location;
+import dao.entities.LocationGeometry;
+import dao.entities.LocationType;
 
 public class LocationRule {
 	public static final long EPIDEMIC_ZONE_ID = 7L;
 	public static final long ISG_CODE_TYPE_ID = 2L;
+	
+	private static LocationType epidemicZoneLocationType = null;
+	private static CodeType isgCodeType = null;
+	private static GisSource alsGisSource = null;
+	
+	private static LocationType getEpidemicZoneLocationType(){
+		if (epidemicZoneLocationType == null){
+			epidemicZoneLocationType = new LocationType();
+			epidemicZoneLocationType.setId(EPIDEMIC_ZONE_ID);
+			epidemicZoneLocationType.setName("Epidemic Zone");
+		}
+		return epidemicZoneLocationType;
+	}
+
+	private static CodeType getIsgCodeType(){
+		if (isgCodeType == null){
+			isgCodeType = new CodeType();
+			isgCodeType.setId(ISG_CODE_TYPE_ID);
+			isgCodeType.setName("ISG");
+		}
+		return isgCodeType;
+	}
+
+	private static GisSource getAlsGisSource(){
+		if (alsGisSource == null){
+			alsGisSource = new GisSource();
+			alsGisSource.setId(8L);
+			alsGisSource.setUrl("ALS");
+		}
+		return alsGisSource;
+	}
 
 	public static FeatureCollection toFeatureCollection(List<Location> aus) {
 		FeatureCollection fc = new FeatureCollection();
@@ -37,8 +74,8 @@ public class LocationRule {
 	private static Feature toFeature(Location au) {
 		Feature feature = new Feature();
 		feature.setProperties(toProperties(au));
-		//TODO Geometry multiPolygonGeom = au.getData().getGeometry();
-		//TODO feature.setGeometry(GeoOutputRule.toFeatureGeometry(multiPolygonGeom));
+		Geometry multiPolygonGeom = au.getData().getGeometry().getMultiPolygonGeom();
+		feature.setGeometry(GeoOutputRule.toFeatureGeometry(multiPolygonGeom));
 		
 		return feature;
 	}
@@ -49,7 +86,6 @@ public class LocationRule {
 		Data data = au.getData();
 		putAsStringIfNotNull(properties, "name", data.getName());
 		putAsStringIfNotNull(properties, "code", data.getCode());
-		putAsStringIfNotNull(properties, "codePath", data.getCodePath());
 		putAsStringIfNotNull(properties, "startDate", data.getStartDate());
 		putAsStringIfNotNull(properties, "endDate", data.getEndDate());
 		Location parent = au.getParent();
@@ -90,10 +126,10 @@ public class LocationRule {
 	private static Location toAu(FeatureCollection fc){
 		Location au = new Location();
 		Data data = new Data();
-		//TODO data.setAuTypeId(EPIDEMIC_ZONE_ID);
-		//TODO data.setCodeTypeId(ISG_CODE_TYPE_ID);
-		//TODO data.setGisSource("LS");
-		//TODO data.setGeometry(GeoInputRule.toMultiPolygon(fc));
+		data.setLocationType(getEpidemicZoneLocationType());
+		data.setCodeType(getIsgCodeType());
+		data.setGisSource(getAlsGisSource());
+		data.setGeometry(createLocationGeometry(fc, au));
 		String name = getString(fc, "name");
 		data.setName(name);
 		String date = getString(fc, "startDate");
@@ -109,8 +145,14 @@ public class LocationRule {
 			throw new RuntimeException("Cannot find parent gid=" + parentGid);
 		}
 		au.setParent(parent);
-		data.setCodePath(parent.getData().getCodePath() + "." + code);
 		return au;
+	}
+
+	private static LocationGeometry createLocationGeometry(FeatureCollection fc, Location l) {
+		LocationGeometry lg = new LocationGeometry();
+		lg.setMultiPolygonGeom(GeoInputRule.toMultiPolygon(fc));
+		lg.setLocation(l);
+		return lg;
 	}
 
 	private static Date getNowDate() {
@@ -142,4 +184,7 @@ public class LocationRule {
 		return new AuDao().findRoots();
 	}
 
+	public static Map<Long, Location> getGid2location() {
+		return new AuDao().getGid2location();
+	}
 }

@@ -45,6 +45,10 @@ public class AuditLocation {
 		@AttributeOverride(
 			name = "startDate", 
 			column = @Column(name = "start_date", nullable = true)
+		), 
+		@AttributeOverride(
+				name = "protect", 
+				column =  @Column(nullable = true)
 		) 
 	})
 	public Data getData() {

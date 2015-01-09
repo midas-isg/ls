@@ -17,7 +17,7 @@ public class TreeViewAdapter {
 			List<Location> roots) {
 		List<FancyTreeNode> newTree = new ArrayList<>();
 		for (Location root : roots) {
-			FancyTreeNode node = toNode(root);
+			FancyTreeNode node = toNode(root, "");
 			newTree.add(node);
 			node.expanded = false;
 		}
@@ -25,15 +25,15 @@ public class TreeViewAdapter {
 		return newTree;
 	}
 
-	static FancyTreeNode toNode(Location au) {
+	static FancyTreeNode toNode(Location au, String path) {
 		FancyTreeNode node = new FancyTreeNode();
 		Data data = au.getData();
 		node.title = data.getName();
-		node.path = data.getCodePath();
+		node.path = path + data.getName();
 		node.tooltip = node.path;
 		node.key = au.getGid() + "";
 		node.icon = false;
-		node.type = data.getCodePath().split("\\.")[0];
+		node.type = node.path.split("\\.")[0];
 		node.hideCheckbox = isHideCheckbox;
 		node.unselectable = false;
 		node.children = new ArrayList<>();
@@ -41,7 +41,7 @@ public class TreeViewAdapter {
 		if (children != null){
 			for (Location child : children) {
 				node.folder = true;
-				node.children.add(toNode(child));
+				node.children.add(toNode(child, node.path +  "."));
 			}
 		}
 		Collections.sort(node.children);

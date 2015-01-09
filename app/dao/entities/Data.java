@@ -15,7 +15,6 @@ public class Data {
 
 	private String name;
 	private String code;
-	private String codePath;
 	private CodeType codeType;
 	private LocationType locationType;
 	private Date startDate;
@@ -63,6 +62,7 @@ public class Data {
 		this.multiPolygonGeom = geom;
 	}
 
+	@Column(nullable = false, columnDefinition = "boolean default false")
 	public Boolean getProtect() {
 		return protect;
 	}
@@ -89,7 +89,7 @@ public class Data {
 		this.userId = userId;
 	}
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "location_type_id", nullable = false)
 	public LocationType getLocationType() {
 		return locationType;
@@ -107,16 +107,7 @@ public class Data {
 		this.code = code;
 	}
 
-	@Column (name = "gid_path" )
-	public String getCodePath() {
-		return codePath;
-	}
-
-	public void setCodePath(String codePath) {
-		this.codePath = codePath;
-	}
-
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "code_type_id", nullable = false)
 	public CodeType getCodeType() {
 		return codeType;
@@ -126,7 +117,7 @@ public class Data {
 		this.codeType = codeType;
 	}
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "gis_src_id", nullable = false)
 	public GisSource getGisSource() {
 		return gisSource;
