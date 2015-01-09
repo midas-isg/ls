@@ -127,4 +127,14 @@ public class Location {
 	public void setGeometry(LocationGeometry geom) {
 		this.multiPolygonGeom = geom;
 	}
+
+	@Override
+	public String toString() {
+		String parentText = "";
+		if (parent != null)
+			parentText = ", parentGid=" + parent.gid;
+		String string = "{gid=" + gid + ", name=" + data.getName() 
+				+ parentText + "}";
+		return string;
+	}
 }

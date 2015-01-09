@@ -73,15 +73,28 @@ public class LocationRule {
 
 	private static Feature toFeature(Location au) {
 		Feature feature = new Feature();
-		feature.setProperties(toProperties(au));
+		Map<String, Object> properties = toProperties(au);
+		putAsObjectsIfNotNull(properties, "children", au.getChildren());
+		putAsObjectsIfNotNull(properties, "lineage", AuHierarchyRule.getLineage(au));
+		feature.setProperties(properties);
 		Geometry multiPolygonGeom = au.getData().getGeometry().getMultiPolygonGeom();
 		feature.setGeometry(GeoOutputRule.toFeatureGeometry(multiPolygonGeom));
 		
 		return feature;
 	}
 
-	private static Map<String, String> toProperties(Location au) {
-		Map<String, String> properties = new HashMap<>();
+	private static void putAsObjectsIfNotNull(Map<String, Object> properties, String key, List<Location> locations) {
+		if (locations == null)
+			return;
+		List<Map<String, Object>> list = new ArrayList<>();
+		for (Location l : locations){
+			list.add(toProperties(l));
+		}
+		properties.put(key, list);
+	}
+
+	private static Map<String, Object> toProperties(Location au) {
+		Map<String, Object> properties = new HashMap<>();
 		putAsStringIfNotNull(properties, "gid", getGid(au));
 		Data data = au.getData();
 		putAsStringIfNotNull(properties, "name", data.getName());
@@ -105,7 +118,7 @@ public class LocationRule {
 		return String.valueOf(parent.getGid());
 	}
 
-	private static void putAsStringIfNotNull(Map<String, String> properties,
+	private static void putAsStringIfNotNull(Map<String, Object> properties,
 			String key, Object value) {
 		if (value == null)
 			return;
@@ -165,7 +178,10 @@ public class LocationRule {
 	}
 	
 	private static String getString(FeatureCollection fc, String key) {
-		return fc.getFeatures().get(0).getProperties().get(key);
+		Object object = fc.getFeatures().get(0).getProperties().get(key);
+		if (object == null)
+			return null;
+		return object.toString();
 	}
 
 	public static FeatureCollection getFeatureCollection(long gid) {
@@ -178,13 +194,5 @@ public class LocationRule {
 	public static Location findByGid(long gid) {
 		Location au = new AuDao().read(gid);
 		return au;
-	}
-
-	public static List<Location> getHierarchy() {
-		return new AuDao().findRoots();
-	}
-
-	public static Map<Long, Location> getGid2location() {
-		return new AuDao().getGid2location();
 	}
 }

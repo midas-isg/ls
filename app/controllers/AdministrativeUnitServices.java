@@ -1,11 +1,10 @@
 package controllers;
 
-import interactors.LocationRule;
+import interactors.AuHierarchyRule;
 import interactors.GeoJSONParser;
+import interactors.LocationRule;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.persistence.EntityManager;
 
@@ -24,7 +23,6 @@ import play.mvc.Result;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import dao.AuDao;
-import dao.entities.Location;
 
 public class AdministrativeUnitServices extends Controller {
 	static Status okJson(Object resultObject) {
@@ -111,28 +109,23 @@ Logger.debug("Request Body:\n" + requestBodyText);
 	
 	@Transactional
 	public static Result tree() {
-		List<FancyTreeNode> tree = TreeViewAdapter.toFancyTree(LocationRule.getHierarchy());
+		List<FancyTreeNode> tree = TreeViewAdapter.toFancyTree(AuHierarchyRule.getHierarchy());
 		return okJson(tree);
 	}
 	
 	@Transactional
 	public static Result tree2() {
-		//List<FancyTreeNode> tree = TreeViewAdapter.toFancyTree(new AuDao().findRoots2());
-		Map<Long, Location> gid2location = new AuDao().getGid2location();
-		List<Location> roots = new ArrayList<>();
-		for (Location l: gid2location.values()){
-			if (l.getParent() == null)
-				roots.add(l);
-		}
-		List<FancyTreeNode> tree = TreeViewAdapter.toFancyTree(roots);
+		List<FancyTreeNode> tree = TreeViewAdapter.toFancyTree(new AuDao().findRoots());
 		return okJson(tree);
 	}
 
 	@Transactional
 	public static Result asKml(long gid) {
 		EntityManager em = JPA.em();
-		String query = "select ST_AsKML(au.multipolygon) from au where gid = " + gid;
+		String query = "select ST_AsKML(multipolygon) from location_geometry where gid = " + gid;
 		String result = em.createNativeQuery(query).getSingleResult().toString();
+		//response().setContentType("application/vnd.google-earth.kml+xml");
+		response().setContentType("application/xml");
 		return ok(result);
 	}
 }
