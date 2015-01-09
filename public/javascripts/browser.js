@@ -5,52 +5,6 @@ var MAP_DRIVER = null;
 $(document).ready(function() {
 	MAP_DRIVER = new MapDriver();
 	
-/*
-	$("#new-button").click(function() {
-		MAP_DRIVER.mapID = Date().valueOf();
-		MAP_DRIVER.featureLayer.clearLayers();
-		setTextValue("#au-name", "");
-		setTextValue("#au-codepath", "");
-		
-		var today = new Date();
-		setTextValue("#start-date", today.getUTCFullYear() + "-" + (today.getUTCMonth() + 1) + "-" + today.getUTCDate());
-		setTextValue("#end-date", "");
-		setTextValue("#au-geojson", "");
-		setTextValue("#au-parent", "");
-	});
-	
-	$('#upload-button').click(function() {
-		MAP_DRIVER.upload();
-		
-		return;
-	});
-	
-	$('#download-button').click(function() {
-		MAP_DRIVER.download();
-		
-		return;
-	});
-	
-	$('#db-load-button').click(function() {
-		var mapID = getValueText("#gid");
-		MAP_DRIVER.geoJSONURL = crudPath + "/" + mapID;
-		//"http://tps23-nb.univ.pitt.edu/test.json";
-		
-		if(MAP_DRIVER.geoJSONURL) {
-			MAP_DRIVER.featureLayer.loadURL(MAP_DRIVER.geoJSONURL);
-			//MAP_DRIVER.loadFeatureLayer();
-		}
-		
-		return;
-	});
-	
-	$('#save-button').click(function() {
-		MAP_DRIVER.saveMap();
-		
-		return;
-	});
-*/
-	
 	return;
 });
 
@@ -68,7 +22,6 @@ function MapDriver(){
 	this.accessToken = 'pk.eyJ1IjoidHBzMjMiLCJhIjoiVHEzc0tVWSJ9.0oYZqcggp29zNZlCcb2esA';
 	this.featureLayer = null;
 	this.map = null;
-	this.parents = [];
 	
 	switch(format) {
 		case "apollojson":
@@ -199,15 +152,23 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			$("#au-apollojson").css("text-decoration", "underline");
 		}
 		
-		if(feature.properties.parentGid) {
-			$("#au-parent").prop("href", "./browser?id=" + feature.properties.parentGid);
-			$("#au-parent").css("text-decoration", "underline");
-			setTextValue("#au-parent", feature.properties.parentGid);
+		var lineage = feature.properties.lineage;
+		
+		if(lineage && (lineage.length > 0)) {
+			var i;
+			var auName;
+			var auGID;
+			for(i = 0; i < lineage.length; i++) {
+				auName = lineage[i].name;
+				auGID = lineage[i].gid;
+				
+				$("#au-lineage").append("<a href='./browser?id=" + auGID + "' style='text-decoration: underline;' title='"+ auGID +"'>" + auName + "</a> ");
+			}
 		}
 		else {
-			$("#au-parent").prop("href", "");
-			setTextValue("#au-parent", "");
+			$("#au-lineage").append("<a>Earth</a>");
 		}
+		
 		
 		setTextValue("#gid", feature.properties.gid);
 		feature.properties.title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
@@ -260,7 +221,7 @@ MapDriver.prototype.download = function() {
 		
 		properties.code = getValueText("#au-geojson");
 		
-		properties.parentGid = getValueText("#au-parent");
+		properties.parentGid = getValueText("#au-lineage");
 		properties.description = properties.name + ";" + properties.code + ";" + properties.startDate + ";" + properties.endDate + ";" + properties.parentGid;
 	}
 	
@@ -299,7 +260,7 @@ MapDriver.prototype.upload = function() {
 		
 		setTextValue("#au-geojson", properties.code);
 		
-		setTextValue("#au-parent", properties.parentGid);
+		//setTextValue("#au-lineage", properties.parentGid);
 		
 		MAP_DRIVER.loadJSON(jsonData);
 	});
