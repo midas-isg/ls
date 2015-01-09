@@ -6,7 +6,7 @@ $(document).ready(function() {
 	
 	$.get(url, function(data, status) {
 		treeData = data;
-		console.log(data);
+		//console.log(data);
 		
 		PARENT_TREE.initInteractBetweenTreeAndTable("parent-list", function() {
 			AU_COMPOSITE_TREE.initInteractBetweenTreeAndTable("au-list", initialize());
@@ -69,18 +69,23 @@ $(document).ready(function() {
 					compositeJSON.id = null;
 					compositeJSON.features = [];
 					
-					for(i = 0; i < MAP_DRIVER.auComponents.length; i++) {
-						currentAUGID = MAP_DRIVER.auComponents[i];
-						currentAU = L.mapbox.featureLayer().loadURL(crudPath + "/" + currentAUGID);
+					currentAUGID = MAP_DRIVER.auComponents[0];
+					currentAU = L.mapbox.featureLayer().loadURL(crudPath + "/" + currentAUGID);
+					//currentAU.on('ready', function(){
 						//TODO: Load JSON via call-back
-						console.log(currentAU);
-						var j;
-						for(j = 0; j < currentAU.geojson.features.length; j++) {
-							compositeJSON.features.push(currentAU.geojson.features[j]);
+						for(i = 1; i < MAP_DRIVER.auComponents.length; i++) {
+							currentAUGID = MAP_DRIVER.auComponents[i];
+							currentAU = L.mapbox.featureLayer().loadURL(crudPath + "/" + currentAUGID);
+							
+							console.log(currentAU);
+							var j;
+							for(j = 0; j < currentAU.geojson.features.length; j++) {
+								compositeJSON.features.push(currentAU.geojson.features[j]);
+							}
 						}
-					}
-					
-					MAP_DRIVER.loadJSON(compositeJSON);
+						
+						MAP_DRIVER.loadJSON(compositeJSON);
+					//});
 				});
 				
 				return;

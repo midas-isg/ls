@@ -1,11 +1,6 @@
-var ausPath;
-//var INDEXING_TERMS_TREE;
+var ausPath = context;
+//INDEXING_TERMS_TREE = new IndexingTermsTree();
 var treeData;
-
-$(document).ready( function() {
-	ausPath = context;
-	//INDEXING_TERMS_TREE = new IndexingTermsTree();
-});
 
 function IndexingTermsTree() {
 	this.tree = null;

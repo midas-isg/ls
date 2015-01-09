@@ -162,7 +162,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 				auName = lineage[i].name;
 				auGID = lineage[i].gid;
 				
-				$("#au-lineage").append("<a href='./browser?id=" + auGID + "' style='text-decoration: underline;' title='"+ auGID +"'>" + auName + "</a> ");
+				$("#au-lineage").append("<a href='./browser?id=" + auGID + "' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a> ");
 			}
 		}
 		else {
