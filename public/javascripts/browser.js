@@ -5,6 +5,7 @@ var MAP_DRIVER = null;
 $(document).ready(function() {
 	MAP_DRIVER = new MapDriver();
 	
+/*
 	$("#new-button").click(function() {
 		MAP_DRIVER.mapID = Date().valueOf();
 		MAP_DRIVER.featureLayer.clearLayers();
@@ -48,8 +49,7 @@ $(document).ready(function() {
 		
 		return;
 	});
-	
-	//INDEXING_TERMS_TREE.initInteractBetweenTreeAndTable("picklist");
+*/
 	
 	return;
 });

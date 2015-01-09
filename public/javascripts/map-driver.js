@@ -16,19 +16,19 @@ $(document).ready(function() {
 		setTextValue("#end-date", "");
 	});
 	
-	$('#upload-button').click(function() {
+	$("#upload-button").click(function() {
 		MAP_DRIVER.upload();
 		
 		return;
 	});
 	
-	$('#download-button').click(function() {
+	$("#download-button").click(function() {
 		MAP_DRIVER.download();
 		
 		return;
 	});
 	
-	$('#db-load-button').click(function() {
+	$("#db-load-button").click(function() {
 		var mapID = getValueText("#gid");
 		MAP_DRIVER.geoJSONURL = crudPath + "/" + mapID;
 		//"http://tps23-nb.univ.pitt.edu/test.json";
@@ -41,10 +41,36 @@ $(document).ready(function() {
 		return;
 	});
 	
-	$('#save-button').click(function() {
+	$("#save-button").click(function() {
 		MAP_DRIVER.saveMap();
 		
 		return;
+	});
+	
+	$("#composite-button").click(function() {
+		console.log(MAP_DRIVER.getAUComponents());
+		
+		var i;
+		var currentAUGID;
+		var currentAU;
+		
+		var compositeJSON = {};
+		compositeJSON.type = "FeatureCollection";
+		compositeJSON.id = null;
+		compositeJSON.features = [];
+		
+		for(i = 0; i < MAP_DRIVER.auComponents.length; i++) {
+			currentAUGID = MAP_DRIVER.auComponents[i];
+			currentAU = L.mapbox.featureLayer().loadURL(crudPath + "/" + currentAUGID);
+			//TODO: Load JSON via call-back
+			console.log(currentAU);
+			var j;
+			for(j = 0; j < currentAU.geojson.features.length; j++) {
+				compositeJSON.features.push(currentAU.geojson.features[j]);
+			}
+		}
+		
+		MAP_DRIVER.loadJSON(compositeJSON);
 	});
 	
 	return;
