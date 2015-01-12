@@ -133,9 +133,12 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		
 		MAP_DRIVER.mapID = MAP_DRIVER.featureLayer.getGeoJSON().id;
 		setTextValue("#au-name", feature.properties.name);
-		setTextValue("#au-codepath", feature.properties.codePath);
 		setTextValue("#start-date", feature.properties.startDate);
 		setTextValue("#end-date", feature.properties.endDate);
+		
+		if(feature.properties.endDate) {
+			$("#historical-note").show();
+		}
 		
 		$("#au-geojson").prop("href", MAP_DRIVER.geoJSONURL);
 		if(MAP_DRIVER.geoJSONURL) {
@@ -153,25 +156,47 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		}
 		
 		var lineage = feature.properties.lineage;
-		
-		if(lineage && (lineage.length > 0)) {
-			var i;
-			var auName;
-			var auGID;
-			for(i = 0; i < lineage.length; i++) {
+		var i;
+		var auName;
+		var auGID;
+		if(lineage.length > 0) {
+			$("#au-lineage").show();
+			
+			for(i = (lineage.length - 1); i >= 0; i--) {
 				auName = lineage[i].name;
 				auGID = lineage[i].gid;
 				
-				$("#au-lineage").append("<a href='./browser?id=" + auGID + "' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a> ");
+				$("#au-lineage").append("<a href='./browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
+				
+				if(i > 0){
+					$("#au-lineage").append(",");
+				}
 			}
 		}
-		else {
-			$("#au-lineage").append("<a>Earth</a>");
+		
+		var children = feature.properties.children;
+		if(children.length > 0) {
+			console.log(children);
+			$("#au-children").show();
+			
+			auName = children[0].name;
+			auGID = children[0].gid;
+			$("#au-children").append("<a href='./browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>; ");
+			
+			for(i = 1; i < children.length; i++) {
+				auName = children[i].name;
+				auGID = children[i].gid;
+				
+				$("#au-children").append("<a href='./browser?id=" + auGID + "' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
+				
+				if(i < (children.length - 1)) {
+					$("#au-children").append("; ");
+				}
+			}
 		}
 		
-		
 		setTextValue("#gid", feature.properties.gid);
-		feature.properties.title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
+		feature.properties.title = feature.properties.name + "; " + feature.properties.startDate;
 		
 		if(feature.properties.endDate) {
 			feature.properties.title = feature.properties.title + " to " + feature.properties.endDate;
@@ -215,7 +240,6 @@ MapDriver.prototype.download = function() {
 	for(var i = 0; i < jsonData.features.length; i++) {
 		properties = jsonData.features[i].properties;
 		properties.name = getValueText("#au-name");
-		properties.codePath = getValueText("#au-codepath");
 		properties.startDate = getValueText("#start-date");
 		properties.endDate = getValueText("#end-date");
 		
@@ -254,7 +278,6 @@ MapDriver.prototype.upload = function() {
 		
 		var properties = jsonData.features[0].properties;
 		setTextValue("#au-name", properties.name);
-		setTextValue("#au-codepath", properties.codePath);
 		setTextValue("#start-date", properties.startDate);
 		setTextValue("#end-date", properties.endDate);
 		
