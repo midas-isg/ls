@@ -1,5 +1,7 @@
 package dao;
 
+import interactors.LocationRule;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,6 +32,11 @@ public class AuDao {
 	public Location read(long gid) {
 		EntityManager em = JPA.em();
 		Location result = em.find(Location.class, gid);
+		/*LocationGeometry lg = result.getGeometry();
+		Geometry input = lg.getMultiPolygonGeom();
+		DouglasPeuckerSimplifier sim = new DouglasPeuckerSimplifier(input);
+		em.detach(result);
+		lg.setMultiPolygonGeom(sim.getResultGeometry());*/
 		return result;
 	}
 	
@@ -111,7 +118,9 @@ public class AuDao {
 		Map<Long, Location> result = new HashMap<>();
 		EntityManager em = JPA.em();
 		Session s = em.unwrap(Session.class);
-		SQLQuery q = s.createSQLQuery("select gid, name, parent_gid from location");
+		String query = "select gid, name, parent_gid from location"
+				+ " where location_type_id <> " + LocationRule.EPIDEMIC_ZONE_ID;
+		SQLQuery q = s.createSQLQuery(query);
 		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 		Map<Long, Long> orphants = new HashMap<>();
 		@SuppressWarnings("unchecked")

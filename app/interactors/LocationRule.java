@@ -3,6 +3,7 @@ package interactors;
 
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import models.geo.Feature;
 import models.geo.FeatureCollection;
 import dao.AuDao;
+import dao.entities.Code;
 import dao.entities.CodeType;
 import dao.entities.Data;
 import dao.entities.GisSource;
@@ -74,8 +76,10 @@ public class LocationRule {
 	private static Feature toFeature(Location au) {
 		Feature feature = new Feature();
 		Map<String, Object> properties = toProperties(au);
-		putAsObjectsIfNotNull(properties, "children", au.getChildren());
-		putAsObjectsIfNotNull(properties, "lineage", AuHierarchyRule.getLineage(au));
+		Collections.sort(au.getChildren());
+		putAsLocationObjectsIfNotNull(properties, "children", au.getChildren());
+		putAsLocationObjectsIfNotNull(properties, "lineage", AuHierarchyRule.getLineage(au));
+		putAsCodeObjectsIfNotNull(properties, "codes", au);
 		feature.setProperties(properties);
 		Geometry multiPolygonGeom = au.getData().getGeometry().getMultiPolygonGeom();
 		feature.setGeometry(GeoOutputRule.toFeatureGeometry(multiPolygonGeom));
@@ -83,7 +87,32 @@ public class LocationRule {
 		return feature;
 	}
 
-	private static void putAsObjectsIfNotNull(Map<String, Object> properties, String key, List<Location> locations) {
+	private static void putAsCodeObjectsIfNotNull(Map<String, Object> properties,
+			String string, Location location) {
+		if (location == null)
+			return;
+		
+		List<Map<String, String>> codes = new ArrayList<>();
+		Map<String, String> code = new HashMap<>();
+		final String KEY_CODE = "code";
+		final String KEY_TYPE = "codeTypeName";
+		code.put(KEY_CODE, location.getData().getCode());
+		code.put(KEY_TYPE, location.getData().getCodeType().getName());
+		codes.add(code);
+		properties.put(string, codes);
+		
+		List<Code> otherCodes = location.getOtherCodes();
+		if (otherCodes == null)
+			return;
+		for (Code c : otherCodes){
+			Map<String, String> anotherCode = new HashMap<>();
+			anotherCode.put(KEY_CODE, c.getCode());
+			anotherCode.put(KEY_TYPE, c.getCodeType().getName());
+			codes.add(anotherCode);
+		}
+	}
+
+	private static void putAsLocationObjectsIfNotNull(Map<String, Object> properties, String key, List<Location> locations) {
 		if (locations == null)
 			return;
 		List<Map<String, Object>> list = new ArrayList<>();
@@ -98,12 +127,20 @@ public class LocationRule {
 		putAsStringIfNotNull(properties, "gid", getGid(au));
 		Data data = au.getData();
 		putAsStringIfNotNull(properties, "name", data.getName());
-		putAsStringIfNotNull(properties, "code", data.getCode());
+		/*putAsStringIfNotNull(properties, "code", data.getCode());
+		String codeTypeName = getName(data.getCodeType(), data.getCodeType().getName());
+		putAsStringIfNotNull(properties, "codeTypeName", codeTypeName);*/
 		putAsStringIfNotNull(properties, "startDate", data.getStartDate());
 		putAsStringIfNotNull(properties, "endDate", data.getEndDate());
+		String locationTypeName = getName(data.getLocationType(), data.getLocationType().getName());
+		putAsStringIfNotNull(properties, "locationTypeName", locationTypeName);
 		Location parent = au.getParent();
 		putAsStringIfNotNull(properties, "parentGid", getGid(parent));
 		return properties;
+	}
+
+	private static String getName(Object object, String name) {
+		return (object == null) ? null : name;
 	}
 
 	private static String toString(Object object) {

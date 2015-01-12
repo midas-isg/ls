@@ -23,7 +23,7 @@ import org.hibernate.annotations.Check;
 @Entity
 @Check(constraints = "end_date > start_date")
 @Table(name = "location")
-public class Location {
+public class Location implements Comparable<Location> {
 
 	private Long gid;
 	private Data data;
@@ -136,5 +136,10 @@ public class Location {
 		String string = "{gid=" + gid + ", name=" + data.getName() 
 				+ parentText + "}";
 		return string;
+	}
+
+	@Override
+	public int compareTo(Location o) {
+		return data.getName().toLowerCase().compareTo(o.data.getName().toLowerCase());
 	}
 }
