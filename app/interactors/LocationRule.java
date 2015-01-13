@@ -81,7 +81,7 @@ public class LocationRule {
 		putAsLocationObjectsIfNotNull(properties, "lineage", AuHierarchyRule.getLineage(au));
 		putAsCodeObjectsIfNotNull(properties, "codes", au);
 		feature.setProperties(properties);
-		Geometry multiPolygonGeom = au.getData().getGeometry().getMultiPolygonGeom();
+		Geometry multiPolygonGeom = au.getGeometry().getMultiPolygonGeom();
 		feature.setGeometry(GeoOutputRule.toFeatureGeometry(multiPolygonGeom));
 		
 		return feature;
@@ -179,7 +179,7 @@ public class LocationRule {
 		data.setLocationType(getEpidemicZoneLocationType());
 		data.setCodeType(getIsgCodeType());
 		data.setGisSource(getAlsGisSource());
-		data.setGeometry(createLocationGeometry(fc, au));
+		au.setGeometry(createLocationGeometry(fc, au));
 		String name = getString(fc, "name");
 		data.setName(name);
 		String date = getString(fc, "startDate");
