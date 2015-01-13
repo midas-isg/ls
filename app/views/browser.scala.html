@@ -22,35 +22,35 @@
 	<div style="padding-left: 10px;">
 		<div id="header-data" hidden>
 			<div>
-				<em class="pull-left">Location ID:</em> <div id="gid" class="pull-left pre-spaced"></div><button id="db-load-button" hidden>Load from database</button>
+				<h2 style="clear: both;">
+					<strong><div id="au-name" class="pull-left"></div></strong>
+				</h2>
 			</div>
 			
 			<div style="clear: both;">
-				<em class="pull-left">Location name:</em> <strong><div id="au-name" class="pull-left pre-spaced"></div></strong>
+				<em class="pull-left">Location ID:</em> <div id="gid" class="pull-left pre-spaced"></div>
 			</div>
 			
 			<div style="clear: both;">
-				<em class="pull-left">Location code path:</em> <div id="au-codepath" class="pull-left pre-spaced"></div>
+				<em class="pull-left">This entry is from</em> <div id="start-date" class="pull-left pre-spaced"></div>
+				<em class="pull-left pre-spaced">to</em> <div id="end-date" class="pull-left pre-spaced">present</div>
 			</div>
 			
 			<div style="clear: both;">
-				<em class="pull-left">Start date:</em> <div id="start-date" class="pull-left pre-spaced"></div>
-			</div style="clear: both;">
-			
-			<div style="clear: both;">
-				<em class="pull-left">End date:</em> <div id="end-date" class="pull-left pre-spaced"></div>
+				<em class="pull-left">Alternative data formats:</em> [<a id="au-geojson">GeoJSON</a>], [<a id="au-kml">KML</a>], [<a id="au-apollojson">ApolloJSON</a>]
 			</div>
 			
-			<div style="clear: both;">
-				<em class="pull-left">Source:</em> [<a id="au-geojson">GeoJSON</a>], [<a id="au-kml">KML</a>], [<a id="au-apollojson">ApolloJSON</a>]
+			<div id="au-lineage" style="clear: both;" hidden>
+				<em class="pull-left">Located within</em>
 			</div>
 			
-			<div style="clear: both;">
-				<em class="pull-left">Lineage:</em> <a id="au-parent" class="pull-left pre-spaced"></a>
+			<div id="au-children" style="clear: both;" hidden>
+				<em class="pull-left">Immediate subdivisions:</em>
 			</div>
 		</div>
 		
 		<div style="clear: both;">
+			<strong id="historical-note" style="display: table; color: red; margin-left: auto; margin-right: auto;" hidden>*Historical data overlayed on current world map*</strong>
 			<div id='map-data' class='map'>Loading...</div>
 		</div>
 		

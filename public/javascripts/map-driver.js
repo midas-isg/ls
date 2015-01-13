@@ -2,76 +2,100 @@ var crudPath = context + '/resources/aus';
 var MAP_DRIVER = null;
 
 $(document).ready(function() {
-	MAP_DRIVER = new MapDriver();
+	var url = ausPath + "/api/au-tree";
 	
-	$("#new-button").click(function() {
-		MAP_DRIVER.mapID = Date().valueOf();
-		MAP_DRIVER.featureLayer.clearLayers();
-		setTextValue("#au-name", "");
-		setTextValue("#au-code", "");
-		setTextValue("#au-codepath", "");
+	$.get(url, function(data, status) {
+		treeData = data;
+		//console.log(data);
 		
-		var today = new Date();
-		setTextValue("#start-date", today.getUTCFullYear() + "-" + (today.getUTCMonth() + 1) + "-" + today.getUTCDate());
-		setTextValue("#end-date", "");
-	});
-	
-	$("#upload-button").click(function() {
-		MAP_DRIVER.upload();
-		
-		return;
-	});
-	
-	$("#download-button").click(function() {
-		MAP_DRIVER.download();
-		
-		return;
-	});
-	
-	$("#db-load-button").click(function() {
-		var mapID = getValueText("#gid");
-		MAP_DRIVER.geoJSONURL = crudPath + "/" + mapID;
-		//"http://tps23-nb.univ.pitt.edu/test.json";
-		
-		if(MAP_DRIVER.geoJSONURL) {
-			MAP_DRIVER.featureLayer.loadURL(MAP_DRIVER.geoJSONURL);
-			//MAP_DRIVER.loadFeatureLayer();
-		}
-		
-		return;
-	});
-	
-	$("#save-button").click(function() {
-		MAP_DRIVER.saveMap();
-		
-		return;
-	});
-	
-	$("#composite-button").click(function() {
-		console.log(MAP_DRIVER.getAUComponents());
-		
-		var i;
-		var currentAUGID;
-		var currentAU;
-		
-		var compositeJSON = {};
-		compositeJSON.type = "FeatureCollection";
-		compositeJSON.id = null;
-		compositeJSON.features = [];
-		
-		for(i = 0; i < MAP_DRIVER.auComponents.length; i++) {
-			currentAUGID = MAP_DRIVER.auComponents[i];
-			currentAU = L.mapbox.featureLayer().loadURL(crudPath + "/" + currentAUGID);
-			//TODO: Load JSON via call-back
-			console.log(currentAU);
-			var j;
-			for(j = 0; j < currentAU.geojson.features.length; j++) {
-				compositeJSON.features.push(currentAU.geojson.features[j]);
+		PARENT_TREE.initInteractBetweenTreeAndTable("parent-list", function() {
+			AU_COMPOSITE_TREE.initInteractBetweenTreeAndTable("au-list", initialize());
+			
+			function initialize() {
+				MAP_DRIVER = new MapDriver();
+				
+				$("#new-button").click(function() {
+					MAP_DRIVER.mapID = Date().valueOf();
+					MAP_DRIVER.featureLayer.clearLayers();
+					setTextValue("#au-name", "");
+					setTextValue("#au-code", "");
+					setTextValue("#au-codepath", "");
+					
+					var today = new Date();
+					setTextValue("#start-date", today.getUTCFullYear() + "-" + (today.getUTCMonth() + 1) + "-" + today.getUTCDate());
+					setTextValue("#end-date", "");
+				});
+				
+				$("#upload-button").click(function() {
+					MAP_DRIVER.upload();
+					
+					return;
+				});
+				
+				$("#download-button").click(function() {
+					MAP_DRIVER.download();
+					
+					return;
+				});
+				
+				$("#db-load-button").click(function() {
+					var mapID = getValueText("#gid");
+					MAP_DRIVER.geoJSONURL = crudPath + "/" + mapID;
+					//"http://tps23-nb.univ.pitt.edu/test.json";
+					
+					if(MAP_DRIVER.geoJSONURL) {
+						MAP_DRIVER.featureLayer.loadURL(MAP_DRIVER.geoJSONURL);
+						//MAP_DRIVER.loadFeatureLayer();
+					}
+					
+					return;
+				});
+				
+				$("#save-button").click(function() {
+					MAP_DRIVER.saveMap();
+					
+					return;
+				});
+				
+				$("#composite-button").click(function() {
+					console.log(MAP_DRIVER.getAUComponents());
+					
+					var i;
+					var currentAUGID;
+					var currentAU;
+					
+					var compositeJSON = {};
+					compositeJSON.type = "FeatureCollection";
+					compositeJSON.id = null;
+					compositeJSON.features = [];
+					
+					currentAUGID = MAP_DRIVER.auComponents[0];
+					currentAU = L.mapbox.featureLayer().loadURL(crudPath + "/" + currentAUGID);
+					//currentAU.on('ready', function(){
+						//TODO: Load JSON via call-back
+						for(i = 1; i < MAP_DRIVER.auComponents.length; i++) {
+							currentAUGID = MAP_DRIVER.auComponents[i];
+							currentAU = L.mapbox.featureLayer().loadURL(crudPath + "/" + currentAUGID);
+							
+							console.log(currentAU);
+							var j;
+							for(j = 0; j < currentAU.geojson.features.length; j++) {
+								compositeJSON.features.push(currentAU.geojson.features[j]);
+							}
+						}
+						
+						MAP_DRIVER.loadJSON(compositeJSON);
+					//});
+				});
+				
+				return;
 			}
-		}
+		});
 		
-		MAP_DRIVER.loadJSON(compositeJSON);
+		return;
 	});
+	
+	
 	
 	return;
 });
@@ -139,7 +163,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			//	AU_COMPOSITE_TREE.clickIsAboutByValue(parentGID[i]);
 			//}
 			
-			//PARENT_TREE.clickIsAboutByValue(parentGID);
+			PARENT_TREE.clickIsAboutByValue(parentGID);
 		}
 		
 		setTextValue("#gid", feature.properties.gid);

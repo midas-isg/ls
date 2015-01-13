@@ -5,52 +5,6 @@ var MAP_DRIVER = null;
 $(document).ready(function() {
 	MAP_DRIVER = new MapDriver();
 	
-/*
-	$("#new-button").click(function() {
-		MAP_DRIVER.mapID = Date().valueOf();
-		MAP_DRIVER.featureLayer.clearLayers();
-		setTextValue("#au-name", "");
-		setTextValue("#au-codepath", "");
-		
-		var today = new Date();
-		setTextValue("#start-date", today.getUTCFullYear() + "-" + (today.getUTCMonth() + 1) + "-" + today.getUTCDate());
-		setTextValue("#end-date", "");
-		setTextValue("#au-geojson", "");
-		setTextValue("#au-parent", "");
-	});
-	
-	$('#upload-button').click(function() {
-		MAP_DRIVER.upload();
-		
-		return;
-	});
-	
-	$('#download-button').click(function() {
-		MAP_DRIVER.download();
-		
-		return;
-	});
-	
-	$('#db-load-button').click(function() {
-		var mapID = getValueText("#gid");
-		MAP_DRIVER.geoJSONURL = crudPath + "/" + mapID;
-		//"http://tps23-nb.univ.pitt.edu/test.json";
-		
-		if(MAP_DRIVER.geoJSONURL) {
-			MAP_DRIVER.featureLayer.loadURL(MAP_DRIVER.geoJSONURL);
-			//MAP_DRIVER.loadFeatureLayer();
-		}
-		
-		return;
-	});
-	
-	$('#save-button').click(function() {
-		MAP_DRIVER.saveMap();
-		
-		return;
-	});
-*/
-	
 	return;
 });
 
@@ -68,7 +22,6 @@ function MapDriver(){
 	this.accessToken = 'pk.eyJ1IjoidHBzMjMiLCJhIjoiVHEzc0tVWSJ9.0oYZqcggp29zNZlCcb2esA';
 	this.featureLayer = null;
 	this.map = null;
-	this.parents = [];
 	
 	switch(format) {
 		case "apollojson":
@@ -180,9 +133,12 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		
 		MAP_DRIVER.mapID = MAP_DRIVER.featureLayer.getGeoJSON().id;
 		setTextValue("#au-name", feature.properties.name);
-		setTextValue("#au-codepath", feature.properties.codePath);
 		setTextValue("#start-date", feature.properties.startDate);
 		setTextValue("#end-date", feature.properties.endDate);
+		
+		if(feature.properties.endDate) {
+			$("#historical-note").show();
+		}
 		
 		$("#au-geojson").prop("href", MAP_DRIVER.geoJSONURL);
 		if(MAP_DRIVER.geoJSONURL) {
@@ -199,18 +155,48 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			$("#au-apollojson").css("text-decoration", "underline");
 		}
 		
-		if(feature.properties.parentGid) {
-			$("#au-parent").prop("href", "./browser?id=" + feature.properties.parentGid);
-			$("#au-parent").css("text-decoration", "underline");
-			setTextValue("#au-parent", feature.properties.parentGid);
+		var lineage = feature.properties.lineage;
+		var i;
+		var auName;
+		var auGID;
+		if(lineage.length > 0) {
+			$("#au-lineage").show();
+			
+			for(i = (lineage.length - 1); i >= 0; i--) {
+				auName = lineage[i].name;
+				auGID = lineage[i].gid;
+				
+				$("#au-lineage").append("<a href='./browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
+				
+				if(i > 0){
+					$("#au-lineage").append(",");
+				}
+			}
 		}
-		else {
-			$("#au-parent").prop("href", "");
-			setTextValue("#au-parent", "");
+		
+		var children = feature.properties.children;
+		if(children.length > 0) {
+			console.log(children);
+			$("#au-children").show();
+			
+			auName = children[0].name;
+			auGID = children[0].gid;
+			$("#au-children").append("<a href='./browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>; ");
+			
+			for(i = 1; i < children.length; i++) {
+				auName = children[i].name;
+				auGID = children[i].gid;
+				
+				$("#au-children").append("<a href='./browser?id=" + auGID + "' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
+				
+				if(i < (children.length - 1)) {
+					$("#au-children").append("; ");
+				}
+			}
 		}
 		
 		setTextValue("#gid", feature.properties.gid);
-		feature.properties.title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
+		feature.properties.title = feature.properties.name + "; " + feature.properties.startDate;
 		
 		if(feature.properties.endDate) {
 			feature.properties.title = feature.properties.title + " to " + feature.properties.endDate;
@@ -254,13 +240,12 @@ MapDriver.prototype.download = function() {
 	for(var i = 0; i < jsonData.features.length; i++) {
 		properties = jsonData.features[i].properties;
 		properties.name = getValueText("#au-name");
-		properties.codePath = getValueText("#au-codepath");
 		properties.startDate = getValueText("#start-date");
 		properties.endDate = getValueText("#end-date");
 		
 		properties.code = getValueText("#au-geojson");
 		
-		properties.parentGid = getValueText("#au-parent");
+		properties.parentGid = getValueText("#au-lineage");
 		properties.description = properties.name + ";" + properties.code + ";" + properties.startDate + ";" + properties.endDate + ";" + properties.parentGid;
 	}
 	
@@ -293,13 +278,12 @@ MapDriver.prototype.upload = function() {
 		
 		var properties = jsonData.features[0].properties;
 		setTextValue("#au-name", properties.name);
-		setTextValue("#au-codepath", properties.codePath);
 		setTextValue("#start-date", properties.startDate);
 		setTextValue("#end-date", properties.endDate);
 		
 		setTextValue("#au-geojson", properties.code);
 		
-		setTextValue("#au-parent", properties.parentGid);
+		//setTextValue("#au-lineage", properties.parentGid);
 		
 		MAP_DRIVER.loadJSON(jsonData);
 	});
