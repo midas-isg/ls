@@ -23,7 +23,7 @@
 		<div id="header-data" hidden>
 			<div>
 				<h2 style="clear: both;">
-					<strong><div id="au-name" class="pull-left"></div></strong>
+					<div id="au-name" class="pull-left"></div>
 				</h2>
 			</div>
 			
@@ -32,12 +32,16 @@
 			</div>
 			
 			<div style="clear: both;">
-				<em class="pull-left">This entry is from</em> <div id="start-date" class="pull-left pre-spaced"></div>
-				<em class="pull-left pre-spaced">to</em> <div id="end-date" class="pull-left pre-spaced">present</div>
+				<div id="historical-note" hidden>
+					<strong style="display: block; color: red; text-align: center;">*Historical data overlayed on current world map*</strong>
+				</div>
+				
+				<div id='map-data' class='map'>Loading...</div>
 			</div>
 			
 			<div style="clear: both;">
-				<em class="pull-left">Alternative data formats:</em> [<a id="au-geojson">GeoJSON</a>], [<a id="au-kml">KML</a>], [<a id="au-apollojson">ApolloJSON</a>]
+				<em class="pull-left">This entry is from</em> <div id="start-date" class="pull-left pre-spaced"></div>
+				<em class="pull-left pre-spaced">to</em> <div id="end-date" class="pull-left pre-spaced">present</div>
 			</div>
 			
 			<div id="au-lineage" style="clear: both;" hidden>
@@ -50,11 +54,12 @@
 		</div>
 		
 		<div style="clear: both;">
-			<div id="historical-note" hidden>
-				<strong style="display: block; color: red; text-align: center;">*Historical data overlayed on current world map*</strong>
-			</div>
-			
-			<div id='map-data' class='map'>Loading...</div>
+			<em id="codes-toggle">Codes</em>
+			<div id="codes"></div>
+		</div>
+		
+		<div style="clear: both;">
+			<em class="pull-left">Alternative data formats:</em> [<a id="au-geojson">GeoJSON</a>], [<strong id="au-kml">KML</strong>], [<a id="au-apollojson">ApolloJSON</a>]
 		</div>
 		
 		<div style="clear: both;">

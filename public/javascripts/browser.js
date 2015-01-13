@@ -52,6 +52,7 @@ function MapDriver(){
 }
 
 MapDriver.prototype.initialize = function() {
+	$("#map-data").text("");
 	$("#header-data").show();
 	
 	L.mapbox.accessToken = this.accessToken;
@@ -132,7 +133,8 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		centerMap(MAP_DRIVER.featureLayer.getGeoJSON());
 		
 		MAP_DRIVER.mapID = MAP_DRIVER.featureLayer.getGeoJSON().id;
-		setTextValue("#au-name", feature.properties.name + " <" + feature.properties.locationTypeName + ">");
+		$("#au-name").append("<strong>" + feature.properties.name + " - " + feature.properties.locationTypeName + "</strong>");
+		//setTextValue("#au-name", "<em>" + feature.properties.locationTypeName + "</em>: " + feature.properties.name);
 		setTextValue("#start-date", feature.properties.startDate);
 		setTextValue("#end-date", feature.properties.endDate);
 		
@@ -196,10 +198,12 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		}
 		
 		setTextValue("#gid", feature.properties.gid);
-		feature.properties.title = feature.properties.name + "; ";
+		var codes = feature.properties.codes;
+		for(i = 0; i < codes.length; i++) {
+			$("#codes").append("<div style='text-indent: 50px;'><em>" + codes[i].codeTypeName + ":</em> " + codes[i].code + "</div>");
+		}
 		
-		feature.properties.title = feature.properties.title + "[" + feature.properties.codes[0].codeTypeName + "] " + feature.properties.codes[0].code + "; "
-		
+		feature.properties.title = feature.properties.name + " from ";
 		feature.properties.title = feature.properties.title + feature.properties.startDate;
 		if(feature.properties.endDate) {
 			feature.properties.title = feature.properties.title + " to " + feature.properties.endDate;
