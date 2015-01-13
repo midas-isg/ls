@@ -132,7 +132,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		centerMap(MAP_DRIVER.featureLayer.getGeoJSON());
 		
 		MAP_DRIVER.mapID = MAP_DRIVER.featureLayer.getGeoJSON().id;
-		setTextValue("#au-name", feature.properties.name);
+		setTextValue("#au-name", feature.properties.name + " <" + feature.properties.locationTypeName + ">");
 		setTextValue("#start-date", feature.properties.startDate);
 		setTextValue("#end-date", feature.properties.endDate);
 		
@@ -196,8 +196,11 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		}
 		
 		setTextValue("#gid", feature.properties.gid);
-		feature.properties.title = feature.properties.name + "; " + feature.properties.startDate;
+		feature.properties.title = feature.properties.name + "; ";
 		
+		feature.properties.title = feature.properties.title + "[" + feature.properties.codes[0].codeTypeName + "] " + feature.properties.codes[0].code + "; "
+		
+		feature.properties.title = feature.properties.title + feature.properties.startDate;
 		if(feature.properties.endDate) {
 			feature.properties.title = feature.properties.title + " to " + feature.properties.endDate;
 		}
