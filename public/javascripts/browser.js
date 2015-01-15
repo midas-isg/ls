@@ -133,7 +133,8 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		centerMap(MAP_DRIVER.featureLayer.getGeoJSON());
 		
 		MAP_DRIVER.mapID = MAP_DRIVER.featureLayer.getGeoJSON().id;
-		$("#au-name").append("<strong>" + feature.properties.name + " - " + feature.properties.locationTypeName + "</strong>");
+		$("#au-name").append("<strong>" + feature.properties.name + "</strong>");
+		$("#au-location-type").append("<div class='pull-left pre-spaced'>" + feature.properties.locationTypeName + "</div>");
 		//setTextValue("#au-name", "<em>" + feature.properties.locationTypeName + "</em>: " + feature.properties.name);
 		setTextValue("#start-date", feature.properties.startDate);
 		setTextValue("#end-date", feature.properties.endDate);
