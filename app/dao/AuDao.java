@@ -56,6 +56,14 @@ public class AuDao {
 		return gid;
 	}
 	
+	public List<Location> findByName(String name) {
+		EntityManager em = JPA.em();
+		Query query = em.createQuery("from Location where data.name = '" + name + "'");
+		@SuppressWarnings("unchecked")
+		List<Location> result = (List<Location>)query.getResultList();
+		return result;
+	}
+
 	public List<Location> findRoots() {
 		return putIntoHierarchy(findAll());
 	}
