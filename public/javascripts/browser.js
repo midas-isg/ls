@@ -221,9 +221,16 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		}
 		
 		setTextValue("#gid", feature.properties.gid);
+		show = false;
 		var codes = feature.properties.codes;
 		for(i = 0; i < codes.length; i++) {
-			$("#codes").append("<div style='text-indent: 50px;'><em>" + codes[i].codeTypeName + ":</em> " + codes[i].code + "</div>");
+			if(codes[i].codeTypeName != "ISG") {
+				$("#codes").append("<div style='text-indent: 50px;'><em>" + codes[i].codeTypeName + ":</em> " + codes[i].code + "</div>");
+				show = true;
+			}
+		}
+		if(show) {
+			$("#codes").show();
 		}
 		
 		feature.properties.title = feature.properties.name + " from ";

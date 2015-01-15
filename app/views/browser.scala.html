@@ -20,58 +20,55 @@
 	<h1>@message</h1>
 	
 	<div style="padding-left: 10px;">
-		<div id="header-data" hidden>
-			<div>
-				<h2 style="clear: both;">
-					<div id="au-name" class="pull-left"></div>
-				</h2>
-			</div>
-			
-			<div style="clear: both;">
-				<em class="pull-left">Apollo location code:</em> <div id="gid" class="pull-left pre-spaced"></div>
-			</div>
-			
-			<div style="clear: both;">
-				<div id="historical-note" hidden>
-					<strong style="display: block; color: red;">*Historical data overlayed on current world map*</strong>
-				</div>
-				
-				<div id='map-data' class='map'>Loading...</div>
-			</div>
-			
-			<div style="clear: both;" class="extra-bottom-space">
-				<em class="pull-left">This code references this location from:</em> <div id="start-date" class="pull-left pre-spaced"></div>
-				<em class="pull-left pre-spaced">to</em> <div id="end-date" class="pull-left pre-spaced">present</div>
-			</div>
-			
-			<div id="au-location-type" style="clear: both;" class="extra-bottom-space">
-				<em class="pull-left">Location type:</em>
-			</div>
-			
-			<div id="au-related" style="clear: both;" class="extra-bottom-space" hidden>
-				<em class="pull-left">Related location(s):</em>
-			</div>
-			
-			<div id="au-lineage" style="clear: both;" class="extra-bottom-space" hidden>
-				<em class="pull-left">Located within:</em>
-			</div>
-			
-			<div id="au-children" style="clear: both;" class="extra-bottom-space" hidden>
-				<em class="pull-left">Epidemic zone(s):</em>
-			</div>
+		<div id="header-data">
+			<h2 style="clear: both;">
+				<div id="au-name" class="pull-left"></div>
+			</h2>
 		</div>
 		
-		<div style="clear: both;" class="extra-bottom-space">
+		<div class="data-container">
+			<em class="pull-left">Apollo location code:</em> <div id="gid" class="pull-left pre-spaced"></div>
+		</div>
+		
+		<div class="data-container">
+			<div id="historical-note" hidden>
+				<strong style="color: red;">*Historical data overlayed on current world map*</strong>
+			</div>
+			
+			<div id='map-data' class='map'>Loading...</div>
+		</div>
+		
+		<div class="data-container extra-bottom-space">
+			<em class="pull-left">This code references this location from:</em> <div id="start-date" class="pull-left pre-spaced"></div>
+			<em class="pull-left pre-spaced">to</em> <div id="end-date" class="pull-left pre-spaced">present</div>
+		</div>
+		
+		<div id="au-location-type" class="data-container extra-bottom-space">
+			<em class="pull-left">Location type:</em>
+		</div>
+		
+		<div id="au-related" class="data-container extra-bottom-space" hidden>
+			<em class="pull-left">Related location(s):</em>
+		</div>
+		
+		<div id="au-lineage" class="data-container extra-bottom-space" hidden>
+			<em class="pull-left">Located within:</em>
+		</div>
+		
+		<div id="au-children" class="data-container extra-bottom-space" hidden>
+			<em class="pull-left">Epidemic zone(s):</em>
+		</div>
+		
+		<div id="codes" class="data-container extra-bottom-space" hidden>
 			<em id="codes-toggle">Known codes for this location in other standards:</em>
-			<div id="codes"></div>
 		</div>
 		
-		<div style="clear: both;" class="extra-bottom-space">
+		<div class="data-container extra-bottom-space">
 			<em class="pull-left">View location in alternative data format:</em>
 			<div class="pull-left pre-spaced">[<a id="au-geojson">GeoJSON</a>], [<a id="au-kml">KML</a>], [<a id="au-apollojson">ApolloJSON</a>]</div>
 		</div>
 		
-		<div style="clear: both;">
+		<div class="data-container">
 			<div hidden>
 				<div>
 					<input id="json-input" accept=".json, .geojson, .kml" type="file" style="float: left;">
