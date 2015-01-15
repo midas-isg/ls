@@ -2,13 +2,12 @@ package dao.entities;
 
 import java.sql.Date;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
+
 
 @Embeddable
 public class Data {
@@ -19,7 +18,6 @@ public class Data {
 	private LocationType locationType;
 	private Date startDate;
 	private Date endDate;
-	private LocationGeometry multiPolygonGeom;
 	private Boolean protect;
 	private Date updateDate;
 	private Long userId;
@@ -51,15 +49,6 @@ public class Data {
 
 	public void setEndDate(Date endDate) {
 		this.endDate = endDate;
-	}
-
-	@OneToOne(fetch = FetchType.LAZY, mappedBy = "location", cascade = CascadeType.ALL)
-	public LocationGeometry getGeometry() {
-		return multiPolygonGeom;
-	}
-
-	public void setGeometry(LocationGeometry geom) {
-		this.multiPolygonGeom = geom;
 	}
 
 	@Column(nullable = false, columnDefinition = "boolean default false")

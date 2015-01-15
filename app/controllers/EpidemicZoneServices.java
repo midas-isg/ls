@@ -50,7 +50,7 @@ public class EpidemicZoneServices  extends Controller {
 		public MultiPolygon(Location au){
 			textualDescription = au.getData().getName();
 			polygons = new ArrayList<>();
-			Geometry mpg = au.getData().getGeometry().getMultiPolygonGeom();
+			Geometry mpg = au.getGeometry().getMultiPolygonGeom();
 			if (mpg == null){
 				return;
 			}

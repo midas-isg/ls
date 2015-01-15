@@ -15,6 +15,7 @@ GET		/api/locations/tree			controllers.AdministrativeUnitServices.tree2()
 
 GET		/api/au-tree				controllers.AdministrativeUnitServices.tree()
 GET		/api/locations/:gid			controllers.LocationServices.locations(gid:Long, format?="GeoJSON")
+GET		/api/locations				controllers.LocationServices.findLocations(q)
 
 # Map static resources from the /public folder to the /assets URL path
 GET		/assets/*file				controllers.Assets.at(path="/public", file)
