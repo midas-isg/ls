@@ -135,7 +135,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		MAP_DRIVER.mapID = MAP_DRIVER.featureLayer.getGeoJSON().id;
 		$("#au-name").append("<strong>" + feature.properties.name + "</strong>");
 		$("#au-location-type").append("<div class='pull-left pre-spaced'>" + feature.properties.locationTypeName + "</div>");
-		//setTextValue("#au-name", "<em>" + feature.properties.locationTypeName + "</em>: " + feature.properties.name);
+		
 		setTextValue("#start-date", feature.properties.startDate);
 		setTextValue("#end-date", feature.properties.endDate);
 		
@@ -162,6 +162,9 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		var i;
 		var auName;
 		var auGID;
+		var show;
+		
+		show = false;
 		if(lineage.length > 0) {
 			$("#au-lineage").show();
 			
@@ -177,24 +180,43 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			}
 		}
 		
+		var related = feature.properties.related;
+		if(related.length > 0){
+			$("#au-related").show();
+			
+			for(i = 0; i < related.length; i++) {
+				$("#au-related").append("<a href='./browser?id=" + related[i].gid + "' class='pre-spaced'>" + related[i].name + "</a>");
+				
+				if(i < (related.length - 1)){
+					$("#au-related").append(";");
+				}
+			}
+		}
+		
 		var children = feature.properties.children;
+		show = false;
 		if(children.length > 0) {
-			console.log(children);
-			$("#au-children").show();
+			//console.log(children);
+			//auName = children[0].name;
+			//auGID = children[0].gid;
+			//$("#au-children").append("<a href='./browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
 			
-			auName = children[0].name;
-			auGID = children[0].gid;
-			$("#au-children").append("<a href='./browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>; ");
-			
-			for(i = 1; i < children.length; i++) {
+			for(i = 0; i < children.length; i++) {
 				auName = children[i].name;
 				auGID = children[i].gid;
 				
-				$("#au-children").append("<a href='./browser?id=" + auGID + "' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
-				
-				if(i < (children.length - 1)) {
-					$("#au-children").append("; ");
+				if(children[i].locationTypeName == "Epidemic Zone") {
+					if(show) {
+						$("#au-children").append(";");
+					}
+					
+					$("#au-children").append("<a href='./browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
+					show = true;
 				}
+			}
+			
+			if(show) {
+				$("#au-children").show();
 			}
 		}
 		
