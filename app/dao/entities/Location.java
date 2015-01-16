@@ -140,6 +140,16 @@ public class Location implements Comparable<Location> {
 
 	@Override
 	public int compareTo(Location o) {
-		return data.getName().toLowerCase().compareTo(o.data.getName().toLowerCase());
+		return toLowerCase(data).compareTo(toLowerCase(o.data));
+	}
+
+	private String toLowerCase(Data data) {
+		final String defaultResult = "";
+		if (data == null) {
+			return defaultResult;
+		}
+		String name = data.getName();
+		
+		return (name == null) ? defaultResult : name.toLowerCase();
 	}
 }

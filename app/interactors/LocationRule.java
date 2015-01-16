@@ -8,10 +8,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.vividsolutions.jts.geom.Geometry;
-
 import models.geo.Feature;
 import models.geo.FeatureCollection;
+
+import com.vividsolutions.jts.geom.Geometry;
+
 import dao.AuDao;
 import dao.entities.Code;
 import dao.entities.CodeType;
@@ -59,6 +60,14 @@ public class LocationRule {
 	public static FeatureCollection toFeatureCollection(List<Location> aus) {
 		FeatureCollection fc = new FeatureCollection();
 		fc.setFeatures(toFeatures(aus));
+		fc.setType("FeatureCollection");
+		
+		return fc;
+	}
+
+	private static FeatureCollection toFeatureCollection(Location compositeAu) {
+		FeatureCollection fc = new FeatureCollection();
+		fc.setFeatures(toFeatures(compositeAu.getLocationsIncluded()));
 		fc.setType("FeatureCollection");
 		
 		return fc;
@@ -234,8 +243,18 @@ public class LocationRule {
 		return au;
 	}
 	
-	public static List<Location> findByName(String name){
-		List<Location> result = new AuDao().findByName(name);
-		return result;
+	public static Map<String, Object> findByName(String q, Integer limit, Integer offset){
+		List<Location> result = new AuDao().findByName(q, limit, offset);
+		Map<String, Object> map = new HashMap<>();
+		map.put("geoJSON", toFeatureCollection(result));
+		Map<String, Object> properties = new HashMap<>();
+		map.put("properties", properties);
+		properties.put("q", q);
+		putAsStringIfNotNull(properties, "limit", limit);
+		putAsStringIfNotNull(properties, "offset", offset);
+		properties.put("locationTypeName", "Result from a query");
+		String descritpion = "Result from the query for '" + q + "' limit=" + limit + " offset=" + offset;
+		properties.put("description", descritpion);
+		return map;
 	}
 }

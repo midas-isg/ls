@@ -56,9 +56,14 @@ public class AuDao {
 		return gid;
 	}
 	
-	public List<Location> findByName(String name) {
+	public List<Location> findByName(String name, Integer limit, Integer offset) {
 		EntityManager em = JPA.em();
-		Query query = em.createQuery("from Location where data.name = '" + name + "'");
+		Query query = em.createQuery("from Location where LOWER(data.name) like LOWER('%" + name + "%')");
+		if (limit != null)
+			query.setMaxResults(limit);
+		if (offset != null)
+			query.setFirstResult(offset);
+		
 		@SuppressWarnings("unchecked")
 		List<Location> result = (List<Location>)query.getResultList();
 		return result;

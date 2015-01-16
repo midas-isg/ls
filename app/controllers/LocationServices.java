@@ -1,8 +1,8 @@
 package controllers;
 
 import interactors.LocationRule;
-import play.Logger;
 import play.db.jpa.Transactional;
+import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 
@@ -37,10 +37,8 @@ public class LocationServices extends Controller {
 	}
 	
 	@Transactional
-	public static Result findLocations(String input){
-		Object result = LocationRule.findByName(input);
-		Logger.debug(result.toString());
-		//return ok(Json.toJson(result));
-		return ok();
+	public static Result findLocations(String q, Integer limit, Integer offset){
+		Object result = LocationRule.findByName(q, limit, offset);
+		return ok(Json.toJson(result));
 	}
 }
