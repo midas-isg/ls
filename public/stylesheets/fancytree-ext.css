@@ -1,0 +1,7 @@
+/*
+Fancy Tree Extension CSS
+*/
+
+.fancytree-hide {
+	display: none;
+}

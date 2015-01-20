@@ -38,7 +38,8 @@ IndexingTermsTree.prototype.makeTableSelectable = function() {
 	 * You can remove it if you want, I just tested this in 
 	 * Chrome v30.0.1599.69 */
 	$('#indexingTerms').bind('selectstart dragstart', function(e) { 
-		e.preventDefault(); return false; 
+		//e.preventDefault();
+		return false; 
 	});
 	
 	return;
@@ -65,17 +66,17 @@ IndexingTermsTree.prototype.unHighLightAll = function(rows) {
 function interactBetweenTreeAndTable(){
 }
 
-//IndexingTermsTree.prototype.bindAllButtons = function() {
-function bindAllButtons(){
-	bindRemoveButton();
-	bindAddButton();
-	bindClearButton();
+IndexingTermsTree.prototype.bindAllButtons = function() {
+	this.bindRemoveButton();
+	this.bindAddButton();
+	this.bindClearButton();
+	
+	return;
 }
 
-//IndexingTermsTree.prototype.bindRemoveButton = function() {
-function bindRemoveButton(){
+IndexingTermsTree.prototype.bindRemoveButton = function() {
 	$("#remove_button").bind('click', function(e){
-		e.preventDefault()
+		//e.preventDefault()
 		var highlightedTr = "tr.highlight"
 		$(highlightedTr).each(function() {
 			  $this = $(this)
@@ -88,10 +89,9 @@ function bindRemoveButton(){
 	return;
 }
 
-//IndexingTermsTree.prototype.bindAddButton = function() {
-function bindAddButton(){
+IndexingTermsTree.prototype.bindAddButton = function() {
 	$("#add_button").bind('click', function(e){
-		e.preventDefault()
+		//e.preventDefault()
 		if (this.activatedNodes){
 			while (this.activatedNodes.length > 0){
 				var node = this.activatedNodes.shift()
@@ -105,15 +105,17 @@ function bindAddButton(){
 	return;
 }
 
-//IndexingTermsTree.prototype.select = function(node) {
-function select(node){
-	if (node.data.type)
-		node.setSelected(true)
+IndexingTermsTree.prototype.select = function(node) {
+	if(node.data.type) {
+		node.setSelected(true);
+	}
+	
+	return;
 }
 
 IndexingTermsTree.prototype.bindClearButton = function() {
 	$("#clear_button").click(function(e){
-		e.preventDefault();
+		//e.preventDefault();
 		this.resetIsAboutList();
 	})
 }
@@ -147,8 +149,7 @@ IndexingTermsTree.prototype.resetIsAboutCheckboxes = function() {
 	return;
 }
 
-//IndexingTermsTree.prototype.style = function(text) {
-function style(text){
+IndexingTermsTree.prototype.style = function(text) {
 	return '<font size="2">' + text + '</font>';
 }
 
@@ -249,7 +250,7 @@ IndexingTermsTree.prototype.initTree = function(picklistName, callbackFunction) 
 	
 	function bindResetSearchButton(){
 		$("button#btnResetSearch").click(function(e){
-			e.preventDefault();
+			//e.preventDefault();
 			$("input[name=search]").val("");
 			$("span#matches").text("");
 			//INDEXING_TERMS_TREE.tree.clearFilter();
@@ -264,7 +265,7 @@ IndexingTermsTree.prototype.initTree = function(picklistName, callbackFunction) 
 IndexingTermsTree.prototype.changeState = function(event, data) {
 	var node = data.node;
 	
-	if(!isMultiSelect(event)){
+	if(!this.isMultiSelect(event)){
 		while (this.activatedNodes.length > 0){
 			var node1 = this.activatedNodes.pop();
 			node1.extraClasses = "";
@@ -293,24 +294,20 @@ IndexingTermsTree.prototype.changeState = function(event, data) {
 	return;
 }
 
-//IndexingTermsTree.prototype.isMultiSelect = function(e) {
-function isMultiSelect(e){
+IndexingTermsTree.prototype.isMultiSelect = function(e) {
 	return (e.ctrlKey || e.metaKey) || e.shiftKey;
 }
 
-//IndexingTermsTree.prototype.encodeId = function(id) {
-function encodeId(id){
-	return replaceAll(replaceAll(replaceAll(id, "\\.", "_"), "/", "_"), 
-			":", "_")
+IndexingTermsTree.prototype.encodeId = function(id) {
+	return this.replaceAll(this.replaceAll(this.replaceAll(id, "\\.", "_"), "/", "_"), 
+		":", "_");
 }
 
-//IndexingTermsTree.prototype.replaceAll = function(str, find, replace) {
-function replaceAll(str, find, replace) {
-  return str.replace(new RegExp(find, 'g'), replace);
+IndexingTermsTree.prototype.replaceAll = function(str, find, replace) {
+	return str.replace(new RegExp(find, 'g'), replace);
 }
 
-//IndexingTermsTree.prototype.getAbouts  = function(node) {
-function getAbouts(){
+IndexingTermsTree.prototype.getAbouts  = function(node) {
 	var nodes = this.tree.getSelectedNodes();
 	
 	return $.map(nodes, function(node) {

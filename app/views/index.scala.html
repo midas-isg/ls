@@ -19,6 +19,7 @@
 	<link href='@routes.Assets.at("external_packages/MapBox/mapbox-2.0.1.css")' rel='stylesheet'/>
 	<link href='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet.draw-0.2.2.css")' rel='stylesheet'/>
 	<link href='@routes.Assets.at("external_packages/fancytree/ui.fancytree.css")' rel='stylesheet'/>
+	<link href='@routes.Assets.at("stylesheets/fancytree-ext.css")' rel='stylesheet'/>
 	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'/>
 }
 
@@ -45,8 +46,8 @@
 						<legend><em>Parent location ID:</em></legend>
 						<label>Filter:</label>
 						<input name="search" placeholder="Filter...">
-						<button id="btnResetSearch">&times;</button>
-						<span id="matches"></span>
+						<button id="resetParentSearchButton">&times;</button>
+						<span id="parent-matches"></span>
 					</div>
 					<div id="parent-tree" style="padding-top: 5px"></div>
 					
@@ -63,8 +64,8 @@
 						<legend><em>AU Component IDs:</em></legend>
 						<label>Filter:</label>
 						<input name="au-search" placeholder="Filter...">
-						<button id="btnResetSearch">&times;</button>
-						<span id="matches"></span>
+						<button id="resetCompositeSearchButton">&times;</button>
+						<span id="composite-matches"></span>
 					</div>
 					<div id="au-composite-tree" style="padding-top: 5px"></div>
 					<button id="composite-button">Build Composite</button>

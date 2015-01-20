@@ -133,14 +133,14 @@
 			var res,
 				node = ctx.node,
 				tree = ctx.tree,
-				$span = $(node[tree.statusClassPropName]);
+				$spanParent = $(node[tree.statusClassPropName]).parent();
 
 			res = this._super(ctx);
 			// nothing to do, if node was not yet rendered
-			if( !$span.length || !tree.enableFilter ) {
+			if( !$spanParent.length || !tree.enableFilter ) {
 				return res;
 			}
-			$span
+			$spanParent
 				//.toggleClass("fancytree-match", !!node.match)
 				//.toggleClass("fancytree-submatch", !!node.subMatch)
 				.toggleClass("fancytree-hide", !(node.match || node.subMatch));

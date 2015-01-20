@@ -34,15 +34,15 @@ PARENT_TREE.initTree = function(picklistName, callbackFunction) {
 			select : function(event, data) {
 				var node = data.node;
 				var uri = node.key;
-				var id = encodeId(uri);
+				var id = PARENT_TREE.encodeId(uri);
 				
 				if(node.selected) {
 					var key = node.title;
 					var type = node.data.type;
 					var row = $('#indexingTerms > tbody:last').append(
 							'<tr id="tr' + id + '"><td class="hide">'
-									+ uri + '</td><td>' + style(type)
-									+ '</td><td>' + style(key)
+									+ uri + '</td><td>' + PARENT_TREE.style(type)
+									+ '</td><td>' + PARENT_TREE.style(key)
 									+ '</td></tr>');
 					
 					MAP_DRIVER.parent = node.key;
@@ -74,23 +74,23 @@ PARENT_TREE.initTree = function(picklistName, callbackFunction) {
 			var match = $(this).val();
 			
 			if(e && e.which === $.ui.keyCode.ESCAPE || $.trim(match) === ""){
-				$("button#btnResetSearch").click();
+				$("button#resetParentSearchButton").click();
 				return;
 			}
 			
 			n = PARENT_TREE.tree.filterNodes(match, leavesOnly);
-			$("button#btnResetSearch").attr("disabled", false);
-			$("span#matches").text("(" + n + " matches)");
+			$("button#resetParentSearchButton").attr("disabled", false);
+			$("span#parent-matches").text("(" + n + " matches)");
 		}).focus();
 		
 		return;
 	}
 	
 	function bindResetSearchButton(){
-		$("button#btnResetSearch").click(function(e){
-			e.preventDefault();
+		$("button#resetParentSearchButton").click(function(e){
+			//e.preventDefault();
 			$("input[name=search]").val("");
-			$("span#matches").text("");
+			$("span#parent-matches").text("");
 			PARENT_TREE.tree.clearFilter();
 		}).attr("disabled", true);
 		

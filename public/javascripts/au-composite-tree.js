@@ -74,23 +74,23 @@ AU_COMPOSITE_TREE.initTree = function(picklistName, callbackFunction) {
 			var match = $(this).val();
 			
 			if(e && e.which === $.ui.keyCode.ESCAPE || $.trim(match) === ""){
-				$("button#btnResetSearch").click();
+				$("button#resetCompositeSearchButton").click();
 				return;
 			}
 			
 			n = AU_COMPOSITE_TREE.tree.filterNodes(match, leavesOnly);
-			$("button#btnResetSearch").attr("disabled", false);
-			$("span#matches").text("(" + n + " matches)");
+			$("button#resetCompositeSearchButton").attr("disabled", false);
+			$("span#composite-matches").text("(" + n + " matches)");
 		}).focus();
 		
 		return;
 	}
 	
 	function bindResetSearchButton(){
-		$("button#btnResetSearch").click(function(e){
-			e.preventDefault();
+		$("button#resetCompositeSearchButton").click(function(e){
+			//e.preventDefault();
 			$("input[name=au-search]").val("");
-			$("span#matches").text("");
+			$("span#composite-matches").text("");
 			AU_COMPOSITE_TREE.tree.clearFilter();
 		}).attr("disabled", true);
 		
