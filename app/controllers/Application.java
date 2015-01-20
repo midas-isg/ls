@@ -9,8 +9,12 @@ public class Application extends Controller {
 	
 	@Transactional
 	public static Result index() {
-		//return ok(views.html.index.render("Apollo Location Services"));
 		return ok(views.html.search.render("Apollo Location Services"));
+	}
+	
+	@Transactional
+	public static Result concept() {
+		return ok(views.html.index.render("Apollo Location Services"));
 	}
 	
 	@Transactional

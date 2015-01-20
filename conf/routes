@@ -4,6 +4,7 @@
 
 # Home page
 GET		/							controllers.Application.index()
+GET		/concept					controllers.Application.concept()
 GET		/read-only					controllers.Application.browser()
 GET		/browser					controllers.Application.browser()
 

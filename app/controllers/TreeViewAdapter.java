@@ -41,6 +41,7 @@ public class TreeViewAdapter {
 		if (children != null){
 			for (Location child : children) {
 				node.folder = true;
+				node.expanded = false;
 				node.children.add(toNode(child, node.path +  "."));
 			}
 		}
