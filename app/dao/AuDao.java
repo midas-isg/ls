@@ -1,8 +1,10 @@
 package dao;
 
+import interactors.AuHierarchyRule;
 import interactors.LocationRule;
 
 import java.math.BigInteger;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -57,6 +59,38 @@ public class AuDao {
 	}
 	
 	public List<Location> findByName(String name, Integer limit, Integer offset) {
+		EntityManager em = JPA.em();
+		String tsVector = "to_tsvector('english', name)";
+		String queryText = toQueryText(name);
+		String tsQuery = "to_tsquery('" + queryText + "')";
+		String q = "SELECT gid FROM location"
+				+ " WHERE " + tsQuery + "  @@ " + tsVector
+				+ " ORDER BY ts_rank_cd("+ tsVector + ", " + tsQuery + ") DESC";
+		Query query = em.createNativeQuery(q);
+		if (limit != null)
+			query.setMaxResults(limit);
+		if (offset != null)
+			query.setFirstResult(offset);
+		
+		@SuppressWarnings("unchecked")
+		List<BigInteger> result = (List<BigInteger>)query.getResultList();
+		return AuHierarchyRule.getLocations(result);
+	}
+
+	private String toQueryText(String q) {
+		if (q == null)
+			return null;
+		String[] tokens = q.split(" +");
+		String del = "";
+		String result = "";
+		for (String t : tokens){
+			result += del + t;
+			del = "|";
+		}
+		return result;
+	}
+	
+	private List<Location> findByNameUsingQuery(String name, Integer limit, Integer offset) {
 		EntityManager em = JPA.em();
 		Query query = em.createQuery("from Location where LOWER(data.name) like LOWER('%" + name + "%')");
 		if (limit != null)
@@ -131,22 +165,34 @@ public class AuDao {
 		Map<Long, Location> result = new HashMap<>();
 		EntityManager em = JPA.em();
 		Session s = em.unwrap(Session.class);
-		String query = "select gid, name, parent_gid from location"
-				+ " where location_type_id <> " + LocationRule.EPIDEMIC_ZONE_ID;
+		String query = "SELECT gid, name, parent_gid, code, code_type_id, "
+				+ " description, start_date, end_date, location_type_id"
+				+ " FROM location"
+				+ " WHERE location_type_id <> " + LocationRule.EPIDEMIC_ZONE_ID;
 		SQLQuery q = s.createSQLQuery(query);
 		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 		Map<Long, Long> orphants = new HashMap<>();
+		LocationTypeDao locationTypeDao = new LocationTypeDao();
+		CodeTypeDao codeTypeDao = new CodeTypeDao();
 		@SuppressWarnings("unchecked")
 		List<Map<String, Object>> l = (List<Map<String, Object>>)q.list();
 		for (Map<String, Object> m : l){
 			Long gid = getLong(m, "gid");
-			String name = String.valueOf(m.get("name"));
 			Long parentGid = getLong(m, "parent_gid");
 			
 			Location loc = new Location();
 			loc.setGid(gid);
 			Data data = new Data();
-			data.setName(name);
+			data.setName(getString(m, "name"));
+			data.setCode(getString(m, "code"));
+			data.setDescription(getString(m, "description"));
+			data.setStartDate(getDate(m, "start_date"));
+			data.setEndDate(getDate(m, "end_date"));
+			Long locationTypeId = getLong(m, "location_type_id");
+			data.setLocationType(locationTypeDao.read(locationTypeId));
+			Long codeTypeId = getLong(m, "code_type_id");
+			Logger.debug(gid + ": code_type_id=" + codeTypeId);
+			data.setCodeType(codeTypeDao.read(codeTypeId));
 			if (parentGid != null){
 				Location parent = result.get(parentGid);
 				loc.setParent(parent);
@@ -170,14 +216,28 @@ public class AuDao {
 				child.setParent(parent);
 				parent.getChildren().add(child);
 			}
-		}
+		} 
 		return result;
+	}
+
+	private Date getDate(Map<String, Object> m, String key) {
+		return (Date)m.get(key);
+	}
+
+	private String getString(Map<String, Object> m, String key) {
+		Object obj = m.get(key);
+		if (obj == null)
+			return null;
+		return String.valueOf(obj);
 	}
 
 	private Long getLong(Map<String, Object> m, String key) {
 		Object object = m.get(key);
 		if (object == null)
 			return null;
-		return ((BigInteger)object).longValue();
+		if (object instanceof BigInteger)
+			return ((BigInteger)object).longValue();
+		else
+			return Long.parseLong(object.toString());
 	}
 }

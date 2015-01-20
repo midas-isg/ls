@@ -1,5 +1,6 @@
 package interactors;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,22 +19,26 @@ public class AuHierarchyRule {
 	}
 	
 	public static List<Location> getHierarchy() {
-		//if (roots == null){
+		if (roots == null){
 			Map<Long, Location> gid2location = getGid2location();
 			roots = new ArrayList<>();
 			for (Location l: gid2location.values()){
 				if (l.getParent() == null)
 					roots.add(l);
 			}
-		//}
+		}
 		return roots;
 	}
 
 	public static Map<Long, Location> getGid2location() {
-		//if (gid2location == null){
+		if (gid2location == null){
 			gid2location = new AuDao().getGid2location();
-		//}
+		}
 		return gid2location;
+	}
+	
+	static Location getLocation(long gid) {
+		return getGid2location().get(gid);
 	}
 
 	public static List<Location> getLineage(long gid) {
@@ -52,5 +57,14 @@ public class AuHierarchyRule {
 			parent = parent.getParent();
 		}
 		return lineage;
+	}
+
+	public static List<Location> getLocations(List<BigInteger> ids) {
+		List<Location> result = new ArrayList<>();
+		for (BigInteger id : ids){
+			long gid = id.longValue();
+			result.add(getLocation(gid));
+		}
+		return result;
 	}
 }

@@ -87,12 +87,15 @@ public class LocationRule {
 		Map<String, Object> properties = toProperties(au);
 		Collections.sort(au.getChildren());
 		putAsLocationObjectsIfNotNull(properties, "children", au.getChildren());
-		putAsLocationObjectsIfNotNull(properties, "lineage", AuHierarchyRule.getLineage(au));
+		putAsLocationObjectsIfNotNull(properties, "lineage", AuHierarchyRule.getLineage(au.getGid()));
 		putAsLocationObjectsIfNotNull(properties, "related", au.getRelatedLocations());
 		putAsCodeObjectsIfNotNull(properties, "codes", au);
 		feature.setProperties(properties);
-		Geometry multiPolygonGeom = au.getGeometry().getMultiPolygonGeom();
-		feature.setGeometry(GeoOutputRule.toFeatureGeometry(multiPolygonGeom));
+		LocationGeometry geometry = au.getGeometry();
+		if (geometry != null){
+			Geometry multiPolygonGeom = geometry.getMultiPolygonGeom();
+			feature.setGeometry(GeoOutputRule.toFeatureGeometry(multiPolygonGeom));
+		}
 		
 		return feature;
 	}
@@ -142,15 +145,15 @@ public class LocationRule {
 		putAsStringIfNotNull(properties, "codeTypeName", codeTypeName);*/
 		putAsStringIfNotNull(properties, "startDate", data.getStartDate());
 		putAsStringIfNotNull(properties, "endDate", data.getEndDate());
-		String locationTypeName = getName(data.getLocationType(), data.getLocationType().getName());
+		String locationTypeName = getLocationTypeName(data.getLocationType());
 		putAsStringIfNotNull(properties, "locationTypeName", locationTypeName);
 		Location parent = au.getParent();
 		putAsStringIfNotNull(properties, "parentGid", getGid(parent));
 		return properties;
 	}
 
-	private static String getName(Object object, String name) {
-		return (object == null) ? null : name;
+	private static String getLocationTypeName(LocationType locationType) {
+		return (locationType == null) ? null : locationType.getName();
 	}
 
 	private static String toString(Object object) {
@@ -252,6 +255,7 @@ public class LocationRule {
 		properties.put("q", q);
 		putAsStringIfNotNull(properties, "limit", limit);
 		putAsStringIfNotNull(properties, "offset", offset);
+		putAsStringIfNotNull(properties, "resultSize", "" + result.size());
 		properties.put("locationTypeName", "Result from a query");
 		String descritpion = "Result from the query for '" + q + "' limit=" + limit + " offset=" + offset;
 		properties.put("description", descritpion);
