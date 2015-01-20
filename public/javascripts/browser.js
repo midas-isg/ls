@@ -11,10 +11,20 @@ $(document).ready(function() {
 function MapDriver(){
 	var id = getURLParameterByName("id");
 	var format = getURLParameterByName("format");
+	var query = getURLParameterByName("q");
+	var limit = getURLParameterByName("limit");
+	var offset = getURLParameterByName("offset");
 	this.title = "";
 	this.mapID = id; //'tps23.k1765f0g';
 	
-	this.dataSourceURL = context + "/api/locations/" + id;
+	if(id) {
+		this.dataSourceURL = context + "/api/locations/" + id;
+	}
+	else if(query) {
+		format = "query";
+		this.dataSourceURL = context + "/api/locations?q=" + query;// + "&limit=" + limit + "&offset=" + offset;
+	}
+	
 	this.geoJSONURL = this.dataSourceURL + "?format=geojson"; //crudPath + "/" + id;
 	this.apolloJSONURL = this.dataSourceURL + "?format=apollojson";
 	this.kmlURL = this.dataSourceURL + "?format=kml";
@@ -41,6 +51,23 @@ function MapDriver(){
 		
 		case "banana":
 			location.assign("https://www.youtube.com/watch?v=ex0URF-hWj4");
+		break;
+		
+		case "query":
+			this.initialize();
+			
+			$.get(this.dataSourceURL, function(data, status) {
+				var i;
+				/*
+				var geoJSON = {};
+				for(i = 0; i < data.; i++) {
+					//
+				}
+				*/
+				
+				//console.log(data);
+				MAP_DRIVER.loadJSON(data.geoJSON);
+			});
 		break;
 		
 		default:
@@ -73,6 +100,19 @@ MapDriver.prototype.loadFeatureLayer = function() {
 	}
 	else if(this.mapID) {
 		this.featureLayer = L.mapbox.featureLayer().loadID(this.mapID);
+	}
+	else /* if(!this.mapID) */ {
+		this.featureLayer = L.mapbox.featureLayer({
+			type: "FeatureCollection",
+			features: [{
+				type: "Feature",
+				geometry: {
+					type: "Point",
+					coordinates: [0, 0]
+				},
+				properties: { }
+			}]
+		});
 	}
 	
 	this.featureLayer.on('ready', function() {
@@ -360,12 +400,14 @@ function multiPolygonsToPolygons(geoJSON) {
 	var features = geoJSON.features;
 	var count = features.length;
 	
-	for(var i = 0; i < count; i++) {
+	var i;
+	var j;
+	for(i = 0; i < count; i++) {
 		if(features[i].geometry.type == "MultiPolygon") {
 			var properties = features[i].properties;
-			properties.description = properties.name; //+ ";" + properties.code + ";" + properties.startDate + ";" + properties.endDate + ";" + properties.parentGid;
+			properties.description = properties.name;
 			
-			for(var j = 0; j < features[i].geometry.coordinates.length; j++) {
+			for(j = 0; j < features[i].geometry.coordinates.length; j++) {
 				features.push({"type": "Feature", "geometry": {"type": "Polygon", "coordinates": null}, "properties": properties});
 				var addedFeature = features[features.length - 1];
 				addedFeature.geometry.coordinates = features[i].geometry.coordinates[j];
@@ -373,7 +415,17 @@ function multiPolygonsToPolygons(geoJSON) {
 			
 			features.splice(i, 1);
 			i--;
+			count = features.length;
 		}
+	}
+	
+	try {
+		console.log(geoJSON);
+		var JSONString = JSON.stringify(geoJSON);
+		JSON.parse(JSONString);
+	}
+	catch(error) {
+		alert(error);
 	}
 	
 	return geoJSON;
