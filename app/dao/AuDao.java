@@ -1,7 +1,6 @@
 package dao;
 
 import interactors.AuHierarchyRule;
-import interactors.LocationRule;
 
 import java.math.BigInteger;
 import java.sql.Date;
@@ -81,6 +80,7 @@ public class AuDao {
 	private String toQueryText(String q) {
 		if (q == null)
 			return null;
+		q = q.replaceAll(":*\\*", ":*");
 		q = q.replaceAll(" *\\| *", "|");
 		q = q.replaceAll(" *& *", "&");
 		String[] tokens = q.split(" +");
@@ -88,8 +88,9 @@ public class AuDao {
 		String result = "";
 		for (String t : tokens){
 			result += del + t;
-			del = "|";
+			del = "&";
 		}
+		Logger.debug(result);
 		return result;
 	}
 	
@@ -158,7 +159,7 @@ public class AuDao {
 		String query = "SELECT gid, name, parent_gid, code, code_type_id, "
 				+ " description, start_date, end_date, location_type_id"
 				+ " FROM location"
-				+ " WHERE location_type_id <> " + LocationRule.EPIDEMIC_ZONE_ID;
+				;
 		SQLQuery q = s.createSQLQuery(query);
 		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 		Map<Long, Long> orphants = new HashMap<>();

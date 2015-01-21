@@ -7,8 +7,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import models.FancyTreeNode;
-import dao.entities.Location;
+import play.Logger;
 import dao.entities.Data;
+import dao.entities.Location;
 
 public class TreeViewAdapter {
 	private static boolean isHideCheckbox = false;
@@ -33,7 +34,7 @@ public class TreeViewAdapter {
 		node.tooltip = node.path;
 		node.key = au.getGid() + "";
 		node.icon = false;
-		node.type = node.path.split("\\.")[0];
+		node.type = data.getLocationType().getName();//node.path.split("\\.")[0];
 		node.hideCheckbox = isHideCheckbox;
 		node.unselectable = false;
 		node.children = new ArrayList<>();
@@ -49,6 +50,22 @@ public class TreeViewAdapter {
 		return node;
 	}
 
+	public static List<FancyTreeNode> removeEpidemicZone(List<FancyTreeNode> input){
+		if (input == null)
+			return null;
+		Iterator<FancyTreeNode> iterator = input.iterator();
+		while (iterator.hasNext()) {
+			FancyTreeNode node = iterator.next();
+			if (node.type.equalsIgnoreCase("Epidemic Zone")){
+				Logger.debug("'" + node.title + "' Epidemic Zone was removed");
+				iterator.remove();
+			} else {
+				removeEpidemicZone(node.children);
+			}
+		}
+		return input;
+	}
+	
 	public static List<FancyTreeNode> replaceParentWithOneChildButNotRoot(
 			List<FancyTreeNode> input) {
 		if (input == null)

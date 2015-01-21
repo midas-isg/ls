@@ -10,6 +10,7 @@ import java.util.Map;
 
 import models.geo.Feature;
 import models.geo.FeatureCollection;
+import play.Logger;
 
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -77,6 +78,10 @@ public class LocationRule {
 	private static List<Feature> toFeatures(List<Location> aus) {
 		List<Feature> features = new ArrayList<>();
 		for (Location au : aus) {
+			if (au == null){
+				Logger.warn("toFeatures got an element in the list as null.");
+				continue;
+			}
 			features.add(toFeature(au));
 		}
 		
@@ -138,8 +143,13 @@ public class LocationRule {
 
 	private static Map<String, Object> toProperties(Location au) {
 		Map<String, Object> properties = new HashMap<>();
-		putAsStringIfNotNull(properties, "gid", getGid(au));
+		String gid = getGid(au);
+		putAsStringIfNotNull(properties, "gid", gid);
 		Data data = au.getData();
+		if (data == null){
+			Logger.warn(gid + " has null data!");
+			return properties;
+		}
 		putAsStringIfNotNull(properties, "name", data.getName());
 		/*putAsStringIfNotNull(properties, "code", data.getCode());
 		String codeTypeName = getName(data.getCodeType(), data.getCodeType().getName());

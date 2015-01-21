@@ -8,20 +8,23 @@ $( document ).ready(function() {
 
 function searchClick(){
 	var input = $("#input").val();
-	var url = searchURL + "?q=" + encodeURIComponent(input); 
-	$.get(url, function(data,status){
-	    updateOutput(data,status);
+	var url = searchURL + "?limit=0&q=" + encodeURIComponent(input); 
+	var result = $("#result"); 
+	result.text("Please wait ...");
+	$.get(url, function(data, status){
+	    updateOutput(data,status,result);
 	});
 	
 }
 var geoJSON;
-function updateOutput(data,status){
+function updateOutput(data, status, result){
 	geoJSON = data.geoJSON;
 	
 	var features = geoJSON.features;
 	
-	var result = $("#result"); 
+	var size = data.properties.resultSize;
 	result.text("");
+	result.append("# results="+ size + "<br>");
 	result.append("<table style='width:100%'>");
 	result.append("<thead>")
 	result.append("<th>ID</th>")
@@ -30,9 +33,9 @@ function updateOutput(data,status){
 	result.append("</thead>")
 	for (var i = 0, l = features.length; i < l; i++){
 		var p = features[i].properties;
-		result.append("<tr>")
-		var gid = p.gid
+		var gid = p.gid;
 		var url = browswerURL + "?id=" + gid;
+		result.append("<tr>");
 		result.append("<td><a href='"+ url +"'>"+ gid  + "</a></td>")
 		result.append("<td><b>"+  p.name + "</b> from " + p.startDate + " to " + p.endDate + "</td>")
 		var root = p.lineage[0]

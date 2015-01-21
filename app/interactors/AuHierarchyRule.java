@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import play.Logger;
 import dao.AuDao;
 import dao.entities.Location;
 
@@ -63,7 +64,11 @@ public class AuHierarchyRule {
 		List<Location> result = new ArrayList<>();
 		for (BigInteger id : ids){
 			long gid = id.longValue();
-			result.add(getLocation(gid));
+			Location location = getLocation(gid);
+			if (location == null){
+				Logger.warn(gid + " not found!");
+			}
+			result.add(location);
 		}
 		return result;
 	}

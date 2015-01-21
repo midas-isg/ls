@@ -110,7 +110,7 @@ Logger.debug("\n" + message + "\n");
 	@Transactional
 	public static Result tree() {
 		List<FancyTreeNode> tree = TreeViewAdapter.toFancyTree(AuHierarchyRule.getHierarchy());
-		return okJson(tree);
+		return okJson(TreeViewAdapter.removeEpidemicZone(tree));
 	}
 	
 	@Transactional
