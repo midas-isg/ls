@@ -59,9 +59,9 @@ public class AuDao {
 	
 	public List<Location> findByName(String name, Integer limit, Integer offset) {
 		EntityManager em = JPA.em();
-		String tsVector = "to_tsvector('english', name)";
+		String tsVector = "to_tsvector('simple', name)";//"to_tsvector('english', name)";
 		String queryText = toQueryText(name);
-		String tsQuery = "to_tsquery('" + queryText + "')";
+		String tsQuery = /*"to_tsquery(*/"'" + queryText + "'";//+ "')";
 		String q = "SELECT gid FROM location"
 				+ " WHERE " + tsQuery + "  @@ " + tsVector
 				+ " ORDER BY ts_rank_cd("+ tsVector + ", " + tsQuery + ") DESC, "
