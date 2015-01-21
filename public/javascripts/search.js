@@ -16,6 +16,7 @@ function searchClick(){
 	});
 	
 }
+
 var geoJSON;
 function updateOutput(data, status, result){
 	geoJSON = data.geoJSON;
@@ -28,10 +29,11 @@ function updateOutput(data, status, result){
 	result.append("<table style='width:100%'>");
 	result.append("<thead>")
 	//result.append("<th>ID</th>")
-	result.append("<th>Short description</th>")
-	result.append("<th>Located within</th>")
-	result.append("</thead>")
-	for (var i = 0, l = features.length; i < l; i++){
+	result.append("<th>Location</th>");
+	result.append("<th>Located within</th>");
+	//result.append("</thead>");
+	
+	for(var i = 0, l = features.length; i < l; i++){
 		var p = features[i].properties;
 		var gid = p.gid;
 		var url = browswerURL + "?id=" + gid;
@@ -44,10 +46,13 @@ function updateOutput(data, status, result){
 		result.append("<td><a href='"+ url +"'>"+ p.headline  + "</a> from " + p.startDate + to + "</td>")
 		var root = p.lineage[0]
 		if (root){
-			result.append("<td>"+ root.name  + "</td>")
+			//result.append("<td>"+ root.name  + "</td>")
+			result.append("<td id='result_lineage" + i + "'></td>");
+			listLineageRefs(p.lineage, "#result_lineage" + i);
 		}
-		result.append("</tr>")
+		//result.append("</tr>")
 	}
-	result.append("</table>");
-    
+	//result.append("</table>");
+	
+	return;
 }

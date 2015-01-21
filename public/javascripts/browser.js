@@ -19,6 +19,7 @@ function MapDriver(){
 	
 	if(id) {
 		this.dataSourceURL = context + "/api/locations/" + id;
+		format = "ID";
 	}
 	else if(query) {
 		format = "query";
@@ -70,8 +71,12 @@ function MapDriver(){
 			});
 		break;
 		
-		default:
+		case "ID":
 			this.initialize();
+		break;
+		
+		default:
+			//this.initialize();
 		break;
 	}
 	
@@ -198,27 +203,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			$("#au-apollojson").css("text-decoration", "underline");
 		}
 		
-		var lineage = feature.properties.lineage;
-		var i;
-		var auName;
-		var auGID;
-		var show;
-		
-		show = false;
-		if(lineage.length > 0) {
-			$("#au-lineage").show();
-			
-			for(i = (lineage.length - 1); i >= 0; i--) {
-				auName = lineage[i].name;
-				auGID = lineage[i].gid;
-				
-				$("#au-lineage").append("<a href='./browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
-				
-				if(i > 0){
-					$("#au-lineage").append(",");
-				}
-			}
-		}
+		listLineageRefs(feature.properties.lineage, "#au-lineage");
 		
 		var related = feature.properties.related;
 		if(related.length > 0){
@@ -235,6 +220,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		
 		var children = feature.properties.children;
 		show = false;
+		var show2 = false;
 		if(children.length > 0) {
 			//console.log(children);
 			//auName = children[0].name;
@@ -247,15 +233,27 @@ MapDriver.prototype.loadFeatureLayer = function() {
 				
 				if(children[i].locationTypeName == "Epidemic Zone") {
 					if(show) {
+						$("#au-epidemic-zones").append(";");
+					}
+					
+					$("#au-epidemic-zones").append("<a href='./browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
+					show = true;
+				}
+				else /* if(children[i].locationTypeName != "Epidemic Zone") */ {
+					if(show2) {
 						$("#au-children").append(";");
 					}
 					
 					$("#au-children").append("<a href='./browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
-					show = true;
+					show2 = true;
 				}
 			}
 			
 			if(show) {
+				$("#au-epidemic-zones").show();
+			}
+			
+			if(show2) {
 				$("#au-children").show();
 			}
 		}
@@ -501,4 +499,29 @@ function getURLParameterByName(name) {
 		results = regex.exec(location.search);
 	
 	return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
+function listLineageRefs(lineage, sectionID) {
+	var i;
+	var auName;
+	var auGID;
+	var show;
+	
+	show = false;
+	if(lineage.length > 0) {
+		$(sectionID).show();
+		
+		for(i = (lineage.length - 1); i >= 0; i--) {
+			auName = lineage[i].name;
+			auGID = lineage[i].gid;
+			
+			$(sectionID).append("<a href='./browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
+			
+			if(i > 0){
+				$(sectionID).append(",");
+			}
+		}
+	}
+	
+	return;
 }

@@ -9,6 +9,7 @@
 	<script src='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet-omnivore-0.2.0.min.js")'></script>
 	
 	<script src='@routes.Assets.at("javascripts/browser.js")'></script>
+	<script src='@routes.Assets.at("javascripts/search.js")'></script>
 	
 	<link href='@routes.Assets.at("external_packages/MapBox/mapbox-2.0.1.css")' rel='stylesheet'/>
 	<link href='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet.draw-0.2.2.css")' rel='stylesheet'/>
@@ -17,58 +18,69 @@
 }
 
 @main(message, imports) {
-	<h1>@message</h1>
-	
-	<div style="padding-left: 10px;">
-		<div id="header-data">
+	<div style="padding-left: 2%;">
+		<div style="background-color:#cccccc;">
+			<div>
+				Search for:<input type="text" id="input" placeholder="Input" size="100">
+				<button id="search-button">Search</button>
+			</div>
+			
+			<div id="result"></div>
+		</div>
+		
+		<div id="header-data" hidden>
 			<h2 style="clear: both;">
 				<div id="au-name" class="pull-left"></div>
 			</h2>
-		</div>
-		
-		<div class="data-container">
-			<em class="pull-left">Apollo location code:</em> <div id="gid" class="pull-left pre-spaced"></div>
-		</div>
-		
-		<div class="data-container">
-			<div id="historical-note" hidden>
-				<strong style="color: red;">*Historical data overlayed on current world map*</strong>
+			
+			<div class="data-container">
+				<em class="pull-left">Apollo location code:</em> <div id="gid" class="pull-left pre-spaced"></div>
 			</div>
 			
-			<div id='map-data' class='map'>Loading...</div>
+			<div class="data-container">
+				<div id="historical-note" hidden>
+					<strong style="color: red;">*Historical data overlayed on current world map*</strong>
+				</div>
+				
+				<div id='map-data' class='map'>Loading...</div>
+			</div>
+			
+			<div class="data-container extra-bottom-space">
+				<em class="pull-left">This code references this location from:</em> <div id="start-date" class="pull-left pre-spaced"></div>
+				<em class="pull-left pre-spaced">to</em> <div id="end-date" class="pull-left pre-spaced">present</div>
+			</div>
+			
+			<div id="au-location-type" class="data-container extra-bottom-space">
+				<em class="pull-left">Location type:</em>
+			</div>
+			
+			<div id="au-related" class="data-container extra-bottom-space" hidden>
+				<em class="pull-left">Related location(s):</em>
+			</div>
+			
+			<div id="au-lineage" class="data-container extra-bottom-space" hidden>
+				<em class="pull-left">Located within:</em>
+			</div>
+			
+			<div id="au-children" class="data-container extra-bottom-space" hidden>
+				<em class="pull-left">Admistrative subdivision(s):</em>
+			</div>
+			
+			<div id="au-epidemic-zones" class="data-container extra-bottom-space" hidden>
+				<em class="pull-left">Epidemic zone(s):</em>
+			</div>
+			
+			<div id="codes" class="data-container extra-bottom-space" hidden>
+				<em id="codes-toggle">Known codes for this location in other standards:</em>
+			</div>
+			
+			<div class="data-container extra-bottom-space">
+				<em class="pull-left">View location in alternative data format:</em>
+				<div class="pull-left pre-spaced">[<a id="au-geojson">GeoJSON</a>], [<a id="au-kml">KML</a>], [<a id="au-apollojson">ApolloJSON</a>]</div>
+			</div>
 		</div>
 		
 		<div class="data-container extra-bottom-space">
-			<em class="pull-left">This code references this location from:</em> <div id="start-date" class="pull-left pre-spaced"></div>
-			<em class="pull-left pre-spaced">to</em> <div id="end-date" class="pull-left pre-spaced">present</div>
-		</div>
-		
-		<div id="au-location-type" class="data-container extra-bottom-space">
-			<em class="pull-left">Location type:</em>
-		</div>
-		
-		<div id="au-related" class="data-container extra-bottom-space" hidden>
-			<em class="pull-left">Related location(s):</em>
-		</div>
-		
-		<div id="au-lineage" class="data-container extra-bottom-space" hidden>
-			<em class="pull-left">Located within:</em>
-		</div>
-		
-		<div id="au-children" class="data-container extra-bottom-space" hidden>
-			<em class="pull-left">Epidemic zone(s):</em>
-		</div>
-		
-		<div id="codes" class="data-container extra-bottom-space" hidden>
-			<em id="codes-toggle">Known codes for this location in other standards:</em>
-		</div>
-		
-		<div class="data-container extra-bottom-space">
-			<em class="pull-left">View location in alternative data format:</em>
-			<div class="pull-left pre-spaced">[<a id="au-geojson">GeoJSON</a>], [<a id="au-kml">KML</a>], [<a id="au-apollojson">ApolloJSON</a>]</div>
-		</div>
-		
-		<div class="data-container">
 			<div hidden>
 				<div>
 					<input id="json-input" accept=".json, .geojson, .kml" type="file" style="float: left;">
