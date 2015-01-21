@@ -65,7 +65,8 @@ public class AuDao {
 		String tsQuery = "to_tsquery('" + queryText + "')";
 		String q = "SELECT gid FROM location"
 				+ " WHERE " + tsQuery + "  @@ " + tsVector
-				+ " ORDER BY ts_rank_cd("+ tsVector + ", " + tsQuery + ") DESC";
+				+ " ORDER BY ts_rank_cd("+ tsVector + ", " + tsQuery + ") DESC, "
+				+ " name";
 		Query query = em.createNativeQuery(q);
 		if (limit != null)
 			query.setMaxResults(limit);
@@ -80,6 +81,8 @@ public class AuDao {
 	private String toQueryText(String q) {
 		if (q == null)
 			return null;
+		q = q.replaceAll(" *\\| *", "|");
+		q = q.replaceAll(" *& *", "&");
 		String[] tokens = q.split(" +");
 		String del = "";
 		String result = "";
@@ -90,19 +93,6 @@ public class AuDao {
 		return result;
 	}
 	
-	private List<Location> findByNameUsingQuery(String name, Integer limit, Integer offset) {
-		EntityManager em = JPA.em();
-		Query query = em.createQuery("from Location where LOWER(data.name) like LOWER('%" + name + "%')");
-		if (limit != null)
-			query.setMaxResults(limit);
-		if (offset != null)
-			query.setFirstResult(offset);
-		
-		@SuppressWarnings("unchecked")
-		List<Location> result = (List<Location>)query.getResultList();
-		return result;
-	}
-
 	public List<Location> findRoots() {
 		return putIntoHierarchy(findAll());
 	}
@@ -191,7 +181,6 @@ public class AuDao {
 			Long locationTypeId = getLong(m, "location_type_id");
 			data.setLocationType(locationTypeDao.read(locationTypeId));
 			Long codeTypeId = getLong(m, "code_type_id");
-			Logger.debug(gid + ": code_type_id=" + codeTypeId);
 			data.setCodeType(codeTypeDao.read(codeTypeId));
 			if (parentGid != null){
 				Location parent = result.get(parentGid);

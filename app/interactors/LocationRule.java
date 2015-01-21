@@ -65,6 +65,7 @@ public class LocationRule {
 		return fc;
 	}
 
+	@SuppressWarnings("unused")
 	private static FeatureCollection toFeatureCollection(Location compositeAu) {
 		FeatureCollection fc = new FeatureCollection();
 		fc.setFeatures(toFeatures(compositeAu.getLocationsIncluded()));

@@ -8,7 +8,7 @@ $( document ).ready(function() {
 
 function searchClick(){
 	var input = $("#input").val();
-	var url = searchURL + "?q=" + input; 
+	var url = searchURL + "?q=" + encodeURIComponent(input); 
 	$.get(url, function(data,status){
 	    updateOutput(data,status);
 	});
