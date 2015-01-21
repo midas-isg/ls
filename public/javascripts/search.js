@@ -37,7 +37,11 @@ function updateOutput(data, status, result){
 		var url = browswerURL + "?id=" + gid;
 		result.append("<tr>");
 		result.append("<td><a href='"+ url +"'>"+ gid  + "</a></td>")
-		result.append("<td><b>"+  p.name + "</b> from " + p.startDate + " to " + p.endDate + "</td>")
+		var to = "";
+		if (p.endDate){
+			to = " to " + p.endDate;
+		}
+		result.append("<td><b>"+  p.name + "</b> from " + p.startDate + to + "</td>")
 		var root = p.lineage[0]
 		if (root){
 			result.append("<td>"+ root.name  + "</td>")
