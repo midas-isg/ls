@@ -27,21 +27,21 @@ function updateOutput(data, status, result){
 	result.append("# results="+ size + "<br>");
 	result.append("<table style='width:100%'>");
 	result.append("<thead>")
-	result.append("<th>ID</th>")
-	result.append("<th>short description</th>")
-	result.append("<th>in</th>")
+	//result.append("<th>ID</th>")
+	result.append("<th>Short description</th>")
+	result.append("<th>Located within</th>")
 	result.append("</thead>")
 	for (var i = 0, l = features.length; i < l; i++){
 		var p = features[i].properties;
 		var gid = p.gid;
 		var url = browswerURL + "?id=" + gid;
 		result.append("<tr>");
-		result.append("<td><a href='"+ url +"'>"+ gid  + "</a></td>")
+		//result.append("<td><a href='"+ url +"'>"+ gid  + "</a></td>")
 		var to = "";
 		if (p.endDate){
 			to = " to " + p.endDate;
 		}
-		result.append("<td><b>"+  p.name + "</b> from " + p.startDate + to + "</td>")
+		result.append("<td><a href='"+ url +"'>"+ p.headline  + "</a> from " + p.startDate + to + "</td>")
 		var root = p.lineage[0]
 		if (root){
 			result.append("<td>"+ root.name  + "</td>")

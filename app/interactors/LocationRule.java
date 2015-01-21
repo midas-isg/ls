@@ -151,6 +151,9 @@ public class LocationRule {
 			return properties;
 		}
 		putAsStringIfNotNull(properties, "name", data.getName());
+		putAsStringIfNotNull(properties, "description", data.getDescription());
+		putAsStringIfNotNull(properties, "headline", au.getHeadline());
+		putAsStringIfNotNull(properties, "rank", au.getRank());
 		/*putAsStringIfNotNull(properties, "code", data.getCode());
 		String codeTypeName = getName(data.getCodeType(), data.getCodeType().getName());
 		putAsStringIfNotNull(properties, "codeTypeName", codeTypeName);*/

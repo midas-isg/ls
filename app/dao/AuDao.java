@@ -61,20 +61,39 @@ public class AuDao {
 		EntityManager em = JPA.em();
 		String tsVector = "to_tsvector('simple', name)";//"to_tsvector('english', name)";
 		String queryText = toQueryText(name);
-		String tsQuery = /*"to_tsquery(*/"'" + queryText + "'";//+ "')";
-		String q = "SELECT gid FROM location"
-				+ " WHERE " + tsQuery + "  @@ " + tsVector
-				+ " ORDER BY ts_rank_cd("+ tsVector + ", " + tsQuery + ") DESC, "
-				+ " name";
+		String qt = /*"to_tsquery(*/"'" + queryText + "'";//+ "')";
+		
+		String q = "SELECT gid, ts_headline(name, "+ qt + ") headline, rank" 
+				+ " FROM (SELECT gid, name, ts_rank_cd(ti, " + qt + ") AS rank"
+				+ "  FROM location, " + tsVector + " ti"
+				+ "  WHERE ti @@ " + qt 
+				+ "  ORDER BY rank DESC, name"
+				+ " ) AS foo;";
+		Logger.debug("q=\n" + q);
 		Query query = em.createNativeQuery(q);
 		if (limit != null)
 			query.setMaxResults(limit);
 		if (offset != null)
 			query.setFirstResult(offset);
-		
-		@SuppressWarnings("unchecked")
-		List<BigInteger> result = (List<BigInteger>)query.getResultList();
-		return AuHierarchyRule.getLocations(result);
+		List<?> resultList = query.getResultList();
+		List<BigInteger> result = getGids(resultList);
+		List<Location> locations = AuHierarchyRule.getLocations(result);
+		int i = 0;
+		for (Location l : locations){
+			Object[] objects = (Object[])resultList.get(i++);
+			l.setHeadline(objects[1].toString());
+			l.setRank(objects[2].toString());
+		}
+		return locations;
+	}
+
+	private List<BigInteger> getGids(List<?> resultList) {
+		List<BigInteger> list = new ArrayList<>();
+		for (Object o : resultList){
+			Object[] l = (Object[])o;
+			list.add((BigInteger)l[0]);
+		}
+		return list;
 	}
 
 	private String toQueryText(String q) {
@@ -87,7 +106,7 @@ public class AuDao {
 		String del = "";
 		String result = "";
 		for (String t : tokens){
-			result += del + t;
+			result += del + t.toLowerCase();
 			del = "&";
 		}
 		Logger.debug(result);

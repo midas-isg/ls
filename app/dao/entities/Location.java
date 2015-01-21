@@ -17,6 +17,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.hibernate.annotations.Check;
 
@@ -33,6 +34,9 @@ public class Location implements Comparable<Location> {
 	private List<Code> otherCodes;
 	private List<Location> relatedLocations;
 	private LocationGeometry multiPolygonGeom;
+	
+	private String headline;
+	private String rank;
 
 	@Id
 	@Column(name = "gid")
@@ -152,4 +156,23 @@ public class Location implements Comparable<Location> {
 		
 		return (name == null) ? defaultResult : name.toLowerCase();
 	}
+	
+	@Transient
+	public String getHeadline() {
+		return headline;
+	}
+
+	public void setHeadline(String headline) {
+		this.headline = headline;
+	}
+
+	@Transient
+	public String getRank() {
+		return rank;
+	}
+
+	public void setRank(String rank) {
+		this.rank = rank;
+	}
+
 }
