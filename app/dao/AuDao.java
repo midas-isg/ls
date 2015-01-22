@@ -33,11 +33,6 @@ public class AuDao {
 	public Location read(long gid) {
 		EntityManager em = JPA.em();
 		Location result = em.find(Location.class, gid);
-		/*LocationGeometry lg = result.getGeometry();
-		Geometry input = lg.getMultiPolygonGeom();
-		DouglasPeuckerSimplifier sim = new DouglasPeuckerSimplifier(input);
-		em.detach(result);
-		lg.setMultiPolygonGeom(sim.getResultGeometry());*/
 		return result;
 	}
 	
@@ -59,16 +54,18 @@ public class AuDao {
 	
 	public List<Location> findByName(String name, Integer limit, Integer offset) {
 		EntityManager em = JPA.em();
-		String tsVector = "to_tsvector('simple', name)";//"to_tsvector('english', name)";
+		String tsVector = "to_tsvector('simple', name)";
 		String queryText = toQueryText(name);
-		String qt = /*"to_tsquery(*/"'" + queryText + "'";//+ "')";
-		
-		String q = "SELECT gid, ts_headline(name, "+ qt + ") headline, rank" 
-				+ " FROM (SELECT gid, name, ts_rank_cd(ti, " + qt + ") AS rank"
-				+ "  FROM location, " + tsVector + " ti"
-				+ "  WHERE ti @@ " + qt 
-				+ "  ORDER BY rank DESC, name"
-				+ " ) AS foo;";
+		String qt = "'" + queryText + "'";
+		//@formatter:off
+		String q = 
+			"SELECT gid, ts_headline('simple', name, "+ qt + ") headline, rank" 
+			+ " FROM (SELECT gid, name, ts_rank(ti, " + qt + ") AS rank"
+			+ "  FROM location, " + tsVector + " ti"
+			+ "  WHERE ti @@ " + qt 
+			+ "  ORDER BY rank DESC, name"
+			+ " ) AS foo;";
+		//@formatter:on
 		Logger.debug("q=\n" + q);
 		Query query = em.createNativeQuery(q);
 		if (limit != null)
