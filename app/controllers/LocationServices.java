@@ -1,5 +1,6 @@
 package controllers;
 
+import interactors.AuHierarchyRule;
 import interactors.LocationRule;
 import play.db.jpa.Transactional;
 import play.libs.Json;
@@ -39,6 +40,12 @@ public class LocationServices extends Controller {
 	@Transactional
 	public static Result findLocations(String q, Integer limit, Integer offset){
 		Object result = LocationRule.findByName(q, limit, offset);
+		return ok(Json.toJson(result));
+	}
+	
+	@Transactional
+	public static Result findLocationNames(String q, Integer limit){
+		Object result = AuHierarchyRule.findLocationNames(q, limit);
 		return ok(Json.toJson(result));
 	}
 }

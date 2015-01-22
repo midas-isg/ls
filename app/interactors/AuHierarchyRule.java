@@ -2,9 +2,14 @@ package interactors;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import play.Logger;
 import dao.AuDao;
@@ -13,10 +18,12 @@ import dao.entities.Location;
 public class AuHierarchyRule {
 	private static Map<Long, Location> gid2location = null;
 	private static List<Location> roots = null;
+	private static List<String> uniqueSortedLocationNames = null;
 	
 	public static void notifyChange(){
 		gid2location = null;
 		roots = null;
+		uniqueSortedLocationNames = null;
 	}
 	
 	public static List<Location> getHierarchy() {
@@ -72,4 +79,40 @@ public class AuHierarchyRule {
 		}
 		return result;
 	}
+	
+	private static List<String> getUniqueSortedLocationNames(){
+		if (uniqueSortedLocationNames == null){
+			Map<Long, Location> map = getGid2location();
+			Set<String> set = new HashSet<>();
+			Collection<Location> locations = map.values();
+			for (Location l : locations){
+				set.add(l.getData().getName());
+			}
+			uniqueSortedLocationNames = new ArrayList<>();
+			uniqueSortedLocationNames.addAll(set);
+			Collections.sort(uniqueSortedLocationNames, String.CASE_INSENSITIVE_ORDER);
+		}
+		return uniqueSortedLocationNames;
+	}
+	
+	public static List<Map<String, String>> findLocationNames(String prefixNames, int limit){
+		List<Map<String, String>> result = new ArrayList<>();
+		if (prefixNames == null || prefixNames.isEmpty())
+			return result;
+		
+		List<String> names = getUniqueSortedLocationNames();
+		String prefixName = prefixNames;
+		//boolean hasLimit = limit > 0;
+		for (String name : names){
+			if (name.toLowerCase().startsWith(prefixName.toLowerCase())){
+				Map<String, String> map = new HashMap<>();
+				map.put("name", name);
+				result.add(map);
+				if (result.size() == limit)
+					break;
+			}
+		}
+		return result;
+	}
+
 }
