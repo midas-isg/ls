@@ -140,3 +140,28 @@ function listLineageRefs(lineage, sectionID) {
 	
 	return;
 }
+
+function bindSuggestionBox(inputBox, URL) {
+	jQuery(inputBox).autocomplete({
+		source: function (request, response) {
+			jQuery.get(URL + $(inputBox).val(), {
+				name: request.name
+			}, function (data) {
+				var index = 0;
+				var locations = [];
+				
+				locations[0] = "No search data returned...";
+				
+				for(index = 0; index < data.length; index++) {
+					locations[index] = data[index]['name'];
+				}
+				
+				response(locations);
+			});
+		},
+		minLength: 3,
+		delay: 500
+	});
+	
+	return;
+}
