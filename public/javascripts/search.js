@@ -4,6 +4,8 @@ $( document ).ready(function() {
 	$("#search-button").click(function() {
 			searchClick();
 	});
+	
+	bindSuggestionBox("#input", context + "/api/unique-location-names?limit=10&q=");
 });
 
 function searchClick(){
