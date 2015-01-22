@@ -97,20 +97,43 @@ public class AuHierarchyRule {
 	
 	public static List<Map<String, String>> findLocationNames(String prefixNames, int limit){
 		List<Map<String, String>> result = new ArrayList<>();
-		if (prefixNames == null || prefixNames.isEmpty())
+		if (prefixNames == null || prefixNames.trim().isEmpty())
 			return result;
 		
+		int numWord = 0;
+
 		List<String> names = getUniqueSortedLocationNames();
-		String prefixName = prefixNames;
-		//boolean hasLimit = limit > 0;
-		for (String name : names){
-			if (name.toLowerCase().startsWith(prefixName.toLowerCase())){
-				Map<String, String> map = new HashMap<>();
-				map.put("name", name);
-				result.add(map);
-				if (result.size() == limit)
-					break;
+		
+		String prefixName = prefixNames.trim().toLowerCase();
+		
+		String delim = " +";
+		while (!names.isEmpty()){
+			List<String> remainingNames = new ArrayList<>();
+			for (String originalName : names){
+				String name = originalName.replaceAll("[()]", "");
+				String[] tokens = name.split(delim);
+				if (tokens.length > numWord + 1){
+					remainingNames.add(originalName);
+				}
+				String toBeRemoved = "";
+				for (int i = 0; i < numWord; i++){
+					toBeRemoved += tokens[i] + delim;
+				}
+				String usedName = name.replaceFirst(toBeRemoved, "");
+
+				if (usedName.toLowerCase().startsWith(prefixName)){
+					Map<String, String> map = new HashMap<>();
+					map.put("name", originalName);
+					result.add(map);
+					if (result.size() == limit){
+						remainingNames = Collections.emptyList();
+						break;
+					}
+				}
+				
 			}
+			numWord++;
+			names = remainingNames;
 		}
 		return result;
 	}
