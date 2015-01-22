@@ -15,8 +15,20 @@ function searchClick(){
 	var url = searchURL + "?limit=0&q=" + encodeURIComponent(input); 
 	var result = $("#result"); 
 	result.text("Please wait ...");
-	$.get(url, function(data, status){
-		updateOutput(data,status,result);
+	
+	$.ajax({
+		url: url,
+		type: 'GET',
+		success: function(data, status) {
+			updateOutput(data,status,result);
+			
+			return;
+		},
+		error: function(data, status) {
+			result.text("Error: " + status);
+			
+			return;
+		}
 	});
 	
 }
