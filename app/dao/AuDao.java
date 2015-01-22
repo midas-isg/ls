@@ -60,13 +60,13 @@ public class AuDao {
 		//@formatter:off
 		String q = 
 			"SELECT gid, ts_headline('simple', name, "+ qt + ") headline, rank" 
-			+ " FROM (SELECT gid, name, ts_rank(ti, " + qt + ") AS rank"
+			+ " FROM (SELECT gid, name, ts_rank_cd(ti, " + qt + ") AS rank"
 			+ "  FROM location, " + tsVector + " ti"
 			+ "  WHERE ti @@ " + qt 
 			+ "  ORDER BY rank DESC, name"
 			+ " ) AS foo;";
 		//@formatter:on
-		Logger.debug("q=\n" + q);
+		//Logger.debug("q=\n" + q);
 		Query query = em.createNativeQuery(q);
 		if (limit != null)
 			query.setMaxResults(limit);
@@ -99,14 +99,15 @@ public class AuDao {
 		q = q.replaceAll(":*\\*", ":*");
 		q = q.replaceAll(" *\\| *", "|");
 		q = q.replaceAll(" *& *", "&");
-		String[] tokens = q.split(" +");
+
+		q = q.replaceAll("['-,.]", " ");
+		String[] tokens = q.trim().split(" +");
 		String del = "";
 		String result = "";
 		for (String t : tokens){
 			result += del + t.toLowerCase();
 			del = "&";
 		}
-		Logger.debug(result);
 		return result;
 	}
 	

@@ -112,9 +112,6 @@ public class AuHierarchyRule {
 			for (String originalName : names){
 				String name = originalName.replaceAll("[()]", "");
 				String[] tokens = name.split(delim);
-				if (tokens.length > numWord + 1){
-					remainingNames.add(originalName);
-				}
 				String toBeRemoved = "";
 				for (int i = 0; i < numWord; i++){
 					toBeRemoved += tokens[i] + delim;
@@ -129,7 +126,10 @@ public class AuHierarchyRule {
 						remainingNames = Collections.emptyList();
 						break;
 					}
+				} else if (tokens.length > numWord + 1){
+					remainingNames.add(originalName);
 				}
+
 				
 			}
 			numWord++;
