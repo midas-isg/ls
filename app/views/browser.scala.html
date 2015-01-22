@@ -15,6 +15,7 @@
 	<link href='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet.draw-0.2.2.css")' rel='stylesheet'/>
 	
 	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'/>
+	<link href='@routes.Assets.at("external_packages/jqGrid-4.6.0/css/jquery-ui-1.11.1.custom/jquery-ui.min.css")' rel='stylesheet' />
 }
 
 @main(message, imports) {
@@ -34,7 +35,7 @@
 				<em class="pull-left">Apollo location code:</em> <div id="gid" class="pull-left pre-spaced"></div>
 			</div>
 			
-			<div class="data-container">
+			<div class="data-container" style="z-index: 0;">
 				<div id="historical-note" hidden>
 					<strong style="color: red;">*Historical data overlayed on current world map*</strong>
 				</div>

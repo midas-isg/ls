@@ -5,7 +5,9 @@ $( document ).ready(function() {
 			searchClick();
 	});
 	
-	bindSuggestionBox("#input", context + "/api/unique-location-names?limit=10&q=");
+	var limit = 5;
+	
+	bindSuggestionBox("#input", context + "/api/unique-location-names?limit=" + limit + "&q=");
 });
 
 function searchClick(){
