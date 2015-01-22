@@ -18,15 +18,8 @@
 }
 
 @main(message, imports) {
-	<div style="padding-left: 2%;">
-		<div>
-			<div>
-				Search for:<input type="text" id="input" placeholder="Input" size="100">
-				<button id="search-button">Search</button>
-			</div>
-			
-			<div id="result"></div>
-		</div>
+	<div>
+		@searchbar()
 		
 		<div id="header-data" hidden>
 			<h2 style="clear: both;">
