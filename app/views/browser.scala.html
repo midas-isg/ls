@@ -18,20 +18,17 @@
 }
 
 @main(message, imports) {
-	<div style="padding-left: 2%;">
-		<div style="background-color:#cccccc;">
-			<div>
-				Search for:<input type="text" id="input" placeholder="Input" size="100">
-				<button id="search-button">Search</button>
-			</div>
-			
-			<div id="result"></div>
-		</div>
+	<div>
+		@searchbar()
 		
 		<div id="header-data" hidden>
 			<h2 style="clear: both;">
 				<div id="au-name" class="pull-left"></div>
 			</h2>
+			
+			<div id="au-lineage" class="data-container extra-bottom-space" hidden>
+				<em class="pull-left">Located within:</em>
+			</div>
 			
 			<div class="data-container">
 				<em class="pull-left">Apollo location code:</em> <div id="gid" class="pull-left pre-spaced"></div>
@@ -56,10 +53,6 @@
 			
 			<div id="au-related" class="data-container extra-bottom-space" hidden>
 				<em class="pull-left">Related location(s):</em>
-			</div>
-			
-			<div id="au-lineage" class="data-container extra-bottom-space" hidden>
-				<em class="pull-left">Located within:</em>
 			</div>
 			
 			<div id="au-children" class="data-container extra-bottom-space" hidden>

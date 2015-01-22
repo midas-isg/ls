@@ -12,7 +12,7 @@ function searchClick(){
 	var result = $("#result"); 
 	result.text("Please wait ...");
 	$.get(url, function(data, status){
-	    updateOutput(data,status,result);
+		updateOutput(data,status,result);
 	});
 	
 }
