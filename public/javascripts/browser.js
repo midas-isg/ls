@@ -213,7 +213,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 				$("#au-related").append("<a href='./browser?id=" + related[i].gid + "' class='pre-spaced'>" + related[i].name + "</a>");
 				
 				if(i < (related.length - 1)){
-					$("#au-related").append(";");
+					$("#au-related").append("; ");
 				}
 			}
 		}
@@ -241,7 +241,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 				}
 				else /* if(children[i].locationTypeName != "Epidemic Zone") */ {
 					if(show2) {
-						$("#au-children").append(";");
+						$("#au-children").append("; ");
 					}
 					
 					$("#au-children").append("<a href='./browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
