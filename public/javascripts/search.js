@@ -1,18 +1,32 @@
 var searchURL = context + "/api/locations";
 var browswerURL = context + "/browser";
-$( document ).ready(function() {
+$(document).ready(function() {
 	$("#search-button").click(function() {
 			searchClick();
 	});
+	
+	$("#input").keyup(function(event) {
+		switch(event.which)
+		{
+			case 13:
+				$("#search-button").click();
+			break;
+			
+			default:
+			break;
+		}
+		
+		return;
+	})
 	
 	var limit = 5;
 	
 	bindSuggestionBox("#input", context + "/api/unique-location-names?limit=" + limit + "&q=");
 });
 
-function searchClick(){
+function searchClick() {
 	var input = $("#input").val();
-	var url = searchURL + "?limit=0&q=" + encodeURIComponent(input); 
+	var url = searchURL + "?limit=0&q=" + encodeURIComponent(input);
 	var result = $("#result"); 
 	result.text("Please wait ...");
 	
@@ -34,7 +48,7 @@ function searchClick(){
 }
 
 var geoJSON;
-function updateOutput(data, status, result){
+function updateOutput(data, status, result) {
 	geoJSON = data.geoJSON;
 	
 	var features = geoJSON.features;
