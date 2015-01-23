@@ -1,0 +1,5 @@
+#result table tbody tr td,
+#result table thead tr th {
+	padding: 0px;
+	border-bottom: 0px;
+}

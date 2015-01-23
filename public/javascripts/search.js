@@ -3,6 +3,8 @@ var browswerURL = context + "/browser";
 $(document).ready(function() {
 	$("#search-button").click(function() {
 			searchClick();
+			
+			return;
 	});
 	
 	$("#input").keyup(function(event) {
@@ -50,39 +52,53 @@ function searchClick() {
 var geoJSON;
 function updateOutput(data, status, result) {
 	geoJSON = data.geoJSON;
+	result.text("");
 	
 	var features = geoJSON.features;
-	
 	var size = data.properties.resultSize;
-	result.text("");
-	result.append("# results="+ size + "<br>");
-	result.append("<table style='width:100%'>");
-	result.append("<thead>")
-	//result.append("<th>ID</th>")
-	result.append("<th>Location</th>");
-	result.append("<th>Located within</th>");
-	//result.append("</thead>");
 	
-	for(var i = 0, l = features.length; i < l; i++){
-		var p = features[i].properties;
-		var gid = p.gid;
-		var url = browswerURL + "?id=" + gid;
-		result.append("<tr>");
-		//result.append("<td><a href='"+ url +"'>"+ gid  + "</a></td>")
-		var to = "";
-		if (p.endDate){
+	$("#result-count").text("# results=" + size);
+	var appendString = "<table class='table table-condensed' style='margin-bottom: 0px;'>";
+	appendString += "<thead>";
+	appendString += "<th>Location</th>";
+	appendString += "<th>Located within</th>";
+	appendString += "</thead>";
+	appendString += "<tbody id='results-tbody'></tbody>";
+	appendString += "</table>";
+	
+	result.append(appendString);
+	var resultBody = $("#results-tbody");
+	
+	appendString = "";
+	var p;
+	var gid;
+	var url;
+	var to;
+	var i;
+	for(i = 0, l = features.length; i < l; i++){
+		p = features[i].properties;
+		gid = p.gid;
+		url = browswerURL + "?id=" + gid;
+		to = "";
+		
+		if(p.endDate) {
 			to = " to " + p.endDate;
 		}
-		result.append("<td><a href='"+ url +"'>"+ p.headline  + "</a> from " + p.startDate + to + "</td>")
-		var root = p.lineage[0]
-		if (root){
-			//result.append("<td>"+ root.name  + "</td>")
-			result.append("<td id='result_lineage" + i + "'></td>");
+		
+		appendString = "<tr><td><a href='"+ url +"'>"+ p.headline  + "</a> from " + p.startDate + to + "</td>";
+		
+		var root = p.lineage[0];
+		if(root) {
+			appendString = appendString + "<td id='result_lineage" + i + "'></td></tr>";
+			resultBody.append(appendString);
+			
 			listLineageRefs(p.lineage, "#result_lineage" + i);
 		}
-		//result.append("</tr>")
+		else {
+			appendString = "</tr>";
+			resultBody.append(appendString);
+		}
 	}
-	//result.append("</table>");
 	
 	return;
 }
