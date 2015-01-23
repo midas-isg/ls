@@ -57,7 +57,7 @@ function updateOutput(data, status, result) {
 	var features = geoJSON.features;
 	var size = data.properties.resultSize;
 	
-	$("#result-count").text("# results=" + size);
+	$("#result-count").text(size + " result(s)");
 	var appendString = "<table class='table table-condensed' style='margin-bottom: 0px;'>";
 	appendString += "<thead>";
 	appendString += "<th>Location</th>";

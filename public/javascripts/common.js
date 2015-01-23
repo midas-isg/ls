@@ -132,8 +132,8 @@ function listLineageRefs(lineage, sectionID) {
 			
 			$(sectionID).append("<a href='" + context + "/browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
 			
-			if(i > 0){
-				$(sectionID).append(",");
+			if(i > 0) {
+				$(sectionID).append(", ");
 			}
 		}
 	}
