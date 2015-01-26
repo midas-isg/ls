@@ -20,7 +20,7 @@ $(document).ready(function() {
 		}
 		
 		return;
-	})
+	});
 	
 	var limit = 5;
 	
