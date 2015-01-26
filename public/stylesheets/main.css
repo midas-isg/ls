@@ -25,5 +25,17 @@ a:hover {
 
 .no-vertical-padding {
 	padding-top: 0px;
-	padding-bottom: 0px; 
+	padding-bottom: 0px;
+}
+
+.no-horizontal-padding {
+	padding-left: 0px;
+	padding-right: 0px;
+}
+
+.no-padding {
+	padding-top: 0px;
+	padding-bottom: 0px;
+	padding-left: 0px;
+	padding-right: 0px;
 }
