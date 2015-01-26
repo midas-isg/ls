@@ -66,7 +66,7 @@ public class AuDao {
 			+ "  ORDER BY rank DESC, name"
 			+ " ) AS foo;";
 		//@formatter:on
-		//Logger.debug("q=\n" + q);
+		//Logger.debug("name=" + name + " q=\n" + q);
 		Query query = em.createNativeQuery(q);
 		if (limit != null)
 			query.setMaxResults(limit);
@@ -100,7 +100,7 @@ public class AuDao {
 		q = q.replaceAll(" *\\| *", "|");
 		q = q.replaceAll(" *& *", "&");
 
-		q = q.replaceAll("['-,.]", " ");
+		q = q.replaceAll("[',.-]", " ");
 		String[] tokens = q.trim().split(" +");
 		String del = "";
 		String result = "";
