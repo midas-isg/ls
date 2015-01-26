@@ -11,7 +11,7 @@
 
 #result table tbody {
 	overflow: auto;
-	height: 300px;
+	max-height: 300px;
 }
 
 #result table tr {
