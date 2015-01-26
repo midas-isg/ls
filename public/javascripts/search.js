@@ -96,7 +96,7 @@ function updateOutput(data, status, result) {
 			listLineageRefs(p.lineage, "#result_lineage" + i);
 		}
 		else {
-			appendString = appendString + "</tr>";
+			appendString = appendString + "<td></td></tr>";
 			resultBody.append(appendString);
 		}
 	}
