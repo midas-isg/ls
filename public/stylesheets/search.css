@@ -1,10 +1,33 @@
+#result table {
+	display: table;
+	width: 100%;
+}
+
+#result table thead,
+#result table tbody {
+	width: 100%;
+	float: left;
+}
+
+#result table tbody {
+	overflow: auto;
+	height: 300px;
+}
+
+#result table tr {
+	width: 100%;
+	display: table;
+}
+
+#result table thead tr {
+	border-bottom-color: rgb(221, 221, 221);
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
 #result table tbody tr td,
 #result table thead tr th {
 	padding: 0px;
 	border-bottom: 0px;
-}
-
-.no-vertical-padding {
-	padding-top: 0px;
-	padding-bottom: 0px; 
+	width: 50%;
 }
