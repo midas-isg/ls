@@ -75,6 +75,7 @@ function updateOutput(data, status, result) {
 	var url;
 	var to;
 	var i;
+	var l;
 	for(i = 0, l = features.length; i < l; i++){
 		p = features[i].properties;
 		gid = p.gid;
@@ -95,7 +96,7 @@ function updateOutput(data, status, result) {
 			listLineageRefs(p.lineage, "#result_lineage" + i);
 		}
 		else {
-			appendString = "</tr>";
+			appendString = appendString + "</tr>";
 			resultBody.append(appendString);
 		}
 	}
