@@ -24,7 +24,6 @@ public class GeoInputRule {
 			i++;
 		}
 		MultiPolygon mpg = new MultiPolygon(polygons, fact);
-		mpg.setSRID(4269);
 		return mpg;
 	}
 

@@ -75,6 +75,7 @@ public class AuHierarchyRule {
 			if (location == null){
 				Logger.warn(gid + " not found!");
 			}
+			location.setHeadline(location.getData().getName());
 			result.add(location);
 		}
 		return result;

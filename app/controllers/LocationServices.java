@@ -48,4 +48,12 @@ public class LocationServices extends Controller {
 		Object result = AuHierarchyRule.findLocationNames(q, limit);
 		return ok(Json.toJson(result));
 	}
+	
+	@Transactional
+	public static Result findLocationsByPoint(double lat, double lon){
+		Object result = LocationRule.findByNameByPoint(lat, lon);
+		return ok(Json.toJson(result));
+	}
+	
+
 }
