@@ -95,7 +95,7 @@ public class Location implements Comparable<Location> {
 		this.locationsIncluded = locations;
 	}
 
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "id")
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "location")
 	public List<Code> getOtherCodes() {
 		return otherCodes;
 	}

@@ -16,8 +16,10 @@ DELETE	/resources/aus				controllers.AdministrativeUnitServices.delete()
 GET		/api/locations/tree			controllers.AdministrativeUnitServices.tree2()
 
 GET		/api/au-tree				controllers.AdministrativeUnitServices.tree()
+
 GET		/api/locations/:gid			controllers.LocationServices.locations(gid:Long, format?="GeoJSON")
 GET		/api/locations				controllers.LocationServices.findLocations(q, limit:Int?=10, offset:Int?=0)
+GET		/api/locations-by-coordinate controllers.LocationServices.findLocationsByPoint(lat:Double, long:Double)
 
 GET		/api/unique-location-names	controllers.LocationServices.findLocationNames(q, limit:Int?=10)
 

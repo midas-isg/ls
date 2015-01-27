@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import models.Response;
 import models.geo.Feature;
 import models.geo.FeatureCollection;
 import play.Logger;
@@ -260,19 +261,37 @@ public class LocationRule {
 		return au;
 	}
 	
-	public static Map<String, Object> findByName(String q, Integer limit, Integer offset){
+	public static Response findByName(String q, 
+			Integer limit, Integer offset){
 		List<Location> result = new AuDao().findByName(q, limit, offset);
-		Map<String, Object> map = new HashMap<>();
-		map.put("geoJSON", toFeatureCollection(result));
+		Response response = new Response();
+		response.setGeoJSON(toFeatureCollection(result));
 		Map<String, Object> properties = new HashMap<>();
-		map.put("properties", properties);
+		response.setProperties(properties);
 		properties.put("q", q);
 		putAsStringIfNotNull(properties, "limit", limit);
 		putAsStringIfNotNull(properties, "offset", offset);
 		putAsStringIfNotNull(properties, "resultSize", "" + result.size());
 		properties.put("locationTypeName", "Result from a query");
-		String descritpion = "Result from the query for '" + q + "' limit=" + limit + " offset=" + offset;
+		String descritpion = "Result from the query for '" + q + "' limit=" 
+		+ limit + " offset=" + offset;
 		properties.put("description", descritpion);
-		return map;
+		return response;
+	}
+
+	public static Response findByNameByPoint(double latitude, double longitude) {
+		List<Location> result = new AuDao().findByPoint(latitude, longitude);
+		Response response = new Response();
+		response.setGeoJSON(toFeatureCollection(result));
+		Map<String, Object> properties = new HashMap<>();
+		response.setProperties(properties);
+		putAsStringIfNotNull(properties, "latitude", latitude);
+		putAsStringIfNotNull(properties, "longitude", longitude);
+		putAsStringIfNotNull(properties, "resultSize", "" + result.size());
+		properties.put("locationTypeName", "Result from a query");
+		String descritpion = "Result from the query for latitude=" + latitude 
+				+ " longitude=" + longitude;
+		properties.put("description", descritpion);
+		return response;
 	}
 }

@@ -46,7 +46,7 @@ public class Code {
 	}
 
 	@ManyToOne
-	@JoinColumn(name = "gid", nullable = true)
+	@JoinColumn(name = "gid", nullable = false)
 	public Location getLocation() {
 		return location;
 	}

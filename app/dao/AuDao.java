@@ -22,8 +22,10 @@ import dao.entities.Data;
 import dao.entities.Location;
 
 public class AuDao {
+	private static final int SRID =  4326;
 	public Long create(Location au) {
 		EntityManager em = JPA.em();
+		setSridToDefault(au);
 		em.persist(au);
 		Long gid = au.getGid();
 		Logger.debug("persisted " + gid);
@@ -39,9 +41,14 @@ public class AuDao {
 	public Long update(Location au) {
 		EntityManager em = JPA.em();
 		em.merge(au);
+		setSridToDefault(au);
 		Long gid = au.getGid();
 		Logger.debug("merged " + gid);
 		return gid;
+	}
+
+	private void setSridToDefault(Location au) {
+		au.getGeometry().getMultiPolygonGeom().setSRID(SRID);
 	}
 
 	public Long delete(Location au) {
@@ -64,9 +71,9 @@ public class AuDao {
 			+ "  FROM location, " + tsVector + " ti"
 			+ "  WHERE ti @@ " + qt 
 			+ "  ORDER BY rank DESC, name"
-			+ " ) AS foo;";
+			+ " ) AS foo";
 		//@formatter:on
-		//Logger.debug("q=\n" + q);
+		//Logger.debug("name=" + name + " q=\n" + q);
 		Query query = em.createNativeQuery(q);
 		if (limit != null)
 			query.setMaxResults(limit);
@@ -100,7 +107,7 @@ public class AuDao {
 		q = q.replaceAll(" *\\| *", "|");
 		q = q.replaceAll(" *& *", "&");
 
-		q = q.replaceAll("['-,.]", " ");
+		q = q.replaceAll("[',.-]", " ");
 		String[] tokens = q.trim().split(" +");
 		String del = "";
 		String result = "";
@@ -246,5 +253,23 @@ public class AuDao {
 			return ((BigInteger)object).longValue();
 		else
 			return Long.parseLong(object.toString());
+	}
+
+	public List<Location> findByPoint(double latitude, double longitude) {
+		EntityManager em = JPA.em();
+		//@formatter:off
+		String point = "ST_MakePoint(" + longitude + ", " + latitude +")";
+		String geometry = "ST_SetSRID("+ point+", "+ SRID + ")";
+		String q = "SELECT gid " 
+			+ "  FROM location_geometry "
+			+ "  WHERE ST_Contains(multipolygon, " + geometry + ")"
+			+ "  ORDER BY ST_Area(multipolygon);";
+		//@formatter:on
+		Query query = em.createNativeQuery(q);
+		List<?> resultList = query.getResultList();
+		@SuppressWarnings("unchecked")
+		List<BigInteger> result = (List<BigInteger>)resultList;
+		List<Location> locations = AuHierarchyRule.getLocations(result);
+		return locations;
 	}
 }
