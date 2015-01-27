@@ -1,15 +1,51 @@
 @(message: String)
 
 @imports = {
+	<script src='@routes.Assets.at("external_packages/MapBox/mapbox-2.0.1.js")'></script>
+	<script src='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet.draw-0.2.2.js")'></script>
+	<script src='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet-omnivore-0.2.0.min.js")'></script>
+	<script src="@routes.Assets.at("external_packages/jquery-ui.min.js")" type="text/javascript"></script>
+	<script src='@routes.Assets.at("external_packages/fancytree/jquery.fancytree.js")'></script>
+	
+	<script src='@routes.Assets.at("javascripts/map-driver.js")'></script>
+	<script src='@routes.Assets.at("javascripts/indexing-terms.js")'></script>
+	<script src='@routes.Assets.at("javascripts/parent-tree.js")'></script>
+	<script src='@routes.Assets.at("javascripts/au-composite-tree.js")'></script>
+	<script src='@routes.Assets.at("javascripts/fancytree-ext-filter.js")'></script>
+	
 	<script src='@routes.Assets.at("javascripts/searchbar.js")' type='text/javascript'></script>
 	<script src='@routes.Assets.at("javascripts/search-results.js")' type='text/javascript'></script>
 	
-	<link rel='stylesheet' href='@routes.Assets.at("external_packages/jqGrid-4.6.0/css/jquery-ui-1.11.1.custom/jquery-ui.min.css")'/>
-	<link rel='stylesheet' href='@routes.Assets.at("stylesheets/search.css")'/>
+	<link href='@routes.Assets.at("external_packages/MapBox/mapbox-2.0.1.css")' rel='stylesheet'/>
+	<link href='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet.draw-0.2.2.css")' rel='stylesheet'/>
+	<link href='@routes.Assets.at("external_packages/fancytree/ui.fancytree.css")' rel='stylesheet'/>
+	
+	<link href='@routes.Assets.at("external_packages/jqGrid-4.6.0/css/jquery-ui-1.11.1.custom/jquery-ui.min.css")' rel='stylesheet'/>
+	
+	<link href='@routes.Assets.at("stylesheets/fancytree-ext.css")' rel='stylesheet'/>
+	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'/>
+	
+	<link href='@routes.Assets.at("stylesheets/search.css")' rel='stylesheet'/>
 }
 
 @main(message, imports) {
-	<div hidden><a href="http://workshops.opengeo.org/postgis-intro/" target="_blank">PostGIS Intro</a></div>
+	<div class="pull-left">
+		<div id="map-one" class="map pull-left"></div>
+		@searchbar()
+	</div>
 	
-	@searchbar()
+	<div class="pull-left">
+		<div id="result" style="clear: both;"></div>
+		
+		<div id="parent-list" class="pull-left" hidden>
+			<div>
+				<legend><em>Parent location ID:</em></legend>
+				<label>Filter:</label>
+				<input name="search" placeholder="Filter...">
+				<button id="resetParentSearchButton">&times;</button>
+				<span id="parent-matches"></span>
+			</div>
+			<div id="parent-tree" style="padding-top: 5px"></div>
+		</div>
+	</div>
 }
