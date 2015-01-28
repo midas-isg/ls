@@ -1,5 +1,7 @@
-var searchURL = context + "/api/locations";
-var browswerURL = context + "/browser";
+/*
+searchbar.js
+*/
+
 $(document).ready(function() {
 	$("#input").keyup(function(event) {
 		switch(event.which)

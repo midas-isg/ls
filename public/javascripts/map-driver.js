@@ -1,104 +1,4 @@
 var crudPath = context + '/resources/aus';
-var MAP_DRIVER = null;
-
-$(document).ready(function() {
-	var url = ausPath + "/api/au-tree";
-	
-	$.get(url, function(data, status) {
-		treeData = data;
-		//console.log(data);
-		
-		PARENT_TREE.initInteractBetweenTreeAndTable("parent-list", function() {
-			AU_COMPOSITE_TREE.initInteractBetweenTreeAndTable("au-list", initialize());
-			
-			function initialize() {
-				MAP_DRIVER = new MapDriver();
-				
-				$("#new-button").click(function() {
-					MAP_DRIVER.mapID = Date().valueOf();
-					MAP_DRIVER.featureLayer.clearLayers();
-					setTextValue("#au-name", "");
-					setTextValue("#au-code", "");
-					setTextValue("#au-codepath", "");
-					
-					var today = new Date();
-					setTextValue("#start-date", today.getUTCFullYear() + "-" + (today.getUTCMonth() + 1) + "-" + today.getUTCDate());
-					setTextValue("#end-date", "");
-				});
-				
-				$("#upload-button").click(function() {
-					MAP_DRIVER.upload();
-					
-					return;
-				});
-				
-				$("#download-button").click(function() {
-					MAP_DRIVER.download();
-					
-					return;
-				});
-				
-				$("#db-load-button").click(function() {
-					var mapID = getValueText("#gid");
-					MAP_DRIVER.geoJSONURL = crudPath + "/" + mapID;
-					//"http://tps23-nb.univ.pitt.edu/test.json";
-					
-					if(MAP_DRIVER.geoJSONURL) {
-						MAP_DRIVER.featureLayer.loadURL(MAP_DRIVER.geoJSONURL);
-						//MAP_DRIVER.loadFeatureLayer();
-					}
-					
-					return;
-				});
-				
-				$("#save-button").click(function() {
-					MAP_DRIVER.saveMap();
-					
-					return;
-				});
-				
-				$("#composite-button").click(function() {
-					console.log(MAP_DRIVER.getAUComponents());
-					
-					var i;
-					var currentAUGID;
-					var currentAU;
-					
-					var compositeJSON = {};
-					compositeJSON.type = "FeatureCollection";
-					compositeJSON.id = null;
-					compositeJSON.features = [];
-					
-					currentAUGID = MAP_DRIVER.auComponents[0];
-					currentAU = L.mapbox.featureLayer().loadURL(crudPath + "/" + currentAUGID);
-					//currentAU.on('ready', function(){
-						//TODO: Load JSON via call-back
-						for(i = 1; i < MAP_DRIVER.auComponents.length; i++) {
-							currentAUGID = MAP_DRIVER.auComponents[i];
-							currentAU = L.mapbox.featureLayer().loadURL(crudPath + "/" + currentAUGID);
-							
-							console.log(currentAU);
-							var j;
-							for(j = 0; j < currentAU.geojson.features.length; j++) {
-								compositeJSON.features.push(currentAU.geojson.features[j]);
-							}
-						}
-						
-						MAP_DRIVER.loadJSON(compositeJSON);
-					//});
-				});
-				
-				return;
-			}
-		});
-		
-		return;
-	});
-	
-	
-	
-	return;
-});
 
 function MapDriver() {
 	var id = '12';
@@ -131,6 +31,8 @@ MapDriver.prototype.initialize = function() {
 }
 
 MapDriver.prototype.loadFeatureLayer = function() {
+	var thisMapDriver = this;
+	
 	if(this.geoJSONURL) {
 		this.featureLayer = L.mapbox.featureLayer().loadURL(this.geoJSONURL);
 	}
@@ -139,32 +41,24 @@ MapDriver.prototype.loadFeatureLayer = function() {
 	}
 	
 	this.featureLayer.on('ready', function() {
-		MAP_DRIVER.loadJSON(MAP_DRIVER.featureLayer.getGeoJSON());
+		thisMapDriver.loadJSON(thisMapDriver.featureLayer.getGeoJSON());
 		
-		MAP_DRIVER.featureLayer.addTo(MAP_DRIVER.map);
+		thisMapDriver.featureLayer.addTo(thisMapDriver.map);
 		
-		var feature = MAP_DRIVER.featureLayer.getGeoJSON().features[0];
+		var feature = thisMapDriver.featureLayer.getGeoJSON().features[0];
 		
-		centerMap(MAP_DRIVER.featureLayer.getGeoJSON());
+		centerMap(thisMapDriver.featureLayer.getGeoJSON(), thisMapDriver);
 		
-		MAP_DRIVER.mapID = MAP_DRIVER.featureLayer.getGeoJSON().id;
+		thisMapDriver.mapID = thisMapDriver.featureLayer.getGeoJSON().id;
 		setTextValue("#au-name", feature.properties.name);
 		setTextValue("#au-code", feature.properties.code);
 		setTextValue("#au-codepath", feature.properties.codePath);
 		setTextValue("#start-date", feature.properties.startDate);
 		setTextValue("#end-date", feature.properties.endDate);
-		PARENT_TREE.resetIsAboutList();
-		AU_COMPOSITE_TREE.resetIsAboutList();
 		
 		var i;
 		var parentGID = feature.properties.parentGid;
-		if(parentGID) {
-			//for(i = 0; i < parentGID.length; i++) {
-			//	AU_COMPOSITE_TREE.clickIsAboutByValue(parentGID[i]);
-			//}
-			
-			PARENT_TREE.clickIsAboutByValue(parentGID);
-		}
+		console.log(parentGID);
 		
 		setTextValue("#gid", feature.properties.gid);
 		feature.properties.title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
@@ -176,12 +70,12 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			feature.properties.title += " to present";
 		}
 		
-		MAP_DRIVER.map.legendControl.removeLegend(MAP_DRIVER.title);
-		MAP_DRIVER.title = "<strong>" + feature.properties.title + "</strong>";
-		MAP_DRIVER.map.legendControl.addLegend(MAP_DRIVER.title);
+		thisMapDriver.map.legendControl.removeLegend(thisMapDriver.title);
+		thisMapDriver.title = "<strong>" + feature.properties.title + "</strong>";
+		thisMapDriver.map.legendControl.addLegend(thisMapDriver.title);
 		
-		if(!MAP_DRIVER.drawControl) {
-			MAP_DRIVER.drawControl = new L.Control.Draw({
+		if(!thisMapDriver.drawControl) {
+			thisMapDriver.drawControl = new L.Control.Draw({
 				draw: {
 					polyline: false,
 					rectangle: false,
@@ -189,21 +83,21 @@ MapDriver.prototype.loadFeatureLayer = function() {
 					marker: false
 				},
 				edit: {
-					featureGroup: MAP_DRIVER.featureLayer
+					featureGroup: thisMapDriver.featureLayer
 				}
-			}).addTo(MAP_DRIVER.map);
+			}).addTo(thisMapDriver.map);
 		}
 		
-		MAP_DRIVER.map.on('draw:created', function(e) {
-			MAP_DRIVER.featureLayer.addLayer(e.layer);
+		thisMapDriver.map.on('draw:created', function(e) {
+			thisMapDriver.featureLayer.addLayer(e.layer);
 			console.log(e);
 		});
 		
-		MAP_DRIVER.map.on('draw:deleted', function(e) {
+		thisMapDriver.map.on('draw:deleted', function(e) {
 			var layers = e.layers;
 			layers.eachLayer(function(layer) {
-				if(MAP_DRIVER.featureLayer.hasLayer(layer._leaflet_id + 1)) {
-					console.log(MAP_DRIVER.featureLayer.removeLayer(layer._leaflet_id + 1));
+				if(thisMapDriver.featureLayer.hasLayer(layer._leaflet_id + 1)) {
+					console.log(thisMapDriver.featureLayer.removeLayer(layer._leaflet_id + 1));
 				}
 			});
 		});
@@ -212,38 +106,38 @@ MapDriver.prototype.loadFeatureLayer = function() {
 	this.featureLayer.on('error', function(err) {
 		console.log("Error: " + err['error']['statusText']);
 		
-		if((MAP_DRIVER.featureLayer.getLayers().length == 0) && MAP_DRIVER.mapID) {
+		if((thisMapDriver.featureLayer.getLayers().length == 0) && thisMapDriver.mapID) {
 			console.log("Attempting to load via mapbox ID");
-			MAP_DRIVER.featureLayer = L.mapbox.featureLayer().loadID(MAP_DRIVER.mapID);
+			thisMapDriver.featureLayer = L.mapbox.featureLayer().loadID(thisMapDriver.mapID);
 		}
 		
-		MAP_DRIVER.featureLayer.on('ready', function() {
-			MAP_DRIVER.featureLayer.addTo(MAP_DRIVER.map);
+		thisMapDriver.featureLayer.on('ready', function() {
+			thisMapDriver.featureLayer.addTo(thisMapDriver.map);
 			
-			if(!MAP_DRIVER.drawControl) {
-				MAP_DRIVER.drawControl = new L.Control.Draw({
+			if(!thisMapDriver.drawControl) {
+				thisMapDriver.drawControl = new L.Control.Draw({
 					draw: {
 						polyline: false,
 						rectangle: false,
 						circle: false,
-						marker: false
+						marker: true
 					},
 					edit: {
-						featureGroup: MAP_DRIVER.featureLayer
+						featureGroup: thisMapDriver.featureLayer
 					}
-				}).addTo(MAP_DRIVER.map);
+				}).addTo(thisMapDriver.map);
 			}
 			
-			MAP_DRIVER.map.on('draw:created', function(e) {
-				MAP_DRIVER.featureLayer.addLayer(e.layer);
+			thisMapDriver.map.on('draw:created', function(e) {
+				thisMapDriver.featureLayer.addLayer(e.layer);
 				console.log(e);
 			});
 			
-			MAP_DRIVER.map.on('draw:deleted', function(e) {
+			thisMapDriver.map.on('draw:deleted', function(e) {
 				var layers = e.layers;
 				layers.eachLayer(function(layer) {
-					if(MAP_DRIVER.featureLayer.hasLayer(layer._leaflet_id + 1)) {
-						console.log(MAP_DRIVER.featureLayer.removeLayer(layer._leaflet_id + 1));
+					if(thisMapDriver.featureLayer.hasLayer(layer._leaflet_id + 1)) {
+						console.log(thisMapDriver.featureLayer.removeLayer(layer._leaflet_id + 1));
 					}
 				});
 			});
@@ -254,15 +148,17 @@ MapDriver.prototype.loadFeatureLayer = function() {
 }
 
 MapDriver.prototype.loadJSON = function(jsonData) {
+	var thisMapDriver = this;
+	
 	multiPolygonsToPolygons(jsonData);
 	this.featureLayer.setGeoJSON(jsonData);
-	centerMap(jsonData);
+	centerMap(jsonData, thisMapDriver);
 	
 	var feature = jsonData.features[0];
 	var title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
-	MAP_DRIVER.map.legendControl.removeLegend(MAP_DRIVER.title);
-	MAP_DRIVER.title = "<strong>" + title + "</strong>";
-	MAP_DRIVER.map.legendControl.addLegend(MAP_DRIVER.title);
+	this.map.legendControl.removeLegend(this.title);
+	this.title = "<strong>" + title + "</strong>";
+	this.map.legendControl.addLegend(this.title);
 	
 	return;
 }
@@ -290,7 +186,7 @@ MapDriver.prototype.saveMap = function() {
 		var auCodePath = getValueText("#au-codepath");
 		var startDate = getValueText("#start-date");
 		var endDate = getValueText("#end-date");
-		var auParent = MAP_DRIVER.parent;
+		var auParent = thisMapDriver.parent;
 		
 		var dateTokens = validDate(startDate);
 		if(startDate == "today") {
@@ -449,21 +345,11 @@ MapDriver.prototype.upload = function() {
 		setTextValue("#start-date", properties.startDate);
 		setTextValue("#end-date", properties.endDate);
 		
-		PARENT_TREE.resetIsAboutList();
-		AU_COMPOSITE_TREE.resetIsAboutList();
-		
 		var i;
 		var parentGID = properties.parentGid;
-		if(parentGID) {
-			//for(i = 0; i < parentGID.length; i++) {
-			//	console.log(parentGID[i]);
-			//	AU_COMPOSITE_TREE.clickIsAboutByValue(parentGID[i]);
-			//}
-			console.log(parentGID);
-			PARENT_TREE.clickIsAboutByValue(parentGID);
-		}
+		console.log(parentGID);
 		
-		MAP_DRIVER.loadJSON(jsonData);
+		thisMapDriver.loadJSON(jsonData);
 	});
 	
 	var fileString = fileReader.readAsText(file);
@@ -497,109 +383,7 @@ MapDriver.prototype.removeAUComponent = function(gID) {
 }
 
 /* Helper Functions */
-function getIDFromURI(URI) {
-	var components = URI.split('/');
-	var id = components[components.length - 1];
-	
-	return id;
-}
-
-function multiPolygonsToPolygons(geoJSON) {
-	var features = geoJSON.features;
-	var count = features.length;
-	
-	for(var i = 0; i < count; i++) {
-		if(features[i].geometry.type == "MultiPolygon") {
-			var properties = features[i].properties;
-			//properties.description = properties.name;
-			
-			for(var j = 0; j < features[i].geometry.coordinates.length; j++) {
-				features.push({"type": "Feature", "geometry": {"type": "Polygon", "coordinates": null}, "properties": properties});
-				var addedFeature = features[features.length - 1];
-				addedFeature.geometry.coordinates = features[i].geometry.coordinates[j];
-			}
-			
-			features.splice(i, 1);
-			i--;
-		}
-	}
-	
-	return geoJSON;
-}
-
-function validDate(dateString) {
-	var date = new Date(dateString);
-	
-	if(date.valueOf()) {
-		var tokens;
-		
-		if(dateString.search("-") != -1) {
-			tokens = dateString.split("-");
-		}
-		else {
-			tokens = dateString.split("/");
-		}
-		
-		return tokens.length;
-	}
-	
-	return 0;
-}
-
-function toServerDate(inputDate, fields) {
-	var serverDate = "";
-	
-	serverDate = serverDate.concat(inputDate.getUTCFullYear());
-	
-	if(fields > 1) {
-		serverDate = serverDate.concat("-");
-		
-		if(inputDate.getUTCMonth() < 9) {
-			serverDate = serverDate.concat("0");
-		}
-		
-		serverDate = serverDate.concat((inputDate.getUTCMonth() + 1));
-		
-		if(fields > 2) {
-			serverDate = serverDate.concat("-");
-			
-			if(inputDate.getUTCDate() < 10) {
-				serverDate = serverDate.concat("0");
-			}
-			
-			serverDate = serverDate.concat(inputDate.getUTCDate());
-		}
-	}
-	
-	return serverDate;
-}
-
-function setTextValue(selector, input) {
-	$(selector).text(input);
-	$(selector).val(input);
-	
-	return;
-}
-
-function getValueText(selector) {
-	var value = $(selector).val();
-	
-	if(value == "") {
-		return $(selector).text();
-	}
-	
-	return value;
-}
-
-function getURLParameterByName(name) {
-	name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-	var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-		results = regex.exec(location.search);
-	
-	return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-}
-
-function centerMap(geoJSON) {
+function centerMap(geoJSON, thisMapDriver) {
 	var geometry = geoJSON.features[0].geometry;
 	
 	if(!geometry) {
@@ -644,5 +428,5 @@ function centerMap(geoJSON) {
 	var northEast = L.latLng(maxLat, maxLng);
 	var bounds = L.latLngBounds(southWest, northEast);
 	
-	return MAP_DRIVER.map.fitBounds(bounds);
+	return thisMapDriver.map.fitBounds(bounds);
 }

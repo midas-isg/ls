@@ -11,7 +11,7 @@
 
 #result table tbody {
 	overflow: auto;
-	max-height: 300px;
+	max-height: 500px;
 }
 
 #result table tr {
@@ -29,5 +29,20 @@
 #result table thead tr th {
 	padding: 0px;
 	border-bottom: 0px;
-	width: 33%;
+}
+
+#result table thead .location-col {
+	width: 38%;
+}
+
+#result table tbody .location-col {
+	width: 40%;
+}
+
+#result table .type-col {
+	width: 20%;
+}
+
+#result table .within-col {
+	width: 40%;
 }
