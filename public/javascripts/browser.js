@@ -239,6 +239,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		var children = feature.properties.children;
 		show = false;
 		var show2 = false;
+		var show3 = false;
 		if(children.length > 0) {
 			//console.log(children);
 			//auName = children[0].name;
@@ -257,13 +258,21 @@ MapDriver.prototype.loadFeatureLayer = function() {
 					$("#au-epidemic-zones").append("<a href='./browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
 					show = true;
 				}
-				else /* if(children[i].locationTypeName != "Epidemic Zone") */ {
+				else if(children[i].locationTypeName == "Census Tract") {
 					if(show2) {
+						$("#census-tract").append("; ");
+					}
+					
+					$("#census-tract").append("<a href='./browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
+					show2 = true;
+				}
+				else /* if(children[i].locationTypeName != "Epidemic Zone") */ {
+					if(show3) {
 						$("#au-children").append("; ");
 					}
 					
 					$("#au-children").append("<a href='./browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
-					show2 = true;
+					show3 = true;
 				}
 			}
 			
@@ -272,6 +281,10 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			}
 			
 			if(show2) {
+				$("#census-tract").show();
+			}
+			
+			if(show3) {
 				$("#au-children").show();
 			}
 		}

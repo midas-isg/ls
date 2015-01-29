@@ -1,11 +1,14 @@
 var crudPath = context + '/resources/aus';
 
 function MapDriver() {
-	var id = '12';
-	this.title = '<strong>Sierra Leone</strong> 0001-01-01 to now';
+	var id = '';//'12';
+	this.title = "";//"<strong>Sierra Leone</strong> 0001-01-01 to now";
 	this.mapID = id;//'tps23.k1765f0g';
-	this.geoJSONURL = crudPath + "/" + id;
-	//"http://tps23-nb.univ.pitt.edu/test.json";
+	if(this.mapID) {
+		this.geoJSONURL = crudPath + "/" + id;
+		//"http://tps23-nb.univ.pitt.edu/test.json";
+	}
+	
 	this.accessToken = 'pk.eyJ1IjoidHBzMjMiLCJhIjoiVHEzc0tVWSJ9.0oYZqcggp29zNZlCcb2esA';
 	this.featureLayer = null;
 	this.map = null;
@@ -32,6 +35,7 @@ MapDriver.prototype.initialize = function() {
 
 MapDriver.prototype.loadFeatureLayer = function() {
 	var thisMapDriver = this;
+	var noLoad = false;
 	
 	if(this.geoJSONURL) {
 		this.featureLayer = L.mapbox.featureLayer().loadURL(this.geoJSONURL);
@@ -39,40 +43,47 @@ MapDriver.prototype.loadFeatureLayer = function() {
 	else if(this.mapID) {
 		this.featureLayer = L.mapbox.featureLayer().loadID(this.mapID);
 	}
+	else {
+		this.featureLayer = L.mapbox.featureLayer();
+		noLoad = true;
+	}
 	
 	this.featureLayer.on('ready', function() {
-		thisMapDriver.loadJSON(thisMapDriver.featureLayer.getGeoJSON());
+		var geoJSON = thisMapDriver.featureLayer.getGeoJSON();
+		thisMapDriver.loadJSON(geoJSON);
 		
 		thisMapDriver.featureLayer.addTo(thisMapDriver.map);
 		
-		var feature = thisMapDriver.featureLayer.getGeoJSON().features[0];
-		
-		centerMap(thisMapDriver.featureLayer.getGeoJSON(), thisMapDriver);
-		
-		thisMapDriver.mapID = thisMapDriver.featureLayer.getGeoJSON().id;
-		setTextValue("#au-name", feature.properties.name);
-		setTextValue("#au-code", feature.properties.code);
-		setTextValue("#au-codepath", feature.properties.codePath);
-		setTextValue("#start-date", feature.properties.startDate);
-		setTextValue("#end-date", feature.properties.endDate);
-		
-		var i;
-		var parentGID = feature.properties.parentGid;
-		console.log(parentGID);
-		
-		setTextValue("#gid", feature.properties.gid);
-		feature.properties.title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
-		
-		if(feature.properties.endDate) {
-			feature.properties.title = feature.properties.title + " to " + feature.properties.endDate;
+		if(geoJSON) {
+			var feature = thisMapDriver.featureLayer.getGeoJSON().features[0];
+			
+			centerMap(thisMapDriver.featureLayer.getGeoJSON(), thisMapDriver);
+			
+			thisMapDriver.mapID = thisMapDriver.featureLayer.getGeoJSON().id;
+			setTextValue("#au-name", feature.properties.name);
+			setTextValue("#au-code", feature.properties.code);
+			setTextValue("#au-codepath", feature.properties.codePath);
+			setTextValue("#start-date", feature.properties.startDate);
+			setTextValue("#end-date", feature.properties.endDate);
+			
+			var i;
+			var parentGID = feature.properties.parentGid;
+			console.log(parentGID);
+			
+			setTextValue("#gid", feature.properties.gid);
+			feature.properties.title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
+			
+			if(feature.properties.endDate) {
+				feature.properties.title = feature.properties.title + " to " + feature.properties.endDate;
+			}
+			else {
+				feature.properties.title += " to present";
+			}
+			
+			thisMapDriver.map.legendControl.removeLegend(thisMapDriver.title);
+			thisMapDriver.title = "<strong>" + feature.properties.title + "</strong>";
+			thisMapDriver.map.legendControl.addLegend(thisMapDriver.title);
 		}
-		else {
-			feature.properties.title += " to present";
-		}
-		
-		thisMapDriver.map.legendControl.removeLegend(thisMapDriver.title);
-		thisMapDriver.title = "<strong>" + feature.properties.title + "</strong>";
-		thisMapDriver.map.legendControl.addLegend(thisMapDriver.title);
 		
 		if(!thisMapDriver.drawControl) {
 			thisMapDriver.drawControl = new L.Control.Draw({
@@ -144,21 +155,27 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		});
 	});
 	
+	if(noLoad) {
+		this.featureLayer.fireEvent("ready");
+	}
+	
 	return;
 }
 
 MapDriver.prototype.loadJSON = function(jsonData) {
-	var thisMapDriver = this;
-	
-	multiPolygonsToPolygons(jsonData);
-	this.featureLayer.setGeoJSON(jsonData);
-	centerMap(jsonData, thisMapDriver);
-	
-	var feature = jsonData.features[0];
-	var title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
-	this.map.legendControl.removeLegend(this.title);
-	this.title = "<strong>" + title + "</strong>";
-	this.map.legendControl.addLegend(this.title);
+	if(jsonData) {
+		var thisMapDriver = this;
+		
+		multiPolygonsToPolygons(jsonData);
+		this.featureLayer.setGeoJSON(jsonData);
+		centerMap(jsonData, thisMapDriver);
+		
+		var feature = jsonData.features[0];
+		var title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
+		this.map.legendControl.removeLegend(this.title);
+		this.title = "<strong>" + title + "</strong>";
+		this.map.legendControl.addLegend(this.title);
+	}
 	
 	return;
 }

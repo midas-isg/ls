@@ -10,35 +10,37 @@ function getIDFromURI(URI) {
 }
 
 function multiPolygonsToPolygons(geoJSON) {
-	var features = geoJSON.features;
-	var count = features.length;
-	
-	var i;
-	var j;
-	for(i = 0; i < count; i++) {
-		if(features[i].geometry.type == "MultiPolygon") {
-			var properties = features[i].properties;
-			properties.description = properties.name;
-			
-			for(j = 0; j < features[i].geometry.coordinates.length; j++) {
-				features.push({"type": "Feature", "geometry": {"type": "Polygon", "coordinates": null}, "properties": properties});
-				var addedFeature = features[features.length - 1];
-				addedFeature.geometry.coordinates = features[i].geometry.coordinates[j];
+	if(geoJSON) {
+		var features = geoJSON.features;
+		var count = features.length;
+		
+		var i;
+		var j;
+		for(i = 0; i < count; i++) {
+			if(features[i].geometry.type == "MultiPolygon") {
+				var properties = features[i].properties;
+				properties.description = properties.name;
+				
+				for(j = 0; j < features[i].geometry.coordinates.length; j++) {
+					features.push({"type": "Feature", "geometry": {"type": "Polygon", "coordinates": null}, "properties": properties});
+					var addedFeature = features[features.length - 1];
+					addedFeature.geometry.coordinates = features[i].geometry.coordinates[j];
+				}
+				
+				features.splice(i, 1);
+				i--;
+				count = features.length;
 			}
-			
-			features.splice(i, 1);
-			i--;
-			count = features.length;
 		}
-	}
-	
-	try {
-		console.log(geoJSON);
-		var JSONString = JSON.stringify(geoJSON);
-		JSON.parse(JSONString);
-	}
-	catch(error) {
-		alert(error);
+		
+		try {
+			console.log(geoJSON);
+			var JSONString = JSON.stringify(geoJSON);
+			JSON.parse(JSONString);
+		}
+		catch(error) {
+			alert(error);
+		}
 	}
 	
 	return geoJSON;
@@ -123,7 +125,7 @@ function listLineageRefs(lineage, sectionID) {
 	var show;
 	
 	show = false;
-	if(lineage.length > 0) {
+	if(lineage && (lineage.length > 0)) {
 		$(sectionID).show();
 		
 		for(i = (lineage.length - 1); i >= 0; i--) {

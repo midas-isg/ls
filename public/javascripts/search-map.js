@@ -1,4 +1,3 @@
-var crudPath = context + '/resources/aus';
 var SEARCH_MAP = null;
 var MAP_DRIVER = null;
 
@@ -8,6 +7,7 @@ $(document).ready(function() {
 	//override
 	MapDriver.prototype.loadFeatureLayer = function() {
 		var thisMapDriver = this;
+		var noLoad = false;
 		
 		if(this.geoJSONURL) {
 			this.featureLayer = L.mapbox.featureLayer().loadURL(this.geoJSONURL);
@@ -15,48 +15,55 @@ $(document).ready(function() {
 		else if(this.mapID) {
 			this.featureLayer = L.mapbox.featureLayer().loadID(this.mapID);
 		}
+		else {
+			this.featureLayer = L.mapbox.featureLayer();
+			noLoad = true;
+		}
 		
 		this.featureLayer.on('ready', function() {
-			thisMapDriver.loadJSON(thisMapDriver.featureLayer.getGeoJSON());
+			var geoJSON = thisMapDriver.featureLayer.getGeoJSON();
+			thisMapDriver.loadJSON(geoJSON);
 			
 			thisMapDriver.featureLayer.addTo(thisMapDriver.map);
 			
-			var feature = thisMapDriver.featureLayer.getGeoJSON().features[0];
-			
-			centerMap(thisMapDriver.featureLayer.getGeoJSON(), thisMapDriver);
-			
-			thisMapDriver.mapID = thisMapDriver.featureLayer.getGeoJSON().id;
-			setTextValue("#au-name", feature.properties.name);
-			setTextValue("#au-code", feature.properties.code);
-			setTextValue("#au-codepath", feature.properties.codePath);
-			setTextValue("#start-date", feature.properties.startDate);
-			setTextValue("#end-date", feature.properties.endDate);
-			//PARENT_TREE.resetIsAboutList();
-			//AU_COMPOSITE_TREE.resetIsAboutList();
-			
-			var i;
-			var parentGID = feature.properties.parentGid;
-			if(parentGID) {
-				//for(i = 0; i < parentGID.length; i++) {
-				//	AU_COMPOSITE_TREE.clickIsAboutByValue(parentGID[i]);
-				//}
+			if(geoJSON) {
+				var feature = thisMapDriver.featureLayer.getGeoJSON().features[0];
 				
-				//PARENT_TREE.clickIsAboutByValue(parentGID);
+				centerMap(thisMapDriver.featureLayer.getGeoJSON(), thisMapDriver);
+				
+				thisMapDriver.mapID = thisMapDriver.featureLayer.getGeoJSON().id;
+				setTextValue("#au-name", feature.properties.name);
+				setTextValue("#au-code", feature.properties.code);
+				setTextValue("#au-codepath", feature.properties.codePath);
+				setTextValue("#start-date", feature.properties.startDate);
+				setTextValue("#end-date", feature.properties.endDate);
+				//PARENT_TREE.resetIsAboutList();
+				//AU_COMPOSITE_TREE.resetIsAboutList();
+				
+				var i;
+				var parentGID = feature.properties.parentGid;
+				if(parentGID) {
+					//for(i = 0; i < parentGID.length; i++) {
+					//	AU_COMPOSITE_TREE.clickIsAboutByValue(parentGID[i]);
+					//}
+					
+					//PARENT_TREE.clickIsAboutByValue(parentGID);
+				}
+				
+				setTextValue("#gid", feature.properties.gid);
+				feature.properties.title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
+				
+				if(feature.properties.endDate) {
+					feature.properties.title = feature.properties.title + " to " + feature.properties.endDate;
+				}
+				else {
+					feature.properties.title += " to present";
+				}
+				
+				thisMapDriver.map.legendControl.removeLegend(thisMapDriver.title);
+				thisMapDriver.title = "<strong>" + feature.properties.title + "</strong>";
+				thisMapDriver.map.legendControl.addLegend(thisMapDriver.title);
 			}
-			
-			setTextValue("#gid", feature.properties.gid);
-			feature.properties.title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
-			
-			if(feature.properties.endDate) {
-				feature.properties.title = feature.properties.title + " to " + feature.properties.endDate;
-			}
-			else {
-				feature.properties.title += " to present";
-			}
-			
-			thisMapDriver.map.legendControl.removeLegend(thisMapDriver.title);
-			thisMapDriver.title = "<strong>" + feature.properties.title + "</strong>";
-			thisMapDriver.map.legendControl.addLegend(thisMapDriver.title);
 			
 			if(!thisMapDriver.drawControl) {
 				thisMapDriver.drawControl = new L.Control.Draw({
@@ -144,6 +151,10 @@ $(document).ready(function() {
 				});
 			});
 		});
+		
+		if(noLoad) {
+			this.featureLayer.fireEvent("ready");
+		}
 		
 		return;
 	}
