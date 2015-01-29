@@ -51,8 +51,10 @@ function searchClick() {
 
 function searchPoint(latitude, longitude) {
 	var url = pointURL + "?lat=" + latitude + "&long=" + longitude;
-	var result = $("#result"); 
+	var result = $("#result");
 	result.text("Please wait ...");
+	
+	$("#input").val("latitude: " + latitude + ", longitude: " + longitude);
 	
 	$.ajax({
 		url: url,
@@ -80,10 +82,9 @@ function updateOutput(data, status, result) {
 	var features = geoJSON.features;
 	var size = data.properties.resultSize;
 	
-	$("#result-count").text(size + " result(s)");
-	
 	if(size > 0) {
 		var appendString = "<table class='table table-condensed' style='margin-bottom: 0px;'>";
+		appendString += "<caption id='result-count'>" + size + " result(s) from searching " + $('#input').val() + "</caption>";
 		appendString += "<thead>";
 		appendString += "<th class='location-col'>Location</th>";
 		appendString += "<th class='type-col'>Type</th>";
