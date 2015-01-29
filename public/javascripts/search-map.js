@@ -74,9 +74,9 @@ $(document).ready(function() {
 						circle: false,
 						marker: true
 					},
-					edit: {
+					edit: false /*{
 						featureGroup: thisMapDriver.featureLayer
-					}
+					}*/
 				}).addTo(thisMapDriver.map);
 			}
 			

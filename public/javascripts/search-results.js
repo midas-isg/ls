@@ -36,6 +36,7 @@ function searchClick() {
 		type: 'GET',
 		success: function(data, status) {
 			updateOutput(data, status, result);
+			$("#result-count").append("<strong>" + $("#input").val() + "</strong>");
 			
 			return;
 		},
@@ -54,13 +55,12 @@ function searchPoint(latitude, longitude) {
 	var result = $("#result");
 	result.text("Please wait ...");
 	
-	$("#input").val("latitude: " + latitude + ", longitude: " + longitude);
-	
 	$.ajax({
 		url: url,
 		type: 'GET',
 		success: function(data, status) {
 			updateOutput(data, status, result);
+			$("#result-count").append("<strong>latitude: " + latitude + ", longitude: " + longitude + "</strong>");
 			
 			return;
 		},
@@ -82,9 +82,10 @@ function updateOutput(data, status, result) {
 	var features = geoJSON.features;
 	var size = data.properties.resultSize;
 	
+	var appendString = "<table class='table table-condensed pre-spaced' style='margin-bottom: 0px;'>";
+	appendString += "<caption id='result-count'>" + size + " result(s) from searching </caption>";
+	
 	if(size > 0) {
-		var appendString = "<table class='table table-condensed' style='margin-bottom: 0px;'>";
-		appendString += "<caption id='result-count'>" + size + " result(s) from searching " + $('#input').val() + "</caption>";
 		appendString += "<thead>";
 		appendString += "<th class='location-col'>Location</th>";
 		appendString += "<th class='type-col'>Type</th>";
@@ -128,6 +129,10 @@ function updateOutput(data, status, result) {
 				resultBody.append(appendString);
 			}
 		}
+	}
+	else {
+		appendString += "</table>";
+		result.append(appendString);
 	}
 	
 	return;

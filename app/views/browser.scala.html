@@ -9,28 +9,20 @@
 	<script src='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet-omnivore-0.2.0.min.js")'></script>
 	
 	<script src='@routes.Assets.at("javascripts/browser.js")'></script>
-	<script src='@routes.Assets.at("javascripts/searchbar.js")'></script>
 	
-	<link href='@routes.Assets.at("external_packages/MapBox/mapbox-2.0.1.css")' rel='stylesheet'/>
-	<link href='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet.draw-0.2.2.css")' rel='stylesheet'/>
-	<link href='@routes.Assets.at("external_packages/jqGrid-4.6.0/css/jquery-ui-1.11.1.custom/jquery-ui.min.css")' rel='stylesheet' />
+	<link href='@routes.Assets.at("external_packages/MapBox/mapbox-2.0.1.css")' rel='stylesheet'>
+	<link href='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet.draw-0.2.2.css")' rel='stylesheet'>
 	
-	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'/>
-	<link rel='stylesheet' href='@routes.Assets.at("stylesheets/search.css")'/>
+	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'>
 }
 
 @main(message, imports) {
 	<div>
-		@searchbar()
-		
 		<div id="header-data" hidden>
 			<h2 style="clear: both;">
 				<div id="au-name" class="pull-left"></div>
+				<div id="au-location-type"></div>
 			</h2>
-			
-			<div id="au-location-type" class="data-container extra-bottom-space">
-				<em class="pull-left">Location type:</em>
-			</div>
 			
 			<div id="au-lineage" class="data-container extra-bottom-space" hidden>
 				<em class="pull-left">Located within:</em>
