@@ -53,7 +53,7 @@ function searchClick() {
 function searchPoint(latitude, longitude) {
 	var url = pointURL + "?lat=" + latitude + "&long=" + longitude;
 	var result = $("#result");
-	result.text("Please wait ...");
+	result.text("Please wait...");
 	
 	$.ajax({
 		url: url,
@@ -65,7 +65,8 @@ function searchPoint(latitude, longitude) {
 			return;
 		},
 		error: function(data, status) {
-			result.text("Error: " + status);
+			result.text(status + ": " + data.statusText);
+			result.append(data.responseText);
 			
 			return;
 		}
