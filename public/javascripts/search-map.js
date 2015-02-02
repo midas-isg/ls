@@ -74,9 +74,9 @@ $(document).ready(function() {
 						circle: false,
 						marker: true
 					},
-					edit: {
+					edit: false /*{
 						featureGroup: thisMapDriver.featureLayer
-					}
+					}*/
 				}).addTo(thisMapDriver.map);
 			}
 			
@@ -167,23 +167,25 @@ $(document).ready(function() {
 	}
 	initialize();
 	
+	/*
 	$.get(url, function(data, status) {
 		treeData = data;
 		//console.log(data);
 		
 		//initialize defined here
 		
-		/*
-		PARENT_TREE.initInteractBetweenTreeAndTable("parent-list", function() {
-			AU_COMPOSITE_TREE.initInteractBetweenTreeAndTable("au-list", initialize());
-			
-			return;
-		});
-		*/
+		
+		//PARENT_TREE.initInteractBetweenTreeAndTable("parent-list", function() {
+		//	AU_COMPOSITE_TREE.initInteractBetweenTreeAndTable("au-list", initialize());
+		//	
+		//	return;
+		//});
+		
 		//initialize();
 		
 		return;
 	});
+	*/
 	
 	return;
 });

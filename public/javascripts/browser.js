@@ -302,7 +302,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			$("#codes").show();
 		}
 		
-		feature.properties.title = feature.properties.name + " from ";
+		feature.properties.title = feature.properties.name  + " " + feature.properties.locationTypeName + " from ";
 		feature.properties.title = feature.properties.title + feature.properties.startDate;
 		if(feature.properties.endDate) {
 			feature.properties.title = feature.properties.title + " to " + feature.properties.endDate;
