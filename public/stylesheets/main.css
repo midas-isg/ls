@@ -39,3 +39,8 @@ a:hover {
 	padding-left: 0px;
 	padding-right: 0px;
 }
+
+.nabbar-inverse .navbar-brand,
+.navbar .navbar-brand {
+	color: #ffffff;
+}
