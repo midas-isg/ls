@@ -1,0 +1,78 @@
+@(message: String)
+
+@imports = {
+	<!--<script src='https://api.tiles.mapbox.com/mapbox.js/v2.0.1/mapbox.js'></script>-->
+	<!--<script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-draw/v0.2.2/leaflet.draw.js'></script>-->
+	
+	<script src='@routes.Assets.at("external_packages/MapBox/mapbox-2.0.1.js")'></script>
+	<script src='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet.draw-0.2.2.js")'></script>
+	<script src='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet-omnivore-0.2.0.min.js")'></script>
+	<script src='@routes.Assets.at("external_packages/fancytree/jquery.fancytree.js")'></script>
+	
+	<script src='@routes.Assets.at("javascripts/create-map.js")'></script>
+	<script src='@routes.Assets.at("javascripts/map-driver.js")'></script>
+	<script src='@routes.Assets.at("javascripts/indexing-terms.js")'></script>
+	<script src='@routes.Assets.at("javascripts/parent-tree.js")'></script>
+	<script src='@routes.Assets.at("javascripts/au-composite-tree.js")'></script>
+	<script src='@routes.Assets.at("javascripts/fancytree-ext-filter.js")'></script>
+	
+	<link href='@routes.Assets.at("external_packages/MapBox/mapbox-2.0.1.css")' rel='stylesheet'/>
+	<link href='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet.draw-0.2.2.css")' rel='stylesheet'/>
+	<link href='@routes.Assets.at("external_packages/fancytree/ui.fancytree.css")' rel='stylesheet'/>
+	
+	<link href='@routes.Assets.at("stylesheets/fancytree-ext.css")' rel='stylesheet'/>
+	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'/>
+}
+
+@main(message, imports) {
+	<div style="padding-left: 2%;">
+		<div class="pull-left">
+			<div>
+				<button id="new-button">New Location</button>
+				<div><em>ID:</em><input id="gid" type="text" placeholder="ID"><button id="db-load-button">Load from database</button></div>
+				<div><em>Name:</em><input type="text" id="au-name" placeholder="Name"></div>
+				<div><em>Code:</em> <input id="au-code" placeholder="Code"></div>
+				<div><em>Code path:</em> <input id="au-codepath" placeholder="Code path"></div>
+				<div><em>Start date:</em> <input id="start-date" placeholder="Start date"></div>
+				<div><em>End date:</em> <input id="end-date" placeholder="End date"><button id="save-button">Save to Database</button></div>
+			</div>
+			
+			<div>
+				<div id="map-one" class="map"></div>
+				
+				<div style="clear: both;">
+					<div>
+						<input id="json-input" accept=".json, .geojson, .kml" type="file" style="float: left;">
+						<button id="upload-button" style="float: left;">Upload from file</button>
+					</div>
+					<button id="download-button">Download</button>
+				</div>
+			</div>
+		</div>
+		
+		<div>
+			<div id="parent-list" class="pull-left pre-spaced">
+					<div>
+						<legend><em>Encompassing Location ID:</em></legend>
+						<label>Filter:</label>
+						<input name="search" placeholder="Filter...">
+						<button id="resetParentSearchButton">&times;</button>
+						<span id="parent-matches"></span>
+					</div>
+					<div id="parent-tree" style="padding-top: 5px"></div>
+			</div>
+			
+			<div id="au-list" class="pull-left" hidden>
+					<div>
+						<legend><em>AU Component IDs:</em></legend>
+						<label>Filter:</label>
+						<input name="au-search" placeholder="Filter...">
+						<button id="resetCompositeSearchButton">&times;</button>
+						<span id="composite-matches"></span>
+					</div>
+					<div id="au-composite-tree" style="padding-top: 5px"></div>
+					<button id="composite-button">Build Composite</button>
+			</div>
+		</div>
+	</div>
+}

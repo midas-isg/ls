@@ -14,11 +14,16 @@ public class Application extends Controller {
 	
 	@Transactional
 	public static Result concept() {
-		return ok(views.html.index.render("apollo location services"));
+		return ok(views.html.concept.render("apollo location services"));
 	}
 	
 	@Transactional
 	public static Result browser() {
 		return ok(views.html.browser.render("apollo location browser"));
+	}
+	
+	@Transactional
+	public static Result create() {
+		return ok(views.html.create.render("apollo location creator"));
 	}
 }
