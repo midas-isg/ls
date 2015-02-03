@@ -273,6 +273,7 @@ public class LocationRule {
 		au.setGeometry(createLocationGeometry(fc, au));
 		String name = getString(fc, "name");
 		data.setName(name);
+		data.setDescription(getString(fc, "description"));
 		String date = getString(fc, "startDate");
 		Date startDate = newDate(date);
 		data.setStartDate(startDate);
