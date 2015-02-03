@@ -62,7 +62,6 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			thisMapDriver.mapID = thisMapDriver.featureLayer.getGeoJSON().id;
 			setTextValue("#au-name", feature.properties.name);
 			setTextValue("#au-code", feature.properties.code);
-			setTextValue("#au-codepath", feature.properties.codePath);
 			setTextValue("#start-date", feature.properties.startDate);
 			setTextValue("#end-date", feature.properties.endDate);
 			
@@ -167,6 +166,7 @@ MapDriver.prototype.loadJSON = function(jsonData) {
 		var thisMapDriver = this;
 		
 		multiPolygonsToPolygons(jsonData);
+		
 		this.featureLayer.setGeoJSON(jsonData);
 		centerMap(jsonData, thisMapDriver);
 		
@@ -195,15 +195,16 @@ MapDriver.prototype.saveMap = function() {
 	var data = this.featureLayer.toGeoJSON();
 	data.id = this.mapID;
 	
-	function formatGeoJSON(geoJSON) {
+	function formatGeoJSON(geoJSON, thisMapDriver) {
 		var i;
 		var geometry;
 		var auName = getValueText("#au-name");
+		var auType = getValueText("#au-type");
 		var auCode = getValueText("#au-code");
-		var auCodePath = getValueText("#au-codepath");
+		var auCodeType = getValueText("#au-codetype");
 		var startDate = getValueText("#start-date");
 		var endDate = getValueText("#end-date");
-		var auParent = thisMapDriver.parent;
+		var auParentGID = thisMapDriver.parent;
 		
 		var dateTokens = validDate(startDate);
 		if(startDate == "today") {
@@ -239,32 +240,41 @@ MapDriver.prototype.saveMap = function() {
 		}
 		
 		if(auName.length == 0) {
-			alert("Please enter the Administrative Unit's name");
+			alert("Please enter the name");
 			
 			return  null;
 		}
 		
+		if(auType.length == 0) {
+			alert("Please enter the location type");
+			
+			return  null;
+		}
+		
+		/*
 		if(auCode.length == 0) {
-			alert("Please enter the Administrative Unit's code");
+			alert("Please enter the code");
 			
 			return null;
 		}
 		
-		if(auCodePath.length == 0) {
-			alert("Please enter the Administrative Unit's codepath");
+		if(auCodeType.length == 0) {
+			alert("Please enter the code type");
 			
 			return null;
 		}
+		*/
 		
-		if(auParent.length == 0) {
-			auParent = null;
+		if(!auParentGID || (auParentGID.length < 1)) {
+			alert("Please select an encompassing location");
+			auParentGID = null;
 		}
 		
 		for(i = 0; i < geoJSON.features.length; i++) {
 			geoJSON.features[i].properties["name"] = auName;
-			geoJSON.features[i].properties["code"] = auCode;
-			geoJSON.features[i].properties["codePath"] = auCodePath;
-			geoJSON.features[i].properties["parent"] = auParent;
+			geoJSON.features[i].properties["type"] = auType;
+			geoJSON.features[i].properties["codes"] = [{"code": auCode, "codeTypeName": auCodeType}];
+			geoJSON.features[i].properties["parent"] = auParentGID;
 			geoJSON.features[i].properties["startDate"] = startDate;
 			geoJSON.features[i].properties["endDate"] = endDate;
 			
@@ -279,7 +289,7 @@ MapDriver.prototype.saveMap = function() {
 		return geoJSON;
 	}
 	
-	if(!formatGeoJSON(data)) {
+	if(!formatGeoJSON(data, this)) {
 		return;
 	}
 	
@@ -299,6 +309,7 @@ console.log("Length: " + JSON.stringify(data).length);
 			console.log(data);
 			console.log(status);
 			setTextValue("#gid", getIDFromURI(response.getResponseHeader("Location")));
+			$("#gid").prop("disabled", true);
 		},
 		error: function(data, status) {
 			//if(data['responseJSON'] && data['responseJSON']['duplicatedUri']) {
@@ -321,7 +332,6 @@ MapDriver.prototype.download = function() {
 		properties = jsonData.features[i].properties;
 		properties.name = getValueText("#au-name");
 		properties.code = getValueText("#au-code");
-		properties.codePath = getValueText("#au-codepath");
 		properties.startDate = getValueText("#start-date");
 		properties.endDate = getValueText("#end-date");
 		properties.parentGid = this.parent;
@@ -359,7 +369,6 @@ MapDriver.prototype.upload = function() {
 		var properties = jsonData.features[0].properties;
 		setTextValue("#au-name", properties.name);
 		setTextValue("#au-code", properties.code);
-		setTextValue("#au-codepath", properties.codePath);
 		setTextValue("#start-date", properties.startDate);
 		setTextValue("#end-date", properties.endDate);
 		

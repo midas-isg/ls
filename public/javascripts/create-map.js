@@ -13,9 +13,9 @@ $(document).ready(function() {
 			AU_COMPOSITE_TREE.initInteractBetweenTreeAndTable("au-list", initialize());
 			
 			function initialize() {
-				MapDriver.loadFeatureLayer = function() {
-					var thisMapDriver = this;
-					
+				var thisMapDriver = this;
+				
+				thisMapDriver.loadFeatureLayer = function() {
 					if(this.geoJSONURL) {
 						this.featureLayer = L.mapbox.featureLayer().loadURL(this.geoJSONURL);
 					}
@@ -35,7 +35,6 @@ $(document).ready(function() {
 						thisMapDriver.mapID = thisMapDriver.featureLayer.getGeoJSON().id;
 						setTextValue("#au-name", feature.properties.name);
 						setTextValue("#au-code", feature.properties.code);
-						setTextValue("#au-codepath", feature.properties.codePath);
 						setTextValue("#start-date", feature.properties.startDate);
 						setTextValue("#end-date", feature.properties.endDate);
 						PARENT_TREE.resetIsAboutList();
@@ -142,11 +141,14 @@ $(document).ready(function() {
 				MAP_DRIVER = CREATE_MAP;
 				
 				$("#new-button").click(function() {
+					$("#gid").prop("disabled", false);
 					CREATE_MAP.mapID = Date().valueOf();
 					CREATE_MAP.featureLayer.clearLayers();
+					setTextValue("#gid", "");
 					setTextValue("#au-name", "");
+					setTextValue("#au-type", "");
 					setTextValue("#au-code", "");
-					setTextValue("#au-codepath", "");
+					setTextValue("#au-codetype", "");
 					
 					var today = new Date();
 					setTextValue("#start-date", today.getUTCFullYear() + "-" + (today.getUTCMonth() + 1) + "-" + today.getUTCDate());
@@ -172,8 +174,14 @@ $(document).ready(function() {
 					
 					if(CREATE_MAP.geoJSONURL) {
 						CREATE_MAP.featureLayer.loadURL(CREATE_MAP.geoJSONURL);
-						//CREATE_MAP.loadFeatureLayer();
 					}
+					
+					CREATE_MAP.featureLayer.on("ready", function() {
+						var feature = CREATE_MAP.featureLayer.getGeoJSON().features[0];
+						
+						$("#gid").prop("disabled", true);
+						setTextValue("#au-type", feature.properties.locationTypeName);
+					});
 					
 					return;
 				});
@@ -217,6 +225,8 @@ $(document).ready(function() {
 				
 				return;
 			}
+			
+			return;
 		});
 		
 		return;
