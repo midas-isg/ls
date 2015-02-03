@@ -344,6 +344,7 @@ MapDriver.prototype.download = function() {
 MapDriver.prototype.upload = function() {
 	var file = $('#json-input').get(0).files[0];
 	var fileReader = new FileReader();
+	var thisMapDriver = this;
 	
 	fileReader.onload = (function() {
 		var kmlData = fileReader['result'];
@@ -403,7 +404,7 @@ MapDriver.prototype.removeAUComponent = function(gID) {
 function centerMap(geoJSON, thisMapDriver) {
 	var geometry = geoJSON.features[0].geometry;
 	
-	if(!geometry) {
+	if((!geometry) ||  (geometry.type == "Point")) {
 		return;
 	}
 	
