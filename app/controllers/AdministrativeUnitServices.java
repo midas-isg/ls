@@ -99,12 +99,12 @@ Logger.debug("\n" + message + "\n");
 	
 	@Transactional
 	public static Result update() {
-		return ok(views.html.index.render("TODO: Replace w/ update service"));
+		return ok(views.html.create.render("TODO: Replace w/ update service"));
 	}
 	
 	@Transactional
 	public static Result delete() {
-		return ok(views.html.index.render("TODO: Replace w/ delete service"));
+		return ok(views.html.create.render("TODO: Replace w/ delete service"));
 	}
 	
 	@Transactional
