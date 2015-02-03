@@ -1,5 +1,6 @@
 package models.geo;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,12 +12,12 @@ public class Feature {
 	private String type;
 	private FeatureGeometry geometry;
 	private Map<String, Object> properties;
+	private String id;
+	private double[] bbox;
 	
 	public Feature() {
 		type = Feature.class.getSimpleName();
 		properties = new HashMap<>();
-		
-		return;
 	}
 	
 	public String getType() {
@@ -43,9 +44,26 @@ public class Feature {
 		this.properties = properties;
 	}
 
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public double[] getBbox() {
+		return bbox;
+	}
+
+	public void setBbox(double[] bbox) {
+		this.bbox = bbox;
+	}
+
 	@Override
 	public String toString() {
 		return "Feature [type=" + type + ", geometry=" + geometry
-				+ ", properties=" + properties + "]";
+				+ ", properties=" + properties + ", id=" + id + ", bbox="
+				+ Arrays.toString(bbox) + "]";
 	}
 }

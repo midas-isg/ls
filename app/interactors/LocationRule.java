@@ -13,6 +13,7 @@ import models.geo.Feature;
 import models.geo.FeatureCollection;
 import play.Logger;
 
+import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 
 import dao.AuDao;
@@ -25,6 +26,10 @@ import dao.entities.LocationGeometry;
 import dao.entities.LocationType;
 
 public class LocationRule {
+	public static final long PUMA_TYPE_ID = 102L;
+	public static final long COMPOSITE_LOCATION_ID = 8L;
+
+	
 	public static final long EPIDEMIC_ZONE_ID = 7L;
 	public static final long ISG_CODE_TYPE_ID = 2L;
 	
@@ -61,18 +66,23 @@ public class LocationRule {
 
 	public static FeatureCollection toFeatureCollection(List<Location> aus) {
 		FeatureCollection fc = new FeatureCollection();
-		fc.setFeatures(toFeatures(aus));
+		List<Feature> features = toFeatures(aus);
+		fc.setFeatures(features);
 		fc.setType("FeatureCollection");
-		
+		fc.setBbox(computeBbox(features));
 		return fc;
 	}
 
-	@SuppressWarnings("unused")
 	private static FeatureCollection toFeatureCollection(Location compositeAu) {
 		FeatureCollection fc = new FeatureCollection();
-		fc.setFeatures(toFeatures(compositeAu.getLocationsIncluded()));
+		List<Feature> features = toFeatures(compositeAu.getLocationsIncluded());
+		fc.setFeatures(features);
 		fc.setType("FeatureCollection");
-		
+		double[] computeBbox = computeBbox(compositeAu);
+		if (computeBbox == null)
+			computeBbox =  computeBbox(features);
+		fc.setBbox(computeBbox);
+		fc.setId(compositeAu.getGid() + "");
 		return fc;
 	}
 
@@ -94,7 +104,8 @@ public class LocationRule {
 		Map<String, Object> properties = toProperties(au);
 		Collections.sort(au.getChildren());
 		putAsLocationObjectsIfNotNull(properties, "children", au.getChildren());
-		putAsLocationObjectsIfNotNull(properties, "lineage", AuHierarchyRule.getLineage(au.getGid()));
+		putAsLocationObjectsIfNotNull(properties, "lineage", 
+				AuHierarchyRule.getLineage(au.getGid()));
 		putAsLocationObjectsIfNotNull(properties, "related", au.getRelatedLocations());
 		putAsCodeObjectsIfNotNull(properties, "codes", au);
 		feature.setProperties(properties);
@@ -102,9 +113,59 @@ public class LocationRule {
 		if (geometry != null){
 			Geometry multiPolygonGeom = geometry.getMultiPolygonGeom();
 			feature.setGeometry(GeoOutputRule.toFeatureGeometry(multiPolygonGeom));
+			feature.setBbox(computeBbox(au));
+			feature.setId(au.getGid() + "");
 		}
 		
 		return feature;
+	}
+	
+	private static double[] computeBbox(Location l) {
+		if (l == null)
+			return null;
+		LocationGeometry geometry = l.getGeometry();
+		if (geometry == null)
+			return null;
+		return computeBbox(geometry.getMultiPolygonGeom());
+	}
+	
+	private static double[] computeBbox(List<Feature> features) {
+		if (features == null || features.isEmpty())
+			return null;
+		double[] result = new double[]{ 
+				Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY,
+				Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY 
+				};
+		for(Feature f : features){
+			double[] bbox = f.getBbox();
+			if (bbox == null || bbox.length < 3)
+				continue;
+			if (result[0] > bbox[0])
+				 result[0] = bbox[0];
+			if (result[1] > bbox[1])
+				 result[1] = bbox[1];
+			if (result[2] < bbox[2])
+				 result[2] = bbox[2];
+			if (result[3] < bbox[3])
+				 result[3] = bbox[3];
+		}
+		for (double d : result){
+			if (Double.isInfinite(d))
+				return null;
+		}
+		return result;
+	}
+
+	private static double[] computeBbox(Geometry multiPolygonGeom) {
+		if (multiPolygonGeom == null)
+			return null;
+		Geometry envelope = multiPolygonGeom.getEnvelope();
+		Coordinate[] coordinates = envelope.getCoordinates();
+		Coordinate westSouth = coordinates[0];
+		Coordinate eastNorth = coordinates[2];
+		double[] bbox = new double[]{westSouth.x, westSouth.y, 
+				eastNorth.x, eastNorth.y};
+		return bbox;
 	}
 
 	private static void putAsCodeObjectsIfNotNull(Map<String, Object> properties,
@@ -132,7 +193,9 @@ public class LocationRule {
 		}
 	}
 
-	private static void putAsLocationObjectsIfNotNull(Map<String, Object> properties, String key, List<Location> locations) {
+	private static void putAsLocationObjectsIfNotNull(
+			Map<String, Object> properties, String key, 
+			List<Location> locations) {
 		if (locations == null)
 			return;
 		List<Map<String, Object>> list = new ArrayList<>();
@@ -226,7 +289,8 @@ public class LocationRule {
 		return au;
 	}
 
-	private static LocationGeometry createLocationGeometry(FeatureCollection fc, Location l) {
+	private static LocationGeometry createLocationGeometry(
+			FeatureCollection fc, Location l) {
 		LocationGeometry lg = new LocationGeometry();
 		lg.setMultiPolygonGeom(GeoInputRule.toMultiPolygon(fc));
 		lg.setLocation(l);
@@ -251,6 +315,11 @@ public class LocationRule {
 
 	public static FeatureCollection getFeatureCollection(long gid) {
 		Location au = findByGid(gid);
+		long locationTypeId = au.getData().getLocationType().getId();
+		if (locationTypeId == PUMA_TYPE_ID 
+				|| locationTypeId == COMPOSITE_LOCATION_ID){
+			return toFeatureCollection(au);
+		}
 		List<Location> list = new ArrayList<>();
 		list.add(au);
 		return toFeatureCollection(list);
