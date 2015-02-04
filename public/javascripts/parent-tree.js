@@ -8,7 +8,7 @@ PARENT_TREE.initTree = function(picklistName, callbackFunction) {
 				mode: "hide"
 			},
 			checkbox: true,
-			selectMode: 2,
+			selectMode: 1,
 			source: data,
 			click: function(event, data) {
 				var node = data.node;
