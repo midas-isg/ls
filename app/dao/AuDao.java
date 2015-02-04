@@ -24,12 +24,12 @@ import dao.entities.LocationGeometry;
 
 public class AuDao {
 	private static final int SRID =  4326;
-	public Long create(Location au) {
+	public Long create(Location location) {
 		EntityManager em = JPA.em();
-		LocationGeometry geometry = prepareGeometry(au);
+		LocationGeometry geometry = prepareGeometry(location);
 		em.persist(geometry);
-		em.persist(au);
-		Long gid = au.getGid();
+		em.persist(location);
+		Long gid = location.getGid();
 		Logger.debug("persisted " + gid);
 		return gid;
 	}
@@ -46,20 +46,20 @@ public class AuDao {
 		return result;
 	}
 
-	public Long update(Location au) {
+	public Long update(Location location) {
 		EntityManager em = JPA.em();
-		LocationGeometry geometry = prepareGeometry(au);
+		LocationGeometry geometry = prepareGeometry(location);
 		em.merge(geometry);
-		em.merge(au);
-		Long gid = au.getGid();
+		em.merge(location);
+		Long gid = location.getGid();
 		Logger.debug("merged " + gid);
 		return gid;
 	}
 
-	private LocationGeometry prepareGeometry(Location l) {
-		LocationGeometry geometry = l.getGeometry();
+	private LocationGeometry prepareGeometry(Location location) {
+		LocationGeometry geometry = location.getGeometry();
 		setSridToDefault(geometry);
-		geometry.setLocation(l);
+		geometry.setLocation(location);
 		return geometry;
 	}
 
@@ -67,10 +67,10 @@ public class AuDao {
 		geo.getMultiPolygonGeom().setSRID(SRID);
 	}
 
-	public Long delete(Location au) {
+	public Long delete(Location location) {
 		EntityManager em = JPA.em();
-		Long gid = au.getGid();
-		em.remove(au);
+		Long gid = location.getGid();
+		em.remove(location);
 		Logger.debug("removed " + gid);
 		return gid;
 	}
@@ -149,35 +149,35 @@ public class AuDao {
 	private List<Location> putIntoHierarchy(List<Location> all) {
 		EntityManager em = JPA.em();
 		List<Location> result = new ArrayList<>();
-		Map<Long, Location> gid2au = new HashMap<>();
+		Map<Long, Location> gid2location = new HashMap<>();
 		Map<Long, List<Location>> gid2orphans = new HashMap<>();
-		for (Location au : all){
-			em.detach(au);
+		for (Location location : all){
+			em.detach(location);
 			List<Location> children = null;
-			Long gid = au.getGid();
+			Long gid = location.getGid();
 			if (gid2orphans.containsKey(gid)){
 				children = gid2orphans.remove(gid);
 			} else {
 				children = new ArrayList<Location>();
 			}
-			au.setChildren(children);
+			location.setChildren(children);
 			
-			gid2au.put(gid, au);
-			Location parentFromDb = au.getParent();
+			gid2location.put(gid, location);
+			Location parentFromDb = location.getParent();
 			if (parentFromDb == null){
-				result.add(au);
+				result.add(location);
 			} else {
 				Long parentGid = parentFromDb.getGid();
-				Location foundParent = gid2au.get(parentGid);
+				Location foundParent = gid2location.get(parentGid);
 				if (foundParent == null){
 					List<Location> parentChildren = gid2orphans.get(parentGid);
 					if (parentChildren == null) {
 						parentChildren = new ArrayList<>();
 						gid2orphans.put(parentGid, parentChildren);
 					}
-					parentChildren.add(au);
+					parentChildren.add(location);
 				} else {
-					foundParent.getChildren().add(au);
+					foundParent.getChildren().add(location);
 				}
 			}
 		}
