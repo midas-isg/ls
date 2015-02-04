@@ -268,6 +268,9 @@ MapDriver.prototype.saveMap = function() {
 			auParentGID = null;
 		}
 		
+		
+		geoJSON.features[0].properties["kml"] = thisMapDriver.kml;
+		
 		for(i = 0; i < geoJSON.features.length; i++) {
 			geoJSON.features[i].properties["name"] = auName;
 			geoJSON.features[i].properties["type"] = auType;
@@ -275,7 +278,6 @@ MapDriver.prototype.saveMap = function() {
 			geoJSON.features[i].properties["parent"] = auParentGID;
 			geoJSON.features[i].properties["startDate"] = startDate;
 			geoJSON.features[i].properties["endDate"] = endDate;
-			geoJSON.features[i].properties["kml"] = thisMapDriver.kml;
 			
 			geometry = geoJSON.features[i].geometry;
 			
@@ -317,6 +319,9 @@ console.log("Length: " + JSON.stringify(data).length);
 			//else {
 			//	indexingObject.successChange(data, status, "error");
 			//}
+			
+			console.log(data);
+			console.log(status);
 		}
 	});
 	
@@ -417,7 +422,16 @@ function centerMap(geoJSON, thisMapDriver) {
 		return;
 	}
 	
-	var geometryCount = geometry.coordinates.length;
+	var geometryCount = null;
+	
+	if(geometry.geometries) {
+		geometry = geometry.geometries;
+		geometryCount = geometry.length;
+	}
+	else /*if(geometry.coordinates)*/ {
+		geometryCount = geometry.coordinates.length;
+	}
+	
 	var latitude = geometry.coordinates[0][0][1];
 	var longitude = geometry.coordinates[0][0][0];
 	var minLat = latitude;

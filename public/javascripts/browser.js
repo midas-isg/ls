@@ -118,6 +118,8 @@ MapDriver.prototype.initialize = function() {
 }
 
 MapDriver.prototype.loadFeatureLayer = function() {
+	thisMapDriver = this;
+	
 	if(this.geoJSONURL) {
 		this.featureLayer = L.mapbox.featureLayer().loadURL(this.geoJSONURL);
 	}
@@ -193,7 +195,16 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			return MAP_DRIVER.map.fitBounds(bounds);
 		}
 		
-		centerMap(MAP_DRIVER.featureLayer.getGeoJSON());
+		//centerMap(MAP_DRIVER.featureLayer.getGeoJSON());
+		var geoJSON = thisMapDriver.featureLayer.getGeoJSON();
+		var minLng = geoJSON.bbox[0];
+		var minLat = geoJSON.bbox[1];
+		var maxLng = geoJSON.bbox[2];
+		var maxLat = geoJSON.bbox[3];
+		var southWest = L.latLng(minLat, minLng);
+		var northEast = L.latLng(maxLat, maxLng);
+		var bounds = L.latLngBounds(southWest, northEast);
+		MAP_DRIVER.map.fitBounds(bounds);
 		
 		MAP_DRIVER.mapID = MAP_DRIVER.featureLayer.getGeoJSON().id;
 		$("#au-name").append("<strong>" + feature.properties.name + "</strong>");
