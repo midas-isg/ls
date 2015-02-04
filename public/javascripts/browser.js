@@ -27,6 +27,7 @@ $(document).ready(function() {
 });
 
 function MapDriver(){
+	var thisMapDriver = this;
 	var id = getURLParameterByName("id");
 	var format = getURLParameterByName("format");
 	var query = getURLParameterByName("q");
@@ -85,7 +86,7 @@ function MapDriver(){
 				*/
 				
 				//console.log(data);
-				MAP_DRIVER.loadJSON(data.geoJSON);
+				thisMapDriver.loadJSON(data.geoJSON);
 			});
 		break;
 		
@@ -141,61 +142,12 @@ MapDriver.prototype.loadFeatureLayer = function() {
 	}
 	
 	this.featureLayer.on('ready', function() {
-		MAP_DRIVER.loadJSON(MAP_DRIVER.featureLayer.getGeoJSON());
+		thisMapDriver.loadJSON(thisMapDriver.featureLayer.getGeoJSON());
 		
-		MAP_DRIVER.featureLayer.addTo(MAP_DRIVER.map);
+		thisMapDriver.featureLayer.addTo(thisMapDriver.map);
 		
-		var feature = MAP_DRIVER.featureLayer.getGeoJSON().features[0];
+		var feature = thisMapDriver.featureLayer.getGeoJSON().features[0];
 		
-		function centerMap(geoJSON) {
-			var geometry = geoJSON.features[0].geometry;
-			
-			if(!geometry) {
-				return;
-			}
-			
-			var geometryCount = geometry.coordinates.length;
-			var latitude = geometry.coordinates[0][0][1];
-			var longitude = geometry.coordinates[0][0][0];
-			var minLat = latitude;
-			var maxLat = minLat;
-			var minLng = longitude;
-			var maxLng = minLng;
-			
-			var vertices;
-			var coordinatesBody;
-			for(var i = 0; i < geometryCount; i++) {
-				coordinatesBody = geometry.coordinates[i];
-				vertices = geometry.coordinates[i].length;
-				
-				for(var j = 0; j < vertices; j++) {
-					latitude = geometry.coordinates[i][j][1];
-					longitude = geometry.coordinates[i][j][0];
-					
-					if(latitude < minLat) {
-						minLat = latitude;
-					}
-					else if(latitude > maxLat) {
-						maxLat = latitude;
-					}
-					
-					if(longitude < minLng) {
-						minLng = longitude;
-					}
-					else if(longitude > maxLng) {
-						maxLng = longitude;
-					}
-				}
-			}
-			
-			var southWest = L.latLng(minLat, minLng);
-			var northEast = L.latLng(maxLat, maxLng);
-			var bounds = L.latLngBounds(southWest, northEast);
-			
-			return MAP_DRIVER.map.fitBounds(bounds);
-		}
-		
-		//centerMap(MAP_DRIVER.featureLayer.getGeoJSON());
 		var geoJSON = thisMapDriver.featureLayer.getGeoJSON();
 		var minLng = geoJSON.bbox[0];
 		var minLat = geoJSON.bbox[1];
@@ -204,9 +156,9 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		var southWest = L.latLng(minLat, minLng);
 		var northEast = L.latLng(maxLat, maxLng);
 		var bounds = L.latLngBounds(southWest, northEast);
-		MAP_DRIVER.map.fitBounds(bounds);
+		thisMapDriver.map.fitBounds(bounds);
 		
-		MAP_DRIVER.mapID = MAP_DRIVER.featureLayer.getGeoJSON().id;
+		thisMapDriver.mapID = thisMapDriver.featureLayer.getGeoJSON().id;
 		$("#au-name").append("<strong>" + feature.properties.name + "</strong>");
 		$("#au-location-type").append("<div class='pull-left pre-spaced'>" + feature.properties.locationTypeName + "</div>");
 		
@@ -217,18 +169,18 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			$("#historical-note").show();
 		}
 		
-		$("#au-geojson").prop("href", MAP_DRIVER.geoJSONURL);
-		if(MAP_DRIVER.geoJSONURL) {
+		$("#au-geojson").prop("href", thisMapDriver.geoJSONURL);
+		if(thisMapDriver.geoJSONURL) {
 			$("#au-geojson").css("text-decoration", "underline");
 		}
 		
-		$("#au-kml").prop("href", MAP_DRIVER.kmlURL);
-		if(MAP_DRIVER.kmlURL) {
+		$("#au-kml").prop("href", thisMapDriver.kmlURL);
+		if(thisMapDriver.kmlURL) {
 			$("#au-kml").css("text-decoration", "underline");
 		}
 		
-		$("#au-apollojson").prop("href", MAP_DRIVER.apolloJSONURL);
-		if(MAP_DRIVER.apolloJSONURL) {
+		$("#au-apollojson").prop("href", thisMapDriver.apolloJSONURL);
+		if(thisMapDriver.apolloJSONURL) {
 			$("#au-apollojson").css("text-decoration", "underline");
 		}
 		
@@ -322,21 +274,21 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			feature.properties.title += " to present";
 		}
 		
-		MAP_DRIVER.map.legendControl.removeLegend(MAP_DRIVER.title);
-		MAP_DRIVER.title = "<strong>" + feature.properties.title + "</strong>";
-		MAP_DRIVER.map.legendControl.addLegend(MAP_DRIVER.title);
+		thisMapDriver.map.legendControl.removeLegend(thisMapDriver.title);
+		thisMapDriver.title = "<strong>" + feature.properties.title + "</strong>";
+		thisMapDriver.map.legendControl.addLegend(thisMapDriver.title);
 	});
 	
 	this.featureLayer.on('error', function(err) {
 		console.log("Error: " + err['error']['statusText']);
 		
-		if((MAP_DRIVER.featureLayer.getLayers().length == 0) && MAP_DRIVER.mapID) {
+		if((thisMapDriver.featureLayer.getLayers().length == 0) && thisMapDriver.mapID) {
 			console.log("Attempting to load via mapbox ID");
-			MAP_DRIVER.featureLayer = L.mapbox.featureLayer().loadID(MAP_DRIVER.mapID);
+			thisMapDriver.featureLayer = L.mapbox.featureLayer().loadID(thisMapDriver.mapID);
 		}
 		
-		MAP_DRIVER.featureLayer.on('ready', function() {
-			MAP_DRIVER.featureLayer.addTo(MAP_DRIVER.map);
+		thisMapDriver.featureLayer.on('ready', function() {
+			thisMapDriver.featureLayer.addTo(thisMapDriver.map);
 		});
 	});
 	
@@ -402,7 +354,7 @@ MapDriver.prototype.upload = function() {
 		
 		//setTextValue("#au-lineage", properties.parentGid);
 		
-		MAP_DRIVER.loadJSON(jsonData);
+		thisMapDriver.loadJSON(jsonData);
 	});
 	
 	var fileString = fileReader.readAsText(file);

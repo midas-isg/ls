@@ -423,44 +423,92 @@ function centerMap(geoJSON, thisMapDriver) {
 	}
 	
 	var geometryCount = null;
+	var latitude = null;
+	var longitude = null;
+	var minLat = null;
+	var maxLat = null;
+	var minLng = null;
+	var maxLng = null;
 	
 	if(geometry.geometries) {
-		geometry = geometry.geometries;
-		geometryCount = geometry.length;
+		geometryCount = geometry.geometries.length;
+		
+		for(var geo = 0; geo < geometryCount; geo++) {
+			var coordinates = geometry.geometries[geo].coordinates;
+			var coordinatesCount = coordinates.length;
+			
+			for(var i = 0; i < coordinatesCount; i++) {
+				var vertices = coordinates[i].length;
+				var vertex = coordinates[i];
+				
+				latitude = vertex[1];
+				longitude = vertex[0];
+				
+//TODO: FIX THIS
+BROKEN
+				
+				minLat = latitude;
+				maxLat = minLat;
+				minLng = longitude;
+				maxLng = minLng;
+				
+				var coordinate = null;
+				for(var j = 0; j < vertices; j++) {
+					coordinate = coordinates[j];
+					
+					latitude = coordinate[1];
+					longitude = coordinate[0];
+					
+					if(latitude < minLat) {
+						minLat = latitude;
+					}
+					else if(latitude > maxLat) {
+						maxLat = latitude;
+					}
+					
+					if(longitude < minLng) {
+						minLng = longitude;
+					}
+					else if(longitude > maxLng) {
+						maxLng = longitude;
+					}
+				}
+			}
+		}
 	}
 	else /*if(geometry.coordinates)*/ {
 		geometryCount = geometry.coordinates.length;
-	}
-	
-	var latitude = geometry.coordinates[0][0][1];
-	var longitude = geometry.coordinates[0][0][0];
-	var minLat = latitude;
-	var maxLat = minLat;
-	var minLng = longitude;
-	var maxLng = minLng;
-	
-	var vertices;
-	var coordinatesBody;
-	for(var i = 0; i < geometryCount; i++) {
-		coordinatesBody = geometry.coordinates[i];
-		vertices = geometry.coordinates[i].length;
 		
-		for(var j = 0; j < vertices; j++) {
-			latitude = geometry.coordinates[i][j][1];
-			longitude = geometry.coordinates[i][j][0];
+		latitude = geometry.coordinates[0][0][1];
+		longitude = geometry.coordinates[0][0][0];
+		minLat = latitude;
+		maxLat = minLat;
+		minLng = longitude;
+		maxLng = minLng;
+		
+		var vertices;
+		var coordinatesBody;
+		for(var i = 0; i < geometryCount; i++) {
+			coordinatesBody = geometry.coordinates[i];
+			vertices = geometry.coordinates[i].length;
 			
-			if(latitude < minLat) {
-				minLat = latitude;
-			}
-			else if(latitude > maxLat) {
-				maxLat = latitude;
-			}
-			
-			if(longitude < minLng) {
-				minLng = longitude;
-			}
-			else if(longitude > maxLng) {
-				maxLng = longitude;
+			for(var j = 0; j < vertices; j++) {
+				latitude = geometry.coordinates[i][j][1];
+				longitude = geometry.coordinates[i][j][0];
+				
+				if(latitude < minLat) {
+					minLat = latitude;
+				}
+				else if(latitude > maxLat) {
+					maxLat = latitude;
+				}
+				
+				if(longitude < minLng) {
+					minLng = longitude;
+				}
+				else if(longitude > maxLng) {
+					maxLng = longitude;
+				}
 			}
 		}
 	}
@@ -468,6 +516,8 @@ function centerMap(geoJSON, thisMapDriver) {
 	var southWest = L.latLng(minLat, minLng);
 	var northEast = L.latLng(maxLat, maxLng);
 	var bounds = L.latLngBounds(southWest, northEast);
+	
+	console.log(bounds);
 	
 	return thisMapDriver.map.fitBounds(bounds);
 }
