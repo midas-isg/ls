@@ -360,10 +360,6 @@ MapDriver.prototype.upload = function() {
 		var kmlData = fileReader['result'];
 		var kmlDOM = (new DOMParser()).parseFromString(kmlData, 'text/xml');
 		
-		console.log("kmlData:" + kmlData);
-		console.log("kmlDOM:" + kmlDOM);
-		debugger;
-		
 		var jsonData = toGeoJSON.kml(kmlDOM);
 		
 		if(jsonData.features.length == 0) {
