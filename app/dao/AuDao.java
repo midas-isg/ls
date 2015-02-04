@@ -20,12 +20,15 @@ import play.Logger;
 import play.db.jpa.JPA;
 import dao.entities.Data;
 import dao.entities.Location;
+import dao.entities.LocationGeometry;
 
 public class AuDao {
 	private static final int SRID =  4326;
 	public Long create(Location au) {
 		EntityManager em = JPA.em();
-		setSridToDefault(au);
+		LocationGeometry geometry = au.getGeometry();
+		setSridToDefault(geometry);
+		em.merge(geometry);
 		em.persist(au);
 		Long gid = au.getGid();
 		Logger.debug("persisted " + gid);
@@ -33,22 +36,30 @@ public class AuDao {
 	}
 
 	public Location read(long gid) {
-		EntityManager em = JPA.em();
-		Location result = em.find(Location.class, gid);
-		return result;
+		return read(gid, LocationGeometry.class);
 	}
 	
+	public Location read(long gid, Class<LocationGeometry> geometry) {
+		EntityManager em = JPA.em();
+		Location result = em.find(Location.class, gid);
+		LocationGeometry geo = em.find(geometry, gid);
+		result.setGeometry(geo);
+		return result;
+	}
+
 	public Long update(Location au) {
 		EntityManager em = JPA.em();
+		LocationGeometry geometry = au.getGeometry();
+		setSridToDefault(geometry);
+		em.merge(geometry);
 		em.merge(au);
-		setSridToDefault(au);
 		Long gid = au.getGid();
 		Logger.debug("merged " + gid);
 		return gid;
 	}
 
-	private void setSridToDefault(Location au) {
-		au.getGeometry().getMultiPolygonGeom().setSRID(SRID);
+	private void setSridToDefault(LocationGeometry geo) {
+		geo.getMultiPolygonGeom().setSRID(SRID);
 	}
 
 	public Long delete(Location au) {
