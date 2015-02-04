@@ -119,8 +119,8 @@ Logger.debug("\n" + message + "\n");
 	@Transactional
 	public static Result asKml(long gid) {
 		String result = LocationRule.asKml(gid);
-		//response().setContentType("application/vnd.google-earth.kml+xml");
-		response().setContentType("application/xml");
+		response().setContentType("application/vnd.google-earth.kml+xml");
+		//response().setContentType("application/xml");
 		return ok(result);
 	}
 
