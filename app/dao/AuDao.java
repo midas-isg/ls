@@ -26,9 +26,8 @@ public class AuDao {
 	private static final int SRID =  4326;
 	public Long create(Location au) {
 		EntityManager em = JPA.em();
-		LocationGeometry geometry = au.getGeometry();
-		setSridToDefault(geometry);
-		em.merge(geometry);
+		LocationGeometry geometry = prepareGeometry(au);
+		em.persist(geometry);
 		em.persist(au);
 		Long gid = au.getGid();
 		Logger.debug("persisted " + gid);
@@ -49,13 +48,19 @@ public class AuDao {
 
 	public Long update(Location au) {
 		EntityManager em = JPA.em();
-		LocationGeometry geometry = au.getGeometry();
-		setSridToDefault(geometry);
+		LocationGeometry geometry = prepareGeometry(au);
 		em.merge(geometry);
 		em.merge(au);
 		Long gid = au.getGid();
 		Logger.debug("merged " + gid);
 		return gid;
+	}
+
+	private LocationGeometry prepareGeometry(Location l) {
+		LocationGeometry geometry = l.getGeometry();
+		setSridToDefault(geometry);
+		geometry.setLocation(l);
+		return geometry;
 	}
 
 	private void setSridToDefault(LocationGeometry geo) {
