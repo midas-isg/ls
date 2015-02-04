@@ -288,4 +288,11 @@ public class AuDao {
 		List<Location> locations = AuHierarchyRule.getLocations(result);
 		return locations;
 	}
+	
+	public String asKmlMultiGeometry(long gid) {
+		EntityManager em = JPA.em();
+		String query = "select ST_AsKML(multipolygon) from location_geometry where gid = " + gid;
+		Object singleResult = em.createNativeQuery(query).getSingleResult();
+		return singleResult.toString();
+	}
 }

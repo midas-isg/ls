@@ -1,17 +1,22 @@
 package interactors;
 
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 import models.Response;
 import models.geo.Feature;
 import models.geo.FeatureCollection;
 import play.Logger;
+import play.Play;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
@@ -274,6 +279,7 @@ public class LocationRule {
 		String name = getString(fc, "name");
 		data.setName(name);
 		data.setDescription(getString(fc, "description"));
+		data.setKml(getString(fc, "kml"));
 		String date = getString(fc, "startDate");
 		Date startDate = newDate(date);
 		data.setStartDate(startDate);
@@ -363,5 +369,43 @@ public class LocationRule {
 				+ " longitude=" + longitude;
 		properties.put("description", descritpion);
 		return response;
+	}
+
+	public static String asKml(long gid) {
+		AuDao dao = new AuDao();
+		Location location = dao.read(gid);
+		Data data = location.getData();
+		String kml = data.getKml();
+		if (kml != null && !kml.isEmpty())
+			return kml;
+		String mg = dao.asKmlMultiGeometry(gid);
+		String fileName = "template.kml";
+		String formatText = getStringFromFile(fileName);
+		String text = String.format(formatText, location.getGid(), 
+				data.getName(), data.getDescription(), mg);
+		return text;
+	}
+
+	private static String getStringFromFile(String fileName) {
+		URL url = Play.application().classloader().getResource(fileName);
+		String formatText = "";
+		try {
+			InputStream is = url.openStream();
+			formatText = getStringFromStream(is);
+		} catch (IOException e) {
+			String message = "Error during opening file " + fileName
+					+ ". Check if configuration is correct.";
+			throw new RuntimeException(message, e);
+		}
+		return formatText;
+	}
+	
+	private static String getStringFromStream(InputStream is) {
+		String text = "";
+		try (Scanner s = new Scanner(is, "UTF-8")){
+			s.useDelimiter("\\A");
+			text = s.hasNext() ? s.next() : "";
+		}
+		return text;
 	}
 }

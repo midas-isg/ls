@@ -6,12 +6,9 @@ import interactors.LocationRule;
 
 import java.util.List;
 
-import javax.persistence.EntityManager;
-
 import models.FancyTreeNode;
 import models.geo.FeatureCollection;
 import play.Logger;
-import play.db.jpa.JPA;
 import play.db.jpa.Transactional;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -121,11 +118,10 @@ Logger.debug("\n" + message + "\n");
 
 	@Transactional
 	public static Result asKml(long gid) {
-		EntityManager em = JPA.em();
-		String query = "select ST_AsKML(multipolygon) from location_geometry where gid = " + gid;
-		String result = em.createNativeQuery(query).getSingleResult().toString();
+		String result = LocationRule.asKml(gid);
 		//response().setContentType("application/vnd.google-earth.kml+xml");
 		response().setContentType("application/xml");
 		return ok(result);
 	}
+
 }

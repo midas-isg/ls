@@ -23,6 +23,7 @@ public class Data {
 	private Long userId;
 	private GisSource gisSource;
 	private String description;
+	private String kml;
 
 	@Column(name = "name")
 	public String getName() {
@@ -123,5 +124,14 @@ public class Data {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	@Column(length = 1048576) // 1,048,576 = 1 MB
+	public String getKml() {
+		return kml;
+	}
+
+	public void setKml(String kml) {
+		this.kml = kml;
 	}
 }
