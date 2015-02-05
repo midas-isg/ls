@@ -311,6 +311,7 @@ console.log("Length: " + JSON.stringify(data).length);
 			console.log(status);
 			setTextValue("#gid", getIDFromURI(response.getResponseHeader("Location")));
 			$("#gid").prop("disabled", true);
+			$("#new-button").show();
 		},
 		error: function(data, status) {
 			//if(data['responseJSON'] && data['responseJSON']['duplicatedUri']) {
