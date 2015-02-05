@@ -3,6 +3,7 @@ package models.geo;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -13,6 +14,7 @@ public class FeatureCollection {
 	private List<Feature> features;
 	private String id;
 	private double[] bbox;
+	private Map<String, Object> properites; //TODO: to move out
 	
 	public String getType() {
 		return type;
@@ -49,6 +51,14 @@ public class FeatureCollection {
 
 	public void setBbox(double[] bbox) {
 		this.bbox = bbox;
+	}
+
+	public Map<String, Object> getProperites() {
+		return properites;
+	}
+
+	public void setProperites(Map<String, Object> properites) {
+		this.properites = properites;
 	}
 
 	@Override

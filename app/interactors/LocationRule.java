@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +23,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 
 import dao.AuDao;
+import dao.GeometryDao;
 import dao.entities.Code;
 import dao.entities.CodeType;
 import dao.entities.Data;
@@ -31,6 +33,11 @@ import dao.entities.LocationGeometry;
 import dao.entities.LocationType;
 
 public class LocationRule {
+	private static final String KEY_PROPERTIES = "properties";
+	private static final String KEY_BBOX = "bbox";
+	private static final String KEY_GEOMETRY = "geometry";
+	private static final List<String> MINIMUM_KEYS = Arrays.asList(new String[]{KEY_PROPERTIES});
+	private static final List<String> ALL_KEYS = Arrays.asList(new String[]{KEY_PROPERTIES, KEY_BBOX, KEY_GEOMETRY});
 	public static final long PUMA_TYPE_ID = 102L;
 	public static final long COMPOSITE_LOCATION_ID = 8L;
 
@@ -41,7 +48,15 @@ public class LocationRule {
 	private static LocationType epidemicZoneLocationType = null;
 	private static CodeType isgCodeType = null;
 	private static GisSource alsGisSource = null;
+
+	private static GeometryDao geoDao = null;
 	
+	public static GeometryDao getGeoDao() {
+		if (geoDao == null)
+			geoDao = new GeometryDao();
+		return geoDao;
+	}
+
 	private static LocationType getEpidemicZoneLocationType(){
 		if (epidemicZoneLocationType == null){
 			epidemicZoneLocationType = new LocationType();
@@ -69,9 +84,9 @@ public class LocationRule {
 		return alsGisSource;
 	}
 
-	public static FeatureCollection toFeatureCollection(List<Location> aus) {
+	public static FeatureCollection toFeatureCollection(List<Location> aus, List<String> fields) {
 		FeatureCollection fc = new FeatureCollection();
-		List<Feature> features = toFeatures(aus);
+		List<Feature> features = toFeatures(aus, fields);
 		fc.setFeatures(features);
 		fc.setType("FeatureCollection");
 		fc.setBbox(computeBbox(features));
@@ -80,9 +95,10 @@ public class LocationRule {
 
 	private static FeatureCollection toFeatureCollection(Location compositeAu) {
 		FeatureCollection fc = new FeatureCollection();
-		List<Feature> features = toFeatures(compositeAu.getLocationsIncluded());
+		List<Feature> features = toFeatures(compositeAu.getLocationsIncluded(), null);
 		fc.setFeatures(features);
 		fc.setType("FeatureCollection");
+		fc.setProperites(toProperties(compositeAu));
 		double[] computeBbox = computeBbox(compositeAu);
 		if (computeBbox == null)
 			computeBbox =  computeBbox(features);
@@ -91,38 +107,50 @@ public class LocationRule {
 		return fc;
 	}
 
-	private static List<Feature> toFeatures(List<Location> aus) {
+	private static List<Feature> toFeatures(List<Location> aus, List<String> fields) {
 		List<Feature> features = new ArrayList<>();
 		for (Location au : aus) {
 			if (au == null){
 				Logger.warn("toFeatures got an element in the list as null.");
 				continue;
 			}
-			features.add(toFeature(au));
+			features.add(toFeature(au, fields));
 		}
 		
 		return features;
 	}
 
-	private static Feature toFeature(Location au) {
+	private static Feature toFeature(Location au, List<String> fields) {
 		Feature feature = new Feature();
-		Map<String, Object> properties = toProperties(au);
-		Collections.sort(au.getChildren());
-		putAsLocationObjectsIfNotNull(properties, "children", au.getChildren());
-		putAsLocationObjectsIfNotNull(properties, "lineage", 
-				AuHierarchyRule.getLineage(au.getGid()));
-		putAsLocationObjectsIfNotNull(properties, "related", au.getRelatedLocations());
-		putAsCodeObjectsIfNotNull(properties, "codes", au);
-		feature.setProperties(properties);
-		LocationGeometry geometry = au.getGeometry();
+		if (is(fields, KEY_PROPERTIES)){
+			Map<String, Object> properties = toProperties(au);
+			Collections.sort(au.getChildren());
+			putAsLocationObjectsIfNotNull(properties, "children", au.getChildren());
+			putAsLocationObjectsIfNotNull(properties, "lineage", 
+					AuHierarchyRule.getLineage(au.getGid()));
+			putAsLocationObjectsIfNotNull(properties, "related", au.getRelatedLocations());
+			putAsCodeObjectsIfNotNull(properties, "codes", au);
+			feature.setProperties(properties);
+		}
+		LocationGeometry geometry = null;
+		if (is(fields, KEY_GEOMETRY))
+			geometry = getGeoDao().read(au.getGid(), LocationGeometry.class); //au.getGeometry();
+		
 		if (geometry != null){
 			Geometry multiPolygonGeom = geometry.getMultiPolygonGeom();
 			feature.setGeometry(GeoOutputRule.toFeatureGeometry(multiPolygonGeom));
-			feature.setBbox(computeBbox(au));
+			if (is(fields, KEY_BBOX)) 
+				feature.setBbox(computeBbox(au));
 			feature.setId(au.getGid() + "");
 		}
 		
 		return feature;
+	}
+
+	private static boolean is(List<String> fields, String key) {
+		if (fields == null || fields.isEmpty())
+			return true;
+		return fields.contains(key);
 	}
 	
 	private static double[] computeBbox(Location l) {
@@ -329,7 +357,7 @@ public class LocationRule {
 		}
 		List<Location> list = new ArrayList<>();
 		list.add(au);
-		return toFeatureCollection(list);
+		return toFeatureCollection(list, ALL_KEYS);
 	}
 
 	public static Location findByGid(long gid) {
@@ -341,7 +369,7 @@ public class LocationRule {
 			Integer limit, Integer offset){
 		List<Location> result = new AuDao().findByName(q, limit, offset);
 		Response response = new Response();
-		response.setGeoJSON(toFeatureCollection(result));
+		response.setGeoJSON(toFeatureCollection(result, MINIMUM_KEYS));
 		Map<String, Object> properties = new HashMap<>();
 		response.setProperties(properties);
 		properties.put("q", q);
@@ -358,7 +386,7 @@ public class LocationRule {
 	public static Response findByNameByPoint(double latitude, double longitude) {
 		List<Location> result = new AuDao().findByPoint(latitude, longitude);
 		Response response = new Response();
-		response.setGeoJSON(toFeatureCollection(result));
+		response.setGeoJSON(toFeatureCollection(result, MINIMUM_KEYS));
 		Map<String, Object> properties = new HashMap<>();
 		response.setProperties(properties);
 		putAsStringIfNotNull(properties, "latitude", latitude);
