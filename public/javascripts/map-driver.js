@@ -416,13 +416,11 @@ MapDriver.prototype.removeAUComponent = function(gID) {
 
 /* Helper Functions */
 function centerMap(geoJSON, thisMapDriver) {
-	var geometry = geoJSON.features[0].geometry;
-	
-	if((!geometry) ||  (geometry.type == "Point")) {
-		return;
-	}
-	
+	var geometry = null;
 	var geometryCount = null;
+	
+	geometry = geoJSON.features[0].geometry;
+	
 	var latitude = null;
 	var longitude = null;
 	var minLat = null;
@@ -430,34 +428,76 @@ function centerMap(geoJSON, thisMapDriver) {
 	var minLng = null;
 	var maxLng = null;
 	
-	if(geometry.geometries) {
-		geometryCount = geometry.geometries.length;
+	for(var a = 0; a < geoJSON.features.length; a++) {
+		geometry = geoJSON.features[a].geometry;
 		
-		for(var geo = 0; geo < geometryCount; geo++) {
-			var coordinates = geometry.geometries[geo].coordinates;
-			var coordinatesCount = coordinates.length;
+		if((!geometry) ||  (geometry.type == "Point")) {
+			return;
+		}
+		
+		if(geometry.geometries) {
+			geometryCount = geometry.geometries.length;
 			
-			for(var i = 0; i < coordinatesCount; i++) {
-				var vertices = coordinates[i].length;
-				var vertex = coordinates[i];
-				
-				latitude = vertex[1];
-				longitude = vertex[0];
-				
-//TODO: FIX THIS
-BROKEN
-				
+			if(a == 0) {
+				latitude = geometry.geometries[0].coordinates[0][0][1];
+				longitude = geometry.geometries[0].coordinates[0][0][0];
 				minLat = latitude;
 				maxLat = minLat;
 				minLng = longitude;
 				maxLng = minLng;
+			}
+			
+			for(var geo = 0; geo < geometryCount; geo++) {
+				var coordinates = geometry.geometries[geo].coordinates;
+				var coordinatesCount = coordinates.length;
 				
-				var coordinate = null;
-				for(var j = 0; j < vertices; j++) {
-					coordinate = coordinates[j];
+				for(var i = 0; i < coordinatesCount; i++) {
+					var coordinateGroupCount = coordinates[i].length;
+					var coordinateGroup = coordinates[i];
 					
-					latitude = coordinate[1];
-					longitude = coordinate[0];
+					var coordinate = null;
+					for(var j = 0; j < coordinateGroupCount; j++) {
+						coordinate = coordinateGroup[j];
+						
+						latitude = coordinate[1];
+						longitude = coordinate[0];
+						
+						if(latitude < minLat) {
+							minLat = latitude;
+						}
+						else if(latitude > maxLat) {
+							maxLat = latitude;
+						}
+						
+						if(longitude < minLng) {
+							minLng = longitude;
+						}
+						else if(longitude > maxLng) {
+							maxLng = longitude;
+						}
+					}
+				}
+			}
+		}
+		else /*if(geometry.coordinates)*/ {
+			geometryCount = geometry.coordinates.length;
+			
+			latitude = geometry.coordinates[0][0][1];
+			longitude = geometry.coordinates[0][0][0];
+			minLat = latitude;
+			maxLat = minLat;
+			minLng = longitude;
+			maxLng = minLng;
+			
+			var vertices;
+			var coordinatesBody;
+			for(var i = 0; i < geometryCount; i++) {
+				coordinatesBody = geometry.coordinates[i];
+				vertices = geometry.coordinates[i].length;
+				
+				for(var j = 0; j < vertices; j++) {
+					latitude = geometry.coordinates[i][j][1];
+					longitude = geometry.coordinates[i][j][0];
 					
 					if(latitude < minLat) {
 						minLat = latitude;
@@ -472,42 +512,6 @@ BROKEN
 					else if(longitude > maxLng) {
 						maxLng = longitude;
 					}
-				}
-			}
-		}
-	}
-	else /*if(geometry.coordinates)*/ {
-		geometryCount = geometry.coordinates.length;
-		
-		latitude = geometry.coordinates[0][0][1];
-		longitude = geometry.coordinates[0][0][0];
-		minLat = latitude;
-		maxLat = minLat;
-		minLng = longitude;
-		maxLng = minLng;
-		
-		var vertices;
-		var coordinatesBody;
-		for(var i = 0; i < geometryCount; i++) {
-			coordinatesBody = geometry.coordinates[i];
-			vertices = geometry.coordinates[i].length;
-			
-			for(var j = 0; j < vertices; j++) {
-				latitude = geometry.coordinates[i][j][1];
-				longitude = geometry.coordinates[i][j][0];
-				
-				if(latitude < minLat) {
-					minLat = latitude;
-				}
-				else if(latitude > maxLat) {
-					maxLat = latitude;
-				}
-				
-				if(longitude < minLng) {
-					minLng = longitude;
-				}
-				else if(longitude > maxLng) {
-					maxLng = longitude;
 				}
 			}
 		}
