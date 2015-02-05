@@ -29,6 +29,7 @@ public class AuDao {
 		LocationGeometry geometry = prepareGeometry(location);
 		em.persist(geometry);
 		em.persist(location);
+		AuHierarchyRule.notifyChange();
 		Long gid = location.getGid();
 		Logger.debug("persisted " + gid);
 		return gid;
@@ -51,6 +52,7 @@ public class AuDao {
 		LocationGeometry geometry = prepareGeometry(location);
 		em.merge(geometry);
 		em.merge(location);
+		AuHierarchyRule.notifyChange();
 		Long gid = location.getGid();
 		Logger.debug("merged " + gid);
 		return gid;
