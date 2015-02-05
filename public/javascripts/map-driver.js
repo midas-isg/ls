@@ -265,7 +265,8 @@ MapDriver.prototype.saveMap = function() {
 		
 		if(!auParentGID || (auParentGID.length < 1)) {
 			alert("Please select an encompassing location");
-			auParentGID = null;
+			
+			return null;
 		}
 		
 		
