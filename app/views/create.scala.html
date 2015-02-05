@@ -28,7 +28,7 @@
 	<div style="padding-left: 1%;">
 		<div class="pull-left">
 			<div style="padding: 2px;">
-				<div class="vertical-spaced" style="border-width: 1px; border-style: groove; padding-left: 5px;">
+				<div style="border-width: 1px; border-style: groove; padding-left: 5px;">
 					<input id="file-input" class="pull-left" accept=".json, .geojson, .kml" type="file">
 					
 					<div class="pre-spaced">
@@ -58,7 +58,12 @@
 					</div>
 					
 					<div class="vertical-spaced">
-						<em>Date:</em> <input type="text" id="start-date" class="pre-spaced" placeholder="Start date"> <em>to</em> <input type="text" id="end-date" class="pre-spaced" placeholder="End date"><button id="save-button">Save to Database</button>
+						<em>Date:</em> <input type="text" id="start-date" class="pre-spaced" placeholder="Start date"> <em>to</em> <input type="text" id="end-date" class="pre-spaced" placeholder="End date">
+					</div>
+					
+					<div class="vertical-spaced">
+						<button id="save-button">Save to Database</button>
+						<span id="server-result"></span>
 					</div>
 				</div>
 			</div>
@@ -78,7 +83,7 @@
 						<button id="resetParentSearchButton">&times;</button>
 						<span id="parent-matches"></span>
 					</div>
-					<div id="parent-tree" style="padding-top: 5px; max-height: 480px; overflow: auto;"></div>
+					<div id="parent-tree" style="padding-top: 5px; max-height: 500px; overflow: auto;"></div>
 			</div>
 			
 			<div id="au-list" class="pull-left" hidden>

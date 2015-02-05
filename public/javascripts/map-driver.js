@@ -312,6 +312,11 @@ console.log("Length: " + JSON.stringify(data).length);
 			setTextValue("#gid", getIDFromURI(response.getResponseHeader("Location")));
 			$("#gid").prop("disabled", true);
 			$("#new-button").show();
+			
+			setTextValue("#server-result", "Success. ID: " + $("#gid").val() + " created");
+			$("#server-result").css("color", "#008000");
+			$("#server-result").show();
+			$("#server-result").fadeOut(15000);
 		},
 		error: function(data, status) {
 			//if(data['responseJSON'] && data['responseJSON']['duplicatedUri']) {
@@ -321,8 +326,12 @@ console.log("Length: " + JSON.stringify(data).length);
 			//	indexingObject.successChange(data, status, "error");
 			//}
 			
-			console.log(data);
 			console.log(status);
+			console.log(data);
+			setTextValue("#server-result", status + ": " + data.statusText + " - " + data.responseText);
+			$("#server-result").css("color", "#800000");
+			$("#server-result").show();
+			$("#server-result").fadeOut(15000);
 		}
 	});
 	
