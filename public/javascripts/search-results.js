@@ -17,13 +17,17 @@ $(document).ready(function() {
 	
 	if(query) {
 		$("#input").val(query);
-		$("#search-button").click();
+		searchQuery();
 	}
 	
 	return;
 });
 
 function searchClick() {
+	return location.assign(context + "?q=" + $("#input").val());
+}
+
+function searchQuery() {
 	var input = $("#input").val();
 	var url = searchURL + "?limit=0&q=" + encodeURIComponent(input);
 	var result = $("#result"); 

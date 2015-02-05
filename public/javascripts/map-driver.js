@@ -12,7 +12,8 @@ function MapDriver() {
 	this.accessToken = 'pk.eyJ1IjoidHBzMjMiLCJhIjoiVHEzc0tVWSJ9.0oYZqcggp29zNZlCcb2esA';
 	this.featureLayer = null;
 	this.map = null;
-	this.parent;
+	this.kml = null;
+	this.parent = null;
 	this.auComponents = [];
 	
 	this.initialize();
@@ -216,7 +217,7 @@ MapDriver.prototype.saveMap = function() {
 			startDate = toServerDate(new Date(startDate), dateTokens);
 		}
 		else {
-			alert("Invalid date: " + startDate);
+			alert("Invalid start date: " + startDate);
 			
 			return null;
 		}
@@ -231,7 +232,7 @@ MapDriver.prototype.saveMap = function() {
 			endDate = toServerDate(new Date(endDate), dateTokens);
 		}
 		else if(endDate.length > 0) {
-			alert("Invalid date: " + endDate); //TODO: append month/year OR change back-end to accomodate dates without months & days
+			alert("Invalid end date: " + endDate); //TODO: append month/year OR change back-end to accomodate dates without months & days
 			
 			return null;
 		}
@@ -251,19 +252,16 @@ MapDriver.prototype.saveMap = function() {
 			return  null;
 		}
 		
-		/*
-		if(auCode.length == 0) {
-			alert("Please enter the code");
-			
-			return null;
-		}
-		
-		if(auCodeType.length == 0) {
+		if((auCode.length > 0) && (auCodeType.length < 1)) {
 			alert("Please enter the code type");
 			
 			return null;
 		}
-		*/
+		else if((auCodeType.length > 0) && (auCode.length < 1)) {
+			alert("Please enter the code");
+			
+			return null;
+		}
 		
 		if(!auParentGID || (auParentGID.length < 1)) {
 			alert("Please select an encompassing location");
@@ -277,6 +275,7 @@ MapDriver.prototype.saveMap = function() {
 			geoJSON.features[i].properties["parent"] = auParentGID;
 			geoJSON.features[i].properties["startDate"] = startDate;
 			geoJSON.features[i].properties["endDate"] = endDate;
+			geoJSON.features[i].properties["kml"] = thisMapDriver.kml;
 			
 			geometry = geoJSON.features[i].geometry;
 			
@@ -358,6 +357,7 @@ MapDriver.prototype.upload = function() {
 	
 	fileReader.onload = (function() {
 		var kmlData = fileReader['result'];
+		thisMapDriver.kml = kmlData;
 		var kmlDOM = (new DOMParser()).parseFromString(kmlData, 'text/xml');
 		
 		var jsonData = toGeoJSON.kml(kmlDOM);
