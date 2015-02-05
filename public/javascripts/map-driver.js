@@ -356,7 +356,7 @@ MapDriver.prototype.download = function() {
 }
 
 MapDriver.prototype.upload = function() {
-	var file = $('#json-input').get(0).files[0];
+	var file = $('#file-input').get(0).files[0];
 	var fileReader = new FileReader();
 	var thisMapDriver = this;
 	

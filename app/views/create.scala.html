@@ -28,6 +28,13 @@
 	<div style="padding-left: 2%;">
 		<div class="pull-left">
 			<div class="extra-bottom-space">
+				<div>
+					<div>
+						<input id="file-input" accept=".json, .geojson, .kml" type="file" style="float: left;">
+					</div>
+					<button id="download-button">Download</button>
+				</div>
+				
 				<div><button id="new-button">New location</button></div>
 				<div class="vertical-spaced" style="border-width: 1px; border-style: groove; padding-left: 5px; display: inline-block;">
 					<em>ID:</em><input type="text" id="gid" class="pre-spaced" placeholder="ID">
@@ -51,21 +58,11 @@
 				<div class="vertical-spaced"><em>Date:</em> <input type="text" id="start-date" class="pre-spaced" placeholder="Start date"> <em>to</em> <input type="text" id="end-date" class="pre-spaced" placeholder="End date"><button id="save-button">Save to Database</button></div>
 			</div>
 			
-			<div>
-				<div id="map-one" class="map"></div>
-				
-				<div style="clear: both;">
-					<div>
-						<input id="json-input" accept=".json, .geojson, .kml" type="file" style="float: left;">
-						<button id="upload-button" style="float: left;">Upload from file</button>
-					</div>
-					<button id="download-button">Download</button>
-				</div>
-			</div>
+			<div id="map-one" class="map"></div>
 		</div>
 		
-		<div>
-			<div id="parent-list" class="pull-left pre-spaced">
+		<div class="pull-left pre-spaced">
+			<div id="parent-list">
 					<div>
 						<legend><em>Encompassing location:</em></legend>
 						<label>Filter:</label>
@@ -73,7 +70,7 @@
 						<button id="resetParentSearchButton">&times;</button>
 						<span id="parent-matches"></span>
 					</div>
-					<div id="parent-tree" style="padding-top: 5px"></div>
+					<div id="parent-tree" style="padding-top: 5px; max-height: 600px; overflow: auto;"></div>
 			</div>
 			
 			<div id="au-list" class="pull-left" hidden>

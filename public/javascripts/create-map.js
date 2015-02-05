@@ -155,7 +155,7 @@ $(document).ready(function() {
 					setTextValue("#end-date", "");
 				});
 				
-				$("#upload-button").click(function() {
+				$("#file-input").change(function() {
 					CREATE_MAP.upload();
 					
 					return;

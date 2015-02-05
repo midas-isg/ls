@@ -1,5 +1,4 @@
 var ausPath = context;
-//INDEXING_TERMS_TREE = new IndexingTermsTree();
 var treeData;
 
 function IndexingTermsTree() {
@@ -46,7 +45,6 @@ IndexingTermsTree.prototype.makeTableSelectable = function() {
 }
 
 IndexingTermsTree.prototype.addHighlighForRow = function(rows, row, e) {
-//function addHighlighForRow(rows, row, e){
 	if ((e.ctrlKey || e.metaKey) || e.shiftKey) {
 		row.addClass('highlight');
 	} else {
@@ -58,7 +56,6 @@ IndexingTermsTree.prototype.addHighlighForRow = function(rows, row, e) {
 }
 
 IndexingTermsTree.prototype.unHighLightAll = function(rows) {
-//function unHighLightAll(rows){
 	rows.removeClass('highlight');
 }
 
@@ -128,7 +125,7 @@ IndexingTermsTree.prototype.resetIsAboutList = function() {
 }
 
 IndexingTermsTree.prototype.collapseAllFolders = function() {
-	if (this.tree) {
+	if(this.tree) {
 		this.tree.reload();
 	}
 	
@@ -136,12 +133,12 @@ IndexingTermsTree.prototype.collapseAllFolders = function() {
 }
 
 IndexingTermsTree.prototype.resetIsAboutCheckboxes = function() {
-	if (! this.tree) {
+	if(!this.tree) {
 		return;
 	}
 	
 	var nodes = this.tree.getSelectedNodes();
-	for (var i in nodes){
+	for(var i in nodes){
 		var node = nodes[i];
 		node.setSelected(false);
 	}
