@@ -268,6 +268,9 @@ MapDriver.prototype.saveMap = function() {
 			auParentGID = null;
 		}
 		
+		
+		geoJSON.features[0].properties["kml"] = thisMapDriver.kml;
+		
 		for(i = 0; i < geoJSON.features.length; i++) {
 			geoJSON.features[i].properties["name"] = auName;
 			geoJSON.features[i].properties["type"] = auType;
@@ -275,7 +278,6 @@ MapDriver.prototype.saveMap = function() {
 			geoJSON.features[i].properties["parent"] = auParentGID;
 			geoJSON.features[i].properties["startDate"] = startDate;
 			geoJSON.features[i].properties["endDate"] = endDate;
-			geoJSON.features[i].properties["kml"] = thisMapDriver.kml;
 			
 			geometry = geoJSON.features[i].geometry;
 			
@@ -317,6 +319,9 @@ console.log("Length: " + JSON.stringify(data).length);
 			//else {
 			//	indexingObject.successChange(data, status, "error");
 			//}
+			
+			console.log(data);
+			console.log(status);
 		}
 	});
 	
@@ -411,42 +416,103 @@ MapDriver.prototype.removeAUComponent = function(gID) {
 
 /* Helper Functions */
 function centerMap(geoJSON, thisMapDriver) {
-	var geometry = geoJSON.features[0].geometry;
+	var geometry = null;
+	var geometryCount = null;
 	
-	if((!geometry) ||  (geometry.type == "Point")) {
-		return;
-	}
+	geometry = geoJSON.features[0].geometry;
 	
-	var geometryCount = geometry.coordinates.length;
-	var latitude = geometry.coordinates[0][0][1];
-	var longitude = geometry.coordinates[0][0][0];
-	var minLat = latitude;
-	var maxLat = minLat;
-	var minLng = longitude;
-	var maxLng = minLng;
+	var latitude = null;
+	var longitude = null;
+	var minLat = null;
+	var maxLat = null;
+	var minLng = null;
+	var maxLng = null;
 	
-	var vertices;
-	var coordinatesBody;
-	for(var i = 0; i < geometryCount; i++) {
-		coordinatesBody = geometry.coordinates[i];
-		vertices = geometry.coordinates[i].length;
+	for(var a = 0; a < geoJSON.features.length; a++) {
+		geometry = geoJSON.features[a].geometry;
 		
-		for(var j = 0; j < vertices; j++) {
-			latitude = geometry.coordinates[i][j][1];
-			longitude = geometry.coordinates[i][j][0];
+		if((!geometry) ||  (geometry.type == "Point")) {
+			return;
+		}
+		
+		if(geometry.geometries) {
+			geometryCount = geometry.geometries.length;
 			
-			if(latitude < minLat) {
+			if(a == 0) {
+				latitude = geometry.geometries[0].coordinates[0][0][1];
+				longitude = geometry.geometries[0].coordinates[0][0][0];
 				minLat = latitude;
-			}
-			else if(latitude > maxLat) {
-				maxLat = latitude;
+				maxLat = minLat;
+				minLng = longitude;
+				maxLng = minLng;
 			}
 			
-			if(longitude < minLng) {
-				minLng = longitude;
+			for(var geo = 0; geo < geometryCount; geo++) {
+				var coordinates = geometry.geometries[geo].coordinates;
+				var coordinatesCount = coordinates.length;
+				
+				for(var i = 0; i < coordinatesCount; i++) {
+					var coordinateGroupCount = coordinates[i].length;
+					var coordinateGroup = coordinates[i];
+					
+					var coordinate = null;
+					for(var j = 0; j < coordinateGroupCount; j++) {
+						coordinate = coordinateGroup[j];
+						
+						latitude = coordinate[1];
+						longitude = coordinate[0];
+						
+						if(latitude < minLat) {
+							minLat = latitude;
+						}
+						else if(latitude > maxLat) {
+							maxLat = latitude;
+						}
+						
+						if(longitude < minLng) {
+							minLng = longitude;
+						}
+						else if(longitude > maxLng) {
+							maxLng = longitude;
+						}
+					}
+				}
 			}
-			else if(longitude > maxLng) {
-				maxLng = longitude;
+		}
+		else /*if(geometry.coordinates)*/ {
+			geometryCount = geometry.coordinates.length;
+			
+			latitude = geometry.coordinates[0][0][1];
+			longitude = geometry.coordinates[0][0][0];
+			minLat = latitude;
+			maxLat = minLat;
+			minLng = longitude;
+			maxLng = minLng;
+			
+			var vertices;
+			var coordinatesBody;
+			for(var i = 0; i < geometryCount; i++) {
+				coordinatesBody = geometry.coordinates[i];
+				vertices = geometry.coordinates[i].length;
+				
+				for(var j = 0; j < vertices; j++) {
+					latitude = geometry.coordinates[i][j][1];
+					longitude = geometry.coordinates[i][j][0];
+					
+					if(latitude < minLat) {
+						minLat = latitude;
+					}
+					else if(latitude > maxLat) {
+						maxLat = latitude;
+					}
+					
+					if(longitude < minLng) {
+						minLng = longitude;
+					}
+					else if(longitude > maxLng) {
+						maxLng = longitude;
+					}
+				}
 			}
 		}
 	}
@@ -454,6 +520,8 @@ function centerMap(geoJSON, thisMapDriver) {
 	var southWest = L.latLng(minLat, minLng);
 	var northEast = L.latLng(maxLat, maxLng);
 	var bounds = L.latLngBounds(southWest, northEast);
+	
+	console.log(bounds);
 	
 	return thisMapDriver.map.fitBounds(bounds);
 }
