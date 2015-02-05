@@ -104,10 +104,14 @@ Logger.debug("\n" + message + "\n");
 		return ok(views.html.create.render("TODO: Replace w/ delete service"));
 	}
 	
+	private static Status auTree = null;
 	@Transactional
-	public static Result tree() {
-		List<FancyTreeNode> tree = TreeViewAdapter.toFancyTree(AuHierarchyRule.getHierarchy());
-		return okJson(TreeViewAdapter.removeEpidemicZone(tree));
+	public synchronized static Result tree() {
+		if (auTree == null){
+			List<FancyTreeNode> tree = TreeViewAdapter.toFancyTree(AuHierarchyRule.getHierarchy());
+			auTree = okJson(TreeViewAdapter.removeEpidemicZone(tree));
+		}
+		return auTree;
 	}
 	
 	@Transactional

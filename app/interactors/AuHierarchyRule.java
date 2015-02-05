@@ -21,18 +21,35 @@ public class AuHierarchyRule {
 	private static List<String> uniqueSortedLocationNames = null;
 	
 	public static void notifyChange(){
-		gid2location = null;
-		roots = null;
-		uniqueSortedLocationNames = null;
+		if (gid2location != null){
+			synchronized (gid2location){
+				gid2location = null;
+			}
+		}
+		
+		if (roots != null){
+			synchronized (roots){
+				roots = null;
+			}
+		}
+		
+		if (uniqueSortedLocationNames != null){
+			synchronized (uniqueSortedLocationNames){
+				uniqueSortedLocationNames = null;
+			}
+		}
 	}
 	
 	public static List<Location> getHierarchy() {
 		if (roots == null){
 			Map<Long, Location> gid2location = getGid2location();
 			roots = new ArrayList<>();
-			for (Location l: gid2location.values()){
-				if (l.getParent() == null)
-					roots.add(l);
+			synchronized (roots) 
+			{
+				for (Location l: gid2location.values()){
+					if (l.getParent() == null)
+						roots.add(l);
+				}
 			}
 		}
 		return roots;
@@ -74,9 +91,10 @@ public class AuHierarchyRule {
 			Location location = getLocation(gid);
 			if (location == null){
 				Logger.warn(gid + " not found!");
+			} else {
+				location.setHeadline(location.getData().getName());
+				result.add(location);
 			}
-			location.setHeadline(location.getData().getName());
-			result.add(location);
 		}
 		return result;
 	}
@@ -90,8 +108,11 @@ public class AuHierarchyRule {
 				set.add(l.getData().getName());
 			}
 			uniqueSortedLocationNames = new ArrayList<>();
-			uniqueSortedLocationNames.addAll(set);
-			Collections.sort(uniqueSortedLocationNames, String.CASE_INSENSITIVE_ORDER);
+			synchronized (uniqueSortedLocationNames) 
+			{
+				uniqueSortedLocationNames.addAll(set);
+				Collections.sort(uniqueSortedLocationNames, String.CASE_INSENSITIVE_ORDER);
+			}
 		}
 		return uniqueSortedLocationNames;
 	}

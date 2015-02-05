@@ -37,7 +37,6 @@ public class LocationRule {
 	private static final String KEY_BBOX = "bbox";
 	private static final String KEY_GEOMETRY = "geometry";
 	private static final List<String> MINIMUM_KEYS = Arrays.asList(new String[]{KEY_PROPERTIES});
-	private static final List<String> ALL_KEYS = Arrays.asList(new String[]{KEY_PROPERTIES, KEY_BBOX, KEY_GEOMETRY});
 	public static final long PUMA_TYPE_ID = 102L;
 	public static final long COMPOSITE_LOCATION_ID = 8L;
 
@@ -122,7 +121,7 @@ public class LocationRule {
 
 	private static Feature toFeature(Location au, List<String> fields) {
 		Feature feature = new Feature();
-		if (is(fields, KEY_PROPERTIES)){
+		if (includeField(fields, KEY_PROPERTIES)){
 			Map<String, Object> properties = toProperties(au);
 			Collections.sort(au.getChildren());
 			putAsLocationObjectsIfNotNull(properties, "children", au.getChildren());
@@ -133,13 +132,13 @@ public class LocationRule {
 			feature.setProperties(properties);
 		}
 		LocationGeometry geometry = null;
-		if (is(fields, KEY_GEOMETRY))
+		if (includeField(fields, KEY_GEOMETRY))
 			geometry = getGeoDao().read(au.getGid(), LocationGeometry.class); //au.getGeometry();
 		
 		if (geometry != null){
 			Geometry multiPolygonGeom = geometry.getMultiPolygonGeom();
 			feature.setGeometry(GeoOutputRule.toFeatureGeometry(multiPolygonGeom));
-			if (is(fields, KEY_BBOX)) 
+			if (includeField(fields, KEY_BBOX)) 
 				feature.setBbox(computeBbox(au));
 			feature.setId(au.getGid() + "");
 		}
@@ -147,7 +146,7 @@ public class LocationRule {
 		return feature;
 	}
 
-	private static boolean is(List<String> fields, String key) {
+	private static boolean includeField(List<String> fields, String key) {
 		if (fields == null || fields.isEmpty())
 			return true;
 		return fields.contains(key);
@@ -357,7 +356,7 @@ public class LocationRule {
 		}
 		List<Location> list = new ArrayList<>();
 		list.add(au);
-		return toFeatureCollection(list, ALL_KEYS);
+		return toFeatureCollection(list, null);
 	}
 
 	public static Location findByGid(long gid) {
