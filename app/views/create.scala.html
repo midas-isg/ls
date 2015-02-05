@@ -45,7 +45,7 @@
 							</button>
 							<ul class="dropdown-menu" role="menu" aria-labelledby="dropdown-menu" data-toggle="dropdown" aria-expanded="true">
 								<li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick='$("#au-type").val("Epidemic Zone"); $("#au-type").prop("disabled", true);'>Epidemic Zone</a></li>
-								<li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick='$("#au-type").prop("disabled", false); $("#au-type").val("");'>Location</a></li>
+								<li role="presentation" class="disabled" hidden><a role="menuitem" tabindex="-1" href="#" onclick='/*$("#au-type").prop("disabled", false); $("#au-type").val("");*/'>Location</a></li>
 							</ul>
 							<input type="text" id="au-type" placeholder="Location type" disabled>
 						</div>
@@ -53,7 +53,7 @@
 						<div><em>Name:</em><input type="text" id="au-name" class="pre-spaced" placeholder="Name"></div>
 					</div>
 					
-					<div class="vertical-spaced">
+					<div class="vertical-spaced" hidden>
 						<em>Code:</em> <input type="text" id="au-code" class="pre-spaced" placeholder="Code"> <em>Code type:</em> <input type="text" id="au-codetype" class="pre-spaced" placeholder="Code type">
 					</div>
 					
@@ -65,7 +65,7 @@
 			
 			<div>
 				<div id="map-one" class="map"></div>
-				<button id="download-button">Download as GeoJSON</button>
+				<button id="download-button" hidden>Download as GeoJSON</button>
 			</div>
 		</div>
 		
@@ -78,7 +78,7 @@
 						<button id="resetParentSearchButton">&times;</button>
 						<span id="parent-matches"></span>
 					</div>
-					<div id="parent-tree" style="padding-top: 5px; max-height: 530px; overflow: auto;"></div>
+					<div id="parent-tree" style="padding-top: 5px; max-height: 480px; overflow: auto;"></div>
 			</div>
 			
 			<div id="au-list" class="pull-left" hidden>
