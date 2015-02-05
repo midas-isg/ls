@@ -25,55 +25,60 @@
 }
 
 @main(message, imports) {
-	<div style="padding-left: 2%;">
+	<div style="padding-left: 1%;">
 		<div class="pull-left">
-			<div class="extra-bottom-space">
-				<div><button id="new-button">New location</button></div>
-				<div class="vertical-spaced" style="border-width: 1px; border-style: groove; padding-left: 5px; display: inline-block;">
-					<em>ID:</em><input type="text" id="gid" class="pre-spaced" placeholder="ID">
-					<button id="db-load-button" class="pre-spaced">Load from database</button>
-				</div>
-
-				<div class="vertical-spaced"><em>Name:</em><input type="text" id="au-name" class="pre-spaced" placeholder="Name"></div>
-				
-				<div class="dropdown">
-					<button class="btn btn-default btn-sm dropdown-toggle" type="button" id="dropdown-menu" data-toggle="dropdown" aria-expanded="true">
-					Location type <span class="caret"></span>
-					</button>
-					<ul class="dropdown-menu" role="menu" aria-labelledby="dropdown-menu" data-toggle="dropdown" aria-expanded="true">
-						<li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick='$("#au-type").val("Epidemic Zone"); $("#au-type").prop("disabled", true);'>Epidemic Zone</a></li>
-						<li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick='$("#au-type").prop("disabled", false); $("#au-type").val("");'>Location</a></li>
-					</ul>
-					<input type="text" id="au-type" placeholder="Location type" disabled>
+			<div style="padding: 2px;">
+				<div class="vertical-spaced" style="border-width: 1px; border-style: groove; padding-left: 5px;">
+					<input id="file-input" class="pull-left" accept=".json, .geojson, .kml" type="file">
+					
+					<div class="pre-spaced">
+						<em>ID:</em><input type="text" id="gid" class="pre-spaced" placeholder="ID to update in database">
+						<button id="new-button" hidden>New entry</button>
+					</div>
 				</div>
 				
-				<div class="vertical-spaced"><em>Code:</em> <input type="text" id="au-code" class="pre-spaced" placeholder="Code"> <em>Code type:</em> <input type="text" id="au-codetype" class="pre-spaced" placeholder="Code type"></div>
-				<div class="vertical-spaced"><em>Date:</em> <input type="text" id="start-date" class="pre-spaced" placeholder="Start date"> <em>to</em> <input type="text" id="end-date" class="pre-spaced" placeholder="End date"><button id="save-button">Save to Database</button></div>
+				<div style="border-width: 1px; border-style: groove; padding-left: 5px;">
+					<div class="vertical-spaced">
+						<div class="dropdown pull-left">
+							<button class="btn btn-default btn-sm dropdown-toggle" type="button" id="dropdown-menu" data-toggle="dropdown" aria-expanded="true">
+								Location type <span class="caret"></span>
+							</button>
+							<ul class="dropdown-menu" role="menu" aria-labelledby="dropdown-menu" data-toggle="dropdown" aria-expanded="true">
+								<li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick='$("#au-type").val("Epidemic Zone"); $("#au-type").prop("disabled", true);'>Epidemic Zone</a></li>
+								<li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick='$("#au-type").prop("disabled", false); $("#au-type").val("");'>Location</a></li>
+							</ul>
+							<input type="text" id="au-type" placeholder="Location type" disabled>
+						</div>
+						
+						<div><em>Name:</em><input type="text" id="au-name" class="pre-spaced" placeholder="Name"></div>
+					</div>
+					
+					<div class="vertical-spaced">
+						<em>Code:</em> <input type="text" id="au-code" class="pre-spaced" placeholder="Code"> <em>Code type:</em> <input type="text" id="au-codetype" class="pre-spaced" placeholder="Code type">
+					</div>
+					
+					<div class="vertical-spaced">
+						<em>Date:</em> <input type="text" id="start-date" class="pre-spaced" placeholder="Start date"> <em>to</em> <input type="text" id="end-date" class="pre-spaced" placeholder="End date"><button id="save-button">Save to Database</button>
+					</div>
+				</div>
 			</div>
 			
 			<div>
 				<div id="map-one" class="map"></div>
-				
-				<div style="clear: both;">
-					<div>
-						<input id="json-input" accept=".json, .geojson, .kml" type="file" style="float: left;">
-						<button id="upload-button" style="float: left;">Upload from file</button>
-					</div>
-					<button id="download-button">Download</button>
-				</div>
+				<button id="download-button">Download as GeoJSON</button>
 			</div>
 		</div>
 		
-		<div>
-			<div id="parent-list" class="pull-left pre-spaced">
+		<div class="pull-left pre-spaced" style="border-width: 1px; border-style: groove; padding-left: 5px;">
+			<div id="parent-list">
 					<div>
-						<legend><em>Encompassing location:</em></legend>
+						<legend><em>Encompassing location</em></legend>
 						<label>Filter:</label>
 						<input name="search" placeholder="Filter...">
 						<button id="resetParentSearchButton">&times;</button>
 						<span id="parent-matches"></span>
 					</div>
-					<div id="parent-tree" style="padding-top: 5px"></div>
+					<div id="parent-tree" style="padding-top: 5px; max-height: 530px; overflow: auto;"></div>
 			</div>
 			
 			<div id="au-list" class="pull-left" hidden>

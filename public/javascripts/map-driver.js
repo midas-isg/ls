@@ -311,6 +311,7 @@ console.log("Length: " + JSON.stringify(data).length);
 			console.log(status);
 			setTextValue("#gid", getIDFromURI(response.getResponseHeader("Location")));
 			$("#gid").prop("disabled", true);
+			$("#new-button").show();
 		},
 		error: function(data, status) {
 			//if(data['responseJSON'] && data['responseJSON']['duplicatedUri']) {
@@ -356,7 +357,7 @@ MapDriver.prototype.download = function() {
 }
 
 MapDriver.prototype.upload = function() {
-	var file = $('#json-input').get(0).files[0];
+	var file = $('#file-input').get(0).files[0];
 	var fileReader = new FileReader();
 	var thisMapDriver = this;
 	

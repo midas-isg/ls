@@ -1,6 +1,8 @@
 var PARENT_TREE = new IndexingTermsTree();
 
 PARENT_TREE.initTree = function(picklistName, callbackFunction) {
+	var thisTreeWidget = this;
+	
 	function loadTree(data) {
 		var treeDiv = $("#parent-tree").fancytree({
 			extensions: ["filter"],
@@ -55,7 +57,8 @@ PARENT_TREE.initTree = function(picklistName, callbackFunction) {
 				//makeTableSelectable(); //TODO TBR
 			}
 		});
-		PARENT_TREE.tree = treeDiv.fancytree("getTree");
+		
+		thisTreeWidget.tree = treeDiv.fancytree("getTree");
 		initFilterForTree();
 		if(callbackFunction) {
 			callbackFunction();
@@ -78,7 +81,7 @@ PARENT_TREE.initTree = function(picklistName, callbackFunction) {
 				return;
 			}
 			
-			n = PARENT_TREE.tree.filterNodes(match, leavesOnly);
+			n = thisTreeWidget.tree.filterNodes(match, leavesOnly);
 			$("button#resetParentSearchButton").attr("disabled", false);
 			$("span#parent-matches").text("(" + n + " matches)");
 		}).focus();
@@ -91,7 +94,7 @@ PARENT_TREE.initTree = function(picklistName, callbackFunction) {
 			//e.preventDefault();
 			$("input[name=search]").val("");
 			$("span#parent-matches").text("");
-			PARENT_TREE.tree.clearFilter();
+			thisTreeWidget.tree.clearFilter();
 		}).attr("disabled", true);
 		
 		return;
