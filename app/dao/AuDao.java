@@ -24,11 +24,15 @@ import dao.entities.LocationGeometry;
 
 public class AuDao {
 	private static final int SRID =  4326;
+	private GeometryDao geoDao = null;
+	
+	
 	public Long create(Location location) {
 		EntityManager em = JPA.em();
 		LocationGeometry geometry = prepareGeometry(location);
 		em.persist(geometry);
 		em.persist(location);
+		AuHierarchyRule.notifyChange();
 		Long gid = location.getGid();
 		Logger.debug("persisted " + gid);
 		return gid;
@@ -41,7 +45,7 @@ public class AuDao {
 	public Location read(long gid, Class<LocationGeometry> geometry) {
 		EntityManager em = JPA.em();
 		Location result = em.find(Location.class, gid);
-		LocationGeometry geo = em.find(geometry, gid);
+		LocationGeometry geo = getGeoDao().read(em, gid, geometry);
 		result.setGeometry(geo);
 		return result;
 	}
@@ -51,6 +55,7 @@ public class AuDao {
 		LocationGeometry geometry = prepareGeometry(location);
 		em.merge(geometry);
 		em.merge(location);
+		AuHierarchyRule.notifyChange();
 		Long gid = location.getGid();
 		Logger.debug("merged " + gid);
 		return gid;
@@ -294,5 +299,11 @@ public class AuDao {
 		String query = "select ST_AsKML(multipolygon) from location_geometry where gid = " + gid;
 		Object singleResult = em.createNativeQuery(query).getSingleResult();
 		return singleResult.toString();
+	}
+
+	public GeometryDao getGeoDao() {
+		if (geoDao == null)
+			geoDao = new GeometryDao();
+		return geoDao;
 	}
 }
