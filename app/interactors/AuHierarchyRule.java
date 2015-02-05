@@ -21,28 +21,38 @@ public class AuHierarchyRule {
 	private static List<String> uniqueSortedLocationNames = null;
 	
 	public static void notifyChange(){
-		gid2location = null;
-		roots = null;
-		uniqueSortedLocationNames = null;
+		synchronized (gid2location) {
+			gid2location = null;
+		}
+		synchronized (roots) {
+			roots = null;
+		}
+		synchronized (uniqueSortedLocationNames) {
+			uniqueSortedLocationNames = null;
+		}
 	}
 	
 	public static List<Location> getHierarchy() {
-		if (roots == null){
-			Map<Long, Location> gid2location = getGid2location();
-			roots = new ArrayList<>();
-			for (Location l: gid2location.values()){
-				if (l.getParent() == null)
-					roots.add(l);
+		synchronized (roots) {
+			if (roots == null){
+				Map<Long, Location> gid2location = getGid2location();
+				roots = new ArrayList<>();
+				for (Location l: gid2location.values()){
+					if (l.getParent() == null)
+						roots.add(l);
+				}
 			}
+			return roots;
 		}
-		return roots;
 	}
 
 	public static Map<Long, Location> getGid2location() {
-		if (gid2location == null){
-			gid2location = new AuDao().getGid2location();
+		synchronized (gid2location) {
+			if (gid2location == null){
+				gid2location = new AuDao().getGid2location();
+			}
+			return gid2location;
 		}
-		return gid2location;
 	}
 	
 	static Location getLocation(long gid) {
@@ -82,18 +92,20 @@ public class AuHierarchyRule {
 	}
 	
 	private static List<String> getUniqueSortedLocationNames(){
-		if (uniqueSortedLocationNames == null){
-			Map<Long, Location> map = getGid2location();
-			Set<String> set = new HashSet<>();
-			Collection<Location> locations = map.values();
-			for (Location l : locations){
-				set.add(l.getData().getName());
+		synchronized (uniqueSortedLocationNames) {
+			if (uniqueSortedLocationNames == null){
+				Map<Long, Location> map = getGid2location();
+				Set<String> set = new HashSet<>();
+				Collection<Location> locations = map.values();
+				for (Location l : locations){
+					set.add(l.getData().getName());
+				}
+				uniqueSortedLocationNames = new ArrayList<>();
+				uniqueSortedLocationNames.addAll(set);
+				Collections.sort(uniqueSortedLocationNames, String.CASE_INSENSITIVE_ORDER);
 			}
-			uniqueSortedLocationNames = new ArrayList<>();
-			uniqueSortedLocationNames.addAll(set);
-			Collections.sort(uniqueSortedLocationNames, String.CASE_INSENSITIVE_ORDER);
+			return uniqueSortedLocationNames;
 		}
-		return uniqueSortedLocationNames;
 	}
 	
 	public static List<Map<String, String>> findLocationNames(String prefixNames, int limit){
