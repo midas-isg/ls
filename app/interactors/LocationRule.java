@@ -97,7 +97,7 @@ public class LocationRule {
 		List<Feature> features = toFeatures(compositeAu.getLocationsIncluded(), null);
 		fc.setFeatures(features);
 		fc.setType("FeatureCollection");
-		fc.setProperites(toProperties(compositeAu));
+		fc.setProperties(toProperties(compositeAu));
 		double[] computeBbox = computeBbox(compositeAu);
 		if (computeBbox == null)
 			computeBbox =  computeBbox(features);

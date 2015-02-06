@@ -14,7 +14,7 @@ public class FeatureCollection {
 	private List<Feature> features;
 	private String id;
 	private double[] bbox;
-	private Map<String, Object> properites; //TODO: to move out
+	private Map<String, Object> properties; //TODO: to move out
 	
 	public String getType() {
 		return type;
@@ -53,12 +53,12 @@ public class FeatureCollection {
 		this.bbox = bbox;
 	}
 
-	public Map<String, Object> getProperites() {
-		return properites;
+	public Map<String, Object> getProperties() {
+		return properties;
 	}
 
-	public void setProperites(Map<String, Object> properites) {
-		this.properites = properites;
+	public void setProperties(Map<String, Object> properties) {
+		this.properties = properties;
 	}
 
 	@Override
