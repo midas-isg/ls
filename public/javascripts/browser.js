@@ -159,14 +159,28 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		thisMapDriver.map.fitBounds(bounds);
 		
 		thisMapDriver.mapID = thisMapDriver.featureLayer.getGeoJSON().id;
-		$("#au-name").append("<strong>" + feature.properties.name + "</strong>");
-		$("#au-location-type").append("<div class='pull-left pre-spaced'>" + feature.properties.locationTypeName + "</div>");
 		
-		setTextValue("#start-date", feature.properties.startDate);
-		setTextValue("#end-date", feature.properties.endDate);
-		
-		if(feature.properties.endDate) {
-			$("#historical-note").show();
+		if(geoJSON.properties) {
+			$("#au-name").append("<strong>" + geoJSON.properties.name + "</strong>");
+			$("#au-location-type").append("<div class='pull-left pre-spaced'>" + geoJSON.properties.locationTypeName + "</div>");
+			
+			setTextValue("#start-date", geoJSON.properties.startDate);
+			setTextValue("#end-date", geoJSON.properties.endDate);
+			
+			if(geoJSON.properties.endDate) {
+				$("#historical-note").show();
+			}
+		}
+		else {
+			$("#au-name").append("<strong>" + feature.properties.name + "</strong>");
+			$("#au-location-type").append("<div class='pull-left pre-spaced'>" + feature.properties.locationTypeName + "</div>");
+			
+			setTextValue("#start-date", feature.properties.startDate);
+			setTextValue("#end-date", feature.properties.endDate);
+			
+			if(feature.properties.endDate) {
+				$("#historical-note").show();
+			}
 		}
 		
 		$("#au-geojson").prop("href", thisMapDriver.geoJSONURL);
@@ -265,13 +279,25 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			$("#codes").show();
 		}
 		
-		feature.properties.title = feature.properties.name  + " " + feature.properties.locationTypeName + " from ";
-		feature.properties.title = feature.properties.title + feature.properties.startDate;
-		if(feature.properties.endDate) {
-			feature.properties.title = feature.properties.title + " to " + feature.properties.endDate;
+		if(geoJSON.properties) {
+			feature.properties.title = geoJSON.properties.name  + " " + geoJSON.properties.locationTypeName + " from ";
+			feature.properties.title = feature.properties.title + geoJSON.properties.startDate;
+			if(geoJSON.properties.endDate) {
+				feature.properties.title = feature.properties.title + " to " + geoJSON.properties.endDate;
+			}
+			else {
+				feature.properties.title += " to present";
+			}
 		}
 		else {
-			feature.properties.title += " to present";
+			feature.properties.title = feature.properties.name  + " " + feature.properties.locationTypeName + " from ";
+			feature.properties.title = feature.properties.title + feature.properties.startDate;
+			if(feature.properties.endDate) {
+				feature.properties.title = feature.properties.title + " to " + feature.properties.endDate;
+			}
+			else {
+				feature.properties.title += " to present";
+			}
 		}
 		
 		thisMapDriver.map.legendControl.removeLegend(thisMapDriver.title);
@@ -298,66 +324,6 @@ MapDriver.prototype.loadFeatureLayer = function() {
 MapDriver.prototype.loadJSON = function(jsonData) {
 	multiPolygonsToPolygons(jsonData);
 	this.featureLayer.setGeoJSON(jsonData);
-	
-	return;
-}
-
-MapDriver.prototype.download = function() {
-	var jsonData = this.featureLayer.toGeoJSON();
-	var properties = null;
-	
-	for(var i = 0; i < jsonData.features.length; i++) {
-		properties = jsonData.features[i].properties;
-		properties.name = getValueText("#au-name");
-		properties.startDate = getValueText("#start-date");
-		properties.endDate = getValueText("#end-date");
-		
-		properties.code = getValueText("#au-geojson");
-		
-		properties.parentGid = getValueText("#au-lineage");
-		properties.description = properties.name + ";" + properties.code + ";" + properties.startDate + ";" + properties.endDate + ";" + properties.parentGid;
-	}
-	
-	if(!jsonData.id) {
-		jsonData.id = this.mapID;
-	}
-	
-	var data = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(jsonData));
-	
-	//$('<a href="data:' + data + '" download="data.json">download JSON</a>').appendTo('#container');
-	
-	location.assign("data:'" + data);
-	
-	return jsonData;
-}
-
-MapDriver.prototype.upload = function() {
-	var file = $('#json-input').get(0).files[0];
-	var fileReader = new FileReader();
-	
-	fileReader.onload = (function() {
-		var kmlData = fileReader['result'];
-		var kmlDOM = (new DOMParser()).parseFromString(kmlData, 'text/xml');
-		
-		var jsonData = toGeoJSON.kml(kmlDOM);
-		
-		if(jsonData.features.length == 0) {
-			jsonData = JSON.parse(kmlData);
-		}
-		
-		var properties = jsonData.features[0].properties;
-		setTextValue("#au-name", properties.name);
-		setTextValue("#start-date", properties.startDate);
-		setTextValue("#end-date", properties.endDate);
-		
-		setTextValue("#au-geojson", properties.code);
-		
-		//setTextValue("#au-lineage", properties.parentGid);
-		
-		thisMapDriver.loadJSON(jsonData);
-	});
-	
-	var fileString = fileReader.readAsText(file);
 	
 	return;
 }
