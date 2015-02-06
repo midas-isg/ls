@@ -52,16 +52,24 @@ public class TreeViewAdapter {
 	}
 
 	private static String makeTitle(Data data) {
-		Date endDate = data.getEndDate();
-		String toEndDateText = (endDate == null) ? "Present" :  "" + endDate;
 		Date startDate = data.getStartDate();
 		String fromStartDateText = "";
 		if (startDate != null){
 			String startDateText = startDate.toString();
 			if (! startDateText.startsWith("0"))
-				fromStartDateText =  startDateText + " to ";
+				fromStartDateText =  startDateText + " ";
 		}
-		return data.getName() + " [" + fromStartDateText + toEndDateText + "]"; 
+		Date endDate = data.getEndDate();
+		String toEndDateText = "";
+		if (endDate == null) {
+			if (! fromStartDateText.isEmpty()){
+				toEndDateText += "to ";
+			}
+			toEndDateText += "Present";  
+		} else {
+			toEndDateText = "to " + endDate;
+		}
+		return data.getName() + " [" + fromStartDateText  + toEndDateText + "]"; 
 	}
 
 	public static List<FancyTreeNode> removeEpidemicZone(List<FancyTreeNode> input){
