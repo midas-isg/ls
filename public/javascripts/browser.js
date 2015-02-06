@@ -45,9 +45,9 @@ function MapDriver(){
 		this.dataSourceURL = context + "/api/locations?q=" + query;// + "&limit=" + limit + "&offset=" + offset;
 	}
 	
-	this.geoJSONURL = this.dataSourceURL + "?format=geojson"; //crudPath + "/" + id;
-	this.apolloJSONURL = this.dataSourceURL + "?format=apollojson";
-	this.kmlURL = this.dataSourceURL + "?format=kml";
+	this.geoJSONURL = this.dataSourceURL + ".geojson"; //crudPath + "/" + id;
+	this.apolloJSONURL = this.dataSourceURL + ".json";
+	this.kmlURL = this.dataSourceURL + ".kml";
 	
 	this.accessToken = 'pk.eyJ1IjoidHBzMjMiLCJhIjoiVHEzc0tVWSJ9.0oYZqcggp29zNZlCcb2esA';
 	this.featureLayer = null;
@@ -184,6 +184,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		}
 		
 		$("#au-geojson").prop("href", thisMapDriver.geoJSONURL);
+		$("#au-geojson").prop("type", "application/vnd.geo+json");
 		if(thisMapDriver.geoJSONURL) {
 			$("#au-geojson").css("text-decoration", "underline");
 		}

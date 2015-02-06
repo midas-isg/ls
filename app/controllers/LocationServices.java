@@ -9,7 +9,7 @@ import play.mvc.Result;
 
 public class LocationServices extends Controller {
 	private static final String FORMAT_GEOJSON = "geojson";
-	private static final String FORMAT_APOLLOJSON = "apollojson";
+	private static final String FORMAT_APOLLOJSON = "json";
 	private static final String FORMAT_KML = "kml";
 	private static final String FORMAT_DEFAULT = "geojson";
 	
