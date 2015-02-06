@@ -1,6 +1,7 @@
 package controllers;
 
 
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -29,12 +30,12 @@ public class TreeViewAdapter {
 	static FancyTreeNode toNode(Location au, String path) {
 		FancyTreeNode node = new FancyTreeNode();
 		Data data = au.getData();
-		node.title = data.getName();
+		node.title = makeTitle(data);
 		node.path = path + data.getName();
 		node.tooltip = node.path;
 		node.key = au.getGid() + "";
 		node.icon = false;
-		node.type = data.getLocationType().getName();//node.path.split("\\.")[0];
+		node.type = data.getLocationType().getName();
 		node.hideCheckbox = isHideCheckbox;
 		node.unselectable = false;
 		node.children = new ArrayList<>();
@@ -50,6 +51,19 @@ public class TreeViewAdapter {
 		return node;
 	}
 
+	private static String makeTitle(Data data) {
+		Date endDate = data.getEndDate();
+		String toEndDateText = (endDate == null) ? "Present" :  "" + endDate;
+		Date startDate = data.getStartDate();
+		String fromStartDateText = "";
+		if (startDate != null){
+			String startDateText = startDate.toString();
+			if (! startDateText.startsWith("0"))
+				fromStartDateText =  startDateText + " to ";
+		}
+		return data.getName() + " [" + fromStartDateText + toEndDateText + "]"; 
+	}
+
 	public static List<FancyTreeNode> removeEpidemicZone(List<FancyTreeNode> input){
 		if (input == null)
 			return null;
@@ -57,7 +71,7 @@ public class TreeViewAdapter {
 		while (iterator.hasNext()) {
 			FancyTreeNode node = iterator.next();
 			if (node.type.equalsIgnoreCase("Epidemic Zone")){
-				Logger.debug("'" + node.title + "' Epidemic Zone was removed");
+				Logger.debug("'" + node.title + "' Epidemic Zone was removed from the tree");
 				iterator.remove();
 			} else {
 				removeEpidemicZone(node.children);
