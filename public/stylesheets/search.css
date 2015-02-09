@@ -2,6 +2,14 @@
 	vertical-align: inherit;
 }
 
+#leaflet-draw-marker a:hover{
+	cursor: default;
+	background-color: transparent;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+	border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
 #result table {
 	display: table;
 	width: 100%;

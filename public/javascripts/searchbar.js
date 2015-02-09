@@ -18,11 +18,19 @@ $(document).ready(function() {
 		return;
 	});
 	
+	$("#search-button").click(function() {
+		searchClick();
+	});
+	
 	var limit = 5;
 	bindSuggestionBox("#input", context + "/api/unique-location-names?limit=" + limit + "&q=");
 	
 	return;
 });
+
+function searchClick() {
+	return location.assign(context + "?q=" + $("#input").val());
+}
 
 function bindSuggestionBox(inputBox, URL) {
 	jQuery(inputBox).autocomplete({
