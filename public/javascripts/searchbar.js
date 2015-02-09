@@ -29,6 +29,10 @@ $(document).ready(function() {
 });
 
 function searchClick() {
+	if($("input").val() == "access security") {
+		return location.assign("https://www.youtube.com/watch?v=RfiQYRn7fBg");
+	}
+	
 	return location.assign(context + "?q=" + $("#input").val());
 }
 
