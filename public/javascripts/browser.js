@@ -5,10 +5,6 @@ var MAP_DRIVER = null;
 $(document).ready(function() {
 	MAP_DRIVER = new MapDriver();
 	
-	$("#search-button").click(function() {
-		return location.assign(context + "?q=" + $("#input").val());
-	});
-	
 	$("#input").keyup(function(event) {
 		switch(event.which)
 		{

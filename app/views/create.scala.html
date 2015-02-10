@@ -28,8 +28,8 @@
 	<div style="padding-left: 1%;">
 		<div class="pull-left">
 			<div style="padding: 2px;">
-				<div style="border-width: 1px; border-style: groove; padding-left: 5px;">
-					<input id="file-input" class="pull-left" accept=".json, .geojson, .kml" type="file">
+				<div class="extra-bottom-space" style="border-width: 1px; border-style: groove; padding-left: 5px;">
+					<input id="file-input" class="pull-left" accept=".json, .geojson, .kml" type="file" style="padding-top: 1px; padding-bottom: 1px;">
 					
 					<div class="pre-spaced">
 						<em>ID:</em><input type="text" id="gid" class="pre-spaced" placeholder="ID to update in database">
@@ -50,7 +50,7 @@
 							<input type="text" id="au-type" placeholder="Location type" disabled>
 						</div>
 						
-						<div><em>Name:</em><input type="text" id="au-name" class="pre-spaced" placeholder="Name"></div>
+						<div><em class="pre-spaced">Name:</em><input type="text" id="au-name" class="pre-spaced" placeholder="Name"></div>
 					</div>
 					
 					<div class="vertical-spaced" hidden>
@@ -62,7 +62,7 @@
 					</div>
 					
 					<div class="vertical-spaced">
-						<button id="save-button">Save to Database</button>
+						<button id="save-button">Save to database</button>
 						<span id="server-result"></span>
 					</div>
 				</div>

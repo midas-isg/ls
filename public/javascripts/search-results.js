@@ -7,12 +7,6 @@ var pointURL = context + "/api/locations-by-coordinate";
 var browswerURL = context + "/browser";
 
 $(document).ready(function() {
-	$("#search-button").click(function() {
-			searchClick();
-			
-			return;
-	});
-	
 	var query = getURLParameterByName("q");
 	
 	if(query) {
@@ -22,10 +16,6 @@ $(document).ready(function() {
 	
 	return;
 });
-
-function searchClick() {
-	return location.assign(context + "?q=" + $("#input").val());
-}
 
 function searchQuery() {
 	var input = $("#input").val();

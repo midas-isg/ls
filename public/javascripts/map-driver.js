@@ -493,12 +493,14 @@ function centerMap(geoJSON, thisMapDriver) {
 		else /*if(geometry.coordinates)*/ {
 			geometryCount = geometry.coordinates.length;
 			
-			latitude = geometry.coordinates[0][0][1];
-			longitude = geometry.coordinates[0][0][0];
-			minLat = latitude;
-			maxLat = minLat;
-			minLng = longitude;
-			maxLng = minLng;
+			if(a == 0) {
+				latitude = geometry.coordinates[0][0][1];
+				longitude = geometry.coordinates[0][0][0];
+				minLat = latitude;
+				maxLat = minLat;
+				minLng = longitude;
+				maxLng = minLng;
+			}
 			
 			var vertices;
 			var coordinatesBody;

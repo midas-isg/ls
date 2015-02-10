@@ -70,11 +70,12 @@ $(document).ready(function() {
 									polyline: false,
 									rectangle: false,
 									circle: false,
-									marker: true
+									marker: false
 								},
+								/*
 								edit: {
 									featureGroup: thisMapDriver.featureLayer
-								}
+								}*/
 							}).addTo(thisMapDriver.map);
 						}
 						
