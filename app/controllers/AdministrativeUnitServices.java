@@ -55,7 +55,9 @@ Logger.debug("Request Body:\n" + requestBodyText);
 				
 				requestJSON = requestBody.asJson();
 				if(requestJSON == null) {
-					return badRequest("Expecting JSON data");
+					String errorMessage = "Expecting JSON data";
+Logger.debug(errorMessage);
+					return badRequest(errorMessage);
 				}
 				else {
 					String type = requestJSON.findPath("type").textValue();

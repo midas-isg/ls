@@ -24,7 +24,7 @@ function MapDriver() {
 MapDriver.prototype.initialize = function() {
 	L.mapbox.accessToken = this.accessToken;
 	
-	this.map = L.mapbox.map('map-one', 'examples.map-i86l3621', { worldCopyJump: true /*crs: L.CRS.EPSG385*/});
+	this.map = L.mapbox.map('map-one', 'examples.map-i86l3621', { worldCopyJump: true, bounceAtZoomLimits: false, zoom: 1 /*crs: L.CRS.EPSG385*/});
 	this.map.legendControl.addLegend(this.title);
 	
 	this.drawControl = null;
@@ -62,7 +62,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			
 			thisMapDriver.mapID = thisMapDriver.featureLayer.getGeoJSON().id;
 			setTextValue("#au-name", feature.properties.name);
-			setTextValue("#au-code", feature.properties.code);
+			setTextValue("#description", feature.properties.description);
 			setTextValue("#start-date", feature.properties.startDate);
 			setTextValue("#end-date", feature.properties.endDate);
 			
@@ -71,7 +71,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			console.log(parentGID);
 			
 			setTextValue("#gid", feature.properties.gid);
-			feature.properties.title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
+			feature.properties.title = feature.properties.name + " " + feature.properties.locationTypeName + " from " + feature.properties.startDate;
 			
 			if(feature.properties.endDate) {
 				feature.properties.title = feature.properties.title + " to " + feature.properties.endDate;
@@ -172,7 +172,15 @@ MapDriver.prototype.loadJSON = function(jsonData) {
 		centerMap(jsonData, thisMapDriver);
 		
 		var feature = jsonData.features[0];
-		var title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
+		var title = feature.properties.name + " " + feature.properties.locationTypeName + " from " + feature.properties.startDate;
+		
+		if(feature.properties.endDate) {
+			title = title + " to " + feature.properties.endDate;
+		}
+		else {
+			title += " to present";
+		}
+		
 		this.map.legendControl.removeLegend(this.title);
 		this.title = "<strong>" + title + "</strong>";
 		this.map.legendControl.addLegend(this.title);
@@ -206,6 +214,7 @@ MapDriver.prototype.saveMap = function() {
 		var startDate = getValueText("#start-date");
 		var endDate = getValueText("#end-date");
 		var auParentGID = thisMapDriver.parent;
+		var description = getValueText("#description");
 		
 		var dateTokens = validDate(startDate);
 		if(startDate == "today") {
@@ -276,6 +285,7 @@ MapDriver.prototype.saveMap = function() {
 			geoJSON.features[i].properties["name"] = auName;
 			geoJSON.features[i].properties["type"] = auType;
 			geoJSON.features[i].properties["codes"] = [{"code": auCode, "codeTypeName": auCodeType}];
+			geoJSON.features[i].properties["description"] = description;
 			geoJSON.features[i].properties["parent"] = auParentGID;
 			geoJSON.features[i].properties["startDate"] = startDate;
 			geoJSON.features[i].properties["endDate"] = endDate;
@@ -346,11 +356,10 @@ MapDriver.prototype.download = function() {
 	for(var i = 0; i < jsonData.features.length; i++) {
 		properties = jsonData.features[i].properties;
 		properties.name = getValueText("#au-name");
-		properties.code = getValueText("#au-code");
 		properties.startDate = getValueText("#start-date");
 		properties.endDate = getValueText("#end-date");
 		properties.parentGid = this.parent;
-		properties.description = properties.name + ";" + properties.code + ";" + properties.startDate + ";" + properties.endDate + ";" + properties.parentGid;
+		properties.description = getValueText("#description");
 	}
 	
 	if(!jsonData.id) {
@@ -384,7 +393,7 @@ MapDriver.prototype.upload = function() {
 		
 		var properties = jsonData.features[0].properties;
 		setTextValue("#au-name", properties.name);
-		setTextValue("#au-code", properties.code);
+		setTextValue("#description", properties.description);
 		setTextValue("#start-date", properties.startDate);
 		setTextValue("#end-date", properties.endDate);
 		
