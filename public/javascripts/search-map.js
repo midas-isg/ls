@@ -108,6 +108,10 @@ $(document).ready(function() {
 				return;
 			});
 			
+			thisMapDriver.map.whenReady(function() {
+				return thisMapDriver.map.setZoom(1);
+			});
+			
 			return;
 		});
 		
