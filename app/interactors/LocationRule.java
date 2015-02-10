@@ -291,9 +291,19 @@ public class LocationRule {
 		return dao.create(au);
 	}
 	
-	public static void delete(long gid){
+	public static Long update(long gid, FeatureCollection fc){
+		if (gid <= 0)
+			throw new RuntimeException("id shall be more than 0 but got " + gid);
+		Location au = toAu(fc);
+		AuDao dao = new AuDao();
+		au.setGid(gid);
+		return dao.update(au);
+	}
+	
+	public static Long delete(long gid){
 		AuDao dao = new AuDao();
 		dao.delete(dao.read(gid));
+		return gid;
 	}
 
 	private static Location toAu(FeatureCollection fc){

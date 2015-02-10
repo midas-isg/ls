@@ -32,9 +32,9 @@
       <color>5a14B4F0</color>
     </PolyStyle>
   </Style>
-  <Placemark  id="%d">
-    <name>%s</name>
-    <description>%s</description>
+  <Placemark id="%d">
+    <name><![CDATA[%s]]></name>
+    <description><![CDATA[%s]]></description>
     <styleUrl>#admin-loc</styleUrl>
       %s
   </Placemark>
