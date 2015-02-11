@@ -125,7 +125,7 @@ Logger.debug("\n" + message + "\n");
 	public synchronized static Result tree() {
 		if (auTree == null){
 			List<FancyTreeNode> tree = TreeViewAdapter.toFancyTree(AuHierarchyRule.getHierarchy());
-			auTree = okJson(TreeViewAdapter.removeEpidemicZone(tree));
+			auTree = okJson(TreeViewAdapter.removeUncomposable(tree));
 		}
 		return auTree;
 	}
