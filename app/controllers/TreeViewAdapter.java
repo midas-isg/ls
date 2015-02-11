@@ -8,7 +8,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import models.FancyTreeNode;
-import play.Logger;
 import dao.entities.Data;
 import dao.entities.Location;
 
@@ -63,26 +62,31 @@ public class TreeViewAdapter {
 		String toEndDateText = "";
 		if (endDate == null) {
 			if (! fromStartDateText.isEmpty()){
-				toEndDateText += "to ";
+				toEndDateText += "to Present";
 			}
-			toEndDateText += "Present";  
 		} else {
 			toEndDateText = "to " + endDate;
 		}
-		return data.getName() + " [" + fromStartDateText  + toEndDateText + "]"; 
+		String variant = "";
+		if (fromStartDateText.length() + toEndDateText.length() > 0)		
+			variant = " [" + fromStartDateText  + toEndDateText + "]";
+		return data.getName() + variant; 
 	}
 
-	public static List<FancyTreeNode> removeEpidemicZone(List<FancyTreeNode> input){
+	public static List<FancyTreeNode> removeUncomposable(List<FancyTreeNode> input){
 		if (input == null)
 			return null;
+		String TYPE_EZ = "Epidemic Zone";
+		String TYPE_PUMA = "PUMA";
 		Iterator<FancyTreeNode> iterator = input.iterator();
 		while (iterator.hasNext()) {
 			FancyTreeNode node = iterator.next();
-			if (node.type.equalsIgnoreCase("Epidemic Zone")){
-				Logger.debug("'" + node.title + "' Epidemic Zone was removed from the tree");
+			if (node.type.equalsIgnoreCase(TYPE_EZ)){
+				iterator.remove();
+			} else 	if (node.type.equalsIgnoreCase(TYPE_PUMA)){
 				iterator.remove();
 			} else {
-				removeEpidemicZone(node.children);
+				removeUncomposable(node.children);
 			}
 		}
 		return input;
