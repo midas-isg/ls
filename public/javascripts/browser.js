@@ -156,27 +156,27 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		
 		thisMapDriver.mapID = thisMapDriver.featureLayer.getGeoJSON().id;
 		
+		var properties = null;
 		if(geoJSON.properties) {
-			$("#au-name").append("<strong>" + geoJSON.properties.name + "</strong>");
-			$("#au-location-type").append("<div class='pull-left pre-spaced'>" + geoJSON.properties.locationTypeName + "</div>");
-			
-			setTextValue("#start-date", geoJSON.properties.startDate);
-			setTextValue("#end-date", geoJSON.properties.endDate);
-			
-			if(geoJSON.properties.endDate) {
-				$("#historical-note").show();
-			}
+			properties = geoJSON.properties;
 		}
 		else {
-			$("#au-name").append("<strong>" + feature.properties.name + "</strong>");
-			$("#au-location-type").append("<div class='pull-left pre-spaced'>" + feature.properties.locationTypeName + "</div>");
-			
-			setTextValue("#start-date", feature.properties.startDate);
-			setTextValue("#end-date", feature.properties.endDate);
-			
-			if(feature.properties.endDate) {
-				$("#historical-note").show();
-			}
+			properties = feature.properties;
+		}
+		
+		$("#au-name").append("<strong>" + properties.name + "</strong>");
+		$("#au-location-type").append("<div class='pull-left pre-spaced'>" + properties.locationTypeName + "</div>");
+		
+		if(properties.description) {
+			$("#description").append("<div class='pull-left pre-spaced'>" + properties.description + "</div>");
+			$("#description").show();
+		}
+		
+		setTextValue("#start-date", properties.startDate);
+		setTextValue("#end-date", properties.endDate);
+		
+		if(properties.endDate) {
+			$("#historical-note").show();
 		}
 		
 		$("#au-geojson").prop("href", thisMapDriver.geoJSONURL);
@@ -195,9 +195,9 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			$("#au-apollojson").css("text-decoration", "underline");
 		}
 		
-		listLineageRefs(feature.properties.lineage, "#au-lineage");
+		listLineageRefs(properties.lineage, "#au-lineage");
 		
-		var related = feature.properties.related;
+		var related = properties.related;
 		if(related.length > 0){
 			$("#au-related").show();
 			
@@ -210,7 +210,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			}
 		}
 		
-		var children = feature.properties.children;
+		var children = properties.children;
 		show = false;
 		var show2 = false;
 		var show3 = false;
@@ -263,9 +263,9 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			}
 		}
 		
-		setTextValue("#gid", feature.properties.gid);
+		setTextValue("#gid", properties.gid);
 		show = false;
-		var codes = feature.properties.codes;
+		var codes = properties.codes;
 		for(i = 0; i < codes.length; i++) {
 			if(codes[i].codeTypeName != "ISG") {
 				$("#codes").append("<div style='text-indent: 50px;'><em>" + codes[i].codeTypeName + ":</em> " + codes[i].code + "</div>");
@@ -276,29 +276,17 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			$("#codes").show();
 		}
 		
-		if(geoJSON.properties) {
-			feature.properties.title = geoJSON.properties.name  + " " + geoJSON.properties.locationTypeName + " from ";
-			feature.properties.title = feature.properties.title + geoJSON.properties.startDate;
-			if(geoJSON.properties.endDate) {
-				feature.properties.title = feature.properties.title + " to " + geoJSON.properties.endDate;
-			}
-			else {
-				feature.properties.title += " to present";
-			}
+		properties.title = properties.name  + " " + properties.locationTypeName + " from ";
+		properties.title = properties.title + properties.startDate;
+		if(properties.endDate) {
+			properties.title = properties.title + " to " + properties.endDate;
 		}
 		else {
-			feature.properties.title = feature.properties.name  + " " + feature.properties.locationTypeName + " from ";
-			feature.properties.title = feature.properties.title + feature.properties.startDate;
-			if(feature.properties.endDate) {
-				feature.properties.title = feature.properties.title + " to " + feature.properties.endDate;
-			}
-			else {
-				feature.properties.title += " to present";
-			}
+			properties.title += " to present";
 		}
 		
 		thisMapDriver.map.legendControl.removeLegend(thisMapDriver.title);
-		thisMapDriver.title = "<strong>" + feature.properties.title + "</strong>";
+		thisMapDriver.title = "<strong>" + properties.title + "</strong>";
 		thisMapDriver.map.legendControl.addLegend(thisMapDriver.title);
 	});
 	
