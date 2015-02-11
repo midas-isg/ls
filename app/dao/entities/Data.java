@@ -2,10 +2,12 @@ package dao.entities;
 
 import java.sql.Date;
 
+import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 
 
@@ -126,7 +128,8 @@ public class Data {
 		this.description = description;
 	}
 
-	@Column(length = 1048576) // 1,048,576 = 1 MB
+	@Lob
+	@Basic(fetch = FetchType.LAZY)
 	public String getKml() {
 		return kml;
 	}
