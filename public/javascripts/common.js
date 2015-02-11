@@ -142,3 +142,20 @@ function listLineageRefs(lineage, sectionID) {
 	
 	return;
 }
+
+function getFirstAlphaOnly(input) {
+	var output = "";
+	
+	for(var i = 0; i < input.length; i++) {
+		if((input.charAt(i) == ' ') || ((input.charAt(i) >= 'a') && (input.charAt(i) <= 'z')) || ((input.charAt(i) >= 'A') && (input.charAt(i) <= 'Z'))) {
+			output += input.charAt(i);
+		}
+		else if(input.charAt(i) != ' ') {
+			output = output.trim();
+			
+			break;
+		}
+	}
+	
+	return output;
+}

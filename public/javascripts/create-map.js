@@ -13,7 +13,9 @@ $(document).ready(function() {
 			AU_COMPOSITE_TREE.initInteractBetweenTreeAndTable("au-list", initialize());
 			
 			function initialize() {
-				var thisMapDriver = this;
+				CREATE_MAP = new MapDriver();
+				MAP_DRIVER = CREATE_MAP;
+				var thisMapDriver = CREATE_MAP;
 				
 				thisMapDriver.loadFeatureLayer = function() {
 					if(this.geoJSONURL) {
@@ -51,7 +53,8 @@ $(document).ready(function() {
 						}
 						
 						setTextValue("#gid", feature.properties.gid);
-						feature.properties.title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
+						setTextValue("#description", feature.properties.description);
+						feature.properties.title = feature.properties.name + " " + feature.properties.locationTypeName + " from " + feature.properties.startDate;
 						
 						if(feature.properties.endDate) {
 							feature.properties.title = feature.properties.title + " to " + feature.properties.endDate;
@@ -138,22 +141,54 @@ $(document).ready(function() {
 					return;
 				}
 				
-				CREATE_MAP = new MapDriver();
-				MAP_DRIVER = CREATE_MAP;
+				function loadFromDatabase(mapID) {
+					thisMapDriver.geoJSONURL = crudPath + "/" + mapID;
+					
+					if(thisMapDriver.geoJSONURL) {
+						CREATE_MAP.featureLayer.loadURL(thisMapDriver.geoJSONURL);
+					}
+					
+					thisMapDriver.featureLayer.on("ready", function() {
+						var feature = thisMapDriver.featureLayer.getGeoJSON().features[0];
+						
+						$("#gid").prop("disabled", true);
+						setTextValue("#au-type", feature.properties.locationTypeName);
+						
+						PARENT_TREE.clickIsAboutByValue(feature.properties.parentGid);
+						setTextValue("input#parent", getFirstAlphaOnly(PARENT_TREE.tree.getNodeByKey(feature.properties.parentGid).title));
+						$("input#parent").keyup();
+						
+						$("#save-button").hide();
+						if(feature.properties.locationTypeName == "Epidemic Zone") {
+							$("#update-button").show();
+						}
+						
+						$("#new-button").show();
+					});
+					
+					return;
+				}
+				var id = getURLParameterByName("id");
+				if(id) {
+					loadFromDatabase(id);
+				}
 				
 				$("#new-button").click(function() {
 					$("#gid").prop("disabled", false);
-					CREATE_MAP.mapID = Date().valueOf();
-					CREATE_MAP.featureLayer.clearLayers();
+					thisMapDriver.featureLayer.clearLayers();
+					thisMapDriver.map.legendControl.removeLegend(thisMapDriver.title);
 					setTextValue("#gid", "");
 					setTextValue("#au-name", "");
 					setTextValue("#au-type", "");
 					setTextValue("#au-code", "");
 					setTextValue("#au-codetype", "");
+					setTextValue("#description", "");
 					
 					var today = new Date();
 					setTextValue("#start-date", today.getUTCFullYear() + "-" + (today.getUTCMonth() + 1) + "-" + today.getUTCDate());
 					setTextValue("#end-date", "");
+					
+					PARENT_TREE.resetParent();
 				});
 				
 				$("#file-input").change(function() {
@@ -164,25 +199,6 @@ $(document).ready(function() {
 				
 				$("#download-button").click(function() {
 					CREATE_MAP.download();
-					
-					return;
-				});
-				
-				$("#db-load-button").click(function() {
-					var mapID = getValueText("#gid");
-					CREATE_MAP.geoJSONURL = crudPath + "/" + mapID;
-					//"http://tps23-nb.univ.pitt.edu/test.json";
-					
-					if(CREATE_MAP.geoJSONURL) {
-						CREATE_MAP.featureLayer.loadURL(CREATE_MAP.geoJSONURL);
-					}
-					
-					CREATE_MAP.featureLayer.on("ready", function() {
-						var feature = CREATE_MAP.featureLayer.getGeoJSON().features[0];
-						
-						$("#gid").prop("disabled", true);
-						setTextValue("#au-type", feature.properties.locationTypeName);
-					});
 					
 					return;
 				});

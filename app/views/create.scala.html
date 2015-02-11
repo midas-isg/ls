@@ -66,7 +66,8 @@
 					</div>
 					
 					<div class="vertical-spaced">
-						<button id="save-button">Save to database</button>
+						<button id="save-button">Save new entry to database</button>
+						<button id="update-button" hidden>Update entry in database</button>
 						<span id="server-result"></span>
 					</div>
 				</div>
@@ -83,7 +84,7 @@
 					<div>
 						<legend><em>Encompassing location</em></legend>
 						<label>Filter:</label>
-						<input name="search" placeholder="Filter...">
+						<input id="parent" type="text" name="search" placeholder="Filter...">
 						<button id="resetParentSearchButton">&times;</button>
 						<span id="parent-matches"></span>
 					</div>
