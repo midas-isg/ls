@@ -1,3 +1,7 @@
+body {
+	background-color: rgb(237, 238, 247);
+}
+
 a {
 	text-decoration: none;
 	color: #3366FF;
@@ -5,4 +9,43 @@ a {
 
 a:hover {
 	color: #FF6633;
+}
+
+.pre-spaced {
+	margin-left: 5px;
+}
+
+.post-spaced {
+	margin-right: 5px;
+}
+
+.extra-bottom-space {
+	margin-bottom: 5px;
+}
+
+.vertical-spaced {
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+
+.no-vertical-padding {
+	padding-top: 0px;
+	padding-bottom: 0px;
+}
+
+.no-horizontal-padding {
+	padding-left: 0px;
+	padding-right: 0px;
+}
+
+.no-padding {
+	padding-top: 0px;
+	padding-bottom: 0px;
+	padding-left: 0px;
+	padding-right: 0px;
+}
+
+.nabbar-inverse .navbar-brand,
+.navbar .navbar-brand {
+	color: #ffffff;
 }

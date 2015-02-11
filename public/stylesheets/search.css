@@ -1,0 +1,60 @@
+#search-button {
+	vertical-align: inherit;
+}
+
+#leaflet-draw-marker a:hover{
+	cursor: default;
+	background-color: transparent;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+	border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+#result table {
+	display: table;
+	width: 100%;
+}
+
+#result table thead,
+#result table tbody {
+	width: 100%;
+	float: left;
+}
+
+#result table tbody {
+	overflow: auto;
+	max-height: 500px;
+}
+
+#result table tr {
+	width: 100%;
+	display: table;
+}
+
+#result table thead tr {
+	border-bottom-color: rgb(221, 221, 221);
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+#result table tbody tr td,
+#result table thead tr th {
+	padding: 0px;
+	border-bottom: 0px;
+}
+
+#result table thead .location-col {
+	width: 38%;
+}
+
+#result table tbody .location-col {
+	width: 40%;
+}
+
+#result table .type-col {
+	width: 20%;
+}
+
+#result table .within-col {
+	width: 40%;
+}
