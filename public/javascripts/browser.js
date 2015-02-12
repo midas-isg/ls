@@ -162,7 +162,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			properties = feature.properties;
 		}
 		
-		thisMapDriver.mapID = properties.id;
+		thisMapDriver.mapID = properties.gid;
 		
 		$("#au-name").append("<strong>" + properties.name + "</strong>");
 		$("#au-location-type").append("<div class='pull-left pre-spaced'>" + properties.locationTypeName + "</div>");
