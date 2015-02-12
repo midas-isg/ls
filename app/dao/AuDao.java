@@ -45,8 +45,10 @@ public class AuDao {
 	public Location read(long gid, Class<LocationGeometry> geometry) {
 		EntityManager em = JPA.em();
 		Location result = em.find(Location.class, gid);
-		LocationGeometry geo = getGeoDao().read(em, gid, geometry);
-		result.setGeometry(geo);
+		if (result != null){
+			LocationGeometry geo = getGeoDao().read(em, gid, geometry);
+			result.setGeometry(geo);
+		}
 		return result;
 	}
 
@@ -73,12 +75,26 @@ public class AuDao {
 		geo.getMultiPolygonGeom().setSRID(SRID);
 	}
 
-	public Long delete(Location location) {
+	public Long delete(long gid) {
 		EntityManager em = JPA.em();
-		Long gid = location.getGid();
-		em.remove(location);
-		Logger.debug("removed " + gid);
-		return gid;
+		Location location = read(gid);
+		Long result = null;
+		LocationGeometry lg = null;
+		if (location != null){
+			lg = location.getGeometry();
+			em.remove(location);
+			Logger.info("removed Location with gid=" + gid);
+			result = gid;
+		}
+		if (lg == null)
+			lg = getGeoDao().read(gid);
+		if (lg != null){
+			em.remove(lg);
+			Logger.info("removed LocationGeometry with gid=" + gid);
+			result = gid;
+		}
+		//TODO should delete sub-class of LocationGeometry!
+		return result;
 	}
 	
 	public List<Location> findByName(String name, Integer limit, Integer offset) {
@@ -302,7 +318,7 @@ public class AuDao {
 		return singleResult.toString();
 	}
 
-	public GeometryDao getGeoDao() {
+	private GeometryDao getGeoDao() {
 		if (geoDao == null)
 			geoDao = new GeometryDao();
 		return geoDao;
