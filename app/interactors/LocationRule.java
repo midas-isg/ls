@@ -129,6 +129,7 @@ public class LocationRule {
 					AuHierarchyRule.getLineage(au.getGid()));
 			putAsLocationObjectsIfNotNull(properties, "related", au.getRelatedLocations());
 			putAsCodeObjectsIfNotNull(properties, "codes", au);
+			putAsStringIfNotNull(properties, "kml", au.getData().getKml());
 			feature.setProperties(properties);
 		}
 		LocationGeometry geometry = null;
@@ -302,8 +303,7 @@ public class LocationRule {
 	
 	public static Long delete(long gid){
 		AuDao dao = new AuDao();
-		dao.delete(dao.read(gid));
-		return gid;
+		return dao.delete(gid);
 	}
 
 	private static Location toAu(FeatureCollection fc){
