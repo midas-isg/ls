@@ -209,6 +209,12 @@ $(document).ready(function() {
 					return;
 				});
 				
+				$("#update-button").click(function() {
+					CREATE_MAP.updateMap();
+					
+					return;
+				});
+				
 				$("#composite-button").click(function() {
 					console.log(CREATE_MAP.getAUComponents());
 					

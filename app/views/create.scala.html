@@ -1,10 +1,9 @@
 @(message: String)
 
 @imports = {
-	<!--<script src='https://api.tiles.mapbox.com/mapbox.js/v2.0.1/mapbox.js'></script>-->
 	<!--<script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-draw/v0.2.2/leaflet.draw.js'></script>-->
 	
-	<script src='@routes.Assets.at("external_packages/MapBox/mapbox-2.0.1.js")'></script>
+	<script src='@routes.Assets.at("external_packages/MapBox/mapbox-2.1.5.js")'></script>
 	<script src='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet.draw-0.2.2.js")'></script>
 	<script src='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet-omnivore-0.2.0.min.js")'></script>
 	<script src='@routes.Assets.at("external_packages/fancytree/jquery.fancytree.js")'></script>
@@ -16,7 +15,7 @@
 	<script src='@routes.Assets.at("javascripts/au-composite-tree.js")'></script>
 	<script src='@routes.Assets.at("javascripts/fancytree-ext-filter.js")'></script>
 	
-	<link href='@routes.Assets.at("external_packages/MapBox/mapbox-2.0.1.css")' rel='stylesheet'/>
+	<link href='@routes.Assets.at("external_packages/MapBox/mapbox-2.1.5.css")' rel='stylesheet'/>
 	<link href='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet.draw-0.2.2.css")' rel='stylesheet'/>
 	<link href='@routes.Assets.at("external_packages/fancytree/ui.fancytree.css")' rel='stylesheet'/>
 	
@@ -32,7 +31,7 @@
 					<input id="file-input" class="pull-left" accept=".json, .geojson, .kml" type="file" style="padding-top: 1px; padding-bottom: 1px;">
 					
 					<div class="pre-spaced">
-						<em>ID:</em><input type="text" id="gid" class="pre-spaced" placeholder="ID to update in database">
+						<em>ID:</em><input type="text" id="gid" class="pre-spaced" placeholder="New entry" disabled>
 						<button id="new-button" hidden>New entry</button>
 					</div>
 				</div>
@@ -62,7 +61,8 @@
 					</div>
 					
 					<div class="vertical-spaced">
-						<em>Description: </em><textarea id="description" placeholder="Description" rows="1" style="width: 99%;"></textarea>
+						<div><em>Description: </em></div>
+						<div><textarea id="description" placeholder="Description" rows="1" style="width: 99%;"></textarea></div>
 					</div>
 					
 					<div class="vertical-spaced">

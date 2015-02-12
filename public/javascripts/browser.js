@@ -22,7 +22,7 @@ $(document).ready(function() {
 	return;
 });
 
-function MapDriver(){
+function MapDriver() {
 	var thisMapDriver = this;
 	var id = getURLParameterByName("id");
 	var format = getURLParameterByName("format");
