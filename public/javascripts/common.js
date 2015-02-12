@@ -16,14 +16,16 @@ function multiPolygonsToPolygons(geoJSON) {
 		
 		var i;
 		var j;
+		var properties = null;
+		var addedFeature = null;
 		for(i = 0; i < count; i++) {
 			if(features[i].geometry.type == "MultiPolygon") {
-				var properties = features[i].properties;
-				properties.description = properties.description;
+				properties = features[i].properties;
+				properties.description = properties.name;
 				
 				for(j = 0; j < features[i].geometry.coordinates.length; j++) {
 					features.push({"type": "Feature", "geometry": {"type": "Polygon", "coordinates": null}, "properties": properties});
-					var addedFeature = features[features.length - 1];
+					addedFeature = features[features.length - 1];
 					addedFeature.geometry.coordinates = features[i].geometry.coordinates[j];
 				}
 				

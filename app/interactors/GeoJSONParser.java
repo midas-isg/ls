@@ -22,7 +22,7 @@ public class GeoJSONParser {
 	
 	public static FeatureCollection parse(JsonNode inputJsonNode) throws Exception {
 		FeatureCollection featureCollection = new FeatureCollection();
-		featureCollection.setId(inputJsonNode.get("id").textValue());
+		//featureCollection.setId(inputJsonNode.get("id").textValue());
 		featureCollection.setType(inputJsonNode.get("type").textValue());
 		
 		JsonNode featuresArrayNode = inputJsonNode.withArray("features");

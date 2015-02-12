@@ -263,7 +263,7 @@ MapDriver.prototype.updateMap = function() {
 	}
 	
 console.log("Sending JSON.stringify([" + data.type + "]):");
-console.log(JSON.stringify(data));
+//console.log(JSON.stringify(data));
 console.log("Length: " + JSON.stringify(data).length);
 	
 	$.ajax({
@@ -281,7 +281,7 @@ console.log("Length: " + JSON.stringify(data).length);
 			$("#gid").prop("disabled", true);
 			$("#new-button").show();
 			
-			setTextValue("#server-result", "Success. ID: " + $("#gid").val() + " created");
+			setTextValue("#server-result", "Success. ID: " + $("#gid").val() + " saved");
 			$("#server-result").css("color", "#008000");
 			$("#server-result").show();
 			$("#server-result").fadeOut(15000);
@@ -309,6 +309,7 @@ console.log("Length: " + JSON.stringify(data).length);
 function formatGeoJSON(geoJSON, thisMapDriver) {
 	var i;
 	var geometry;
+	var id = getValueText("#gid");
 	var auName = getValueText("#au-name");
 	var auType = getValueText("#au-type");
 	var auCode = getValueText("#au-code");
@@ -384,6 +385,7 @@ function formatGeoJSON(geoJSON, thisMapDriver) {
 	geoJSON.features[0].properties["kml"] = thisMapDriver.kml;
 	
 	for(i = 0; i < geoJSON.features.length; i++) {
+		geoJSON.features[i].id = Number(id);
 		geoJSON.features[i].properties["name"] = auName;
 		geoJSON.features[i].properties["type"] = auType;
 		geoJSON.features[i].properties["codes"] = [{"code": auCode, "codeTypeName": auCodeType}];
@@ -452,6 +454,10 @@ MapDriver.prototype.upload = function() {
 		setTextValue("#end-date", properties.endDate);
 		
 		var i;
+		for(i = 0; i < jsonData.features.length; i++) {
+			jsonData.features[i].description = jsonData.features[i].name;
+		}
+		
 		var parentGID = properties.parentGid;
 		console.log(parentGID);
 		

@@ -104,7 +104,7 @@ MapDriver.prototype.initialize = function() {
 	
 	L.mapbox.accessToken = this.accessToken;
 	
-	this.map = L.mapbox.map('map-data', 'examples.map-i86l3621', { worldCopyJump: true /*crs: L.CRS.EPSG385*/});
+	this.map = L.mapbox.map('map-data', 'examples.map-i86l3621', { worldCopyJump: true, minZoom: 1, bounceAtZoomLimits: false /*crs: L.CRS.EPSG385*/});
 	this.map.legendControl.addLegend(this.title);
 	
 	this.drawControl = null;
@@ -154,8 +154,6 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		var bounds = L.latLngBounds(southWest, northEast);
 		thisMapDriver.map.fitBounds(bounds);
 		
-		thisMapDriver.mapID = thisMapDriver.featureLayer.getGeoJSON().id;
-		
 		var properties = null;
 		if(geoJSON.properties) {
 			properties = geoJSON.properties;
@@ -163,6 +161,8 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		else {
 			properties = feature.properties;
 		}
+		
+		thisMapDriver.mapID = properties.id;
 		
 		$("#au-name").append("<strong>" + properties.name + "</strong>");
 		$("#au-location-type").append("<div class='pull-left pre-spaced'>" + properties.locationTypeName + "</div>");
@@ -198,7 +198,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		listLineageRefs(properties.lineage, "#au-lineage");
 		
 		var related = properties.related;
-		if(related.length > 0){
+		if(related && (related.length > 0)){
 			$("#au-related").show();
 			
 			for(i = 0; i < related.length; i++) {
@@ -214,7 +214,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		show = false;
 		var show2 = false;
 		var show3 = false;
-		if(children.length > 0) {
+		if(children && (children.length > 0)) {
 			//console.log(children);
 			//auName = children[0].name;
 			//auGID = children[0].gid;
@@ -263,17 +263,19 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			}
 		}
 		
-		setTextValue("#gid", properties.gid);
+		setTextValue("#gid", thisMapDriver.mapID);
 		show = false;
 		var codes = properties.codes;
-		for(i = 0; i < codes.length; i++) {
-			if(codes[i].codeTypeName != "ISG") {
-				$("#codes").append("<div style='text-indent: 50px;'><em>" + codes[i].codeTypeName + ":</em> " + codes[i].code + "</div>");
-				show = true;
+		if(codes) {
+			for(i = 0; i < codes.length; i++) {
+				if(codes[i].codeTypeName != "ISG") {
+					$("#codes").append("<div style='text-indent: 50px;'><em>" + codes[i].codeTypeName + ":</em> " + codes[i].code + "</div>");
+					show = true;
+				}
 			}
-		}
-		if(show) {
-			$("#codes").show();
+			if(show) {
+				$("#codes").show();
+			}
 		}
 		
 		properties.title = properties.name  + " " + properties.locationTypeName + " from ";
