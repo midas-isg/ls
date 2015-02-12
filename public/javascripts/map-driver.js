@@ -61,6 +61,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			centerMap(thisMapDriver.featureLayer.getGeoJSON(), thisMapDriver);
 			
 			thisMapDriver.mapID = thisMapDriver.featureLayer.getGeoJSON().id;
+			thisMapDriver.kml = feature.properties.kml;
 			setTextValue("#au-name", feature.properties.name);
 			setTextValue("#description", feature.properties.description);
 			setTextValue("#start-date", feature.properties.startDate);
