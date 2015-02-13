@@ -53,7 +53,10 @@ public class AdministrativeUnitServices extends Controller {
 		Request request = Context.current().request();
 		Logger.debug(""+ request.headers());
 		String url = request.getHeader(ORIGIN) + request.path();
-		return url + "/" + id;
+		String result = url;
+		if (id != null)
+			result += "/" + id;
+		return result;
 	}
 	
 	@Transactional
@@ -67,7 +70,7 @@ public class AdministrativeUnitServices extends Controller {
 		try {
 			FeatureCollection parsed = parseRequestAsFeatureCollection();
 			LocationRule.update(gid, parsed);
-			setResponseLocation(gid);
+			setResponseLocation(null);
 			return noContent();
 		} catch (RuntimeException e){
 			String message = e.getMessage();
@@ -115,8 +118,11 @@ Logger.debug("\n" + message + "\n");
 	
 	@Transactional
 	public static Result delete(long gid) {
-		LocationRule.delete(gid);
-		setResponseLocation(gid);
+		Long id = LocationRule.delete(gid);
+		setResponseLocation(null);
+		if (id == null){
+			return notFound();
+		}
 		return noContent();
 	}
 	

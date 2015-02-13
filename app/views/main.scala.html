@@ -1,7 +1,7 @@
 @import play.api.Play.current
 @import play.api.Play
 
-@(title: String, imports: Html = Html(""))(content: Html)
+@(title: String, imports: Html = Html(""), version: String)(content: Html)
 
 <!DOCTYPE html>
 
@@ -53,7 +53,7 @@
 		</div>
 		
 		<footer id="footer" style="clear: both; margin-left: auto; margin-right: auto; text-align: center;">
-			@*@version*@
+			@version
 			
 			<div style="margin-left: auto; margin-right: auto;">
 				<p>This work was funded by awards R01GM101151 and U24GM110707 from the National Institute for General Medical Sciences (NIGMS). The work does not represent the view of NIGMS.</p>
