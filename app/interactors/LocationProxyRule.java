@@ -71,7 +71,7 @@ public class LocationProxyRule {
 		return getLineage(l);
 	}
 
-	static LinkedList<Location> getLineage(Location l) {
+	static List<Location> getLineage(Location l) {
 		if (l == null)
 			return null;
 
@@ -111,13 +111,15 @@ public class LocationProxyRule {
 			synchronized (uniqueSortedLocationNames) 
 			{
 				uniqueSortedLocationNames.addAll(set);
-				Collections.sort(uniqueSortedLocationNames, String.CASE_INSENSITIVE_ORDER);
+				Collections.sort(uniqueSortedLocationNames, 
+						String.CASE_INSENSITIVE_ORDER);
 			}
 		}
 		return uniqueSortedLocationNames;
 	}
 	
-	public static List<Map<String, String>> findLocationNames(String prefixNames, int limit){
+	public static List<Map<String, String>> findLocationNames(
+			String prefixNames, int limit){
 		List<Map<String, String>> result = new ArrayList<>();
 		if (prefixNames == null || prefixNames.trim().isEmpty())
 			return result;
