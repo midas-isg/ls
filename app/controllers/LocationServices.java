@@ -10,6 +10,7 @@ import play.mvc.Result;
 public class LocationServices extends Controller {
 	private static final String FORMAT_GEOJSON = "geojson";
 	private static final String FORMAT_APOLLOJSON = "json";
+	private static final String FORMAT_APOLLOXML = "xml";
 	private static final String FORMAT_KML = "kml";
 	private static final String FORMAT_DEFAULT = "geojson";
 	
@@ -25,7 +26,9 @@ public class LocationServices extends Controller {
 		case FORMAT_GEOJSON:
 			return AdministrativeUnitServices.read(gid +"");
 		case FORMAT_APOLLOJSON:
-			return EpidemicZoneServices.locations(gid +"");
+			return EpidemicZoneServices.locationsInJson(gid +"");
+		case FORMAT_APOLLOXML:
+			return EpidemicZoneServices.locationsInXml(gid +"");
 		case FORMAT_KML:
 			return AdministrativeUnitServices.asKml(gid); 
 		default:
@@ -54,6 +57,4 @@ public class LocationServices extends Controller {
 		Object result = LocationRule.findByNameByPoint(lat, lon);
 		return ok(Json.toJson(result));
 	}
-	
-
 }

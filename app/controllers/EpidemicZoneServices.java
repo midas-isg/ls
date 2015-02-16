@@ -1,116 +1,44 @@
 package controllers;
 
+import interactors.ApolloLocationRule;
 import interactors.LocationRule;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import interactors.XmlRule;
 import play.db.jpa.Transactional;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-
 import dao.entities.Location;
 
 public class EpidemicZoneServices  extends Controller {
 	
 	@Transactional
-	public static Result locations(String gid){
+	public static Result locationsInJson(String gid){
 		Location au = LocationRule.findByGid(Long.parseLong(gid));
-		Long auTypeId = au.getData().getLocationType().getId();
-		if (auTypeId.longValue() == LocationRule.EPIDEMIC_ZONE_ID)
-			return okJson(toEpidemicZones(au));
-		else 
-			return okJson(toAdministrativeLocations(au));
+		return okJson(ApolloLocationRule.toApolloLocation(au));
 	}
 	
 	@Transactional
-	public static Result epidemicZones(String gid) {
-		Location ez = LocationRule.findByGid(Long.parseLong(gid));
-		return okJson(toEpidemicZones(ez));
+	public static Result locationsInXml(String gid){
+		Location au = LocationRule.findByGid(Long.parseLong(gid));
+		return okAsXml(ApolloLocationRule.toApolloLocation(au));
+	}
+	
+	private static Result okAsXml(Object result) {
+		String xml = toXml(result);
+		response().setContentType("application/xml");
+		return ok(xml);
 	}
 
+	private static String toXml(Object result) {
+		try {
+			return XmlRule.toXml(result);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
 	private static Status okJson(Object result) {
 		return ok(Json.toJson(result));
 	}
-
-	private static Object toEpidemicZones(Location ez) {
-		return new Object[] {new MultiPolygon(ez)};
-	}
-	
-	static class MultiPolygon {
-		public String textualDescription;
-		public List<Object> polygons;
-		
-		public MultiPolygon(Location au){
-			textualDescription = au.getData().getName();
-			polygons = new ArrayList<>();
-			Geometry mpg = au.getGeometry().getMultiPolygonGeom();
-			if (mpg == null){
-				return;
-			}
-			int l = mpg.getNumGeometries();
-			for (int i = 0; i < l; i++){
-				Geometry p = mpg.getGeometryN(i);
-				polygons.add(new Polygon(p));
-			}
-		}
-	}
-	
-	static class Polygon {
-		public String linearRing ;
-
-		public Polygon(Geometry polygon){
-			linearRing = "";
-			String space = "";
-			Coordinate[] coordinates = polygon.getCoordinates();
-			for (Coordinate c : coordinates){
-				linearRing += space + c.x + "," + c.y + ",0";
-				space = " ";
-			}
-		}
-	}
-	
-	@Transactional
-	public static Result administrativeLocations(String gid) {
-		Location au = LocationRule.findByGid(Long.parseLong(gid));
-		return okJson(toAdministrativeLocations(au));
-	}
-
-	private static Object toAdministrativeLocations(Location au) {
-		Map<String, Object> map = new HashMap<>();
-		map.put("locationDefinition", new LocationDefinition(au));
-		map.put("textualDescription", au.getData().getName());
-		return new Object[] {map};
-	}
-	
-	static class LocationDefinition {
-		public List<String> locationsIncluded = new ArrayList<>();
-		public List<String> locationsExcluded = new ArrayList<>();
-		public List<MultiPolygon> multiGeometries = null;
-
-		public LocationDefinition(Location au){
-			multiGeometries = getMultiPolygons(au);
-		}
-
-		private List<MultiPolygon>  getMultiPolygons(Location au) {
-			List<MultiPolygon> multiGeometries = new ArrayList<>();
-			List<Location> locations = au.getLocationsIncluded();
-			if (locations != null && ! locations.isEmpty()){
-				for (Location l : locations){
-					multiGeometries.add(new MultiPolygon(l));
-				}
-			} else {
-				multiGeometries.add(new MultiPolygon(au));
-			}
-			return multiGeometries;
-		}
-	}
-
 }
 
