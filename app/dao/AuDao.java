@@ -48,6 +48,12 @@ public class AuDao {
 		if (result != null){
 			LocationGeometry geo = getGeoDao().read(em, gid, geometry);
 			result.setGeometry(geo);
+			List<Location> locations = result.getLocationsIncluded();
+			if (locations != null){
+				for (Location l : locations){
+					l.setGeometry(getGeoDao().read(em, l.getGid(), geometry));
+				}
+			}
 		}
 		return result;
 	}
