@@ -1,7 +1,7 @@
 package controllers;
 
+import interactors.GeoJsonRule;
 import interactors.LocationProxyRule;
-import interactors.LocationRule;
 import play.db.jpa.Transactional;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -42,7 +42,7 @@ public class LocationServices extends Controller {
 	
 	@Transactional
 	public static Result findLocations(String q, Integer limit, Integer offset){
-		Object result = LocationRule.findByName(q, limit, offset);
+		Object result = GeoJsonRule.findByName(q, limit, offset);
 		return ok(Json.toJson(result));
 	}
 	
@@ -54,7 +54,7 @@ public class LocationServices extends Controller {
 	
 	@Transactional
 	public static Result findLocationsByPoint(double lat, double lon){
-		Object result = LocationRule.findByNameByPoint(lat, lon);
+		Object result = GeoJsonRule.findByNameByPoint(lat, lon);
 		return ok(Json.toJson(result));
 	}
 }
