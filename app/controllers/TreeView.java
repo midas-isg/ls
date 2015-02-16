@@ -14,7 +14,6 @@ import play.db.jpa.Transactional;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-import dao.LocationDao;
 import dao.entities.Data;
 import dao.entities.Location;
 
@@ -29,12 +28,6 @@ public class TreeView extends Controller {
 			auTree = okJson(removeUncomposable(tree));
 		}
 		return auTree;
-	}
-	
-	@Transactional
-	public static Result tree2() {
-		List<FancyTreeNode> tree = toFancyTree(new LocationDao().findRoots());
-		return okJson(tree);
 	}
 	
 	static Status okJson(Object resultObject) {
