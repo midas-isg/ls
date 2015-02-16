@@ -21,7 +21,6 @@ function multiPolygonsToPolygons(geoJSON) {
 		for(i = 0; i < count; i++) {
 			if(features[i].geometry.type == "MultiPolygon") {
 				properties = features[i].properties;
-				properties.description = properties.name;
 				
 				for(j = 0; j < features[i].geometry.coordinates.length; j++) {
 					features.push({"type": "Feature", "geometry": {"type": "Polygon", "coordinates": null}, "properties": properties});
