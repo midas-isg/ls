@@ -1,12 +1,7 @@
 package controllers;
 
-import interactors.AuHierarchyRule;
 import interactors.GeoJSONParser;
 import interactors.LocationRule;
-
-import java.util.List;
-
-import models.FancyTreeNode;
 import models.geo.FeatureCollection;
 import play.Logger;
 import play.db.jpa.Transactional;
@@ -18,8 +13,6 @@ import play.mvc.Http.RequestBody;
 import play.mvc.Result;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
-import dao.AuDao;
 
 public class AdministrativeUnitServices extends Controller {
 	static Status okJson(Object resultObject) {
@@ -126,22 +119,6 @@ Logger.debug("\n" + message + "\n");
 		return noContent();
 	}
 	
-	private static Status auTree = null;
-	@Transactional
-	public synchronized static Result tree() {
-		if (auTree == null){
-			List<FancyTreeNode> tree = TreeViewAdapter.toFancyTree(AuHierarchyRule.getHierarchy());
-			auTree = okJson(TreeViewAdapter.removeUncomposable(tree));
-		}
-		return auTree;
-	}
-	
-	@Transactional
-	public static Result tree2() {
-		List<FancyTreeNode> tree = TreeViewAdapter.toFancyTree(new AuDao().findRoots());
-		return okJson(tree);
-	}
-
 	@Transactional
 	public static Result asKml(long gid) {
 		String result = LocationRule.asKml(gid);

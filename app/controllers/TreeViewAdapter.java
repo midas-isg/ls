@@ -1,6 +1,8 @@
 package controllers;
 
 
+import interactors.AuHierarchyRule;
+
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,13 +10,38 @@ import java.util.Iterator;
 import java.util.List;
 
 import models.FancyTreeNode;
+import play.db.jpa.Transactional;
+import play.libs.Json;
+import play.mvc.Controller;
+import play.mvc.Result;
+import dao.AuDao;
 import dao.entities.Data;
 import dao.entities.Location;
 
-public class TreeViewAdapter {
+public class TreeViewAdapter extends Controller {
 	private static boolean isHideCheckbox = false;
 
-	public static List<FancyTreeNode> toFancyTree(
+	private static Status auTree = null;
+	@Transactional
+	public synchronized static Result tree() {
+		if (auTree == null){
+			List<FancyTreeNode> tree = TreeViewAdapter.toFancyTree(AuHierarchyRule.getHierarchy());
+			auTree = okJson(TreeViewAdapter.removeUncomposable(tree));
+		}
+		return auTree;
+	}
+	
+	@Transactional
+	public static Result tree2() {
+		List<FancyTreeNode> tree = TreeViewAdapter.toFancyTree(new AuDao().findRoots());
+		return okJson(tree);
+	}
+	
+	static Status okJson(Object resultObject) {
+		return ok(Json.toJson(resultObject));
+	}
+
+	private static List<FancyTreeNode> toFancyTree(
 			List<Location> roots) {
 		List<FancyTreeNode> newTree = new ArrayList<>();
 		for (Location root : roots) {
