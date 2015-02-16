@@ -22,7 +22,7 @@ import dao.entities.Data;
 import dao.entities.Location;
 import dao.entities.LocationGeometry;
 
-public class AuDao {
+public class LocationDao {
 	private static final int SRID =  4326;
 	private GeometryDao geoDao = null;
 	

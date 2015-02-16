@@ -10,7 +10,7 @@ import org.junit.Test;
 import play.db.jpa.JPA;
 import play.libs.F.Callback;
 import play.test.TestBrowser;
-import dao.AuDao;
+import dao.LocationDao;
 
 public class IntegrationTest {
 
@@ -25,7 +25,7 @@ public class IntegrationTest {
             	EntityManager em = JPA.em("default");
             	JPA.bindForCurrentThread(em);
             	em.getTransaction().begin();
-            	AuDao dao = new AuDao();
+            	LocationDao dao = new LocationDao();
             	System.out.println(dao.getGid2location());
             	em.getTransaction().commit();
             	

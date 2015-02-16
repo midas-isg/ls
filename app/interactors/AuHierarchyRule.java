@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Set;
 
 import play.Logger;
-import dao.AuDao;
+import dao.LocationDao;
 import dao.entities.Location;
 
 public class AuHierarchyRule {
@@ -57,7 +57,7 @@ public class AuHierarchyRule {
 
 	public static Map<Long, Location> getGid2location() {
 		if (gid2location == null){
-			gid2location = new AuDao().getGid2location();
+			gid2location = new LocationDao().getGid2location();
 		}
 		return gid2location;
 	}

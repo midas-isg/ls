@@ -14,7 +14,7 @@ import play.db.jpa.Transactional;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-import dao.AuDao;
+import dao.LocationDao;
 import dao.entities.Data;
 import dao.entities.Location;
 
@@ -33,7 +33,7 @@ public class TreeView extends Controller {
 	
 	@Transactional
 	public static Result tree2() {
-		List<FancyTreeNode> tree = toFancyTree(new AuDao().findRoots());
+		List<FancyTreeNode> tree = toFancyTree(new LocationDao().findRoots());
 		return okJson(tree);
 	}
 	

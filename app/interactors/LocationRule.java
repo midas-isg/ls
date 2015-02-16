@@ -22,7 +22,7 @@ import play.Play;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 
-import dao.AuDao;
+import dao.LocationDao;
 import dao.GeometryDao;
 import dao.entities.Code;
 import dao.entities.CodeType;
@@ -288,7 +288,7 @@ public class LocationRule {
 
 	public static Long create(FeatureCollection fc){
 		Location au = toAu(fc);
-		AuDao dao = new AuDao();
+		LocationDao dao = new LocationDao();
 		return dao.create(au);
 	}
 	
@@ -296,13 +296,13 @@ public class LocationRule {
 		if (gid <= 0)
 			throw new RuntimeException("id shall be more than 0 but got " + gid);
 		Location au = toAu(fc);
-		AuDao dao = new AuDao();
+		LocationDao dao = new LocationDao();
 		au.setGid(gid);
 		return dao.update(au);
 	}
 	
 	public static Long delete(long gid){
-		AuDao dao = new AuDao();
+		LocationDao dao = new LocationDao();
 		return dao.delete(gid);
 	}
 
@@ -370,13 +370,13 @@ public class LocationRule {
 	}
 
 	public static Location findByGid(long gid) {
-		Location au = new AuDao().read(gid);
+		Location au = new LocationDao().read(gid);
 		return au;
 	}
 	
 	public static Response findByName(String q, 
 			Integer limit, Integer offset){
-		List<Location> result = new AuDao().findByName(q, limit, offset);
+		List<Location> result = new LocationDao().findByName(q, limit, offset);
 		Response response = new Response();
 		response.setGeoJSON(toFeatureCollection(result, MINIMUM_KEYS));
 		Map<String, Object> properties = new HashMap<>();
@@ -393,7 +393,7 @@ public class LocationRule {
 	}
 
 	public static Response findByNameByPoint(double latitude, double longitude) {
-		List<Location> result = new AuDao().findByPoint(latitude, longitude);
+		List<Location> result = new LocationDao().findByPoint(latitude, longitude);
 		Response response = new Response();
 		response.setGeoJSON(toFeatureCollection(result, MINIMUM_KEYS));
 		Map<String, Object> properties = new HashMap<>();
@@ -409,7 +409,7 @@ public class LocationRule {
 	}
 
 	public static String asKml(long gid) {
-		AuDao dao = new AuDao();
+		LocationDao dao = new LocationDao();
 		Location location = dao.read(gid);
 		Data data = location.getData();
 		String kml = data.getKml();
