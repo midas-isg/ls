@@ -36,7 +36,9 @@ public class LocationRule {
 	private static final String KEY_PROPERTIES = "properties";
 	private static final String KEY_BBOX = "bbox";
 	private static final String KEY_GEOMETRY = "geometry";
-	private static final List<String> MINIMUM_KEYS = Arrays.asList(new String[]{KEY_PROPERTIES});
+	private static final List<String> MINIMUM_KEYS = Arrays.asList(new String[]{
+			KEY_PROPERTIES
+	});
 	public static final long PUMA_TYPE_ID = 102L;
 	public static final long COMPOSITE_LOCATION_ID = 8L;
 
@@ -83,65 +85,70 @@ public class LocationRule {
 		return alsGisSource;
 	}
 
-	public static FeatureCollection toFeatureCollection(List<Location> aus, List<String> fields) {
+	public static FeatureCollection toFeatureCollection(List<Location> locations,
+			List<String> fields) {
 		FeatureCollection fc = new FeatureCollection();
-		List<Feature> features = toFeatures(aus, fields);
+		List<Feature> features = toFeatures(locations, fields);
 		fc.setFeatures(features);
 		fc.setType("FeatureCollection");
 		fc.setBbox(computeBbox(features));
 		return fc;
 	}
 
-	private static FeatureCollection toFeatureCollection(Location compositeAu) {
+	private static FeatureCollection toFeatureCollection(Location composite) {
 		FeatureCollection fc = new FeatureCollection();
-		List<Feature> features = toFeatures(compositeAu.getLocationsIncluded(), null);
+		List<Location> locationsIncluded = composite.getLocationsIncluded();
+		List<Feature> features = toFeatures(locationsIncluded, null);
 		fc.setFeatures(features);
 		fc.setType("FeatureCollection");
-		fc.setProperties(toProperties(compositeAu));
-		double[] computeBbox = computeBbox(compositeAu);
+		fc.setProperties(toProperties(composite));
+		double[] computeBbox = computeBbox(composite);
 		if (computeBbox == null)
 			computeBbox =  computeBbox(features);
 		fc.setBbox(computeBbox);
-		fc.setId(compositeAu.getGid() + "");
+		fc.setId(composite.getGid() + "");
 		return fc;
 	}
 
-	private static List<Feature> toFeatures(List<Location> aus, List<String> fields) {
+	private static List<Feature> toFeatures(List<Location> locations, 
+			List<String> fields) {
 		List<Feature> features = new ArrayList<>();
-		for (Location au : aus) {
-			if (au == null){
+		for (Location location : locations) {
+			if (location == null){
 				Logger.warn("toFeatures got an element in the list as null.");
 				continue;
 			}
-			features.add(toFeature(au, fields));
+			features.add(toFeature(location, fields));
 		}
 		
 		return features;
 	}
 
-	private static Feature toFeature(Location au, List<String> fields) {
+	private static Feature toFeature(Location location, List<String> fields) {
 		Feature feature = new Feature();
 		if (includeField(fields, KEY_PROPERTIES)){
-			Map<String, Object> properties = toProperties(au);
-			Collections.sort(au.getChildren());
-			putAsLocationObjectsIfNotNull(properties, "children", au.getChildren());
+			Map<String, Object> properties = toProperties(location);
+			Collections.sort(location.getChildren());
+			putAsLocationObjectsIfNotNull(properties, "children", 
+					location.getChildren());
 			putAsLocationObjectsIfNotNull(properties, "lineage", 
-					LocationProxyRule.getLineage(au.getGid()));
-			putAsLocationObjectsIfNotNull(properties, "related", au.getRelatedLocations());
-			putAsCodeObjectsIfNotNull(properties, "codes", au);
-			putAsStringIfNotNull(properties, "kml", au.getData().getKml());
+					LocationProxyRule.getLineage(location.getGid()));
+			putAsLocationObjectsIfNotNull(properties, "related", 
+					location.getRelatedLocations());
+			putAsCodeObjectsIfNotNull(properties, "codes", location);
+			putAsStringIfNotNull(properties, "kml", location.getData().getKml());
 			feature.setProperties(properties);
 		}
 		LocationGeometry geometry = null;
 		if (includeField(fields, KEY_GEOMETRY))
-			geometry = getGeoDao().read(au.getGid(), LocationGeometry.class); //au.getGeometry();
+			geometry = getGeoDao().read(location.getGid(), LocationGeometry.class);
 		
 		if (geometry != null){
 			Geometry multiPolygonGeom = geometry.getMultiPolygonGeom();
 			feature.setGeometry(GeoOutputRule.toFeatureGeometry(multiPolygonGeom));
 			if (includeField(fields, KEY_BBOX)) 
-				feature.setBbox(computeBbox(au));
-			feature.setId(au.getGid() + "");
+				feature.setBbox(computeBbox(location));
+			feature.setId(location.getGid() + "");
 		}
 		
 		return feature;
@@ -238,19 +245,19 @@ public class LocationRule {
 		properties.put(key, list);
 	}
 
-	private static Map<String, Object> toProperties(Location au) {
+	private static Map<String, Object> toProperties(Location location) {
 		Map<String, Object> properties = new HashMap<>();
-		String gid = getGid(au);
+		String gid = getGid(location);
 		putAsStringIfNotNull(properties, "gid", gid);
-		Data data = au.getData();
+		Data data = location.getData();
 		if (data == null){
 			Logger.warn(gid + " has null data!");
 			return properties;
 		}
 		putAsStringIfNotNull(properties, "name", data.getName());
 		putAsStringIfNotNull(properties, "description", data.getDescription());
-		putAsStringIfNotNull(properties, "headline", au.getHeadline());
-		putAsStringIfNotNull(properties, "rank", au.getRank());
+		putAsStringIfNotNull(properties, "headline", location.getHeadline());
+		putAsStringIfNotNull(properties, "rank", location.getRank());
 		/*putAsStringIfNotNull(properties, "code", data.getCode());
 		String codeTypeName = getName(data.getCodeType(), data.getCodeType().getName());
 		putAsStringIfNotNull(properties, "codeTypeName", codeTypeName);*/
@@ -258,7 +265,7 @@ public class LocationRule {
 		putAsStringIfNotNull(properties, "endDate", data.getEndDate());
 		String locationTypeName = getLocationTypeName(data.getLocationType());
 		putAsStringIfNotNull(properties, "locationTypeName", locationTypeName);
-		Location parent = au.getParent();
+		Location parent = location.getParent();
 		putAsStringIfNotNull(properties, "parentGid", getGid(parent));
 		return properties;
 	}
@@ -287,18 +294,18 @@ public class LocationRule {
 	}
 
 	public static Long create(FeatureCollection fc){
-		Location au = toAu(fc);
+		Location location = toLocation(fc);
 		LocationDao dao = new LocationDao();
-		return dao.create(au);
+		return dao.create(location);
 	}
 	
 	public static Long update(long gid, FeatureCollection fc){
 		if (gid <= 0)
 			throw new RuntimeException("id shall be more than 0 but got " + gid);
-		Location au = toAu(fc);
+		Location location = toLocation(fc);
 		LocationDao dao = new LocationDao();
-		au.setGid(gid);
-		return dao.update(au);
+		location.setGid(gid);
+		return dao.update(location);
 	}
 	
 	public static Long delete(long gid){
@@ -306,13 +313,13 @@ public class LocationRule {
 		return dao.delete(gid);
 	}
 
-	private static Location toAu(FeatureCollection fc){
-		Location au = new Location();
+	private static Location toLocation(FeatureCollection fc){
+		Location location = new Location();
 		Data data = new Data();
 		data.setLocationType(getEpidemicZoneLocationType());
 		data.setCodeType(getIsgCodeType());
 		data.setGisSource(getAlsGisSource());
-		au.setGeometry(createLocationGeometry(fc, au));
+		location.setGeometry(createLocationGeometry(fc, location));
 		String name = getString(fc, "name");
 		data.setName(name);
 		data.setDescription(getString(fc, "description"));
@@ -323,14 +330,14 @@ public class LocationRule {
 		data.setUpdateDate(getNowDate());
 		String code = getString(fc, "code");
 		data.setCode(code);
-		au.setData(data);
+		location.setData(data);
 		String parentGid = getString(fc, "parent");
 		Location parent = findByGid(Long.parseLong(parentGid));
 		if (parent == null){
 			throw new RuntimeException("Cannot find parent gid=" + parentGid);
 		}
-		au.setParent(parent);
-		return au;
+		location.setParent(parent);
+		return location;
 	}
 
 	private static LocationGeometry createLocationGeometry(
@@ -358,20 +365,20 @@ public class LocationRule {
 	}
 
 	public static FeatureCollection getFeatureCollection(long gid) {
-		Location au = findByGid(gid);
-		long locationTypeId = au.getData().getLocationType().getId();
+		Location location = findByGid(gid);
+		long locationTypeId = location.getData().getLocationType().getId();
 		if (locationTypeId == PUMA_TYPE_ID 
 				|| locationTypeId == COMPOSITE_LOCATION_ID){
-			return toFeatureCollection(au);
+			return toFeatureCollection(location);
 		}
 		List<Location> list = new ArrayList<>();
-		list.add(au);
+		list.add(location);
 		return toFeatureCollection(list, null);
 	}
 
 	public static Location findByGid(long gid) {
-		Location au = new LocationDao().read(gid);
-		return au;
+		Location location = new LocationDao().read(gid);
+		return location;
 	}
 	
 	public static Response findByName(String q, 
