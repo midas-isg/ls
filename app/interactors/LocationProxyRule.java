@@ -15,7 +15,7 @@ import play.Logger;
 import dao.LocationDao;
 import dao.entities.Location;
 
-public class AuHierarchyRule {
+public class LocationProxyRule {
 	private static Map<Long, Location> gid2location = null;
 	private static List<Location> roots = null;
 	private static List<String> uniqueSortedLocationNames = null;

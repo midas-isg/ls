@@ -1,7 +1,7 @@
 package controllers;
 
 
-import interactors.AuHierarchyRule;
+import interactors.LocationProxyRule;
 
 import java.sql.Date;
 import java.util.ArrayList;
@@ -24,7 +24,7 @@ public class TreeView extends Controller {
 	@Transactional
 	public synchronized static Result tree() {
 		if (auTree == null){
-			List<FancyTreeNode> tree = toFancyTree(AuHierarchyRule.getHierarchy());
+			List<FancyTreeNode> tree = toFancyTree(LocationProxyRule.getHierarchy());
 			auTree = okJson(removeUncomposable(tree));
 		}
 		return auTree;

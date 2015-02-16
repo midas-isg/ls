@@ -1,6 +1,6 @@
 package dao;
 
-import interactors.AuHierarchyRule;
+import interactors.LocationProxyRule;
 
 import java.math.BigInteger;
 import java.sql.Date;
@@ -32,7 +32,7 @@ public class LocationDao {
 		LocationGeometry geometry = prepareGeometry(location);
 		em.persist(geometry);
 		em.persist(location);
-		AuHierarchyRule.notifyChange();
+		LocationProxyRule.notifyChange();
 		Long gid = location.getGid();
 		Logger.info("persisted " + gid);
 		return gid;
@@ -63,7 +63,7 @@ public class LocationDao {
 		LocationGeometry geometry = prepareGeometry(location);
 		em.merge(geometry);
 		em.merge(location);
-		AuHierarchyRule.notifyChange();
+		LocationProxyRule.notifyChange();
 		Long gid = location.getGid();
 		Logger.info("merged " + gid);
 		return gid;
@@ -125,7 +125,7 @@ public class LocationDao {
 			query.setFirstResult(offset);
 		List<?> resultList = query.getResultList();
 		List<BigInteger> result = getGids(resultList);
-		List<Location> locations = AuHierarchyRule.getLocations(result);
+		List<Location> locations = LocationProxyRule.getLocations(result);
 		int i = 0;
 		for (Location l : locations){
 			Object[] objects = (Object[])resultList.get(i++);
@@ -313,7 +313,7 @@ public class LocationDao {
 		List<?> resultList = query.getResultList();
 		@SuppressWarnings("unchecked")
 		List<BigInteger> result = (List<BigInteger>)resultList;
-		List<Location> locations = AuHierarchyRule.getLocations(result);
+		List<Location> locations = LocationProxyRule.getLocations(result);
 		return locations;
 	}
 	

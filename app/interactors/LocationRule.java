@@ -126,7 +126,7 @@ public class LocationRule {
 			Collections.sort(au.getChildren());
 			putAsLocationObjectsIfNotNull(properties, "children", au.getChildren());
 			putAsLocationObjectsIfNotNull(properties, "lineage", 
-					AuHierarchyRule.getLineage(au.getGid()));
+					LocationProxyRule.getLineage(au.getGid()));
 			putAsLocationObjectsIfNotNull(properties, "related", au.getRelatedLocations());
 			putAsCodeObjectsIfNotNull(properties, "codes", au);
 			putAsStringIfNotNull(properties, "kml", au.getData().getKml());
