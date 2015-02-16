@@ -18,22 +18,22 @@ import dao.AuDao;
 import dao.entities.Data;
 import dao.entities.Location;
 
-public class TreeViewAdapter extends Controller {
+public class TreeView extends Controller {
 	private static boolean isHideCheckbox = false;
 
 	private static Status auTree = null;
 	@Transactional
 	public synchronized static Result tree() {
 		if (auTree == null){
-			List<FancyTreeNode> tree = TreeViewAdapter.toFancyTree(AuHierarchyRule.getHierarchy());
-			auTree = okJson(TreeViewAdapter.removeUncomposable(tree));
+			List<FancyTreeNode> tree = toFancyTree(AuHierarchyRule.getHierarchy());
+			auTree = okJson(removeUncomposable(tree));
 		}
 		return auTree;
 	}
 	
 	@Transactional
 	public static Result tree2() {
-		List<FancyTreeNode> tree = TreeViewAdapter.toFancyTree(new AuDao().findRoots());
+		List<FancyTreeNode> tree = toFancyTree(new AuDao().findRoots());
 		return okJson(tree);
 	}
 	
