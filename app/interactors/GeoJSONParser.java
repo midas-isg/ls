@@ -83,7 +83,7 @@ public class GeoJSONParser {
 		JsonNode coordinatesNode = geometryNode.withArray("coordinates");
 		Polygon polygon;
 		
-		if(geometryNode.get("type").textValue().equals(MultiPolygon.class.getSimpleName())) {
+		if(geometryNode.get("type").textValue().equals(Polygon.class.getSimpleName())) {
 			polygon = new Polygon();
 			List<List<double []>> coordinates = new ArrayList<>();
 			

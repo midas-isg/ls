@@ -313,7 +313,7 @@ BrowserMap.prototype.loadFeatureLayer = function() {
 }
 
 BrowserMap.prototype.loadJSON = function(jsonData) {
-	multiPolygonsToPolygons(jsonData);
+	//multiPolygonsToPolygons(jsonData);
 	this.featureLayer.setGeoJSON(jsonData);
 	
 	return;

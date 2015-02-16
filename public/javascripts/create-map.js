@@ -13,16 +13,19 @@ $(document).ready(function() {
 			AU_COMPOSITE_TREE.initInteractBetweenTreeAndTable("au-list", initialize());
 			
 			function initialize() {
-				CREATE_MAP = new MapDriver();
-				MAP_DRIVER = CREATE_MAP;
-				var thisMapDriver = CREATE_MAP;
-				
-				thisMapDriver.loadFeatureLayer = function() {
+				MapDriver.prototype.loadFeatureLayer = function() {
+					var noLoad = false;
+					var thisMapDriver = this;
+					
 					if(this.geoJSONURL) {
 						this.featureLayer = L.mapbox.featureLayer().loadURL(this.geoJSONURL);
 					}
 					else if(this.mapID) {
 						this.featureLayer = L.mapbox.featureLayer().loadID(this.mapID);
+					}
+					else {
+						this.featureLayer = L.mapbox.featureLayer();
+						noLoad = true;
 					}
 					
 					this.featureLayer.on('ready', function() {
@@ -30,43 +33,57 @@ $(document).ready(function() {
 						
 						thisMapDriver.featureLayer.addTo(thisMapDriver.map);
 						
-						var feature = thisMapDriver.featureLayer.getGeoJSON().features[0];
+						var geoJSON = thisMapDriver.featureLayer.getGeoJSON();
 						
-						centerMap(thisMapDriver.featureLayer.getGeoJSON(), thisMapDriver);
-						
-						thisMapDriver.mapID = thisMapDriver.featureLayer.getGeoJSON().id;
-						setTextValue("#au-name", feature.properties.name);
-						setTextValue("#au-code", feature.properties.code);
-						setTextValue("#start-date", feature.properties.startDate);
-						setTextValue("#end-date", feature.properties.endDate);
-						PARENT_TREE.resetIsAboutList();
-						AU_COMPOSITE_TREE.resetIsAboutList();
-						
-						var i;
-						var parentGID = feature.properties.parentGid;
-						if(parentGID) {
-							//for(i = 0; i < parentGID.length; i++) {
-							//	AU_COMPOSITE_TREE.clickIsAboutByValue(parentGID[i]);
-							//}
+						if(geoJSON) {
+							var feature = geoJSON.features[0];
 							
-							PARENT_TREE.clickIsAboutByValue(parentGID);
+							//centerMap(thisMapDriver.featureLayer.getGeoJSON(), thisMapDriver);
+							var minLng = geoJSON.bbox[0];
+							var minLat = geoJSON.bbox[1];
+							var maxLng = geoJSON.bbox[2];
+							var maxLat = geoJSON.bbox[3];
+							var southWest = L.latLng(minLat, minLng);
+							var northEast = L.latLng(maxLat, maxLng);
+							var bounds = L.latLngBounds(southWest, northEast);
+							thisMapDriver.map.fitBounds(bounds);
+							
+							thisMapDriver.mapID = thisMapDriver.featureLayer.getGeoJSON().id;
+							setTextValue("#au-name", feature.properties.name);
+							setTextValue("#au-code", feature.properties.code);
+							setTextValue("#start-date", feature.properties.startDate);
+							setTextValue("#end-date", feature.properties.endDate);
+							PARENT_TREE.resetIsAboutList();
+							AU_COMPOSITE_TREE.resetIsAboutList();
+							
+							var i;
+							var parentGID = feature.properties.parentGid;
+							if(parentGID) {
+								//for(i = 0; i < parentGID.length; i++) {
+								//	AU_COMPOSITE_TREE.clickIsAboutByValue(parentGID[i]);
+								//}
+								
+								PARENT_TREE.clickIsAboutByValue(parentGID);
+							}
+							
+							setTextValue("#gid", feature.properties.gid);
+							setTextValue("#description", feature.properties.description);
+							feature.properties.title = feature.properties.name + " " + feature.properties.locationTypeName + " from " + feature.properties.startDate;
+							
+							if(feature.properties.endDate) {
+								feature.properties.title = feature.properties.title + " to " + feature.properties.endDate;
+							}
+							else {
+								feature.properties.title += " to present";
+							}
+							
+							thisMapDriver.map.legendControl.removeLegend(thisMapDriver.title);
+							thisMapDriver.title = "<strong>" + feature.properties.title + "</strong>";
+							thisMapDriver.map.legendControl.addLegend(thisMapDriver.title);
 						}
 						
-						setTextValue("#gid", feature.properties.gid);
-						setTextValue("#description", feature.properties.description);
-						feature.properties.title = feature.properties.name + " " + feature.properties.locationTypeName + " from " + feature.properties.startDate;
-						
-						if(feature.properties.endDate) {
-							feature.properties.title = feature.properties.title + " to " + feature.properties.endDate;
-						}
-						else {
-							feature.properties.title += " to present";
-						}
-						
-						thisMapDriver.map.legendControl.removeLegend(thisMapDriver.title);
-						thisMapDriver.title = "<strong>" + feature.properties.title + "</strong>";
-						thisMapDriver.map.legendControl.addLegend(thisMapDriver.title);
-						
+						thisMapDriver.drawControl = null;
+						/*
 						if(!thisMapDriver.drawControl) {
 							thisMapDriver.drawControl = new L.Control.Draw({
 								draw: {
@@ -75,16 +92,17 @@ $(document).ready(function() {
 									circle: false,
 									marker: false
 								},
-								/*
 								edit: {
-									featureGroup: thisMapDriver.featureLayer
-								}*/
+								//	featureGroup: thisMapDriver.featureLayer
+								}
 							}).addTo(thisMapDriver.map);
 						}
 						
 						thisMapDriver.map.on('draw:created', function(e) {
 							thisMapDriver.featureLayer.addLayer(e.layer);
 							console.log(e);
+							
+							return;
 						});
 						
 						thisMapDriver.map.on('draw:deleted', function(e) {
@@ -93,8 +111,15 @@ $(document).ready(function() {
 								if(thisMapDriver.featureLayer.hasLayer(layer._leaflet_id + 1)) {
 									console.log(thisMapDriver.featureLayer.removeLayer(layer._leaflet_id + 1));
 								}
+								
+								return;
 							});
+							
+							return;
 						});
+						*/
+						
+						return;
 					});
 					
 					this.featureLayer.on('error', function(err) {
@@ -108,6 +133,8 @@ $(document).ready(function() {
 						thisMapDriver.featureLayer.on('ready', function() {
 							thisMapDriver.featureLayer.addTo(thisMapDriver.map);
 							
+							thisMapDriver.drawControl = null;
+							/*
 							if(!thisMapDriver.drawControl) {
 								thisMapDriver.drawControl = new L.Control.Draw({
 									draw: {
@@ -135,11 +162,28 @@ $(document).ready(function() {
 									}
 								});
 							});
+							*/
+							
+							return;
 						});
+						
+						return;
 					});
+					
+					if(noLoad) {
+						this.featureLayer.fireEvent("ready");
+					}
 					
 					return;
 				}
+				
+				CREATE_MAP = new MapDriver();
+				MAP_DRIVER = CREATE_MAP;
+				var thisMapDriver = CREATE_MAP;
+				
+				thisMapDriver.map.whenReady(function() {
+					return CREATE_MAP.map.setZoom(1, {minZoom: 1});
+				});
 				
 				function loadFromDatabase(mapID) {
 					thisMapDriver.geoJSONURL = crudPath + "/" + mapID;
@@ -244,10 +288,6 @@ $(document).ready(function() {
 						
 						CREATE_MAP.loadJSON(compositeJSON);
 					//});
-				});
-				
-				CREATE_MAP.map.whenReady(function() {
-					return CREATE_MAP.map.setZoom(1, {minZoom: 1, bounceAtZoomLimits: false});
 				});
 				
 				return;
