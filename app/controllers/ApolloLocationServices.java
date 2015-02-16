@@ -9,7 +9,7 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import dao.entities.Location;
 
-public class EpidemicZoneServices  extends Controller {
+public class ApolloLocationServices  extends Controller {
 	
 	@Transactional
 	public static Result locationsInJson(String gid){

@@ -26,9 +26,9 @@ public class LocationServices extends Controller {
 		case FORMAT_GEOJSON:
 			return AdministrativeUnitServices.read(gid +"");
 		case FORMAT_APOLLOJSON:
-			return EpidemicZoneServices.locationsInJson(gid +"");
+			return ApolloLocationServices.locationsInJson(gid +"");
 		case FORMAT_APOLLOXML:
-			return EpidemicZoneServices.locationsInXml(gid +"");
+			return ApolloLocationServices.locationsInXml(gid +"");
 		case FORMAT_KML:
 			return AdministrativeUnitServices.asKml(gid); 
 		default:
