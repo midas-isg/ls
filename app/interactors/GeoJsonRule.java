@@ -16,8 +16,6 @@ import play.Logger;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 
-import dao.GeometryDao;
-import dao.LocationDao;
 import dao.entities.Code;
 import dao.entities.Data;
 import dao.entities.Location;
@@ -32,15 +30,18 @@ public class GeoJsonRule {
 			KEY_PROPERTIES
 	});
 
-	private static GeometryDao geoDao = null;
-	
-	public static GeometryDao getGeoDao() {
-		if (geoDao == null)
-			geoDao = new GeometryDao();
-		return geoDao;
+	public static FeatureCollection asFeatureCollection(Location location) {
+		long locationTypeId = location.getData().getLocationType().getId();
+		if (locationTypeId == LocationRule.PUMA_TYPE_ID 
+				|| locationTypeId == LocationRule.COMPOSITE_LOCATION_ID){
+			return toFeatureCollection(location);
+		}
+		List<Location> list = new ArrayList<>();
+		list.add(location);
+		return toFeatureCollection(list, null);
 	}
 
-	public static FeatureCollection toFeatureCollection(List<Location> locations,
+	private static FeatureCollection toFeatureCollection(List<Location> locations,
 			List<String> fields) {
 		FeatureCollection fc = new FeatureCollection();
 		List<Feature> features = toFeatures(locations, fields);
@@ -96,7 +97,7 @@ public class GeoJsonRule {
 		}
 		LocationGeometry geometry = null;
 		if (includeField(fields, KEY_GEOMETRY))
-			geometry = getGeoDao().read(location.getGid(), LocationGeometry.class);
+			geometry = GeometryRule.read(location.getGid());
 		
 		if (geometry != null){
 			Geometry multiPolygonGeom = geometry.getMultiPolygonGeom();
@@ -235,10 +236,10 @@ public class GeoJsonRule {
 		return String.valueOf(object);
 	}
 
-	private static String getGid(Location parent) {
-		if (parent == null)
+	private static String getGid(Location location) {
+		if (location == null)
 			return null;
-		return String.valueOf(parent.getGid());
+		return String.valueOf(location.getGid());
 	}
 
 	private static void putAsStringIfNotNull(Map<String, Object> properties,
@@ -248,7 +249,7 @@ public class GeoJsonRule {
 		properties.put(key, toString(value));
 	}
 
-	static Location toLocation(FeatureCollection fc){
+	public static Location asLocation(FeatureCollection fc){
 		Location location = new Location();
 		Data data = new Data();
 		data.setLocationType(LocationRule.getEpidemicZoneLocationType());
@@ -267,7 +268,7 @@ public class GeoJsonRule {
 		data.setCode(code);
 		location.setData(data);
 		String parentGid = getString(fc, "parent");
-		Location parent = LocationRule.findByGid(Long.parseLong(parentGid));
+		Location parent = LocationRule.read(Long.parseLong(parentGid));
 		if (parent == null){
 			throw new RuntimeException("Cannot find parent gid=" + parentGid);
 		}
@@ -299,18 +300,6 @@ public class GeoJsonRule {
 		return object.toString();
 	}
 
-	public static FeatureCollection getFeatureCollection(long gid) {
-		Location location = LocationRule.findByGid(gid);
-		long locationTypeId = location.getData().getLocationType().getId();
-		if (locationTypeId == LocationRule.PUMA_TYPE_ID 
-				|| locationTypeId == LocationRule.COMPOSITE_LOCATION_ID){
-			return toFeatureCollection(location);
-		}
-		List<Location> list = new ArrayList<>();
-		list.add(location);
-		return toFeatureCollection(list, null);
-	}
-
 	public static Response findByName(String q, 
 			Integer limit, Integer offset){
 		List<Location> result = LocationRule.findByName(q, limit, offset);
@@ -330,7 +319,7 @@ public class GeoJsonRule {
 	}
 
 	public static Response findByNameByPoint(double latitude, double longitude) {
-		List<Location> result = new LocationDao().findByPoint(latitude, longitude);
+		List<Location> result = LocationRule.findByPoint(latitude, longitude);
 		Response response = new Response();
 		response.setGeoJSON(toFeatureCollection(result, MINIMUM_KEYS));
 		Map<String, Object> properties = new HashMap<>();

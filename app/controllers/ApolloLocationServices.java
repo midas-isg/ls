@@ -13,14 +13,14 @@ public class ApolloLocationServices  extends Controller {
 	
 	@Transactional
 	public static Result locationsInJson(String gid){
-		Location au = LocationRule.findByGid(Long.parseLong(gid));
-		return okJson(ApolloLocationRule.toApolloLocation(au));
+		Location au = LocationRule.read(Long.parseLong(gid));
+		return okJson(ApolloLocationRule.asApolloLocation(au));
 	}
 	
 	@Transactional
 	public static Result locationsInXml(String gid){
-		Location au = LocationRule.findByGid(Long.parseLong(gid));
-		return okAsXml(ApolloLocationRule.toApolloLocation(au));
+		Location au = LocationRule.read(Long.parseLong(gid));
+		return okAsXml(ApolloLocationRule.asApolloLocation(au));
 	}
 	
 	private static Result okAsXml(Object result) {

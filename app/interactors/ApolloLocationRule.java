@@ -17,7 +17,7 @@ import edu.pitt.apollo.types.v3_0_0.MultiGeometry;
 import edu.pitt.apollo.types.v3_0_0.NamedMultiGeometry;
 
 public class ApolloLocationRule {
-	public static Apollo toApolloLocation(Location location) {
+	public static Apollo asApolloLocation(Location location) {
 		Long auTypeId = location.getData().getLocationType().getId();
 		
 		if (auTypeId.longValue() == LocationRule.EPIDEMIC_ZONE_ID)

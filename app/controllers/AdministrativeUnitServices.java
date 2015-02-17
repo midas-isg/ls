@@ -1,6 +1,8 @@
 package controllers;
 
 import interactors.GeoJSONParser;
+import interactors.GeoJsonRule;
+import interactors.KmlRule;
 import interactors.LocationRule;
 import models.geo.FeatureCollection;
 import play.Logger;
@@ -14,6 +16,8 @@ import play.mvc.Result;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import dao.entities.Location;
+
 public class AdministrativeUnitServices extends Controller {
 	static Status okJson(Object resultObject) {
 		return ok(Json.toJson(resultObject));
@@ -23,7 +27,8 @@ public class AdministrativeUnitServices extends Controller {
 	public static Result create() {
 		try {
 			FeatureCollection parsed = parseRequestAsFeatureCollection();
-			Long id = LocationRule.create(parsed);
+			Location location = GeoJsonRule.asLocation(parsed);
+			Long id = LocationRule.create(location);
 			setResponseLocation(id);
 			return created();
 		} catch (RuntimeException e){
@@ -55,14 +60,16 @@ public class AdministrativeUnitServices extends Controller {
 	@Transactional
 	public static Result read(String gid) {
 		response().setContentType("application/vnd.geo+json");
-		return okJson(LocationRule.getFeatureCollection(Long.parseLong(gid)));
+		Location location = LocationRule.read(Long.parseLong(gid));
+		return okJson(GeoJsonRule.asFeatureCollection(location));
 	}
 	
 	@Transactional
 	public static Result update(long gid) {
 		try {
 			FeatureCollection parsed = parseRequestAsFeatureCollection();
-			LocationRule.update(gid, parsed);
+			Location location = GeoJsonRule.asLocation(parsed);
+			LocationRule.update(gid, location);
 			setResponseLocation(null);
 			return noContent();
 		} catch (RuntimeException e){
@@ -111,7 +118,7 @@ Logger.debug("\n" + message + "\n");
 	
 	@Transactional
 	public static Result delete(long gid) {
-		Long id = LocationRule.delete(gid);
+		Long id = LocationRule.deleteTogetherWithAllGeometries(gid);
 		setResponseLocation(null);
 		if (id == null){
 			return notFound();
@@ -121,9 +128,9 @@ Logger.debug("\n" + message + "\n");
 	
 	@Transactional
 	public static Result asKml(long gid) {
-		String result = LocationRule.asKml(gid);
+		Location location = LocationRule.read(gid);
+		String result = KmlRule.asKml(location);
 		response().setContentType("application/vnd.google-earth.kml+xml");
 		return ok(result);
 	}
-
 }

@@ -6,23 +6,21 @@ import java.net.URL;
 import java.util.Scanner;
 
 import play.Play;
-import dao.LocationDao;
 import dao.entities.Data;
 import dao.entities.Location;
 
 public class KmlRule {
-	public static String asKml(long gid) {
-		LocationDao dao = new LocationDao();
-		Location location = dao.read(gid);
+	public static String asKml(Location location) {
 		Data data = location.getData();
 		String kml = data.getKml();
 		if (kml != null && !kml.isEmpty())
 			return kml;
-		String mg = dao.asKmlMultiGeometry(gid);
+		Long gid = location.getGid();
+		String kmlGeo = GeometryRule.readAsKml(gid);
 		String fileName = "template.kml";
 		String formatText = getStringFromFile(fileName);
-		String text = String.format(formatText, location.getGid(), 
-				data.getName(), data.getDescription(), mg);
+		String text = String.format(formatText, gid, 
+				data.getName(), data.getDescription(), kmlGeo);
 		return text;
 	}
 

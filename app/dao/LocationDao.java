@@ -23,9 +23,7 @@ import dao.entities.Location;
 import dao.entities.LocationGeometry;
 
 public class LocationDao {
-	private static final int SRID =  4326;
-	private GeometryDao geoDao = null;
-	
+	static final int SRID =  4326;
 	
 	public Long create(Location location) {
 		EntityManager em = JPA.em();
@@ -39,22 +37,8 @@ public class LocationDao {
 	}
 
 	public Location read(long gid) {
-		return read(gid, LocationGeometry.class);
-	}
-	
-	public Location read(long gid, Class<LocationGeometry> geometry) {
 		EntityManager em = JPA.em();
 		Location result = em.find(Location.class, gid);
-		if (result != null){
-			LocationGeometry geo = getGeoDao().read(em, gid, geometry);
-			result.setGeometry(geo);
-			List<Location> locations = result.getLocationsIncluded();
-			if (locations != null){
-				for (Location l : locations){
-					l.setGeometry(getGeoDao().read(em, l.getGid(), geometry));
-				}
-			}
-		}
 		return result;
 	}
 
@@ -81,26 +65,15 @@ public class LocationDao {
 		geo.getMultiPolygonGeom().setSRID(SRID);
 	}
 
-	public Long delete(long gid) {
+	public Long delete(Location location) {
 		EntityManager em = JPA.em();
-		Location location = read(gid);
-		Long result = null;
-		LocationGeometry lg = null;
+		Long gid = null;
 		if (location != null){
-			lg = location.getGeometry();
+			gid = location.getGid();
 			em.remove(location);
 			Logger.info("removed Location with gid=" + gid);
-			result = gid;
 		}
-		if (lg == null)
-			lg = getGeoDao().read(gid);
-		if (lg != null){
-			em.remove(lg);
-			Logger.info("removed LocationGeometry with gid=" + gid);
-			result = gid;
-		}
-		//TODO should delete sub-class of LocationGeometry!
-		return result;
+		return gid;
 	}
 	
 	public List<Location> findByName(String name, Integer limit, Integer offset) {
@@ -297,36 +270,5 @@ public class LocationDao {
 			return ((BigInteger)object).longValue();
 		else
 			return Long.parseLong(object.toString());
-	}
-
-	public List<Location> findByPoint(double latitude, double longitude) {
-		EntityManager em = JPA.em();
-		//@formatter:off
-		String point = "ST_MakePoint(" + longitude + ", " + latitude +")";
-		String geometry = "ST_SetSRID("+ point+", "+ SRID + ")";
-		String q = "SELECT gid " 
-			+ "  FROM location_geometry "
-			+ "  WHERE ST_Contains(multipolygon, " + geometry + ")"
-			+ "  ORDER BY ST_Area(multipolygon);";
-		//@formatter:on
-		Query query = em.createNativeQuery(q);
-		List<?> resultList = query.getResultList();
-		@SuppressWarnings("unchecked")
-		List<BigInteger> result = (List<BigInteger>)resultList;
-		List<Location> locations = LocationProxyRule.getLocations(result);
-		return locations;
-	}
-	
-	public String asKmlMultiGeometry(long gid) {
-		EntityManager em = JPA.em();
-		String query = "select ST_AsKML(multipolygon) from location_geometry where gid = " + gid;
-		Object singleResult = em.createNativeQuery(query).getSingleResult();
-		return singleResult.toString();
-	}
-
-	private GeometryDao getGeoDao() {
-		if (geoDao == null)
-			geoDao = new GeometryDao();
-		return geoDao;
 	}
 }

@@ -1,13 +1,14 @@
 package interactors;
 
 
+import java.math.BigInteger;
 import java.util.List;
 
-import models.geo.FeatureCollection;
 import dao.LocationDao;
 import dao.entities.CodeType;
 import dao.entities.GisSource;
 import dao.entities.Location;
+import dao.entities.LocationGeometry;
 import dao.entities.LocationType;
 
 public class LocationRule {
@@ -49,37 +50,53 @@ public class LocationRule {
 		return alsGisSource;
 	}
 
-	public static Long create(FeatureCollection fc){
-		Location location = GeoJsonRule.toLocation(fc);
+	public static Long create(Location location){
 		LocationDao dao = new LocationDao();
 		return dao.create(location);
 	}
 	
-	public static Object getFeatureCollection(long gid) {
-		return GeoJsonRule.getFeatureCollection(gid);
+	public static Location read(long gid) {
+		return read(gid, LocationGeometry.class);
 	}
 	
-	public static String asKml(long gid) {
-		return KmlRule.asKml(gid);
+	public static Location read(long gid, Class<LocationGeometry> geometry) {
+		Location result = new LocationDao().read(gid);
+		if (result != null){
+			LocationGeometry geo = GeometryRule.read(gid, geometry);
+			result.setGeometry(geo);
+			List<Location> locations = result.getLocationsIncluded();
+			if (locations != null){
+				for (Location l : locations){
+					l.setGeometry(GeometryRule.read(l.getGid(), geometry));
+				}
+			}
+		}
+
+		return result;
 	}
 	
-	public static Location findByGid(long gid) {
-		Location location = new LocationDao().read(gid);
-		return location;
-	}
-	
-	public static Long update(long gid, FeatureCollection fc){
+	public static Long update(long gid, Location location){
 		if (gid <= 0)
 			throw new RuntimeException("id shall be more than 0 but got " + gid);
-		Location location = GeoJsonRule.toLocation(fc);
 		LocationDao dao = new LocationDao();
 		location.setGid(gid);
 		return dao.update(location);
 	}
 	
-	public static Long delete(long gid){
-		LocationDao dao = new LocationDao();
-		return dao.delete(gid);
+	public static Long deleteTogetherWithAllGeometries(long gid){
+		Long result = delete(gid);
+		Long deletedGid = GeometryRule.deleteAllGeometries(gid);
+		return result != null ? result : deletedGid;
+	}
+
+	private static Long delete(long gid) {
+		LocationDao locationDao = new LocationDao();
+		Location location = locationDao.read(gid);
+		Long deletedGid = null;
+		if (location != null){
+			deletedGid = locationDao.delete(location);
+		}
+		return deletedGid;
 	}
 
 	static List<Location> findByName(String q, Integer limit,
@@ -88,4 +105,9 @@ public class LocationRule {
 		return result;
 	}
 	
+	static public List<Location> findByPoint(double latitude, double longitude) {
+		List<BigInteger> result = GeometryRule.findByPoint(latitude, longitude);
+		List<Location> locations = LocationProxyRule.getLocations(result);
+		return locations;
+	}
 }
