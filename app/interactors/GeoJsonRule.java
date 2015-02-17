@@ -211,7 +211,7 @@ public class GeoJsonRule {
 			return properties;
 		}
 		putAsStringIfNotNull(properties, "name", data.getName());
-		putAsStringIfNotNull(properties, "description", data.getDescription());
+		putAsStringIfNotNull(properties, "locationDescription", data.getDescription());
 		putAsStringIfNotNull(properties, "headline", location.getHeadline());
 		putAsStringIfNotNull(properties, "rank", location.getRank());
 		/*putAsStringIfNotNull(properties, "code", data.getCode());
@@ -258,7 +258,7 @@ public class GeoJsonRule {
 		location.setGeometry(createLocationGeometry(fc, location));
 		String name = getString(fc, "name");
 		data.setName(name);
-		data.setDescription(getString(fc, "description"));
+		data.setDescription(getString(fc, "locationDescription"));
 		data.setKml(getString(fc, "kml"));
 		String date = getString(fc, "startDate");
 		Date startDate = newDate(date);
@@ -314,7 +314,7 @@ public class GeoJsonRule {
 		properties.put("locationTypeName", "Result from a query");
 		String descritpion = "Result from the query for '" + q + "' limit=" 
 		+ limit + " offset=" + offset;
-		properties.put("description", descritpion);
+		properties.put("locationDescription", descritpion);
 		return response;
 	}
 
@@ -330,7 +330,7 @@ public class GeoJsonRule {
 		properties.put("locationTypeName", "Result from a query");
 		String descritpion = "Result from the query for latitude=" + latitude 
 				+ " longitude=" + longitude;
-		properties.put("description", descritpion);
+		properties.put("locationDescription", descritpion);
 		return response;
 	}
 }
