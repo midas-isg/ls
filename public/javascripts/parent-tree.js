@@ -102,3 +102,17 @@ PARENT_TREE.initTree = function(picklistName, callbackFunction) {
 	
 	return;
 }
+
+PARENT_TREE.resetParent = function() {
+	if(!this.tree) {
+		return;
+	}
+	
+	var nodes = this.tree.getSelectedNodes();
+	for(var i in nodes){
+		var node = nodes[i];
+		node.setSelected(false);
+	}
+	
+	return;
+}
