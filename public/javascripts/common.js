@@ -16,14 +16,15 @@ function multiPolygonsToPolygons(geoJSON) {
 		
 		var i;
 		var j;
+		var properties = null;
+		var addedFeature = null;
 		for(i = 0; i < count; i++) {
 			if(features[i].geometry.type == "MultiPolygon") {
-				var properties = features[i].properties;
-				properties.description = properties.name;
+				properties = features[i].properties;
 				
 				for(j = 0; j < features[i].geometry.coordinates.length; j++) {
 					features.push({"type": "Feature", "geometry": {"type": "Polygon", "coordinates": null}, "properties": properties});
-					var addedFeature = features[features.length - 1];
+					addedFeature = features[features.length - 1];
 					addedFeature.geometry.coordinates = features[i].geometry.coordinates[j];
 				}
 				
@@ -141,4 +142,21 @@ function listLineageRefs(lineage, sectionID) {
 	}
 	
 	return;
+}
+
+function getFirstAlphaOnly(input) {
+	var output = "";
+	
+	for(var i = 0; i < input.length; i++) {
+		if((input.charAt(i) == ' ') || ((input.charAt(i) >= 'a') && (input.charAt(i) <= 'z')) || ((input.charAt(i) >= 'A') && (input.charAt(i) <= 'Z'))) {
+			output += input.charAt(i);
+		}
+		else if(input.charAt(i) != ' ') {
+			output = output.trim();
+			
+			break;
+		}
+	}
+	
+	return output;
 }

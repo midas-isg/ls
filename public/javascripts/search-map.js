@@ -34,7 +34,7 @@ $(document).ready(function() {
 				thisMapDriver.mapID = thisMapDriver.featureLayer.getGeoJSON().id;
 				setTextValue("#au-name", feature.properties.name);
 				setTextValue("#au-code", feature.properties.code);
-				setTextValue("#au-codepath", feature.properties.codePath);
+				setTextValue("#description", feature.properties.description);
 				setTextValue("#start-date", feature.properties.startDate);
 				setTextValue("#end-date", feature.properties.endDate);
 				//PARENT_TREE.resetIsAboutList();
@@ -51,7 +51,7 @@ $(document).ready(function() {
 				}
 				
 				setTextValue("#gid", feature.properties.gid);
-				feature.properties.title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
+				feature.properties.title = feature.properties.name + " " + feature.properties.locationTypeName + " from " + feature.properties.startDate;
 				
 				if(feature.properties.endDate) {
 					feature.properties.title = feature.properties.title + " to " + feature.properties.endDate;
@@ -106,6 +106,10 @@ $(document).ready(function() {
 				});
 				
 				return;
+			});
+			
+			thisMapDriver.map.whenReady(function() {
+				return thisMapDriver.map.setZoom(1);
 			});
 			
 			return;
@@ -166,26 +170,6 @@ $(document).ready(function() {
 		return;
 	}
 	initialize();
-	
-	/*
-	$.get(url, function(data, status) {
-		treeData = data;
-		//console.log(data);
-		
-		//initialize defined here
-		
-		
-		//PARENT_TREE.initInteractBetweenTreeAndTable("parent-list", function() {
-		//	AU_COMPOSITE_TREE.initInteractBetweenTreeAndTable("au-list", initialize());
-		//	
-		//	return;
-		//});
-		
-		//initialize();
-		
-		return;
-	});
-	*/
 	
 	return;
 });
