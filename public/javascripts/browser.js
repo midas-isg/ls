@@ -162,8 +162,6 @@ BrowserMap.prototype.loadFeatureLayer = function() {
 			properties = feature.properties;
 		}
 		
-		thisBrowserMap.mapID = properties.gid;
-		
 		$("#au-name").append("<strong>" + properties.name + "</strong>");
 		$("#au-location-type").append("<div class='pull-left pre-spaced'>" + properties.locationTypeName + "</div>");
 		

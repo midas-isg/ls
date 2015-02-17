@@ -290,6 +290,10 @@ $(document).ready(function() {
 					//});
 				});
 				
+				CREATE_MAP.map.whenReady(function() {
+					return CREATE_MAP.map.setZoom(1, {minZoom: 1, bounceAtZoomLimits: false});
+				});
+				
 				return;
 			}
 			

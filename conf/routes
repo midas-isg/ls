@@ -14,9 +14,8 @@ POST	/resources/aus				controllers.AdministrativeUnitServices.create()
 GET		/resources/aus/:gid			controllers.AdministrativeUnitServices.read(gid)
 PUT		/resources/aus/:gid			controllers.AdministrativeUnitServices.update(gid:Long)
 DELETE	/resources/aus/:gid				controllers.AdministrativeUnitServices.delete(gid:Long)
-GET		/api/locations/tree			controllers.AdministrativeUnitServices.tree2()
 
-GET		/api/au-tree				controllers.AdministrativeUnitServices.tree()
+GET		/api/au-tree				controllers.TreeView.tree()
 
 #Alternate
 GET		/api/locations/:gid.:format			controllers.LocationServices.locations(gid:Long, format)

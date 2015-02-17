@@ -277,7 +277,8 @@ console.log("Length: " + JSON.stringify(data).length);
 			//indexingObject.informationObject.setURI(indexingObject.successChange(data, status, "added"));
 			console.log(data);
 			console.log(status);
-			setTextValue("#gid", getIDFromURI(response.getResponseHeader("Location")));
+			gid =  getIDFromURI(response.getResponseHeader("Location"));
+			setTextValue("#gid",gid);
 			$("#gid").prop("disabled", true);
 			$("#new-button").show();
 			
@@ -285,6 +286,7 @@ console.log("Length: " + JSON.stringify(data).length);
 			$("#server-result").css("color", "#008000");
 			$("#server-result").show();
 			$("#server-result").fadeOut(15000);
+			isUpdate = true;
 		},
 		error: function(data, status) {
 			//if(data['responseJSON'] && data['responseJSON']['duplicatedUri']) {
@@ -305,7 +307,7 @@ console.log("Length: " + JSON.stringify(data).length);
 	
 	return;
 }
-
+var gid
 MapDriver.prototype.download = function() {
 	var jsonData = this.featureLayer.toGeoJSON();
 	var properties = null;
