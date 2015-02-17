@@ -142,8 +142,8 @@ BrowserMap.prototype.loadFeatureLayer = function() {
 		
 		thisBrowserMap.featureLayer.addTo(thisBrowserMap.map);
 		
-		var feature = thisBrowserMap.featureLayer.getGeoJSON().features[0];
 		var geoJSON = thisBrowserMap.featureLayer.getGeoJSON();
+		var feature = geoJSON.features[0];
 		
 		var minLng = geoJSON.bbox[0];
 		var minLat = geoJSON.bbox[1];

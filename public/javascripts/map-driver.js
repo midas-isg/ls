@@ -218,7 +218,6 @@ console.log("Length: " + JSON.stringify(data).length);
 		//dataType: "json",
 		//processData: false,
 		success: function(data, status, response) {
-			//indexingObject.informationObject.setURI(indexingObject.successChange(data, status, "added"));
 			console.log(data);
 			console.log(status);
 			setTextValue("#gid", getIDFromURI(response.getResponseHeader("Location")));
@@ -233,13 +232,6 @@ console.log("Length: " + JSON.stringify(data).length);
 			$("#server-result").fadeOut(15000);
 		},
 		error: function(data, status) {
-			//if(data['responseJSON'] && data['responseJSON']['duplicatedUri']) {
-			//	indexingObject.duplicateDialog(data['responseJSON']['duplicatedUri']);
-			//}
-			//else {
-			//	indexingObject.successChange(data, status, "error");
-			//}
-			
 			console.log(status);
 			console.log(data);
 			setTextValue("#server-result", status + ": " + data.statusText + " - " + data.responseText);
@@ -278,7 +270,6 @@ console.log("Length: " + JSON.stringify(data).length);
 		//dataType: "json",
 		//processData: false,
 		success: function(data, status, response) {
-			//indexingObject.informationObject.setURI(indexingObject.successChange(data, status, "added"));
 			console.log(data);
 			console.log(status);
 			setTextValue("#gid", getIDFromURI(response.getResponseHeader("Location")));
@@ -291,13 +282,6 @@ console.log("Length: " + JSON.stringify(data).length);
 			$("#server-result").fadeOut(15000);
 		},
 		error: function(data, status) {
-			//if(data['responseJSON'] && data['responseJSON']['duplicatedUri']) {
-			//	indexingObject.duplicateDialog(data['responseJSON']['duplicatedUri']);
-			//}
-			//else {
-			//	indexingObject.successChange(data, status, "error");
-			//}
-			
 			console.log(status);
 			console.log(data);
 			setTextValue("#server-result", status + ": " + data.statusText + " - " + data.responseText);

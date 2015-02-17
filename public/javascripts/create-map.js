@@ -193,6 +193,8 @@ $(document).ready(function() {
 					thisMapDriver.featureLayer.on("ready", function() {
 						var feature = thisMapDriver.featureLayer.getGeoJSON().features[0];
 						
+						thisMapDriver.kml = feature.properties.kml;
+						
 						$("#gid").prop("disabled", true);
 						setTextValue("#au-type", feature.properties.locationTypeName);
 						
