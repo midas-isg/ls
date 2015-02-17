@@ -104,7 +104,11 @@ BrowserMap.prototype.initialize = function() {
 	
 	L.mapbox.accessToken = this.accessToken;
 	
-	this.map = L.mapbox.map('map-data', 'examples.map-i86l3621', { worldCopyJump: true, minZoom: 1, bounceAtZoomLimits: false /*crs: L.CRS.EPSG385*/});
+	var southWest = L.latLng(-90, -180);
+	var northEast = L.latLng(90, 180);
+	var mapBounds = L.latLngBounds(southWest, northEast);
+	
+	this.map = L.mapbox.map('map-data', 'examples.map-i86l3621', { worldCopyJump: true, minZoom: 1, bounceAtZoomLimits: false, maxBounds: mapBounds /*crs: L.CRS.EPSG385*/});
 	this.map.legendControl.addLegend(this.title);
 	
 	this.drawControl = null;

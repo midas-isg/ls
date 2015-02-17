@@ -24,7 +24,11 @@ function MapDriver() {
 MapDriver.prototype.initialize = function() {
 	L.mapbox.accessToken = this.accessToken;
 	
-	this.map = L.mapbox.map('map-one', 'examples.map-i86l3621', { worldCopyJump: true, bounceAtZoomLimits: false, zoom: 1 /*crs: L.CRS.EPSG385*/});
+	var southWest = L.latLng(-90, -180);
+	var northEast = L.latLng(90, 180);
+	var mapBounds = L.latLngBounds(southWest, northEast);
+	
+	this.map = L.mapbox.map('map-one', 'examples.map-i86l3621', { worldCopyJump: true, bounceAtZoomLimits: false, zoom: 1, minZoom: 1, maxBounds: mapBounds /*crs: L.CRS.EPSG385*/});
 	this.map.legendControl.addLegend(this.title);
 	
 	this.drawControl = null;
