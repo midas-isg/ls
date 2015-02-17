@@ -63,7 +63,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			thisMapDriver.mapID = thisMapDriver.featureLayer.getGeoJSON().id;
 			thisMapDriver.kml = feature.properties.kml;
 			setTextValue("#au-name", feature.properties.name);
-			setTextValue("#description", feature.properties.description);
+			setTextValue("#description", feature.properties.locationDescription);
 			setTextValue("#start-date", feature.properties.startDate);
 			setTextValue("#end-date", feature.properties.endDate);
 			
@@ -318,7 +318,7 @@ MapDriver.prototype.download = function() {
 		properties.startDate = getValueText("#start-date");
 		properties.endDate = getValueText("#end-date");
 		properties.parentGid = this.parent;
-		properties.description = getValueText("#description");
+		properties.locationDescription = getValueText("#description");
 	}
 	
 	if(!jsonData.id) {
@@ -352,7 +352,7 @@ MapDriver.prototype.upload = function() {
 		
 		var properties = jsonData.features[0].properties;
 		setTextValue("#au-name", properties.name);
-		setTextValue("#description", properties.description);
+		setTextValue("#description", properties.locationDescription);
 		setTextValue("#start-date", properties.startDate);
 		setTextValue("#end-date", properties.endDate);
 		
@@ -481,7 +481,7 @@ function formatGeoJSON(geoJSON, thisMapDriver) {
 		geoJSON.features[i].properties["name"] = auName;
 		geoJSON.features[i].properties["type"] = auType;
 		geoJSON.features[i].properties["codes"] = [{"code": auCode, "codeTypeName": auCodeType}];
-		geoJSON.features[i].properties["description"] = description;
+		geoJSON.features[i].properties["locationDescription"] = description;
 		geoJSON.features[i].properties["parent"] = auParentGID;
 		geoJSON.features[i].properties["startDate"] = startDate;
 		geoJSON.features[i].properties["endDate"] = endDate;
