@@ -73,8 +73,8 @@ function BrowserMap() {
 			this.initialize();
 			
 			$.get(this.dataSourceURL, function(data, status) {
-				var i;
 				/*
+				var i;
 				var geoJSON = {};
 				for(i = 0; i < data.; i++) {
 					//
@@ -143,8 +143,8 @@ BrowserMap.prototype.loadFeatureLayer = function() {
 		thisBrowserMap.featureLayer.addTo(thisBrowserMap.map);
 		
 		var feature = thisBrowserMap.featureLayer.getGeoJSON().features[0];
-		
 		var geoJSON = thisBrowserMap.featureLayer.getGeoJSON();
+		
 		var minLng = geoJSON.bbox[0];
 		var minLat = geoJSON.bbox[1];
 		var maxLng = geoJSON.bbox[2];
@@ -162,11 +162,14 @@ BrowserMap.prototype.loadFeatureLayer = function() {
 			properties = feature.properties;
 		}
 		
+		thisBrowserMap.mapID = properties.gid;
+		properties.description = properties.name;
+		
 		$("#au-name").append("<strong>" + properties.name + "</strong>");
 		$("#au-location-type").append("<div class='pull-left pre-spaced'>" + properties.locationTypeName + "</div>");
 		
-		if(properties.description) {
-			$("#description").append("<div class='pull-left pre-spaced'>" + properties.description + "</div>");
+		if(properties.locationDescription) {
+			$("#description").append("<div class='pull-left pre-spaced'>" + properties.locationDescription + "</div>");
 			$("#description").show();
 		}
 		
@@ -311,8 +314,16 @@ BrowserMap.prototype.loadFeatureLayer = function() {
 }
 
 BrowserMap.prototype.loadJSON = function(jsonData) {
-	//multiPolygonsToPolygons(jsonData);
-	this.featureLayer.setGeoJSON(jsonData);
+	if(jsonData) {
+		//multiPolygonsToPolygons(jsonData);
+		var i;
+		var features = jsonData.features;
+		for(i = 0; i < features.length; i++) {
+			features[i].properties.description = features[i].properties.name;
+		}
+		
+		this.featureLayer.setGeoJSON(jsonData);
+	}
 	
 	return;
 }
