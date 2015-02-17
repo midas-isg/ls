@@ -248,7 +248,7 @@ public class LocationRule {
 			return properties;
 		}
 		putAsStringIfNotNull(properties, "name", data.getName());
-		putAsStringIfNotNull(properties, "description", data.getDescription());
+		putAsStringIfNotNull(properties, "locationDescription", data.getDescription());
 		putAsStringIfNotNull(properties, "headline", au.getHeadline());
 		putAsStringIfNotNull(properties, "rank", au.getRank());
 		/*putAsStringIfNotNull(properties, "code", data.getCode());
@@ -315,7 +315,7 @@ public class LocationRule {
 		au.setGeometry(createLocationGeometry(fc, au));
 		String name = getString(fc, "name");
 		data.setName(name);
-		data.setDescription(getString(fc, "description"));
+		data.setDescription(getString(fc, "locationDescription"));
 		data.setKml(getString(fc, "kml"));
 		String date = getString(fc, "startDate");
 		Date startDate = newDate(date);
@@ -388,7 +388,7 @@ public class LocationRule {
 		properties.put("locationTypeName", "Result from a query");
 		String descritpion = "Result from the query for '" + q + "' limit=" 
 		+ limit + " offset=" + offset;
-		properties.put("description", descritpion);
+		properties.put("locationDescription", descritpion);
 		return response;
 	}
 
@@ -404,7 +404,7 @@ public class LocationRule {
 		properties.put("locationTypeName", "Result from a query");
 		String descritpion = "Result from the query for latitude=" + latitude 
 				+ " longitude=" + longitude;
-		properties.put("description", descritpion);
+		properties.put("locationDescription", descritpion);
 		return response;
 	}
 
