@@ -28,6 +28,7 @@ public class LocationGeometry {
 	private Long gid;
 	private Geometry multiPolygonGeom;
 	private Location location;
+	private Double area;
 
 	@GenericGenerator(name = "generator", strategy = "foreign", 
 			parameters = @Parameter(name = "property", value = "location")
@@ -62,5 +63,13 @@ public class LocationGeometry {
 
 	public void setLocation(Location location) {
 		this.location = location;
+	}
+
+	public Double getArea() {
+		return area;
+	}
+
+	public void setArea(Double area) {
+		this.area = area;
 	}
 }

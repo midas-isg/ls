@@ -26,7 +26,6 @@ public class Data {
 	private GisSource gisSource;
 	private String description;
 	private String kml;
-	private Double area;
 
 	@Column(name = "name")
 	public String getName() {
@@ -137,13 +136,5 @@ public class Data {
 
 	public void setKml(String kml) {
 		this.kml = kml;
-	}
-
-	public Double getArea() {
-		return area;
-	}
-
-	public void setArea(Double area) {
-		this.area = area;
 	}
 }
