@@ -231,8 +231,13 @@ $(document).ready(function() {
 					var today = new Date();
 					setTextValue("#start-date", today.getUTCFullYear() + "-" + (today.getUTCMonth() + 1) + "-" + today.getUTCDate());
 					setTextValue("#end-date", "");
-					
+					$("#update-button").hide();
+					$("#save-button").show();
 					PARENT_TREE.resetParent();
+					$("input#parent").val("");
+					$("input#parent").keyup();
+					
+					return;
 				});
 				
 				$("#file-input").change(function() {
