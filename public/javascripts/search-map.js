@@ -37,18 +37,8 @@ $(document).ready(function() {
 				setTextValue("#description", feature.properties.description);
 				setTextValue("#start-date", feature.properties.startDate);
 				setTextValue("#end-date", feature.properties.endDate);
-				//PARENT_TREE.resetIsAboutList();
-				//AU_COMPOSITE_TREE.resetIsAboutList();
 				
-				var i;
 				var parentGID = feature.properties.parentGid;
-				if(parentGID) {
-					//for(i = 0; i < parentGID.length; i++) {
-					//	AU_COMPOSITE_TREE.clickIsAboutByValue(parentGID[i]);
-					//}
-					
-					//PARENT_TREE.clickIsAboutByValue(parentGID);
-				}
 				
 				setTextValue("#gid", feature.properties.gid);
 				feature.properties.title = feature.properties.name + " " + feature.properties.locationTypeName + " from " + feature.properties.startDate;

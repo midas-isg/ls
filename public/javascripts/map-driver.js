@@ -24,7 +24,11 @@ function MapDriver() {
 MapDriver.prototype.initialize = function() {
 	L.mapbox.accessToken = this.accessToken;
 	
-	this.map = L.mapbox.map('map-one', 'examples.map-i86l3621', { worldCopyJump: true, bounceAtZoomLimits: false, zoom: 1 /*crs: L.CRS.EPSG385*/});
+	var southWest = L.latLng(-90, -180);
+	var northEast = L.latLng(90, 180);
+	var mapBounds = L.latLngBounds(southWest, northEast);
+	
+	this.map = L.mapbox.map('map-one', 'examples.map-i86l3621', { worldCopyJump: true, bounceAtZoomLimits: false, zoom: 1, minZoom: 1, maxBounds: mapBounds /*crs: L.CRS.EPSG385*/});
 	this.map.legendControl.addLegend(this.title);
 	
 	this.drawControl = null;
@@ -56,9 +60,9 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		thisMapDriver.featureLayer.addTo(thisMapDriver.map);
 		
 		if(geoJSON) {
-			var feature = thisMapDriver.featureLayer.getGeoJSON().features[0];
+			var feature = geoJSON.features[0];
 			
-			centerMap(thisMapDriver.featureLayer.getGeoJSON(), thisMapDriver);
+			centerMap(geoJSON, thisMapDriver);
 			
 			thisMapDriver.mapID = thisMapDriver.featureLayer.getGeoJSON().id;
 			thisMapDriver.kml = feature.properties.kml;
@@ -67,7 +71,6 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			setTextValue("#start-date", feature.properties.startDate);
 			setTextValue("#end-date", feature.properties.endDate);
 			
-			var i;
 			var parentGID = feature.properties.parentGid;
 			console.log(parentGID);
 			
@@ -168,6 +171,11 @@ MapDriver.prototype.loadJSON = function(jsonData) {
 		var thisMapDriver = this;
 		
 		//multiPolygonsToPolygons(jsonData);
+		var i;
+		var features = jsonData.features;
+		for(i = 0; i < features.length; i++) {
+			features[i].properties.description = features[i].properties.name;
+		}
 		
 		this.featureLayer.setGeoJSON(jsonData);
 		centerMap(jsonData, thisMapDriver);
@@ -214,7 +222,6 @@ console.log("Length: " + JSON.stringify(data).length);
 		//dataType: "json",
 		//processData: false,
 		success: function(data, status, response) {
-			//indexingObject.informationObject.setURI(indexingObject.successChange(data, status, "added"));
 			console.log(data);
 			console.log(status);
 			setTextValue("#gid", getIDFromURI(response.getResponseHeader("Location")));
@@ -229,13 +236,6 @@ console.log("Length: " + JSON.stringify(data).length);
 			$("#server-result").fadeOut(15000);
 		},
 		error: function(data, status) {
-			//if(data['responseJSON'] && data['responseJSON']['duplicatedUri']) {
-			//	indexingObject.duplicateDialog(data['responseJSON']['duplicatedUri']);
-			//}
-			//else {
-			//	indexingObject.successChange(data, status, "error");
-			//}
-			
 			console.log(status);
 			console.log(data);
 			setTextValue("#server-result", status + ": " + data.statusText + " - " + data.responseText);
@@ -274,11 +274,9 @@ console.log("Length: " + JSON.stringify(data).length);
 		//dataType: "json",
 		//processData: false,
 		success: function(data, status, response) {
-			//indexingObject.informationObject.setURI(indexingObject.successChange(data, status, "added"));
 			console.log(data);
 			console.log(status);
-			gid =  getIDFromURI(response.getResponseHeader("Location"));
-			setTextValue("#gid",gid);
+			setTextValue("#gid", getIDFromURI(response.getResponseHeader("Location")));
 			$("#gid").prop("disabled", true);
 			$("#new-button").show();
 			
@@ -286,16 +284,8 @@ console.log("Length: " + JSON.stringify(data).length);
 			$("#server-result").css("color", "#008000");
 			$("#server-result").show();
 			$("#server-result").fadeOut(15000);
-			isUpdate = true;
 		},
 		error: function(data, status) {
-			//if(data['responseJSON'] && data['responseJSON']['duplicatedUri']) {
-			//	indexingObject.duplicateDialog(data['responseJSON']['duplicatedUri']);
-			//}
-			//else {
-			//	indexingObject.successChange(data, status, "error");
-			//}
-			
 			console.log(status);
 			console.log(data);
 			setTextValue("#server-result", status + ": " + data.statusText + " - " + data.responseText);
@@ -307,7 +297,7 @@ console.log("Length: " + JSON.stringify(data).length);
 	
 	return;
 }
-var gid
+
 MapDriver.prototype.download = function() {
 	var jsonData = this.featureLayer.toGeoJSON();
 	var properties = null;
@@ -318,7 +308,7 @@ MapDriver.prototype.download = function() {
 		properties.startDate = getValueText("#start-date");
 		properties.endDate = getValueText("#end-date");
 		properties.parentGid = this.parent;
-		properties.locationDescription = getValueText("#description");
+		properties.description = getValueText("#description");
 	}
 	
 	if(!jsonData.id) {
@@ -352,17 +342,17 @@ MapDriver.prototype.upload = function() {
 		
 		var properties = jsonData.features[0].properties;
 		setTextValue("#au-name", properties.name);
-		setTextValue("#description", properties.locationDescription);
+		setTextValue("#description", properties.description);
 		setTextValue("#start-date", properties.startDate);
 		setTextValue("#end-date", properties.endDate);
 		
 		var i;
 		for(i = 0; i < jsonData.features.length; i++) {
-			jsonData.features[i].description = jsonData.features[i].name;
+			jsonData.features[i].properties.description = jsonData.features[i].properties.name;
 		}
 		
 		var parentGID = properties.parentGid;
-		console.log(parentGID);
+		console.log("parent GID" + parentGID);
 		
 		thisMapDriver.loadJSON(jsonData);
 	});

@@ -29,16 +29,14 @@ $(document).ready(function() {
 					}
 					
 					this.featureLayer.on('ready', function() {
-						thisMapDriver.loadJSON(thisMapDriver.featureLayer.getGeoJSON());
+						var geoJSON = thisMapDriver.featureLayer.getGeoJSON();
+						thisMapDriver.loadJSON(geoJSON);
 						
 						thisMapDriver.featureLayer.addTo(thisMapDriver.map);
-						
-						var geoJSON = thisMapDriver.featureLayer.getGeoJSON();
 						
 						if(geoJSON) {
 							var feature = geoJSON.features[0];
 							
-							//centerMap(thisMapDriver.featureLayer.getGeoJSON(), thisMapDriver);
 							var minLng = geoJSON.bbox[0];
 							var minLat = geoJSON.bbox[1];
 							var maxLng = geoJSON.bbox[2];
@@ -56,7 +54,6 @@ $(document).ready(function() {
 							PARENT_TREE.resetIsAboutList();
 							AU_COMPOSITE_TREE.resetIsAboutList();
 							
-							var i;
 							var parentGID = feature.properties.parentGid;
 							if(parentGID) {
 								//for(i = 0; i < parentGID.length; i++) {
@@ -67,7 +64,8 @@ $(document).ready(function() {
 							}
 							
 							setTextValue("#gid", feature.properties.gid);
-							setTextValue("#description", feature.properties.description);
+							setTextValue("#description", feature.properties.locationDescription);
+							
 							feature.properties.title = feature.properties.name + " " + feature.properties.locationTypeName + " from " + feature.properties.startDate;
 							
 							if(feature.properties.endDate) {
@@ -195,6 +193,8 @@ $(document).ready(function() {
 					thisMapDriver.featureLayer.on("ready", function() {
 						var feature = thisMapDriver.featureLayer.getGeoJSON().features[0];
 						
+						thisMapDriver.kml = feature.properties.kml;
+						
 						$("#gid").prop("disabled", true);
 						setTextValue("#au-type", feature.properties.locationTypeName);
 						
@@ -288,10 +288,6 @@ $(document).ready(function() {
 						
 						CREATE_MAP.loadJSON(compositeJSON);
 					//});
-				});
-				
-				CREATE_MAP.map.whenReady(function() {
-					return CREATE_MAP.map.setZoom(1, {minZoom: 1, bounceAtZoomLimits: false});
 				});
 				
 				return;
