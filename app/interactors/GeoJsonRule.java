@@ -260,9 +260,10 @@ public class GeoJsonRule {
 		data.setName(name);
 		data.setDescription(getString(fc, "locationDescription"));
 		data.setKml(getString(fc, "kml"));
-		String date = getString(fc, "startDate");
-		Date startDate = newDate(date);
+		Date startDate = newDate(getString(fc, "startDate"));
 		data.setStartDate(startDate);
+		Date endDate = newDate(getString(fc, "endDate"));
+		data.setEndDate(endDate);
 		data.setUpdateDate(getNowDate());
 		String code = getString(fc, "code");
 		data.setCode(code);
@@ -290,6 +291,8 @@ public class GeoJsonRule {
 	}
 
 	private static Date newDate(String date) {
+		if (date == null)
+			return null;
 		return java.sql.Date.valueOf(date);
 	}
 	
