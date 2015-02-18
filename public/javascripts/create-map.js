@@ -290,6 +290,38 @@ $(document).ready(function() {
 					//});
 				});
 				
+				var shiftKey = false;
+				var controlKey = false;
+				$(document).keydown(function(event) {
+					//console.log("Key: " + event.which);
+					
+					if(event.which == 16) {
+						shiftKey = true;
+					}
+					
+					if(event.which == 17) {
+						controlKey = true;
+					}
+					
+					if(shiftKey && controlKey) {
+						$("#au-create").show();
+					}
+					
+					return;
+				});
+				
+				$(document).keyup(function(event) {
+					if(event.which == 16) {
+						shiftKey = false;
+					}
+					
+					if(event.which == 17) {
+						controlKey = false;
+					}
+					
+					return;
+				});
+				
 				return;
 			}
 			
