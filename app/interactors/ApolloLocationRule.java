@@ -2,8 +2,6 @@ package interactors;
 
 import java.util.List;
 
-import models.apollo.ApolloLocation;
-
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -15,8 +13,8 @@ import edu.pitt.apollo.types.v3_0_0.MultiGeometry;
 import edu.pitt.apollo.types.v3_0_0.NamedMultiGeometry;
 
 public class ApolloLocationRule {
-	public static ApolloLocation asApolloLocation(Location location) {
-		ApolloLocation al = new ApolloLocation();
+	public static edu.pitt.apollo.types.v3_0_0.Location asApolloLocation(Location location) {
+		edu.pitt.apollo.types.v3_0_0.Location al = new edu.pitt.apollo.types.v3_0_0.Location();
 		al.setTextualDescription(toText(location));
 		al.setApolloLocationCode("" + location.getGid());
 		

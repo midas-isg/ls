@@ -19,6 +19,7 @@ libraryDependencies ++= Seq(
   ),
   cache,
   javaWs,
+  "com.thoughtworks.xstream" % "xstream" % "1.4.7",  
   "org.hibernate" % "hibernate-entitymanager" % "4.3.7.Final",
   "org.hibernate" % "hibernate-spatial" % "4.3"
 )
