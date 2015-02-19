@@ -46,11 +46,30 @@ public class ApolloLocationRule {
 		
 	private static String toText(Location location) {
 		Data data = location.getData();
-		String text = data.getName() 
-				+ " [" + data.getLocationType().getName() + "]"; 
+		String text = toFullPathNameWithTypes(location); 
 		String description = data.getDescription();
 		if (description != null && !description.isEmpty())
 			text += ": " + description;
+		return text;
+	}
+
+	private static String toFullPathNameWithTypes(Location location) {
+		String text = toNameWithType(location);
+		Location parent = location.getParent();
+		if (parent != null){
+			List<Location> ancestors = LocationProxyRule.getLineage(location);
+			for (int i = ancestors.size() - 1; i >= 0; i--){
+				Location p = ancestors.get(i); 
+				text += ", " + toNameWithType(p);
+			}
+		}
+		return text;
+	}
+
+	private static String toNameWithType(Location location) {
+		Data data = location.getData();
+		String text = data.getName() 
+				+ " " + data.getLocationType().getName();
 		return text;
 	}
 	
