@@ -24,7 +24,7 @@ public class KmlRule {
 		return text;
 	}
 
-	private static String getStringFromFile(String fileName) {
+	public static String getStringFromFile(String fileName) {
 		URL url = Play.application().classloader().getResource(fileName);
 		String formatText = "";
 		try {

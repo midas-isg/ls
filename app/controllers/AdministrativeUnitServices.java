@@ -27,8 +27,7 @@ public class AdministrativeUnitServices extends Controller {
 	public static Result create() {
 		try {
 			FeatureCollection parsed = parseRequestAsFeatureCollection();
-			Location location = GeoJsonRule.asLocation(parsed);
-			Long id = LocationRule.create(location);
+			Long id = Wire.create(parsed);
 			setResponseLocation(id);
 			return created();
 		} catch (RuntimeException e){
@@ -41,13 +40,30 @@ public class AdministrativeUnitServices extends Controller {
 			return forbidden(message);
 		}
 	}
+	
+	public static class Wire{
+		public static Long create(FeatureCollection fc) {
+			Location location = GeoJsonRule.asDeprecatedLocation(fc);
+			Long id = LocationRule.create(location);
+			return id;
+		}
 
-	private static void setResponseLocation(Long id) {
+		public static FeatureCollection read(long gid) {
+			Location location = LocationRule.read(gid);
+			FeatureCollection fc = GeoJsonRule.asFeatureCollection(location);
+			return fc;
+		}
+		
+
+	}
+
+
+	static void setResponseLocation(Long id) {
 		String uri = makeUri(id);
 		response().setHeader(LOCATION, uri);
 	}
 
-	private static String makeUri(Long id) {
+	static String makeUri(Long id) {
 		Request request = Context.current().request();
 		Logger.debug(""+ request.headers());
 		String url = request.getHeader(ORIGIN) + request.path();
@@ -58,17 +74,17 @@ public class AdministrativeUnitServices extends Controller {
 	}
 	
 	@Transactional
-	public static Result read(String gid) {
+	public static Result read(String gidText) {
 		response().setContentType("application/vnd.geo+json");
-		Location location = LocationRule.read(Long.parseLong(gid));
-		return okJson(GeoJsonRule.asFeatureCollection(location));
+		long gid = Long.parseLong(gidText);
+		return okJson(Wire.read(gid));
 	}
-	
+
 	@Transactional
 	public static Result update(long gid) {
 		try {
 			FeatureCollection parsed = parseRequestAsFeatureCollection();
-			Location location = GeoJsonRule.asLocation(parsed);
+			Location location = GeoJsonRule.asDeprecatedLocation(parsed);
 			LocationRule.update(gid, location);
 			setResponseLocation(null);
 			return noContent();
@@ -83,7 +99,7 @@ public class AdministrativeUnitServices extends Controller {
 		}
 	}
 
-	private static FeatureCollection parseRequestAsFeatureCollection() throws Exception {
+	static FeatureCollection parseRequestAsFeatureCollection() throws Exception {
 		Request request = Context.current().request();
 		JsonNode requestJSON = null;
 			

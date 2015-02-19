@@ -41,7 +41,7 @@ public class LocationRule {
 		return isgCodeType;
 	}
 
-	static GisSource getAlsGisSource(){
+	public static GisSource getAlsGisSource(){
 		if (alsGisSource == null){
 			alsGisSource = new GisSource();
 			alsGisSource.setId(8L);
@@ -49,7 +49,7 @@ public class LocationRule {
 		}
 		return alsGisSource;
 	}
-
+	
 	public static Long create(Location location){
 		LocationDao dao = new LocationDao();
 		return dao.create(location);
