@@ -20,6 +20,7 @@ GET		/api/au-tree				controllers.TreeView.tree()
 #Alternate
 GET		/api/locations/:gid.:format			controllers.LocationServices.locations(gid:Long, format)
 
+POST	/api/locations/				controllers.LocationServices.create()
 GET		/api/locations/:gid			controllers.LocationServices.locations(gid:Long, format?="GeoJSON")
 GET		/api/locations				controllers.LocationServices.findLocations(q, limit:Int?=10, offset:Int?=0)
 GET		/api/locations-by-coordinate controllers.LocationServices.findLocationsByPoint(lat:Double, long:Double)
