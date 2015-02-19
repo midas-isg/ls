@@ -1,20 +1,26 @@
 package interactors;
 
-import java.io.ByteArrayOutputStream;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.DomDriver;
 
 public class XmlRule {
-	public static String toXml(Object object) throws Exception{
-		JAXBContext ctx = JAXBContext.newInstance(object.getClass());
-		Marshaller jaxbMarshaller = ctx.createMarshaller();
-		 
-		jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
- 
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		jaxbMarshaller.marshal(object, baos);
-		String result = baos.toString();
+	public static String toXml(Object object) {
+		String result = xstream(object);
 		return result;
+	}
+	
+	private static String xstream(Object object) {
+        XStream xstream = getXStream();
+		return xstream.toXML(object);
+	}
+
+	private static XStream getXStream() {
+		XStream xstream = new XStream(new DomDriver());
+		return xstream;
+	}
+	
+	public static Object toObject(String xml){
+		XStream xstream = getXStream();
+		return xstream.fromXML(xml);
 	}
 }

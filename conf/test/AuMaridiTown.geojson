@@ -1,0 +1,100 @@
+{
+  "type": "FeatureCollection",
+  "properties": {
+    "name": "Maridi test AU",
+    "description": "Maridi",
+    "kml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<kml xmlns=\"http://www.opengis.net/kml/2.2\" xmlns:atom=\"http://www.w3.org/2005/Atom\" xmlns:gx=\"http://www.google.com/kml/ext/2.2\" xmlns:kml=\"http://www.opengis.net/kml/2.2\">\r\n\t<Document>      \r\n\t\t<name>map</name>\r\n\t\t<Folder>\r\n\t\t\t<open>1</open>\r\n\t\t\t<Style id=\"epidemic-zone\">\r\n\t\t\t\t<BalloonStyle>\r\n\t\t\t\t\t<text><![CDATA[<font font size=\"3\" color=\"#aa0000\"><b>$[name]</b></font>      <table border=\"1\" padding=\"1\">$[description]</table>]]></text>\r\n\t\t\t\t</BalloonStyle>\r\n\t\t\t\t<LineStyle>\r\n\t\t\t\t\t<color>5f1400FF</color>\r\n\t\t\t\t\t<width>2</width>\r\n\t\t\t\t</LineStyle>\r\n\t\t\t\t<PolyStyle>\r\n\t\t\t\t\t<color>5f1400FF</color>\r\n\t\t\t\t</PolyStyle>\r\n\t\t\t</Style>\r\n\t\t\t<Style id=\"admin-loc\">\r\n\t\t\t\t<BalloonStyle>\r\n\t\t\t\t\t<text><![CDATA[<font font size=\"3\" color=\"#aa0000\"><b>$[name]</b></font>      <table border=\"1\" padding=\"1\">$[description]</table>]]></text>\r\n\t\t\t\t</BalloonStyle>\r\n\t\t\t\t<LineStyle>\r\n\t\t\t\t\t<color>5a14B4F0</color>\r\n\t\t\t\t\t<width>0</width>\r\n\t\t\t\t</LineStyle>\r\n\t\t\t\t<PolyStyle>\r\n\t\t\t\t\t<color>5a14B4F0</color>\r\n\t\t\t\t</PolyStyle>\r\n\t\t\t</Style>\r\n\t\t</Folder>\r\n\t\t\t\r\n\t\t<MultiGeometry>\r\n\t\t\t<Placemark id=\"epidemic-zone0\">\r\n\t\t\t\t<name>Maridi</name>\r\n\t\t\t\t<description>Maridi Town, Maridi, Western Equatoria State, Sudan</description>\r\n\t\t\t\t<styleUrl>#epidemic-zone</styleUrl>\r\n\t\t\t\t<Polygon>\r\n\t\t\t\t\t<tessellate>1</tessellate>\r\n\t\t\t\t\t<outerBoundaryIs>\r\n\t\t\t\t\t\t<LinearRing>\r\n\t\t\t\t\t\t\t<coordinates>\r\n\t\t\t\t\t\t\t\t29.42870927274942,4.901023353709632,0 29.43975244021087,4.890815954000065,0 29.45479984951507,4.887435500818597,0 29.47419403615229,4.887984180330558,0 29.48457342523369,4.895840574133739,0 29.49061105146458,4.906816175436096,0 29.49108997406701,4.916619044341002,0 29.48458921653475,4.926144068595017,0 29.46867855800887,4.936854445589391,0 29.44902861137921,4.936818208822966,0 29.42950558780068,4.928581186225497,0 29.42249045418171,4.917354181092396,0 29.42870927274942,4.901023353709632,0\r\n\t\t\t\t\t\t\t</coordinates>\r\n\t\t\t\t\t\t</LinearRing>\r\n\t\t\t\t\t</outerBoundaryIs>\r\n\t\t\t\t</Polygon>\r\n\t\t\t</Placemark>\r\n\t\t</MultiGeometry>\r\n\r\n\t</Document>\r\n</kml>",
+    "locationTypeName": "Town",
+    "codes": [
+      {
+        "code": "",
+        "codeTypeName": ""
+      }
+    ],
+    "locationDescription": "Maridi Town, Maridi, Western Equatoria State, Sudan",
+    "parent": "1563",
+    "startDate": "2015-01-01",
+    "endDate": "2015-01-02"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                29.42870927274942,
+                4.901023353709632,
+                0
+              ],
+              [
+                29.43975244021087,
+                4.890815954000065,
+                0
+              ],
+              [
+                29.45479984951507,
+                4.887435500818597,
+                0
+              ],
+              [
+                29.47419403615229,
+                4.887984180330558,
+                0
+              ],
+              [
+                29.48457342523369,
+                4.895840574133739,
+                0
+              ],
+              [
+                29.49061105146458,
+                4.906816175436096,
+                0
+              ],
+              [
+                29.49108997406701,
+                4.916619044341002,
+                0
+              ],
+              [
+                29.48458921653475,
+                4.926144068595017,
+                0
+              ],
+              [
+                29.46867855800887,
+                4.936854445589391,
+                0
+              ],
+              [
+                29.44902861137921,
+                4.936818208822966,
+                0
+              ],
+              [
+                29.42950558780068,
+                4.928581186225497,
+                0
+              ],
+              [
+                29.42249045418171,
+                4.917354181092396,
+                0
+              ],
+              [
+                29.42870927274942,
+                4.901023353709632,
+                0
+              ]
+            ]
+          ]
+        ]
+      },
+      "id": 0
+    }
+  ],
+  "id": ""
+}

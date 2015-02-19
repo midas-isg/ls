@@ -2,10 +2,14 @@ package controllers;
 
 import interactors.GeoJsonRule;
 import interactors.LocationProxyRule;
+import interactors.LocationRule;
+import models.geo.FeatureCollection;
+import play.Logger;
 import play.db.jpa.Transactional;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
+import dao.entities.Location;
 
 public class LocationServices extends Controller {
 	private static final String FORMAT_GEOJSON = "geojson";
@@ -57,4 +61,39 @@ public class LocationServices extends Controller {
 		Object result = GeoJsonRule.findByNameByPoint(lat, lon);
 		return ok(Json.toJson(result));
 	}
+	
+	@Transactional
+	public static Result create() {
+		try {
+			FeatureCollection parsed = AdministrativeUnitServices.parseRequestAsFeatureCollection();
+			Long id = Wire.create(parsed);
+			AdministrativeUnitServices.setResponseLocation(id);
+			return created();
+		} catch (RuntimeException e){
+			String message = e.getMessage();
+			Logger.error(message, e);
+			return badRequest(message);
+		} catch (Exception e) {
+			String message = e.getMessage();
+			Logger.error(message, e);
+			return forbidden(message);
+		}
+	}
+	
+	public static class Wire{
+		public static Long create(FeatureCollection fc) {
+			Location location = GeoJsonRule.asLocation(fc);
+			Long id = LocationRule.create(location);
+			return id;
+		}
+
+		public static FeatureCollection read(long gid) {
+			Location location = LocationRule.read(gid);
+			FeatureCollection fc = GeoJsonRule.asFeatureCollection(location);
+			return fc;
+		}
+		
+
+	}
+
 }

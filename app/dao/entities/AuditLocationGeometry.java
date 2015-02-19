@@ -18,6 +18,7 @@ public class AuditLocationGeometry {
 	private Long id;
 	private Long gid;
 	private Geometry multiPolygonGeom;
+	private Double area;
 	private String operation;
 	
 	@Id
@@ -47,6 +48,14 @@ public class AuditLocationGeometry {
 	
 	public void setMultiPolygonGeom(Geometry multiPolygonGeom) {
 		this.multiPolygonGeom = multiPolygonGeom;
+	}
+
+	public Double getArea() {
+		return area;
+	}
+
+	public void setArea(Double area) {
+		this.area = area;
 	}
 	
 	public String getOperation() {

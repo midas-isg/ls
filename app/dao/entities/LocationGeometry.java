@@ -28,6 +28,7 @@ public class LocationGeometry {
 	private Long gid;
 	private Geometry multiPolygonGeom;
 	private Location location;
+	private Double area;
 
 	@GenericGenerator(name = "generator", strategy = "foreign", 
 			parameters = @Parameter(name = "property", value = "location")
@@ -62,5 +63,52 @@ public class LocationGeometry {
 
 	public void setLocation(Location location) {
 		this.location = location;
+	}
+
+	public Double getArea() {
+		return area;
+	}
+
+	public void setArea(Double area) {
+		this.area = area;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((area == null) ? 0 : area.hashCode());
+		result = prime * result + ((gid == null) ? 0 : gid.hashCode());
+		result = prime
+				* result
+				+ ((multiPolygonGeom == null) ? 0 : multiPolygonGeom.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		LocationGeometry other = (LocationGeometry) obj;
+		if (area == null) {
+			if (other.area != null)
+				return false;
+		} else if (!area.equals(other.area))
+			return false;
+		if (gid == null) {
+			if (other.gid != null)
+				return false;
+		} else if (!gid.equals(other.gid))
+			return false;
+		if (multiPolygonGeom == null) {
+			if (other.multiPolygonGeom != null)
+				return false;
+		} else if (!multiPolygonGeom.equals(other.multiPolygonGeom))
+			return false;
+		return true;
 	}
 }

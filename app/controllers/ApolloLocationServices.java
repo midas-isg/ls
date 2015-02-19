@@ -13,18 +13,25 @@ public class ApolloLocationServices  extends Controller {
 	
 	@Transactional
 	public static Result locationsInJson(String gid){
-		Location au = LocationRule.read(Long.parseLong(gid));
-		return okJson(ApolloLocationRule.asApolloLocation(au));
+		Location location = LocationRule.read(Long.parseLong(gid));
+		return okJson(ApolloLocationRule.asApolloLocation(location));
 	}
 	
 	@Transactional
-	public static Result locationsInXml(String gid){
-		Location au = LocationRule.read(Long.parseLong(gid));
-		return okAsXml(ApolloLocationRule.asApolloLocation(au));
+	public static Result locationsInXml(String gidText){
+		long gid = Long.parseLong(gidText);
+		return okAsXml(Wire.readAsXml(gid));
+	}
+
+	public static class Wire { 
+		public static String readAsXml(long gid) {
+			Location location = LocationRule.read(gid);
+			Object al = ApolloLocationRule.asApolloLocation(location);
+			return toXml(al);
+		}
 	}
 	
-	private static Result okAsXml(Object result) {
-		String xml = toXml(result);
+	private static Result okAsXml(String xml) {
 		response().setContentType("application/xml");
 		return ok(xml);
 	}

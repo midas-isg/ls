@@ -16,6 +16,7 @@ import play.Logger;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 
+import dao.LocationTypeDao;
 import dao.entities.Code;
 import dao.entities.Data;
 import dao.entities.Location;
@@ -84,9 +85,10 @@ public class GeoJsonRule {
 		Feature feature = new Feature();
 		if (includeField(fields, KEY_PROPERTIES)){
 			Map<String, Object> properties = toProperties(location);
-			Collections.sort(location.getChildren());
-			putAsLocationObjectsIfNotNull(properties, "children", 
-					location.getChildren());
+			List<Location> children = location.getChildren();
+			if (children != null)
+				Collections.sort(children);
+			putAsLocationObjectsIfNotNull(properties, "children", children);
 			putAsLocationObjectsIfNotNull(properties, "lineage", 
 					LocationProxyRule.getLineage(location.getGid()));
 			putAsLocationObjectsIfNotNull(properties, "related", 
@@ -249,10 +251,39 @@ public class GeoJsonRule {
 		properties.put(key, toString(value));
 	}
 
+	@Deprecated
+	public static Location asDeprecatedLocation(FeatureCollection fc){
+		Location location = new Location();
+		Data data = new Data();
+		data.setLocationType(findLocationTypeByName(getDeprecatedString(fc, "locationTypeName")));
+		data.setCodeType(LocationRule.getIsgCodeType());
+		data.setGisSource(LocationRule.getAlsGisSource());
+		location.setGeometry(createLocationGeometry(fc, location));
+		String name = getDeprecatedString(fc, "name");
+		data.setName(name);
+		data.setDescription(getDeprecatedString(fc, "locationDescription"));
+		data.setKml(getDeprecatedString(fc, "kml"));
+		Date startDate = newDate(getDeprecatedString(fc, "startDate"));
+		data.setStartDate(startDate);
+		Date endDate = newDate(getDeprecatedString(fc, "endDate"));
+		data.setEndDate(endDate);
+		data.setUpdateDate(getNowDate());
+		String code = getDeprecatedString(fc, "code");
+		data.setCode(code);
+		location.setData(data);
+		String parentGid = getDeprecatedString(fc, "parent");
+		Location parent = LocationRule.read(Long.parseLong(parentGid));
+		if (parent == null){
+			throw new RuntimeException("Cannot find parent gid=" + parentGid);
+		}
+		location.setParent(parent);
+		return location;
+	}
+	
 	public static Location asLocation(FeatureCollection fc){
 		Location location = new Location();
 		Data data = new Data();
-		data.setLocationType(LocationRule.getEpidemicZoneLocationType());
+		data.setLocationType(findLocationTypeByName(getString(fc, "locationTypeName")));
 		data.setCodeType(LocationRule.getIsgCodeType());
 		data.setGisSource(LocationRule.getAlsGisSource());
 		location.setGeometry(createLocationGeometry(fc, location));
@@ -277,6 +308,12 @@ public class GeoJsonRule {
 		return location;
 	}
 
+	private static LocationType findLocationTypeByName(String name) {
+		LocationType type = new LocationTypeDao().findByName(name);
+		//return LocationRule.getEpidemicZoneLocationType();
+		return type;
+	}
+
 	private static LocationGeometry createLocationGeometry(
 			FeatureCollection fc, Location l) {
 		LocationGeometry lg = new LocationGeometry();
@@ -295,8 +332,16 @@ public class GeoJsonRule {
 			return null;
 		return java.sql.Date.valueOf(date);
 	}
-	
+
 	private static String getString(FeatureCollection fc, String key) {
+		Object object = fc.getProperties().get(key);
+		if (object == null)
+			return null;
+		return object.toString();
+	}
+
+	@Deprecated
+	private static String getDeprecatedString(FeatureCollection fc, String key) {
 		Object object = fc.getFeatures().get(0).getProperties().get(key);
 		if (object == null)
 			return null;

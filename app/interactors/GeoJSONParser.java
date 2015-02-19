@@ -24,6 +24,9 @@ public class GeoJSONParser {
 		FeatureCollection featureCollection = new FeatureCollection();
 		//featureCollection.setId(inputJsonNode.get("id").textValue());
 		featureCollection.setType(inputJsonNode.get("type").textValue());
+		Map<String, Object> fcProperties = new HashMap<>();
+		toProperties(fcProperties, inputJsonNode);
+		featureCollection.setProperties(fcProperties);
 		
 		JsonNode featuresArrayNode = inputJsonNode.withArray("features");
 		
@@ -35,11 +38,7 @@ public class GeoJSONParser {
 			Feature feature = new Feature();
 			feature.setType(currentNode.get("type").textValue());
 			
-			Iterator<Entry<String, JsonNode>> propertiesIterator = currentNode.get("properties").fields();
-			while(propertiesIterator.hasNext()) {
-				Entry<String, JsonNode> mapping = propertiesIterator.next();
-				properties.put(mapping.getKey(), mapping.getValue().textValue());
-			}
+			toProperties(properties, currentNode);
 			
 			try {
 				String type = currentNode.get("geometry").get("type").textValue();
@@ -68,6 +67,18 @@ public class GeoJSONParser {
 		}
 		
 		return featureCollection;
+	}
+
+	private static void toProperties(Map<String, Object> map,
+			JsonNode currentNode) {
+		JsonNode properties = currentNode.get("properties");
+		if (properties == null)
+			return;
+		Iterator<Entry<String, JsonNode>> propertiesIterator = properties.fields();
+		while(propertiesIterator.hasNext()) {
+			Entry<String, JsonNode> mapping = propertiesIterator.next();
+			map.put(mapping.getKey(), mapping.getValue().textValue());
+		}
 	}
 	
 	/*
