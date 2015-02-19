@@ -9,6 +9,6 @@ import edu.pitt.apollo.types.v3_0_0.Location;
 
 @XmlRootElement(name="Location", namespace="types")
 @JsonInclude(Include.NON_NULL)
-public class ApolloLocation extends Location implements Apollo {
+public class ApolloLocation extends Location {
 
  }

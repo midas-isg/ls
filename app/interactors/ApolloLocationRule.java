@@ -2,9 +2,7 @@ package interactors;
 
 import java.util.List;
 
-import models.apollo.Apollo;
 import models.apollo.ApolloLocation;
-import models.apollo.ApolloNamedMultiGeometry;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
@@ -17,16 +15,10 @@ import edu.pitt.apollo.types.v3_0_0.MultiGeometry;
 import edu.pitt.apollo.types.v3_0_0.NamedMultiGeometry;
 
 public class ApolloLocationRule {
-	public static Apollo asApolloLocation(Location location) {
-		Long auTypeId = location.getData().getLocationType().getId();
-		
-		if (auTypeId.longValue() == LocationRule.EPIDEMIC_ZONE_ID)
-			return toEpidemicZones(location);
-
+	public static ApolloLocation asApolloLocation(Location location) {
 		ApolloLocation al = new ApolloLocation();
 		al.setTextualDescription(toText(location));
 		al.setApolloLocationCode("" + location.getGid());
-		
 		
 		if (location.getGeometry().getMultiPolygonGeom() != null){
 			NamedMultiGeometry nmg = toNamedMultiGeometry(location);
@@ -38,12 +30,6 @@ public class ApolloLocationRule {
 		return al;
 	}
 
-	private static ApolloNamedMultiGeometry toEpidemicZones(Location location){
-		ApolloNamedMultiGeometry nmg = new ApolloNamedMultiGeometry();
-		populateNamedMuttiGeometry(location, nmg);
-		return nmg;
-	}
-		
 	private static String toText(Location location) {
 		Data data = location.getData();
 		String text = toFullPathNameWithTypes(location); 
