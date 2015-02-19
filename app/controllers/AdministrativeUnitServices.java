@@ -8,8 +8,8 @@ import models.geo.FeatureCollection;
 import play.Logger;
 import play.db.jpa.Transactional;
 import play.libs.Json;
-import play.mvc.Controller;
-import play.mvc.Http.Context;
+import play.mvc.*;
+import play.mvc.Http.*;
 import play.mvc.Http.Request;
 import play.mvc.Http.RequestBody;
 import play.mvc.Result;
@@ -83,20 +83,23 @@ public class AdministrativeUnitServices extends Controller {
 		}
 	}
 
+	@BodyParser.Of(BodyParser.Json.class)
 	private static FeatureCollection parseRequestAsFeatureCollection() throws Exception {
 		Request request = Context.current().request();
 		JsonNode requestJSON = null;
-			
+		
 Logger.debug("\n");
 Logger.debug("=====");
-			
+		
 		if(request != null) {
 			RequestBody requestBody = request.body();
 			
 			String requestBodyText = requestBody.toString();
-Logger.debug("Request [" + request.getHeader("Content-Type") + "], Length: " + requestBodyText.length());
-Logger.debug("Request Body:\n" + requestBodyText);
-				
+Logger.debug("Request [" + request.getHeader("Content-Type") + "], Length: " + requestBodyText.length() + "\n");
+Logger.debug("Request Body:\n" + requestBodyText + "\n");
+Logger.debug("Request.queryString():\n" + request.queryString() + "\n");
+Logger.debug("Request.headers().toString():\n" + request.headers().toString() + "\n");
+			
 			requestJSON = requestBody.asJson();
 			if(requestJSON == null) {
 				throw new RuntimeException("Expecting JSON data");

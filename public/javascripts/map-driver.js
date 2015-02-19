@@ -341,10 +341,22 @@ MapDriver.prototype.upload = function() {
 		}
 		
 		var properties = jsonData.features[0].properties;
-		setTextValue("#au-name", properties.name);
-		setTextValue("#description", properties.description);
-		setTextValue("#start-date", properties.startDate);
-		setTextValue("#end-date", properties.endDate);
+		
+		if(properties.name) {
+			setTextValue("#au-name", properties.name);
+		}
+	
+		if(properties.description) {
+			setTextValue("#description", properties.description);
+		}
+		
+		if(properties.startDate) {
+			setTextValue("#start-date", properties.startDate);
+		}
+		
+		if(properties.endDate) {
+			setTextValue("#end-date", properties.endDate);
+		}
 		
 		var i;
 		for(i = 0; i < jsonData.features.length; i++) {
@@ -352,7 +364,7 @@ MapDriver.prototype.upload = function() {
 		}
 		
 		var parentGID = properties.parentGid;
-		console.log("parent GID" + parentGID);
+		console.log("parent GID: " + parentGID);
 		
 		thisMapDriver.loadJSON(jsonData);
 	});
@@ -393,7 +405,7 @@ function formatGeoJSON(geoJSON, thisMapDriver) {
 	var geometry;
 	var id = getValueText("#gid");
 	var auName = getValueText("#au-name");
-	var auType = getValueText("#au-type");
+	var locationTypeName = getValueText("#au-type");
 	var auCode = getValueText("#au-code");
 	var auCodeType = getValueText("#au-codetype");
 	var startDate = getValueText("#start-date");
@@ -440,7 +452,7 @@ function formatGeoJSON(geoJSON, thisMapDriver) {
 		return  null;
 	}
 	
-	if(auType.length == 0) {
+	if(locationTypeName.length == 0) {
 		alert("Please enter the location type");
 		
 		return  null;
@@ -457,7 +469,7 @@ function formatGeoJSON(geoJSON, thisMapDriver) {
 		return null;
 	}
 	
-	if(!auParentGID || (auParentGID.length < 1)) {
+	if((!auParentGID || (auParentGID.length < 1)) && (locationTypeName != "Country")) {
 		alert("Please select an encompassing location");
 		
 		return null;
@@ -469,7 +481,7 @@ function formatGeoJSON(geoJSON, thisMapDriver) {
 	for(i = 0; i < geoJSON.features.length; i++) {
 		geoJSON.features[i].id = Number(id);
 		geoJSON.features[i].properties["name"] = auName;
-		geoJSON.features[i].properties["type"] = auType;
+		geoJSON.features[i].properties["locationTypeName"] = locationTypeName;
 		geoJSON.features[i].properties["codes"] = [{"code": auCode, "codeTypeName": auCodeType}];
 		geoJSON.features[i].properties["locationDescription"] = description;
 		geoJSON.features[i].properties["parent"] = auParentGID;
