@@ -1,4 +1,3 @@
-var crudPath = context + '/resources/aus';
 var CREATE_MAP = null;
 var MAP_DRIVER = null;
 

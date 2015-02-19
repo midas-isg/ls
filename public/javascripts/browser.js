@@ -1,4 +1,5 @@
 var crudPath = context + "/resources/aus";
+//var crudPath = context + "/api/locations";
 var apolloJSONDataPath = context + "/api/locations/";
 var BROWSER_MAP = null;
 
