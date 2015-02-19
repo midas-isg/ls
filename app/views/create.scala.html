@@ -44,7 +44,7 @@
 							</button>
 							<ul class="dropdown-menu" role="menu" aria-labelledby="dropdown-menu" data-toggle="dropdown" aria-expanded="true">
 								<li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick='$("#au-type").val("Epidemic Zone"); $("#au-type").prop("disabled", true);'>Epidemic Zone</a></li>
-								<li role="presentation" class="disabled" hidden><a role="menuitem" tabindex="-1" href="#" onclick='/*$("#au-type").prop("disabled", false); $("#au-type").val("");*/'>Location</a></li>
+								<li id="au-create" role="presentation" hidden><a role="menuitem" tabindex="-1" href="#" onclick='$("#au-type").prop("disabled", false); $("#au-type").val("");'>Administrative Unit</a></li>
 							</ul>
 							<input type="text" id="au-type" placeholder="Location type" disabled>
 						</div>

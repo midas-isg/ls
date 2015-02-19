@@ -231,8 +231,14 @@ $(document).ready(function() {
 					var today = new Date();
 					setTextValue("#start-date", today.getUTCFullYear() + "-" + (today.getUTCMonth() + 1) + "-" + today.getUTCDate());
 					setTextValue("#end-date", "");
-					
+					$("#new-button").hide();
+					$("#update-button").hide();
+					$("#save-button").show();
 					PARENT_TREE.resetParent();
+					$("input#parent").val("");
+					$("input#parent").keyup();
+					
+					return;
 				});
 				
 				$("#file-input").change(function() {
@@ -288,6 +294,38 @@ $(document).ready(function() {
 						
 						CREATE_MAP.loadJSON(compositeJSON);
 					//});
+				});
+				
+				var shiftKey = false;
+				var controlKey = false;
+				$(document).keydown(function(event) {
+					//console.log("Key: " + event.which);
+					
+					if(event.which == 16) {
+						shiftKey = true;
+					}
+					
+					if(event.which == 17) {
+						controlKey = true;
+					}
+					
+					if(shiftKey && controlKey) {
+						$("#au-create").show();
+					}
+					
+					return;
+				});
+				
+				$(document).keyup(function(event) {
+					if(event.which == 16) {
+						shiftKey = false;
+					}
+					
+					if(event.which == 17) {
+						controlKey = false;
+					}
+					
+					return;
 				});
 				
 				return;
