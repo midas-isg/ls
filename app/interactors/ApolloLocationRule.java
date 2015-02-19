@@ -2,10 +2,6 @@ package interactors;
 
 import java.util.List;
 
-import models.apollo.Apollo;
-import models.apollo.ApolloLocation;
-import models.apollo.ApolloNamedMultiGeometry;
-
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -17,16 +13,10 @@ import edu.pitt.apollo.types.v3_0_0.MultiGeometry;
 import edu.pitt.apollo.types.v3_0_0.NamedMultiGeometry;
 
 public class ApolloLocationRule {
-	public static Apollo asApolloLocation(Location location) {
-		Long auTypeId = location.getData().getLocationType().getId();
-		
-		if (auTypeId.longValue() == LocationRule.EPIDEMIC_ZONE_ID)
-			return toEpidemicZones(location);
-
-		ApolloLocation al = new ApolloLocation();
+	public static edu.pitt.apollo.types.v3_0_0.Location asApolloLocation(Location location) {
+		edu.pitt.apollo.types.v3_0_0.Location al = new edu.pitt.apollo.types.v3_0_0.Location();
 		al.setTextualDescription(toText(location));
 		al.setApolloLocationCode("" + location.getGid());
-		
 		
 		if (location.getGeometry().getMultiPolygonGeom() != null){
 			NamedMultiGeometry nmg = toNamedMultiGeometry(location);
@@ -38,19 +28,32 @@ public class ApolloLocationRule {
 		return al;
 	}
 
-	private static ApolloNamedMultiGeometry toEpidemicZones(Location location){
-		ApolloNamedMultiGeometry nmg = new ApolloNamedMultiGeometry();
-		populateNamedMuttiGeometry(location, nmg);
-		return nmg;
-	}
-		
 	private static String toText(Location location) {
 		Data data = location.getData();
-		String text = data.getName() 
-				+ " [" + data.getLocationType().getName() + "]"; 
+		String text = toFullPathNameWithTypes(location); 
 		String description = data.getDescription();
 		if (description != null && !description.isEmpty())
 			text += ": " + description;
+		return text;
+	}
+
+	private static String toFullPathNameWithTypes(Location location) {
+		String text = toNameWithType(location);
+		Location parent = location.getParent();
+		if (parent != null){
+			List<Location> ancestors = LocationProxyRule.getLineage(location);
+			for (int i = ancestors.size() - 1; i >= 0; i--){
+				Location p = ancestors.get(i); 
+				text += ", " + toNameWithType(p);
+			}
+		}
+		return text;
+	}
+
+	private static String toNameWithType(Location location) {
+		Data data = location.getData();
+		String text = data.getName() 
+				+ " " + data.getLocationType().getName();
 		return text;
 	}
 	
