@@ -258,7 +258,6 @@ public class GeoJsonRule {
 		data.setLocationType(findLocationTypeByName(getDeprecatedString(fc, "locationTypeName")));
 		data.setCodeType(LocationRule.getIsgCodeType());
 		data.setGisSource(LocationRule.getAlsGisSource());
-		location.setGeometry(createLocationGeometry(fc, location));
 		String name = getDeprecatedString(fc, "name");
 		data.setName(name);
 		data.setDescription(getDeprecatedString(fc, "locationDescription"));
@@ -277,6 +276,7 @@ public class GeoJsonRule {
 			throw new RuntimeException("Cannot find parent gid=" + parentGid);
 		}
 		location.setParent(parent);
+		location.setGeometry(createLocationGeometry(fc, location));
 		return location;
 	}
 	
@@ -284,9 +284,9 @@ public class GeoJsonRule {
 		Location location = new Location();
 		Data data = new Data();
 		data.setLocationType(findLocationTypeByName(getString(fc, "locationTypeName")));
+		Date now = getNowDate();
 		data.setCodeType(LocationRule.getIsgCodeType());
 		data.setGisSource(LocationRule.getAlsGisSource());
-		location.setGeometry(createLocationGeometry(fc, location));
 		String name = getString(fc, "name");
 		data.setName(name);
 		data.setDescription(getString(fc, "locationDescription"));
@@ -295,7 +295,7 @@ public class GeoJsonRule {
 		data.setStartDate(startDate);
 		Date endDate = newDate(getString(fc, "endDate"));
 		data.setEndDate(endDate);
-		data.setUpdateDate(getNowDate());
+		data.setUpdateDate(now);
 		String code = getString(fc, "code");
 		data.setCode(code);
 		location.setData(data);
@@ -305,6 +305,7 @@ public class GeoJsonRule {
 			throw new RuntimeException("Cannot find parent gid=" + parentGid);
 		}
 		location.setParent(parent);
+		location.setGeometry(createLocationGeometry(fc, location));
 		return location;
 	}
 
@@ -319,6 +320,8 @@ public class GeoJsonRule {
 		LocationGeometry lg = new LocationGeometry();
 		lg.setMultiPolygonGeom(GeoInputRule.toMultiPolygon(fc));
 		lg.setLocation(l);
+		Date now = l.getData().getUpdateDate();
+		lg.setUpdateDate(now);
 		return lg;
 	}
 

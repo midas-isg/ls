@@ -1,5 +1,7 @@
 package dao.entities;
 
+import java.sql.Date;
+
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.ConstraintMode;
@@ -29,6 +31,7 @@ public class LocationGeometry {
 	private Geometry multiPolygonGeom;
 	private Location location;
 	private Double area;
+	private Date updateDate;
 
 	@GenericGenerator(name = "generator", strategy = "foreign", 
 			parameters = @Parameter(name = "property", value = "location")
@@ -110,5 +113,14 @@ public class LocationGeometry {
 		} else if (!multiPolygonGeom.equals(other.multiPolygonGeom))
 			return false;
 		return true;
+	}
+
+	@Column(name="update_date")
+	public Date getUpdateDate() {
+		return updateDate;
+	}
+
+	public void setUpdateDate(Date updateDate) {
+		this.updateDate = updateDate;
 	}
 }
