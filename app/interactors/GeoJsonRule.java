@@ -299,7 +299,7 @@ public class GeoJsonRule {
 		String code = getString(fc, "code");
 		data.setCode(code);
 		location.setData(data);
-		String parentGid = getString(fc, "parent");
+		String parentGid = getString(fc, "parentGid");
 		Location parent = LocationRule.read(Long.parseLong(parentGid));
 		if (parent == null){
 			throw new RuntimeException("Cannot find parent gid=" + parentGid);

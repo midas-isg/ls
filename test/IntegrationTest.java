@@ -13,7 +13,6 @@ import interactors.LocationRule;
 import interactors.XmlRule;
 
 import java.io.File;
-import java.sql.Date;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
@@ -40,12 +39,7 @@ import com.typesafe.config.ConfigFactory;
 import controllers.AdministrativeUnitServices;
 import controllers.ApolloLocationServices;
 import controllers.LocationServices;
-import dao.CodeTypeDao;
-import dao.GeometryDao;
-import dao.LocationTypeDao;
-import dao.entities.Data;
 import dao.entities.Location;
-import dao.entities.LocationGeometry;
 
 public class IntegrationTest {
 	private TestServer testServer = null; 
@@ -69,31 +63,6 @@ public class IntegrationTest {
 		return em;
 	}
 	
-	private Location createTestLocation(Location parent) {
-		GeometryDao dao = new GeometryDao();
-		Location l = new Location();
-		
-		LocationGeometry plg = dao.read(parent.getGid()); 
-		LocationGeometry lg = new LocationGeometry();
-		lg.setLocation(l);
-		l.setGeometry(lg);
-		
-		lg.setMultiPolygonGeom(plg.getMultiPolygonGeom());
-		
-		Data data = new Data();
-		data.setName("Test");
-		data.setDescription("Test description");
-		Date date = new Date(2014,1,1);
-		data.setStartDate(date);
-		data.setUpdateDate(date);
-		data.setCodeType(new CodeTypeDao().read(LocationRule.ISG_CODE_TYPE_ID));
-		data.setGisSource(LocationRule.getAlsGisSource());
-		data.setLocationType(new LocationTypeDao().read(LocationRule.EPIDEMIC_ZONE_ID));
-		l.setData(data);
-		l.setParent(parent);
-		return l;
-	}
-
 	@Test
     public void testWithJpaThenRollback() {
 		running(testServer, HTMLUNIT, new Callback<TestBrowser>() {
@@ -156,8 +125,8 @@ public class IntegrationTest {
     }
 
 	private void tesCrudEz() throws Exception {
-    	JsonNode requestJSON = readJsonNodeFromFile("test/EzMaridi.geojson");
-    	FeatureCollection fc = GeoJSONParser.parse(requestJSON);
+    	JsonNode json = readJsonNodeFromFile("test/EzMaridi.geojson");
+    	FeatureCollection fc = GeoJSONParser.parse(json);
     	long gid = AdministrativeUnitServices.Wire.create(fc);
 		assertThat(gid).isPositive();
 		Location readLocation = LocationRule.read(gid);
@@ -174,21 +143,47 @@ public class IntegrationTest {
 	}
 
 	private void tesCrudAu() throws Exception {
-    	JsonNode requestJSON = readJsonNodeFromFile("test/AuMaridiTown.geojson");
-    	FeatureCollection fc = GeoJSONParser.parse(requestJSON);
+    	testCrud("test/AuMaridiTown.geojson");
+	}
+
+	private void testCrud(String fileName) throws Exception {
+		JsonNode json = readJsonNodeFromFile(fileName);
+		FeatureCollection fc = GeoJSONParser.parse(json);
+    	
     	long gid = LocationServices.Wire.create(fc);
 		assertThat(gid).isPositive();
-		Location readLocation = LocationRule.read(gid);
-		assertThat(readLocation.getData().getLocationType().getName()).isEqualTo("Town");
-		Location expectedLocation = asLocation(fc, gid);
-		assertISEqualTo(readLocation, expectedLocation);
-		FeatureCollection readFc = AdministrativeUnitServices.Wire.read(gid);
-		toExpected(fc, gid);
-		assertISEqualTo(removeIrrelavantInfo(readFc), fc);
-		Long deletedGid = deleteTogetherWithAllGeometries(gid);
+		assertRead(fc, gid);
+		
+    	long updatedGid = LocationServices.Wire.update(gid, fc);
+		assertThat(updatedGid).isEqualTo(gid);
+		assertRead(fc, updatedGid);
+		
+		Long deletedGid = LocationServices.Wire.delete(gid);
 		assertThat(deletedGid).isEqualTo(gid);
 		Location deletedLocation = LocationRule.read(gid);
 		assertThat(deletedLocation).isNull();
+	}
+
+	private void assertRead(FeatureCollection fc, long gid) {
+		Location readLocation = LocationRule.read(gid);
+		assertReadLocation(readLocation, fc, gid);
+		FeatureCollection readFc = LocationServices.Wire.read(gid);
+		assertReadFc(readFc, fc, gid);
+	}
+
+	private void assertReadFc(FeatureCollection actual, FeatureCollection fc,
+			long gid) {
+		assertISEqualTo(removeIrrelavantInfo(actual), toExpected(fc, gid));
+	}
+
+	private void assertReadLocation(Location actual, FeatureCollection fc,
+			long gid) {
+		String typeName = actual.getData().getLocationType().getName();
+		
+		String expected = fc.getProperties().get("locationTypeName").toString();
+		assertThat(typeName).isEqualTo(expected);
+		Location expectedLocation = asLocation(fc, gid);
+		assertISEqualTo(actual, expectedLocation);
 	}
 
 	private FeatureCollection removeIrrelavantInfo(FeatureCollection fc) {

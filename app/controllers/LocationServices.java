@@ -1,6 +1,7 @@
 package controllers;
 
 import interactors.GeoJsonRule;
+import interactors.KmlRule;
 import interactors.LocationProxyRule;
 import interactors.LocationRule;
 import models.geo.FeatureCollection;
@@ -28,13 +29,13 @@ public class LocationServices extends Controller {
 		
 		switch (format.toLowerCase()){
 		case FORMAT_GEOJSON:
-			return AdministrativeUnitServices.read(gid +"");
+			return read(gid);
 		case FORMAT_APOLLOJSON:
 			return ApolloLocationServices.locationsInJson(gid +"");
 		case FORMAT_APOLLOXML:
 			return ApolloLocationServices.locationsInXml(gid +"");
 		case FORMAT_KML:
-			return AdministrativeUnitServices.asKml(gid); 
+			return asKml(gid); 
 		default:
 			return badRequest(format + " is not supported.");
 		}
@@ -65,9 +66,9 @@ public class LocationServices extends Controller {
 	@Transactional
 	public static Result create() {
 		try {
-			FeatureCollection parsed = AdministrativeUnitServices.parseRequestAsFeatureCollection();
+			FeatureCollection parsed = parseRequestAsFeatureCollection();
 			Long id = Wire.create(parsed);
-			AdministrativeUnitServices.setResponseLocation(id);
+			setResponseLocation(id);
 			return created();
 		} catch (RuntimeException e){
 			String message = e.getMessage();
@@ -79,8 +80,59 @@ public class LocationServices extends Controller {
 			return forbidden(message);
 		}
 	}
+
+	private static void setResponseLocation(Long id) {
+		AdministrativeUnitServices.setResponseLocation(id);
+	}
+
+	private static FeatureCollection parseRequestAsFeatureCollection()
+			throws Exception {
+		return AdministrativeUnitServices.parseRequestAsFeatureCollection();
+	}
 	
-	public static class Wire{
+	@Transactional
+	public static Result read(long gid) {
+		response().setContentType("application/vnd.geo+json");
+		return ok(Json.toJson(Wire.read(gid)));
+	}
+	
+	@Transactional
+	public static Result update(long gid) {
+		try {
+			FeatureCollection parsed = parseRequestAsFeatureCollection();
+			Wire.update(gid, parsed);
+			setResponseLocation(null);
+			return noContent();
+		} catch (RuntimeException e){
+			String message = e.getMessage();
+			Logger.error(message, e);
+			return badRequest(message);
+		} catch (Exception e) {
+			String message = e.getMessage();
+			Logger.error(message, e);
+			return forbidden(message);
+		}
+	}
+	
+	@Transactional
+	public static Result delete(long gid) {
+		Long id = Wire.delete(gid);
+		setResponseLocation(null);
+		if (id == null){
+			return notFound();
+		}
+		return noContent();
+	}
+
+	@Transactional
+	public static Result asKml(long gid) {
+		Location location = LocationRule.read(gid);
+		String result = KmlRule.asKml(location);
+		response().setContentType("application/vnd.google-earth.kml+xml");
+		return ok(result);
+	}
+
+	public static class Wire {
 		public static Long create(FeatureCollection fc) {
 			Location location = GeoJsonRule.asLocation(fc);
 			Long id = LocationRule.create(location);
@@ -93,7 +145,14 @@ public class LocationServices extends Controller {
 			return fc;
 		}
 		
-
+		public static Long update(long gid, FeatureCollection fc) {
+			Location location = GeoJsonRule.asLocation(fc);
+			return LocationRule.update(gid, location);
+		}
+		
+		public static Long delete(long gid) {
+			Long id = LocationRule.deleteTogetherWithAllGeometries(gid);
+			return id;
+		}
 	}
-
 }

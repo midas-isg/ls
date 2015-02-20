@@ -2,14 +2,14 @@ package controllers;
 
 import interactors.GeoJSONParser;
 import interactors.GeoJsonRule;
-import interactors.KmlRule;
 import interactors.LocationRule;
 import models.geo.FeatureCollection;
 import play.Logger;
 import play.db.jpa.Transactional;
 import play.libs.Json;
-import play.mvc.*;
-import play.mvc.Http.*;
+import play.mvc.BodyParser;
+import play.mvc.Controller;
+import play.mvc.Http.Context;
 import play.mvc.Http.Request;
 import play.mvc.Http.RequestBody;
 import play.mvc.Result;
@@ -143,13 +143,5 @@ Logger.debug("\n" + message + "\n");
 			return notFound();
 		}
 		return noContent();
-	}
-	
-	@Transactional
-	public static Result asKml(long gid) {
-		Location location = LocationRule.read(gid);
-		String result = KmlRule.asKml(location);
-		response().setContentType("application/vnd.google-earth.kml+xml");
-		return ok(result);
 	}
 }
