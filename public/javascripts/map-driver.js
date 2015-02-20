@@ -1,5 +1,5 @@
-var crudPath = context + '/resources/aus';
-//var crudPath = context + '/api/locations';
+var oldPath = context + '/resources/aus';
+var crudPath = context + '/api/locations';
 
 function MapDriver() {
 	var id = '';//'12';
@@ -481,20 +481,21 @@ function formatGeoJSON(geoJSON, thisMapDriver) {
 		return null;
 	}
 	
+	geoJSON.properties = {};
+	var properties = geoJSON.properties;
 	
-	geoJSON.features[0].properties["kml"] = thisMapDriver.kml;
+	geoJSON.id = Number(id);
+	properties["kml"] = thisMapDriver.kml;
+	properties["name"] = auName;
+	properties["locationTypeName"] = locationTypeName;
+	properties["codes"] = [{"code": auCode, "codeTypeName": auCodeType}];
+	properties["locationDescription"] = description;
+	properties["parent"] = auParentGID;
+	properties["startDate"] = startDate;
+	properties["endDate"] = endDate;
 	
+	//TODO: Remove conversion and expand accepted server types
 	for(i = 0; i < geoJSON.features.length; i++) {
-		geoJSON.features[i].id = Number(id);
-		geoJSON.features[i].properties["name"] = auName;
-		geoJSON.features[i].properties["locationTypeName"] = locationTypeName;
-		geoJSON.features[i].properties["codes"] = [{"code": auCode, "codeTypeName": auCodeType}];
-		geoJSON.features[i].properties["locationDescription"] = description;
-		geoJSON.features[i].properties["parent"] = auParentGID;
-		geoJSON.features[i].properties["startDate"] = startDate;
-		geoJSON.features[i].properties["endDate"] = endDate;
-		
-		//TODO: Remove conversion and expand accepted server types
 		geometry = geoJSON.features[i].geometry;
 		if(geometry.type == "Polygon") {
 			geometry.coordinates = [geometry.coordinates];
