@@ -1,4 +1,5 @@
 var crudPath = context + '/resources/aus';
+//var crudPath = context + '/api/locations';
 
 function MapDriver() {
 	var id = '';//'12';
@@ -173,6 +174,8 @@ MapDriver.prototype.loadJSON = function(jsonData) {
 		//multiPolygonsToPolygons(jsonData);
 		var i;
 		var features = jsonData.features;
+		var properties;
+		
 		for(i = 0; i < features.length; i++) {
 			features[i].properties.description = features[i].properties.name;
 		}
@@ -181,10 +184,11 @@ MapDriver.prototype.loadJSON = function(jsonData) {
 		centerMap(jsonData, thisMapDriver);
 		
 		var feature = jsonData.features[0];
-		var title = feature.properties.name + " " + feature.properties.locationTypeName + " from " + feature.properties.startDate;
+		properties = feature.properties;
+		var title = properties.name + " " + properties.locationTypeName + " from " + properties.startDate;
 		
-		if(feature.properties.endDate) {
-			title = title + " to " + feature.properties.endDate;
+		if(properties.endDate) {
+			title = title + " to " + properties.endDate;
 		}
 		else {
 			title += " to present";
@@ -200,6 +204,7 @@ MapDriver.prototype.loadJSON = function(jsonData) {
 
 MapDriver.prototype.saveMap = function() {
 	// CREATE //POST /resources/aus
+	// CREATE //POST /api/locations
 	var httpType = "POST";
 	var URL = crudPath;
 	
@@ -250,6 +255,7 @@ console.log("Length: " + JSON.stringify(data).length);
 
 MapDriver.prototype.updateMap = function() {
 	// UPDATE //PUT /resources/aus
+	// UPDATE //PUT /api/locations
 	var httpType = "PUT";
 	var URL = crudPath;
 	
