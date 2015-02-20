@@ -417,7 +417,7 @@ function formatGeoJSON(geoJSON, thisMapDriver) {
 	var startDate = getValueText("#start-date");
 	var endDate = getValueText("#end-date");
 	var auParentGID = thisMapDriver.parent;
-	var description = getValueText("#description");
+	var description = $("#description").val();
 	
 	var dateTokens = validDate(startDate);
 	if(startDate == "today") {
@@ -485,6 +485,10 @@ function formatGeoJSON(geoJSON, thisMapDriver) {
 		alert("Please upload a kml file");
 		
 		return null;
+	}
+	
+	if(description.length == 0) {
+		description = null;
 	}
 	
 	geoJSON.properties = {};
