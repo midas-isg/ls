@@ -481,6 +481,12 @@ function formatGeoJSON(geoJSON, thisMapDriver) {
 		return null;
 	}
 	
+	if((!geoJSON) || (!thisMapDriver.kml)) {
+		alert("Please upload a kml file");
+		
+		return null;
+	}
+	
 	geoJSON.properties = {};
 	var properties = geoJSON.properties;
 	
