@@ -154,9 +154,13 @@ public class IntegrationTest {
 		assertThat(gid).isPositive();
 		assertRead(fc, gid);
 		
+		Map<String, Object> properties = fc.getProperties();
+		String name = "Upated " + properties.get("name").toString();
+		properties.put("name", name);
     	long updatedGid = LocationServices.Wire.update(gid, fc);
 		assertThat(updatedGid).isEqualTo(gid);
-		assertRead(fc, updatedGid);
+		Location updatedLocation = assertRead(fc, updatedGid);
+		assertThat(updatedLocation.getData().getName()).isEqualTo(name);
 		
 		Long deletedGid = LocationServices.Wire.delete(gid);
 		assertThat(deletedGid).isEqualTo(gid);
@@ -164,11 +168,12 @@ public class IntegrationTest {
 		assertThat(deletedLocation).isNull();
 	}
 
-	private void assertRead(FeatureCollection fc, long gid) {
+	private Location assertRead(FeatureCollection fc, long gid) {
 		Location readLocation = LocationRule.read(gid);
 		assertReadLocation(readLocation, fc, gid);
 		FeatureCollection readFc = LocationServices.Wire.read(gid);
 		assertReadFc(readFc, fc, gid);
+		return readLocation;
 	}
 
 	private void assertReadFc(FeatureCollection actual, FeatureCollection fc,
