@@ -1,5 +1,7 @@
 package dao.entities;
 
+import java.sql.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -20,6 +22,7 @@ public class AuditLocationGeometry {
 	private Geometry multiPolygonGeom;
 	private Double area;
 	private String operation;
+	private Date updateDate;
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -66,4 +69,12 @@ public class AuditLocationGeometry {
 		this.operation = operation;
 	}
 
+	@Column(name="update_date")
+	public Date getUpdateDate() {
+		return updateDate;
+	}
+
+	public void setUpdateDate(Date updateDate) {
+		this.updateDate = updateDate;
+	}
 }
