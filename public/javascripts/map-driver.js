@@ -490,7 +490,7 @@ function formatGeoJSON(geoJSON, thisMapDriver) {
 	properties["locationTypeName"] = locationTypeName;
 	properties["codes"] = [{"code": auCode, "codeTypeName": auCodeType}];
 	properties["locationDescription"] = description;
-	properties["parent"] = auParentGID;
+	properties["parentGid"] = auParentGID;
 	properties["startDate"] = startDate;
 	properties["endDate"] = endDate;
 	
