@@ -1,4 +1,5 @@
-var crudPath = context + '/resources/aus';
+var oldPath = context + '/resources/aus';
+var crudPath = context + '/api/locations';
 
 function MapDriver() {
 	var id = '';//'12';
@@ -173,6 +174,8 @@ MapDriver.prototype.loadJSON = function(jsonData) {
 		//multiPolygonsToPolygons(jsonData);
 		var i;
 		var features = jsonData.features;
+		var properties;
+		
 		for(i = 0; i < features.length; i++) {
 			features[i].properties.description = features[i].properties.name;
 		}
@@ -181,10 +184,11 @@ MapDriver.prototype.loadJSON = function(jsonData) {
 		centerMap(jsonData, thisMapDriver);
 		
 		var feature = jsonData.features[0];
-		var title = feature.properties.name + " " + feature.properties.locationTypeName + " from " + feature.properties.startDate;
+		properties = feature.properties;
+		var title = properties.name + " " + properties.locationTypeName + " from " + properties.startDate;
 		
-		if(feature.properties.endDate) {
-			title = title + " to " + feature.properties.endDate;
+		if(properties.endDate) {
+			title = title + " to " + properties.endDate;
 		}
 		else {
 			title += " to present";
@@ -200,6 +204,7 @@ MapDriver.prototype.loadJSON = function(jsonData) {
 
 MapDriver.prototype.saveMap = function() {
 	// CREATE //POST /resources/aus
+	// CREATE //POST /api/locations
 	var httpType = "POST";
 	var URL = crudPath;
 	
@@ -250,6 +255,7 @@ console.log("Length: " + JSON.stringify(data).length);
 
 MapDriver.prototype.updateMap = function() {
 	// UPDATE //PUT /resources/aus
+	// UPDATE //PUT /api/locations
 	var httpType = "PUT";
 	var URL = crudPath;
 	
@@ -341,10 +347,22 @@ MapDriver.prototype.upload = function() {
 		}
 		
 		var properties = jsonData.features[0].properties;
-		setTextValue("#au-name", properties.name);
-		setTextValue("#description", properties.description);
-		setTextValue("#start-date", properties.startDate);
-		setTextValue("#end-date", properties.endDate);
+		
+		if(properties.name) {
+			setTextValue("#au-name", properties.name);
+		}
+	
+		if(properties.description) {
+			setTextValue("#description", properties.description);
+		}
+		
+		if(properties.startDate) {
+			setTextValue("#start-date", properties.startDate);
+		}
+		
+		if(properties.endDate) {
+			setTextValue("#end-date", properties.endDate);
+		}
 		
 		var i;
 		for(i = 0; i < jsonData.features.length; i++) {
@@ -352,7 +370,7 @@ MapDriver.prototype.upload = function() {
 		}
 		
 		var parentGID = properties.parentGid;
-		console.log("parent GID" + parentGID);
+		console.log("parent GID: " + parentGID);
 		
 		thisMapDriver.loadJSON(jsonData);
 	});
@@ -393,13 +411,13 @@ function formatGeoJSON(geoJSON, thisMapDriver) {
 	var geometry;
 	var id = getValueText("#gid");
 	var auName = getValueText("#au-name");
-	var auType = getValueText("#au-type");
+	var locationTypeName = getValueText("#au-type");
 	var auCode = getValueText("#au-code");
 	var auCodeType = getValueText("#au-codetype");
 	var startDate = getValueText("#start-date");
 	var endDate = getValueText("#end-date");
 	var auParentGID = thisMapDriver.parent;
-	var description = getValueText("#description");
+	var description = $("#description").val();
 	
 	var dateTokens = validDate(startDate);
 	if(startDate == "today") {
@@ -440,7 +458,7 @@ function formatGeoJSON(geoJSON, thisMapDriver) {
 		return  null;
 	}
 	
-	if(auType.length == 0) {
+	if(locationTypeName.length == 0) {
 		alert("Please enter the location type");
 		
 		return  null;
@@ -457,26 +475,37 @@ function formatGeoJSON(geoJSON, thisMapDriver) {
 		return null;
 	}
 	
-	if(!auParentGID || (auParentGID.length < 1)) {
+	if((!auParentGID || (auParentGID.length < 1)) && (locationTypeName != "Country")) {
 		alert("Please select an encompassing location");
 		
 		return null;
 	}
 	
-	
-	geoJSON.features[0].properties["kml"] = thisMapDriver.kml;
-	
-	for(i = 0; i < geoJSON.features.length; i++) {
-		geoJSON.features[i].id = Number(id);
-		geoJSON.features[i].properties["name"] = auName;
-		geoJSON.features[i].properties["type"] = auType;
-		geoJSON.features[i].properties["codes"] = [{"code": auCode, "codeTypeName": auCodeType}];
-		geoJSON.features[i].properties["locationDescription"] = description;
-		geoJSON.features[i].properties["parent"] = auParentGID;
-		geoJSON.features[i].properties["startDate"] = startDate;
-		geoJSON.features[i].properties["endDate"] = endDate;
+	if((!geoJSON) || (!thisMapDriver.kml)) {
+		alert("Please upload a kml file");
 		
-		//TODO: Remove conversion and expand accepted server types
+		return null;
+	}
+	
+	if(description.length == 0) {
+		description = null;
+	}
+	
+	geoJSON.properties = {};
+	var properties = geoJSON.properties;
+	
+	geoJSON.id = Number(id);
+	properties["kml"] = thisMapDriver.kml;
+	properties["name"] = auName;
+	properties["locationTypeName"] = locationTypeName;
+	properties["codes"] = [{"code": auCode, "codeTypeName": auCodeType}];
+	properties["locationDescription"] = description;
+	properties["parentGid"] = auParentGID;
+	properties["startDate"] = startDate;
+	properties["endDate"] = endDate;
+	
+	//TODO: Remove conversion and expand accepted server types
+	for(i = 0; i < geoJSON.features.length; i++) {
 		geometry = geoJSON.features[i].geometry;
 		if(geometry.type == "Polygon") {
 			geometry.coordinates = [geometry.coordinates];
