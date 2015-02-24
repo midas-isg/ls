@@ -16,7 +16,6 @@ import play.Logger;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 
-import dao.LocationTypeDao;
 import dao.entities.Code;
 import dao.entities.Data;
 import dao.entities.Location;
@@ -310,8 +309,7 @@ public class GeoJsonRule {
 	}
 
 	private static LocationType findLocationTypeByName(String name) {
-		LocationType type = new LocationTypeDao().findByName(name);
-		//return LocationRule.getEpidemicZoneLocationType();
+		LocationType type = LocationTypeRule.findByName(name);
 		return type;
 	}
 
