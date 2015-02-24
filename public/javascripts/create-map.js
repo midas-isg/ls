@@ -55,7 +55,7 @@ $(document).ready(function() {
 							
 							var parentGID = feature.properties.parentGid;
 							if(parentGID) {
-								//for(i = 0; i < parentGID.length; i++) {
+								//for(var i = 0; i < parentGID.length; i++) {
 								//	AU_COMPOSITE_TREE.clickIsAboutByValue(parentGID[i]);
 								//}
 								
@@ -186,7 +186,7 @@ $(document).ready(function() {
 					thisMapDriver.geoJSONURL = crudPath + "/" + mapID;
 					
 					if(thisMapDriver.geoJSONURL) {
-						CREATE_MAP.featureLayer.loadURL(thisMapDriver.geoJSONURL);
+						thisMapDriver.featureLayer.loadURL(thisMapDriver.geoJSONURL);
 					}
 					
 					thisMapDriver.featureLayer.on("ready", function() {
