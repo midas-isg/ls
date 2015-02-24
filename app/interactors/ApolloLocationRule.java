@@ -121,11 +121,13 @@ public class ApolloLocationRule {
 		if (polygon == null)
 			return linearRing;
 		String space = "";
+		StringBuilder sb = new StringBuilder();
 		Coordinate[] coordinates = polygon.getCoordinates();
 		for (Coordinate c : coordinates){
-			linearRing += space + c.x + "," + c.y + ",0";
+			sb.append(space + c.x + "," + c.y + ",0");
 			space = " ";
 		}
+		linearRing = sb.toString();
 		return linearRing;
 	}
 }
