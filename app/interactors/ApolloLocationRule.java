@@ -52,8 +52,13 @@ public class ApolloLocationRule {
 
 	private static String toNameWithType(Location location) {
 		Data data = location.getData();
-		String text = data.getName() 
-				+ " " + data.getLocationType().getName();
+        String text = data.getName();
+
+        // Do not add Country to the name - John and Mike's Feedback
+        if(! data.getLocationType().getName().equalsIgnoreCase("Country")) {
+		    text += " " + data.getLocationType().getName();
+        }
+
 		return text;
 	}
 	
