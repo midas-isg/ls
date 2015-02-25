@@ -156,6 +156,82 @@ public class Location implements Comparable<Location> {
 		return (name == null) ? defaultResult : name.toLowerCase();
 	}
 	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((children == null) ? 0 : children.hashCode());
+		result = prime * result + ((data == null) ? 0 : data.hashCode());
+		result = prime * result + ((gid == null) ? 0 : gid.hashCode());
+		result = prime
+				* result
+				+ ((locationsIncluded == null) ? 0 : locationsIncluded
+						.hashCode());
+		result = prime
+				* result
+				+ ((multiPolygonGeom == null) ? 0 : multiPolygonGeom.hashCode());
+		result = prime * result
+				+ ((otherCodes == null) ? 0 : otherCodes.hashCode());
+		result = prime * result + ((parent == null) ? 0 : parent.hashCode());
+		result = prime
+				* result
+				+ ((relatedLocations == null) ? 0 : relatedLocations.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Location other = (Location) obj;
+		if (children == null) {
+			if (other.children != null)
+				return false;
+		} else if (!children.equals(other.children))
+			return false;
+		if (data == null) {
+			if (other.data != null)
+				return false;
+		} else if (!data.equals(other.data))
+			return false;
+		if (gid == null) {
+			if (other.gid != null)
+				return false;
+		} else if (!gid.equals(other.gid))
+			return false;
+		if (locationsIncluded == null) {
+			if (other.locationsIncluded != null)
+				return false;
+		} else if (!locationsIncluded.equals(other.locationsIncluded))
+			return false;
+		if (multiPolygonGeom == null) {
+			if (other.multiPolygonGeom != null)
+				return false;
+		} else if (!multiPolygonGeom.equals(other.multiPolygonGeom))
+			return false;
+		if (otherCodes == null) {
+			if (other.otherCodes != null)
+				return false;
+		} else if (!otherCodes.equals(other.otherCodes))
+			return false;
+		if (parent == null) {
+			if (other.parent != null)
+				return false;
+		} else if (!parent.equals(other.parent))
+			return false;
+		if (relatedLocations == null) {
+			if (other.relatedLocations != null)
+				return false;
+		} else if (!relatedLocations.equals(other.relatedLocations))
+			return false;
+		return true;
+	}
+
 	@Transient
 	public String getHeadline() {
 		return headline;

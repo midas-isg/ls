@@ -1,16 +1,13 @@
 package controllers;
 
-import interactors.AuHierarchyRule;
 import interactors.GeoJSONParser;
+import interactors.GeoJsonRule;
 import interactors.LocationRule;
-
-import java.util.List;
-
-import models.FancyTreeNode;
 import models.geo.FeatureCollection;
 import play.Logger;
 import play.db.jpa.Transactional;
 import play.libs.Json;
+import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Http.Context;
 import play.mvc.Http.Request;
@@ -19,7 +16,7 @@ import play.mvc.Result;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import dao.AuDao;
+import dao.entities.Location;
 
 public class AdministrativeUnitServices extends Controller {
 	static Status okJson(Object resultObject) {
@@ -30,7 +27,7 @@ public class AdministrativeUnitServices extends Controller {
 	public static Result create() {
 		try {
 			FeatureCollection parsed = parseRequestAsFeatureCollection();
-			Long id = LocationRule.create(parsed);
+			Long id = Wire.create(parsed);
 			setResponseLocation(id);
 			return created();
 		} catch (RuntimeException e){
@@ -43,13 +40,30 @@ public class AdministrativeUnitServices extends Controller {
 			return forbidden(message);
 		}
 	}
+	
+	public static class Wire{
+		public static Long create(FeatureCollection fc) {
+			Location location = GeoJsonRule.asDeprecatedLocation(fc);
+			Long id = LocationRule.create(location);
+			return id;
+		}
 
-	private static void setResponseLocation(Long id) {
+		public static FeatureCollection read(long gid) {
+			Location location = LocationRule.read(gid);
+			FeatureCollection fc = GeoJsonRule.asFeatureCollection(location);
+			return fc;
+		}
+		
+
+	}
+
+
+	static void setResponseLocation(Long id) {
 		String uri = makeUri(id);
 		response().setHeader(LOCATION, uri);
 	}
 
-	private static String makeUri(Long id) {
+	static String makeUri(Long id) {
 		Request request = Context.current().request();
 		Logger.debug(""+ request.headers());
 		String url = request.getHeader(ORIGIN) + request.path();
@@ -60,16 +74,18 @@ public class AdministrativeUnitServices extends Controller {
 	}
 	
 	@Transactional
-	public static Result read(String gid) {
+	public static Result read(String gidText) {
 		response().setContentType("application/vnd.geo+json");
-		return okJson(LocationRule.getFeatureCollection(Long.parseLong(gid)));
+		long gid = Long.parseLong(gidText);
+		return okJson(Wire.read(gid));
 	}
-	
+
 	@Transactional
 	public static Result update(long gid) {
 		try {
 			FeatureCollection parsed = parseRequestAsFeatureCollection();
-			LocationRule.update(gid, parsed);
+			Location location = GeoJsonRule.asDeprecatedLocation(parsed);
+			LocationRule.update(gid, location);
 			setResponseLocation(null);
 			return noContent();
 		} catch (RuntimeException e){
@@ -83,20 +99,23 @@ public class AdministrativeUnitServices extends Controller {
 		}
 	}
 
-	private static FeatureCollection parseRequestAsFeatureCollection() throws Exception {
+	@BodyParser.Of(BodyParser.Json.class)
+	static FeatureCollection parseRequestAsFeatureCollection() throws Exception {
 		Request request = Context.current().request();
 		JsonNode requestJSON = null;
-			
+		
 Logger.debug("\n");
 Logger.debug("=====");
-			
+		
 		if(request != null) {
 			RequestBody requestBody = request.body();
 			
 			String requestBodyText = requestBody.toString();
-Logger.debug("Request [" + request.getHeader("Content-Type") + "], Length: " + requestBodyText.length());
-Logger.debug("Request Body:\n" + requestBodyText);
-				
+Logger.debug("Request [" + request.getHeader("Content-Type") + "], Length: " + requestBodyText.length() + "\n");
+Logger.debug("Request Body:\n" + requestBodyText + "\n");
+Logger.debug("Request.queryString():\n" + request.queryString() + "\n");
+Logger.debug("Request.headers().toString():\n" + request.headers().toString() + "\n");
+			
 			requestJSON = requestBody.asJson();
 			if(requestJSON == null) {
 				throw new RuntimeException("Expecting JSON data");
@@ -118,35 +137,11 @@ Logger.debug("\n" + message + "\n");
 	
 	@Transactional
 	public static Result delete(long gid) {
-		Long id = LocationRule.delete(gid);
+		Long id = LocationRule.deleteTogetherWithAllGeometries(gid);
 		setResponseLocation(null);
 		if (id == null){
 			return notFound();
 		}
 		return noContent();
 	}
-	
-	private static Status auTree = null;
-	@Transactional
-	public synchronized static Result tree() {
-		if (auTree == null){
-			List<FancyTreeNode> tree = TreeViewAdapter.toFancyTree(AuHierarchyRule.getHierarchy());
-			auTree = okJson(TreeViewAdapter.removeEpidemicZone(tree));
-		}
-		return auTree;
-	}
-	
-	@Transactional
-	public static Result tree2() {
-		List<FancyTreeNode> tree = TreeViewAdapter.toFancyTree(new AuDao().findRoots());
-		return okJson(tree);
-	}
-
-	@Transactional
-	public static Result asKml(long gid) {
-		String result = LocationRule.asKml(gid);
-		response().setContentType("application/vnd.google-earth.kml+xml");
-		return ok(result);
-	}
-
 }

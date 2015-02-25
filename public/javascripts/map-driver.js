@@ -1,4 +1,5 @@
-var crudPath = context + '/resources/aus';
+var oldPath = context + '/resources/aus';
+var crudPath = context + '/api/locations';
 
 function MapDriver() {
 	var id = '';//'12';
@@ -24,7 +25,11 @@ function MapDriver() {
 MapDriver.prototype.initialize = function() {
 	L.mapbox.accessToken = this.accessToken;
 	
-	this.map = L.mapbox.map('map-one', 'examples.map-i86l3621', { worldCopyJump: true /*crs: L.CRS.EPSG385*/});
+	var southWest = L.latLng(-90, -180);
+	var northEast = L.latLng(90, 180);
+	var mapBounds = L.latLngBounds(southWest, northEast);
+	
+	this.map = L.mapbox.map('map-one', 'examples.map-i86l3621', { worldCopyJump: true, bounceAtZoomLimits: false, zoom: 1, minZoom: 1, maxBounds: mapBounds /*crs: L.CRS.EPSG385*/});
 	this.map.legendControl.addLegend(this.title);
 	
 	this.drawControl = null;
@@ -56,22 +61,22 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		thisMapDriver.featureLayer.addTo(thisMapDriver.map);
 		
 		if(geoJSON) {
-			var feature = thisMapDriver.featureLayer.getGeoJSON().features[0];
+			var feature = geoJSON.features[0];
 			
-			centerMap(thisMapDriver.featureLayer.getGeoJSON(), thisMapDriver);
+			centerMap(geoJSON, thisMapDriver);
 			
 			thisMapDriver.mapID = thisMapDriver.featureLayer.getGeoJSON().id;
+			thisMapDriver.kml = feature.properties.kml;
 			setTextValue("#au-name", feature.properties.name);
-			setTextValue("#au-code", feature.properties.code);
+			setTextValue("#description", feature.properties.locationDescription);
 			setTextValue("#start-date", feature.properties.startDate);
 			setTextValue("#end-date", feature.properties.endDate);
 			
-			var i;
 			var parentGID = feature.properties.parentGid;
 			console.log(parentGID);
 			
 			setTextValue("#gid", feature.properties.gid);
-			feature.properties.title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
+			feature.properties.title = feature.properties.name + " " + feature.properties.locationTypeName + " from " + feature.properties.startDate;
 			
 			if(feature.properties.endDate) {
 				feature.properties.title = feature.properties.title + " to " + feature.properties.endDate;
@@ -166,13 +171,29 @@ MapDriver.prototype.loadJSON = function(jsonData) {
 	if(jsonData) {
 		var thisMapDriver = this;
 		
-		multiPolygonsToPolygons(jsonData);
+		//multiPolygonsToPolygons(jsonData);
+		var i;
+		var features = jsonData.features;
+		var properties;
+		
+		for(i = 0; i < features.length; i++) {
+			features[i].properties.description = features[i].properties.name;
+		}
 		
 		this.featureLayer.setGeoJSON(jsonData);
 		centerMap(jsonData, thisMapDriver);
 		
 		var feature = jsonData.features[0];
-		var title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
+		properties = feature.properties;
+		var title = properties.name + " " + properties.locationTypeName + " from " + properties.startDate;
+		
+		if(properties.endDate) {
+			title = title + " to " + properties.endDate;
+		}
+		else {
+			title += " to present";
+		}
+		
 		this.map.legendControl.removeLegend(this.title);
 		this.title = "<strong>" + title + "</strong>";
 		this.map.legendControl.addLegend(this.title);
@@ -182,114 +203,13 @@ MapDriver.prototype.loadJSON = function(jsonData) {
 }
 
 MapDriver.prototype.saveMap = function() {
-	// Create //POST /resources/aus
+	// CREATE //POST /resources/aus
+	// CREATE //POST /api/locations
 	var httpType = "POST";
 	var URL = crudPath;
 	
-	/*
-	if(isUpdate) {
-		// Update //PUT /resources/aus
-		httpType = "PUT";
-	}
-	*/
-	
 	var data = this.featureLayer.toGeoJSON();
 	data.id = this.mapID;
-	
-	function formatGeoJSON(geoJSON, thisMapDriver) {
-		var i;
-		var geometry;
-		var auName = getValueText("#au-name");
-		var auType = getValueText("#au-type");
-		var auCode = getValueText("#au-code");
-		var auCodeType = getValueText("#au-codetype");
-		var startDate = getValueText("#start-date");
-		var endDate = getValueText("#end-date");
-		var auParentGID = thisMapDriver.parent;
-		
-		var dateTokens = validDate(startDate);
-		if(startDate == "today") {
-			startDate = new Date().toString();
-			dateTokens = 3;
-		}
-		
-		if(dateTokens != 0) {
-			startDate = toServerDate(new Date(startDate), dateTokens);
-		}
-		else {
-			alert("Invalid start date: " + startDate);
-			
-			return null;
-		}
-		
-		dateTokens = validDate(endDate);
-		if(endDate == "today") {
-			endDate = new Date().toString();
-			dateTokens = 3;
-		}
-		
-		if(dateTokens != 0) {
-			endDate = toServerDate(new Date(endDate), dateTokens);
-		}
-		else if(endDate.length > 0) {
-			alert("Invalid end date: " + endDate); //TODO: append month/year OR change back-end to accomodate dates without months & days
-			
-			return null;
-		}
-		else {
-			endDate = null;
-		}
-		
-		if(auName.length == 0) {
-			alert("Please enter the name");
-			
-			return  null;
-		}
-		
-		if(auType.length == 0) {
-			alert("Please enter the location type");
-			
-			return  null;
-		}
-		
-		if((auCode.length > 0) && (auCodeType.length < 1)) {
-			alert("Please enter the code type");
-			
-			return null;
-		}
-		else if((auCodeType.length > 0) && (auCode.length < 1)) {
-			alert("Please enter the code");
-			
-			return null;
-		}
-		
-		if(!auParentGID || (auParentGID.length < 1)) {
-			alert("Please select an encompassing location");
-			
-			return null;
-		}
-		
-		
-		geoJSON.features[0].properties["kml"] = thisMapDriver.kml;
-		
-		for(i = 0; i < geoJSON.features.length; i++) {
-			geoJSON.features[i].properties["name"] = auName;
-			geoJSON.features[i].properties["type"] = auType;
-			geoJSON.features[i].properties["codes"] = [{"code": auCode, "codeTypeName": auCodeType}];
-			geoJSON.features[i].properties["parent"] = auParentGID;
-			geoJSON.features[i].properties["startDate"] = startDate;
-			geoJSON.features[i].properties["endDate"] = endDate;
-			
-			geometry = geoJSON.features[i].geometry;
-			
-			if(geometry.type == "Polygon") {
-				geometry.coordinates = [geometry.coordinates];
-				geometry.type = "MultiPolygon";
-			}
-		}
-		
-		return geoJSON;
-	}
 	
 	if(!formatGeoJSON(data, this)) {
 		return;
@@ -307,26 +227,71 @@ console.log("Length: " + JSON.stringify(data).length);
 		//dataType: "json",
 		//processData: false,
 		success: function(data, status, response) {
-			//indexingObject.informationObject.setURI(indexingObject.successChange(data, status, "added"));
+			console.log(data);
+			console.log(status);
+			setTextValue("#gid", getIDFromURI(response.getResponseHeader("Location")));
+			$("#gid").prop("disabled", true);
+			$("#new-button").show();
+			$("#save-button").hide();
+			$("#update-button").show();
+			
+			setTextValue("#server-result", "Success, ID: " + $("#gid").val() + " created");
+			$("#server-result").css("color", "#008000");
+			$("#server-result").show();
+			$("#server-result").fadeOut(15000);
+		},
+		error: function(data, status) {
+			console.log(status);
+			console.log(data);
+			setTextValue("#server-result", status + ": " + data.statusText + " - " + data.responseText);
+			$("#server-result").css("color", "#800000");
+			$("#server-result").show();
+			$("#server-result").fadeOut(15000);
+		}
+	});
+	
+	return;
+}
+
+MapDriver.prototype.updateMap = function() {
+	// UPDATE //PUT /resources/aus
+	// UPDATE //PUT /api/locations
+	var httpType = "PUT";
+	var URL = crudPath;
+	
+	var data = this.featureLayer.toGeoJSON();
+	data.id = this.mapID;
+	
+	URL = URL + "/" + getValueText("#gid");
+	
+	if(!formatGeoJSON(data, this)) {
+		return;
+	}
+	
+console.log("Sending JSON.stringify([" + data.type + "]):");
+console.log(JSON.stringify(data));
+console.log("Length: " + JSON.stringify(data).length);
+	
+	$.ajax({
+		type: httpType,
+		url: URL,
+		data: JSON.stringify(data),
+		contentType: "application/json; charset=UTF-8",
+		//dataType: "json",
+		//processData: false,
+		success: function(data, status, response) {
 			console.log(data);
 			console.log(status);
 			setTextValue("#gid", getIDFromURI(response.getResponseHeader("Location")));
 			$("#gid").prop("disabled", true);
 			$("#new-button").show();
 			
-			setTextValue("#server-result", "Success. ID: " + $("#gid").val() + " created");
+			setTextValue("#server-result", "Success, ID: " + $("#gid").val() + " saved");
 			$("#server-result").css("color", "#008000");
 			$("#server-result").show();
 			$("#server-result").fadeOut(15000);
 		},
 		error: function(data, status) {
-			//if(data['responseJSON'] && data['responseJSON']['duplicatedUri']) {
-			//	indexingObject.duplicateDialog(data['responseJSON']['duplicatedUri']);
-			//}
-			//else {
-			//	indexingObject.successChange(data, status, "error");
-			//}
-			
 			console.log(status);
 			console.log(data);
 			setTextValue("#server-result", status + ": " + data.statusText + " - " + data.responseText);
@@ -346,11 +311,10 @@ MapDriver.prototype.download = function() {
 	for(var i = 0; i < jsonData.features.length; i++) {
 		properties = jsonData.features[i].properties;
 		properties.name = getValueText("#au-name");
-		properties.code = getValueText("#au-code");
 		properties.startDate = getValueText("#start-date");
 		properties.endDate = getValueText("#end-date");
 		properties.parentGid = this.parent;
-		properties.description = properties.name + ";" + properties.code + ";" + properties.startDate + ";" + properties.endDate + ";" + properties.parentGid;
+		properties.description = getValueText("#description");
 	}
 	
 	if(!jsonData.id) {
@@ -383,14 +347,30 @@ MapDriver.prototype.upload = function() {
 		}
 		
 		var properties = jsonData.features[0].properties;
-		setTextValue("#au-name", properties.name);
-		setTextValue("#au-code", properties.code);
-		setTextValue("#start-date", properties.startDate);
-		setTextValue("#end-date", properties.endDate);
+		
+		if(properties.name) {
+			setTextValue("#au-name", properties.name);
+		}
+	
+		if(properties.description) {
+			setTextValue("#description", properties.description);
+		}
+		
+		if(properties.startDate) {
+			setTextValue("#start-date", properties.startDate);
+		}
+		
+		if(properties.endDate) {
+			setTextValue("#end-date", properties.endDate);
+		}
 		
 		var i;
+		for(i = 0; i < jsonData.features.length; i++) {
+			jsonData.features[i].properties.description = jsonData.features[i].properties.name;
+		}
+		
 		var parentGID = properties.parentGid;
-		console.log(parentGID);
+		console.log("parent GID: " + parentGID);
 		
 		thisMapDriver.loadJSON(jsonData);
 	});
@@ -426,6 +406,116 @@ MapDriver.prototype.removeAUComponent = function(gID) {
 }
 
 /* Helper Functions */
+function formatGeoJSON(geoJSON, thisMapDriver) {
+	var i;
+	var geometry;
+	var id = getValueText("#gid");
+	var auName = getValueText("#au-name");
+	var locationTypeName = getValueText("#au-type");
+	var auCode = getValueText("#au-code");
+	var auCodeType = getValueText("#au-codetype");
+	var startDate = getValueText("#start-date");
+	var endDate = getValueText("#end-date");
+	var auParentGID = thisMapDriver.parent;
+	var description = $("#description").val();
+	
+	var dateTokens = validDate(startDate);
+	if(startDate == "today") {
+		startDate = new Date().toString();
+		dateTokens = 3;
+	}
+	
+	if(dateTokens != 0) {
+		startDate = toServerDate(new Date(startDate), dateTokens);
+	}
+	else {
+		alert("Invalid start date: " + startDate);
+		
+		return null;
+	}
+	
+	dateTokens = validDate(endDate);
+	if(endDate == "today") {
+		endDate = new Date().toString();
+		dateTokens = 3;
+	}
+	
+	if(dateTokens != 0) {
+		endDate = toServerDate(new Date(endDate), dateTokens);
+	}
+	else if(endDate.length > 0) {
+		alert("Invalid end date: " + endDate); //TODO: append month/year OR change back-end to accomodate dates without months & days
+		
+		return null;
+	}
+	else {
+		endDate = null;
+	}
+	
+	if(auName.length == 0) {
+		alert("Please enter the name");
+		
+		return  null;
+	}
+	
+	if(locationTypeName.length == 0) {
+		alert("Please enter the location type");
+		
+		return  null;
+	}
+	
+	if((auCode.length > 0) && (auCodeType.length < 1)) {
+		alert("Please enter the code type");
+		
+		return null;
+	}
+	else if((auCodeType.length > 0) && (auCode.length < 1)) {
+		alert("Please enter the code");
+		
+		return null;
+	}
+	
+	if((!auParentGID || (auParentGID.length < 1)) && (locationTypeName != "Country")) {
+		alert("Please select an encompassing location");
+		
+		return null;
+	}
+	
+	if((!geoJSON) || (!thisMapDriver.kml)) {
+		alert("Please upload a kml file");
+		
+		return null;
+	}
+	
+	if(description.length == 0) {
+		description = null;
+	}
+	
+	geoJSON.properties = {};
+	var properties = geoJSON.properties;
+	
+	geoJSON.id = Number(id);
+	properties["kml"] = thisMapDriver.kml;
+	properties["name"] = auName;
+	properties["locationTypeName"] = locationTypeName;
+	properties["codes"] = [{"code": auCode, "codeTypeName": auCodeType}];
+	properties["locationDescription"] = description;
+	properties["parentGid"] = auParentGID;
+	properties["startDate"] = startDate;
+	properties["endDate"] = endDate;
+	
+	//TODO: Remove conversion and expand accepted server types
+	for(i = 0; i < geoJSON.features.length; i++) {
+		geometry = geoJSON.features[i].geometry;
+		if(geometry.type == "Polygon") {
+			geometry.coordinates = [geometry.coordinates];
+			geometry.type = "MultiPolygon";
+		}
+	}
+	
+	return geoJSON;
+}
+
 function centerMap(geoJSON, thisMapDriver) {
 	var geometry = null;
 	var geometryCount = null;

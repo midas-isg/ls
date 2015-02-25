@@ -1,9 +1,10 @@
 var crudPath = context + "/resources/aus";
+//var crudPath = context + "/api/locations";
 var apolloJSONDataPath = context + "/api/locations/";
-var MAP_DRIVER = null;
+var BROWSER_MAP = null;
 
 $(document).ready(function() {
-	MAP_DRIVER = new MapDriver();
+	BROWSER_MAP = new BrowserMap();
 	
 	$("#input").keyup(function(event) {
 		switch(event.which)
@@ -22,8 +23,8 @@ $(document).ready(function() {
 	return;
 });
 
-function MapDriver(){
-	var thisMapDriver = this;
+function BrowserMap() {
+	var thisBrowserMap = this;
 	var id = getURLParameterByName("id");
 	var format = getURLParameterByName("format");
 	var query = getURLParameterByName("q");
@@ -41,7 +42,7 @@ function MapDriver(){
 		this.dataSourceURL = context + "/api/locations?q=" + query;// + "&limit=" + limit + "&offset=" + offset;
 	}
 	
-	this.geoJSONURL = this.dataSourceURL + ".geojson"; //crudPath + "/" + id;
+	this.geoJSONURL = this.dataSourceURL + ".geojson";
 	this.apolloJSONURL = this.dataSourceURL + ".json";
 	this.kmlURL = this.dataSourceURL + ".kml";
 	
@@ -73,8 +74,8 @@ function MapDriver(){
 			this.initialize();
 			
 			$.get(this.dataSourceURL, function(data, status) {
-				var i;
 				/*
+				var i;
 				var geoJSON = {};
 				for(i = 0; i < data.; i++) {
 					//
@@ -82,7 +83,7 @@ function MapDriver(){
 				*/
 				
 				//console.log(data);
-				thisMapDriver.loadJSON(data.geoJSON);
+				thisBrowserMap.loadJSON(data.geoJSON);
 			});
 		break;
 		
@@ -98,13 +99,17 @@ function MapDriver(){
 	return;
 }
 
-MapDriver.prototype.initialize = function() {
+BrowserMap.prototype.initialize = function() {
 	$("#map-data").text("");
 	$("#header-data").show();
 	
 	L.mapbox.accessToken = this.accessToken;
 	
-	this.map = L.mapbox.map('map-data', 'examples.map-i86l3621', { worldCopyJump: true /*crs: L.CRS.EPSG385*/});
+	var southWest = L.latLng(-90, -180);
+	var northEast = L.latLng(90, 180);
+	var mapBounds = L.latLngBounds(southWest, northEast);
+	
+	this.map = L.mapbox.map('map-data', 'examples.map-i86l3621', { worldCopyJump: true, minZoom: 1, bounceAtZoomLimits: false, maxBounds: mapBounds /*crs: L.CRS.EPSG385*/});
 	this.map.legendControl.addLegend(this.title);
 	
 	this.drawControl = null;
@@ -114,8 +119,8 @@ MapDriver.prototype.initialize = function() {
 	return;
 }
 
-MapDriver.prototype.loadFeatureLayer = function() {
-	thisMapDriver = this;
+BrowserMap.prototype.loadFeatureLayer = function() {
+	thisBrowserMap = this;
 	
 	if(this.geoJSONURL) {
 		this.featureLayer = L.mapbox.featureLayer().loadURL(this.geoJSONURL);
@@ -138,13 +143,13 @@ MapDriver.prototype.loadFeatureLayer = function() {
 	}
 	
 	this.featureLayer.on('ready', function() {
-		thisMapDriver.loadJSON(thisMapDriver.featureLayer.getGeoJSON());
+		thisBrowserMap.loadJSON(thisBrowserMap.featureLayer.getGeoJSON());
 		
-		thisMapDriver.featureLayer.addTo(thisMapDriver.map);
+		thisBrowserMap.featureLayer.addTo(thisBrowserMap.map);
 		
-		var feature = thisMapDriver.featureLayer.getGeoJSON().features[0];
+		var geoJSON = thisBrowserMap.featureLayer.getGeoJSON();
+		var feature = geoJSON.features[0];
 		
-		var geoJSON = thisMapDriver.featureLayer.getGeoJSON();
 		var minLng = geoJSON.bbox[0];
 		var minLat = geoJSON.bbox[1];
 		var maxLng = geoJSON.bbox[2];
@@ -152,53 +157,58 @@ MapDriver.prototype.loadFeatureLayer = function() {
 		var southWest = L.latLng(minLat, minLng);
 		var northEast = L.latLng(maxLat, maxLng);
 		var bounds = L.latLngBounds(southWest, northEast);
-		thisMapDriver.map.fitBounds(bounds);
+		thisBrowserMap.map.fitBounds(bounds);
 		
-		thisMapDriver.mapID = thisMapDriver.featureLayer.getGeoJSON().id;
-		
+		var properties = null;
 		if(geoJSON.properties) {
-			$("#au-name").append("<strong>" + geoJSON.properties.name + "</strong>");
-			$("#au-location-type").append("<div class='pull-left pre-spaced'>" + geoJSON.properties.locationTypeName + "</div>");
-			
-			setTextValue("#start-date", geoJSON.properties.startDate);
-			setTextValue("#end-date", geoJSON.properties.endDate);
-			
-			if(geoJSON.properties.endDate) {
-				$("#historical-note").show();
-			}
+			properties = geoJSON.properties;
 		}
 		else {
-			$("#au-name").append("<strong>" + feature.properties.name + "</strong>");
-			$("#au-location-type").append("<div class='pull-left pre-spaced'>" + feature.properties.locationTypeName + "</div>");
-			
-			setTextValue("#start-date", feature.properties.startDate);
-			setTextValue("#end-date", feature.properties.endDate);
-			
-			if(feature.properties.endDate) {
-				$("#historical-note").show();
-			}
+			properties = feature.properties;
 		}
 		
-		$("#au-geojson").prop("href", thisMapDriver.geoJSONURL);
+		thisBrowserMap.mapID = properties.gid;
+		properties.description = properties.name;
+		
+		$("#au-name").append("<strong>" + properties.name + "</strong>");
+		$("#au-location-type").append("<div class='pull-left pre-spaced'>" + properties.locationTypeName + "</div>");
+		
+		if(properties.locationDescription) {
+			$("#description").append("<div class='pull-left pre-spaced'>" + properties.locationDescription + "</div>");
+			$("#description").show();
+		}
+		
+		setTextValue("#start-date", properties.startDate);
+		setTextValue("#end-date", properties.endDate);
+		
+		if(properties.startDate == "0001-01-01") {
+			$("#founding-date-div").hide();
+		}
+		
+		if(properties.endDate) {
+			$("#historical-note").show();
+		}
+		
+		$("#au-geojson").prop("href", thisBrowserMap.geoJSONURL);
 		$("#au-geojson").prop("type", "application/vnd.geo+json");
-		if(thisMapDriver.geoJSONURL) {
+		if(thisBrowserMap.geoJSONURL) {
 			$("#au-geojson").css("text-decoration", "underline");
 		}
 		
-		$("#au-kml").prop("href", thisMapDriver.kmlURL);
-		if(thisMapDriver.kmlURL) {
+		$("#au-kml").prop("href", thisBrowserMap.kmlURL);
+		if(thisBrowserMap.kmlURL) {
 			$("#au-kml").css("text-decoration", "underline");
 		}
 		
-		$("#au-apollojson").prop("href", thisMapDriver.apolloJSONURL);
-		if(thisMapDriver.apolloJSONURL) {
+		$("#au-apollojson").prop("href", thisBrowserMap.apolloJSONURL);
+		if(thisBrowserMap.apolloJSONURL) {
 			$("#au-apollojson").css("text-decoration", "underline");
 		}
 		
-		listLineageRefs(feature.properties.lineage, "#au-lineage");
+		listLineageRefs(properties.lineage, "#au-lineage");
 		
-		var related = feature.properties.related;
-		if(related.length > 0){
+		var related = properties.related;
+		if(related && (related.length > 0)){
 			$("#au-related").show();
 			
 			for(i = 0; i < related.length; i++) {
@@ -210,11 +220,11 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			}
 		}
 		
-		var children = feature.properties.children;
+		var children = properties.children;
 		show = false;
 		var show2 = false;
 		var show3 = false;
-		if(children.length > 0) {
+		if(children && (children.length > 0)) {
 			//console.log(children);
 			//auName = children[0].name;
 			//auGID = children[0].gid;
@@ -226,7 +236,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 				
 				if(children[i].locationTypeName == "Epidemic Zone") {
 					if(show) {
-						$("#au-epidemic-zones").append(";");
+						$("#au-epidemic-zones").append(",");
 					}
 					
 					$("#au-epidemic-zones").append("<a href='./browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
@@ -234,7 +244,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 				}
 				else if(children[i].locationTypeName == "Census Tract") {
 					if(show2) {
-						$("#census-tract").append("; ");
+						$("#census-tract").append(", ");
 					}
 					
 					$("#census-tract").append("<a href='./browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
@@ -242,7 +252,7 @@ MapDriver.prototype.loadFeatureLayer = function() {
 				}
 				else /* if(children[i].locationTypeName != "Epidemic Zone") */ {
 					if(show3) {
-						$("#au-children").append("; ");
+						$("#au-children").append(", ");
 					}
 					
 					$("#au-children").append("<a href='./browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
@@ -263,69 +273,67 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			}
 		}
 		
-		setTextValue("#gid", feature.properties.gid);
+		setTextValue("#gid", thisBrowserMap.mapID);
 		show = false;
-		var codes = feature.properties.codes;
-		for(i = 0; i < codes.length; i++) {
-			if(codes[i].codeTypeName != "ISG") {
-				$("#codes").append("<div style='text-indent: 50px;'><em>" + codes[i].codeTypeName + ":</em> " + codes[i].code + "</div>");
-				show = true;
+		var codes = properties.codes;
+		if(codes) {
+			for(i = 0; i < codes.length; i++) {
+				if(codes[i].codeTypeName != "ISG") {
+					$("#codes").append("<div style='text-indent: 50px;'><em>" + codes[i].codeTypeName + ":</em> " + codes[i].code + "</div>");
+					show = true;
+				}
 			}
-		}
-		if(show) {
-			$("#codes").show();
+			if(show) {
+				$("#codes").show();
+			}
 		}
 		
-		if(geoJSON.properties) {
-			feature.properties.title = geoJSON.properties.name  + " " + geoJSON.properties.locationTypeName + " from ";
-			feature.properties.title = feature.properties.title + geoJSON.properties.startDate;
-			if(geoJSON.properties.endDate) {
-				feature.properties.title = feature.properties.title + " to " + geoJSON.properties.endDate;
-			}
-			else {
-				feature.properties.title += " to present";
-			}
+		properties.title = properties.name  + " " + properties.locationTypeName + " from ";
+		properties.title = properties.title + properties.startDate;
+		if(properties.endDate) {
+			properties.title = properties.title + " to " + properties.endDate;
 		}
 		else {
-			feature.properties.title = feature.properties.name  + " " + feature.properties.locationTypeName + " from ";
-			feature.properties.title = feature.properties.title + feature.properties.startDate;
-			if(feature.properties.endDate) {
-				feature.properties.title = feature.properties.title + " to " + feature.properties.endDate;
-			}
-			else {
-				feature.properties.title += " to present";
-			}
+			properties.title += " to present";
 		}
 		
-		thisMapDriver.map.legendControl.removeLegend(thisMapDriver.title);
-		thisMapDriver.title = "<strong>" + feature.properties.title + "</strong>";
-		thisMapDriver.map.legendControl.addLegend(thisMapDriver.title);
+		thisBrowserMap.map.legendControl.removeLegend(thisBrowserMap.title);
+		thisBrowserMap.title = "<strong>" + properties.title + "</strong>";
+		thisBrowserMap.map.legendControl.addLegend(thisBrowserMap.title);
 	});
 	
 	this.featureLayer.on('error', function(err) {
 		console.log("Error: " + err['error']['statusText']);
 		
-		if((thisMapDriver.featureLayer.getLayers().length == 0) && thisMapDriver.mapID) {
+		if((thisBrowserMap.featureLayer.getLayers().length == 0) && thisBrowserMap.mapID) {
 			console.log("Attempting to load via mapbox ID");
-			thisMapDriver.featureLayer = L.mapbox.featureLayer().loadID(thisMapDriver.mapID);
+			thisBrowserMap.featureLayer = L.mapbox.featureLayer().loadID(thisBrowserMap.mapID);
 		}
 		
-		thisMapDriver.featureLayer.on('ready', function() {
-			thisMapDriver.featureLayer.addTo(thisMapDriver.map);
+		thisBrowserMap.featureLayer.on('ready', function() {
+			thisBrowserMap.featureLayer.addTo(thisBrowserMap.map);
 		});
 	});
 	
 	return;
 }
 
-MapDriver.prototype.loadJSON = function(jsonData) {
-	multiPolygonsToPolygons(jsonData);
-	this.featureLayer.setGeoJSON(jsonData);
+BrowserMap.prototype.loadJSON = function(jsonData) {
+	if(jsonData) {
+		//multiPolygonsToPolygons(jsonData);
+		var i;
+		var features = jsonData.features;
+		for(i = 0; i < features.length; i++) {
+			features[i].properties.description = features[i].properties.name;
+		}
+		
+		this.featureLayer.setGeoJSON(jsonData);
+	}
 	
 	return;
 }
 
-MapDriver.prototype.getJSONData = function(URL) {
+BrowserMap.prototype.getJSONData = function(URL) {
 	/*
 	$.get(URL, function(data, status) {
 		$("#map-data").text(JSON.stringify(data));
@@ -337,8 +345,7 @@ MapDriver.prototype.getJSONData = function(URL) {
 	return;
 }
 
-MapDriver.prototype.getKMLData = function() {
-	
+BrowserMap.prototype.getKMLData = function() {
 	
 	return;
 }

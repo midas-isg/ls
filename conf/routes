@@ -14,18 +14,21 @@ POST	/resources/aus				controllers.AdministrativeUnitServices.create()
 GET		/resources/aus/:gid			controllers.AdministrativeUnitServices.read(gid)
 PUT		/resources/aus/:gid			controllers.AdministrativeUnitServices.update(gid:Long)
 DELETE	/resources/aus/:gid				controllers.AdministrativeUnitServices.delete(gid:Long)
-GET		/api/locations/tree			controllers.AdministrativeUnitServices.tree2()
 
-GET		/api/au-tree				controllers.AdministrativeUnitServices.tree()
+GET		/api/au-tree				controllers.TreeView.tree()
 
 #Alternate
 GET		/api/locations/:gid.:format			controllers.LocationServices.locations(gid:Long, format)
 
+POST	/api/locations				controllers.LocationServices.create()
 GET		/api/locations/:gid			controllers.LocationServices.locations(gid:Long, format?="GeoJSON")
+PUT		/api/locations/:gid			controllers.LocationServices.update(gid:Long)
+DELETE	/api/locations/:gid			controllers.LocationServices.delete(gid:Long)
 GET		/api/locations				controllers.LocationServices.findLocations(q, limit:Int?=10, offset:Int?=0)
 GET		/api/locations-by-coordinate controllers.LocationServices.findLocationsByPoint(lat:Double, long:Double)
 
 GET		/api/unique-location-names	controllers.LocationServices.findLocationNames(q, limit:Int?=10)
+GET		/api/location-type-names	controllers.ListServices.findLocationTypeNames(superTypeName)
 
 # Map static resources from the /public folder to the /assets URL path
 GET		/assets/*file				controllers.Assets.at(path="/public", file)

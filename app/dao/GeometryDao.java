@@ -1,7 +1,12 @@
 package dao;
 
-import javax.persistence.EntityManager;
+import java.math.BigInteger;
+import java.util.List;
 
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+
+import play.Logger;
 import play.db.jpa.JPA;
 import dao.entities.LocationGeometry;
 
@@ -11,14 +16,50 @@ public class GeometryDao {
 		return read(gid, LocationGeometry.class);
 	}
 
-	public LocationGeometry read(long gid, Class<LocationGeometry> geometry) {
+	public LocationGeometry read(long gid, Class<LocationGeometry> geometryClass) {
 		EntityManager em = JPA.em();
-		return read(em, gid, geometry);
+		return read(em, gid, geometryClass);
 	}
 
-	public LocationGeometry read(EntityManager em, long gid, Class<LocationGeometry> geometry) {
+	public LocationGeometry read(EntityManager em, long gid,
+			Class<LocationGeometry> geometryClass) {
 		//Logger.debug("Find " + geometry.getSimpleName() +  " where gid=" + gid);
-		return em.find(geometry, gid);
+		return em.find(geometryClass, gid);
+	}
+	
+	public Long delete(LocationGeometry lg) {
+		EntityManager em = JPA.em();
+		Long gid = null;
+		if (lg != null){
+			gid = lg.getGid();
+			em.remove(lg);
+			Logger.info(lg.getClass().getSimpleName() + " removed with gid=" + gid);
+		}
+		return gid;
 	}
 
+	public String readAsKml(long gid) {
+		EntityManager em = JPA.em();
+		String query = "select ST_AsKML(multipolygon) from location_geometry"
+				+ " where gid = " + gid;
+		Object singleResult = em.createNativeQuery(query).getSingleResult();
+		return singleResult.toString();
+	}
+	
+	public List<BigInteger> findGidsByPoint(double latitude, double longitude) {
+		EntityManager em = JPA.em();
+		//@formatter:off
+		String point = "ST_MakePoint(" + longitude + ", " + latitude +")";
+		String geometry = "ST_SetSRID("+ point+", "+ LocationDao.SRID + ")";
+		String q = "SELECT gid " 
+			+ "  FROM location_geometry "
+			+ "  WHERE ST_Contains(multipolygon, " + geometry + ")"
+			+ "  ORDER BY ST_Area(multipolygon);";
+		//@formatter:on
+		Query query = em.createNativeQuery(q);
+		List<?> resultList = query.getResultList();
+		@SuppressWarnings("unchecked")
+		List<BigInteger> result = (List<BigInteger>)resultList;
+		return result;
+	}
 }
