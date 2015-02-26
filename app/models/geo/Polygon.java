@@ -13,9 +13,33 @@ public class Polygon extends FeatureGeometry {
 	public List<List<double[]>> getCoordinates() {
 		return coordinates;
 	}
-
+	
 	public void setCoordinates(List<List<double[]>> coordinates) {
 		this.coordinates = coordinates;
+	}
+	
+	@Override
+	public String toString() {
+		String output = "Polygon; coordinates=\n";
+		
+		output += "{\n";
+		for(int i = 0; i < coordinates.size(); i++) {
+			output += "   [\n";
+			List<double[]> pointBody = coordinates.get(i);
+			
+			for(int j = 0; j < pointBody.size(); j++) {
+				output += "\n      [\n";
+				
+				for(int k = 0; k < pointBody.get(j).length; k++){
+					output += "         " + String.valueOf(pointBody.get(j)[k]) + "\n";
+				}
+				output += "      ]\n";
+			}
+			output += "   ]\n";
+		}
+		output += "}\n";
+		
+		return output;
 	}
 
 	@Override

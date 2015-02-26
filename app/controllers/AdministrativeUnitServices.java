@@ -127,8 +127,10 @@ Logger.debug("Request.headers().toString():\n" + request.headers().toString() + 
 					throw new RuntimeException("Missing parameter [type]");
 				}
 			}
+			
 			return GeoJSONParser.parse(requestJSON);
-		} else {
+		}
+		else {
 			String message = "Request is null";
 Logger.debug("\n" + message + "\n");
 			throw new RuntimeException(message);

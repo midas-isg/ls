@@ -1,4 +1,3 @@
-var oldPath = context + '/resources/aus';
 var crudPath = context + '/api/locations';
 
 function MapDriver() {
@@ -310,18 +309,11 @@ MapDriver.prototype.deleteLocation = function() {
 	var httpType = "DELETE";
 	var URL = crudPath;
 	
-	var data = this.featureLayer.toGeoJSON();
-	data.id = this.mapID;
-	
 	URL = URL + "/" + getValueText("#gid");
 	
 	$.ajax({
 		type: httpType,
 		url: URL,
-		data: JSON.stringify(data),
-		contentType: "application/json; charset=UTF-8",
-		//dataType: "json",
-		//processData: false,
 		success: function(data, status, response) {
 			console.log(data);
 			console.log(status);
@@ -545,7 +537,7 @@ function formatGeoJSON(geoJSON, thisMapDriver) {
 	properties["startDate"] = startDate;
 	properties["endDate"] = endDate;
 	
-	/**/
+	/*
 	//TODO: Remove conversion and expand accepted server types
 	for(i = 0; i < geoJSON.features.length; i++) {
 		geometry = geoJSON.features[i].geometry;
@@ -554,7 +546,7 @@ function formatGeoJSON(geoJSON, thisMapDriver) {
 			geometry.type = "MultiPolygon";
 		}
 	}
-	/**/
+	*/
 	
 	return geoJSON;
 }

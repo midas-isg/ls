@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import play.Logger;
 import models.geo.Feature;
 import models.geo.FeatureCollection;
 import models.geo.FeatureGeometry;
@@ -50,6 +51,7 @@ public class GeoJSONParser {
 					case "Polygon":
 						geometry = parsePolygon(currentNode.get("geometry"));
 					break;
+					
 					case "Point":
 					case "MultiLine":
 					default:
@@ -90,32 +92,39 @@ public class GeoJSONParser {
 	}
 	*/
 	
-	private static Polygon parsePolygon(JsonNode geometryNode) throws Exception {
+	private static List<List<double []>> getCoordinatesForPolygon(JsonNode geometryNode) {
 		JsonNode coordinatesNode = geometryNode.withArray("coordinates");
+		List<List<double []>> coordinates = new ArrayList<List<double[]>>();
+		
+		for(int i = 0; i < coordinatesNode.size(); i++) {
+			coordinates.add(new ArrayList<double[]>());
+			List<double []> componentToFill = coordinates.get(i);
+			
+			JsonNode polygonComponentNode = coordinatesNode.get(i);
+			for(int j = 0; j < polygonComponentNode.size(); j++) {
+				JsonNode coordinateValues = polygonComponentNode.get(j);
+				componentToFill.add(new double[coordinateValues.size()]);
+				double[] pointToFill = componentToFill.get(j);
+				
+				for(int k = 0; k < coordinateValues.size(); k++){
+					pointToFill[k] = coordinateValues.get(k).asDouble();
+				}
+			}
+		}
+		
+//Logger.debug("coordinates size: " + coordinates.size());
+//Logger.debug("coordinates[0] size: " + coordinates.get(0).size());
+//Logger.debug("coordinates[0][0] length: " + coordinates.get(0).get(0).length);
+		
+		return coordinates;
+	}
+	
+	private static Polygon parsePolygon(JsonNode geometryNode) throws Exception {
 		Polygon polygon;
 		
 		if(geometryNode.get("type").textValue().equals(Polygon.class.getSimpleName())) {
 			polygon = new Polygon();
-			List<List<double []>> coordinates = new ArrayList<>();
-			
-			JsonNode polygonNode = coordinatesNode.get(0);
-			for(int j = 0; j < polygonNode.size(); j++) {
-				coordinates.add(new ArrayList<double[]>());
-				List<double []> componentToFill = coordinates.get(j);
-				
-				JsonNode polygonComponent = polygonNode.get(j);
-				for(int k = 0; k < polygonComponent.size(); k++){
-					componentToFill.add(new double[polygonComponent.get(k).size()]);
-					double[] pointToFill = componentToFill.get(k);
-					
-					JsonNode point = polygonComponent.get(k);
-					for(int l = 0; l < point.size(); l++) {
-						//point.add(points.get(k).get(l).asDouble());
-						pointToFill[l] = point.get(l).asDouble();
-					}
-				}
-			}
-			
+			List<List<double[]>> coordinates = getCoordinatesForPolygon(geometryNode);
 			polygon.setCoordinates(coordinates);
 		}
 		else {
@@ -134,6 +143,9 @@ public class GeoJSONParser {
 			List<List<List<double []>>> coordinates = new ArrayList<>();
 			
 			for(int i = 0; i < coordinatesNode.size(); i++) {
+				coordinates.add(getCoordinatesForPolygon(coordinatesNode.get(i)));
+				
+				/*
 				coordinates.add(new ArrayList<List<double[]>>());
 				List<List<double []>> polygonToFill = coordinates.get(i);
 				
@@ -154,6 +166,7 @@ public class GeoJSONParser {
 						}
 					}
 				}
+				*/
 			}
 			
 			multiPolygon.setCoordinates(coordinates);
