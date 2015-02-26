@@ -1,5 +1,7 @@
 package dao;
 
+import java.util.List;
+
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
@@ -17,8 +19,17 @@ public class LocationTypeDao {
 		EntityManager em = JPA.em();
 		String q = "from LocationType where name='" + name + "'";
 		Query query = em.createQuery(q);
-		System.out.println(q);
 		LocationType result = (LocationType)query.getSingleResult();
+		return result;
+	}
+
+	public List<LocationType> finaAllBySuperTypeName(String stName) {
+		EntityManager em = JPA.em();
+		String q = "from LocationType where superType.name = '" + stName 
+				+"' order by name";
+		Query query = em.createQuery(q);
+		@SuppressWarnings("unchecked")
+		List<LocationType> result = (List<LocationType>)query.getResultList();
 		return result;
 	}
 }

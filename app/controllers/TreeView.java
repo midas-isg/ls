@@ -6,8 +6,10 @@ import interactors.LocationProxyRule;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import models.FancyTreeNode;
 import play.db.jpa.Transactional;
@@ -21,11 +23,15 @@ public class TreeView extends Controller {
 	private static boolean isHideCheckbox = false;
 
 	private static Status auTree = null;
+	private static Set<String> auTypes = null;
+
 	@Transactional
 	public synchronized static Result tree() {
 		if (auTree == null){
 			List<FancyTreeNode> tree = toFancyTree(LocationProxyRule.getHierarchy());
-			auTree = okJson(removeUncomposable(tree));
+			auTypes = null;
+			auTree = okJson(removeNonAu(tree));
+			auTypes = null;
 		}
 		return auTree;
 	}
@@ -93,20 +99,24 @@ public class TreeView extends Controller {
 		return data.getName() + variant; 
 	}
 
-	public static List<FancyTreeNode> removeUncomposable(List<FancyTreeNode> input){
+	public static List<FancyTreeNode> removeNonAu(List<FancyTreeNode> input){
 		if (input == null)
 			return null;
-		String TYPE_EZ = "Epidemic Zone";
-		String TYPE_PUMA = "PUMA";
+		if (auTypes == null){
+			auTypes = new HashSet<>();
+			auTypes.addAll(ListServices.Wire.getTypes("Administrative Unit"));
+		}
+		
 		Iterator<FancyTreeNode> iterator = input.iterator();
 		while (iterator.hasNext()) {
 			FancyTreeNode node = iterator.next();
-			if (node.type.equalsIgnoreCase(TYPE_EZ)){
-				iterator.remove();
-			} else 	if (node.type.equalsIgnoreCase(TYPE_PUMA)){
+			if (! auTypes.contains(node.type)){
 				iterator.remove();
 			} else {
-				removeUncomposable(node.children);
+				removeNonAu(node.children);
+				if (node.children.isEmpty()){
+					
+				}
 			}
 		}
 		return input;

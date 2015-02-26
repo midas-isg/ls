@@ -458,7 +458,7 @@ function formatGeoJSON(geoJSON, thisMapDriver) {
 		dateTokens = 3;
 	}
 	
-	if(dateTokens != 0) {
+	if(dateTokens > 2) {
 		startDate = toServerDate(new Date(startDate), dateTokens);
 	}
 	else {
@@ -473,8 +473,14 @@ function formatGeoJSON(geoJSON, thisMapDriver) {
 		dateTokens = 3;
 	}
 	
-	if(dateTokens != 0) {
+	if(dateTokens > 2) {
 		endDate = toServerDate(new Date(endDate), dateTokens);
+		
+		if((new Date(endDate)).valueOf() < (new Date(startDate)).valueOf()) {
+			alert("It is not possible for the end date to occur before the start date");
+			
+			return null;
+		}
 	}
 	else if(endDate.length > 0) {
 		alert("Invalid end date: " + endDate); //TODO: append month/year OR change back-end to accomodate dates without months & days

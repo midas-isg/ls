@@ -10,9 +10,11 @@ import interactors.GeoJSONParser;
 import interactors.GeoJsonRule;
 import interactors.KmlRule;
 import interactors.LocationRule;
+import interactors.LocationTypeRule;
 import interactors.XmlRule;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
@@ -38,8 +40,10 @@ import com.typesafe.config.ConfigFactory;
 
 import controllers.AdministrativeUnitServices;
 import controllers.ApolloLocationServices;
+import controllers.ListServices;
 import controllers.LocationServices;
 import dao.entities.Location;
+import dao.entities.LocationType;
 
 public class IntegrationTest {
 	private TestServer testServer = null; 
@@ -71,14 +75,33 @@ public class IntegrationTest {
         		EntityTransaction transaction = em.getTransaction();
 				transaction.begin();
 				transaction.setRollbackOnly();
+				
+				testLocationType_PumaComposedOfCensusTract();
+				testGetAuTypes();
 				tesCrudAu();
 				testApolloLocation();
 				tesCrudEz();
-        		transaction.rollback();
+        		
+				transaction.rollback();
             }
+
         });
     }
 
+	private void testLocationType_PumaComposedOfCensusTract() {
+		String pumaName = "PUMA";
+		LocationType puma = LocationTypeRule.findByName(pumaName);
+		assertThat(puma.getName()).isEqualToIgnoringCase(pumaName);
+		assertThat(puma.getComposedOf().getName()).isEqualToIgnoringCase("Census Tract");
+	}
+
+	private void testGetAuTypes() {
+		List<String> auTypes = ListServices.Wire.getTypes("Administrative Unit");
+		assertThat(auTypes).contains("Town", "Country");
+		assertThat(auTypes).doesNotHaveDuplicates();
+		assertThat(auTypes).excludes("PUMA", "Census Tract", "Epidemic Zone");
+	}
+	
 	private void testApolloLocation() throws Exception {
 		long gid = 3;
 		String xml = ApolloLocationServices.Wire.readAsXml(gid);
@@ -154,9 +177,13 @@ public class IntegrationTest {
 		assertThat(gid).isPositive();
 		assertRead(fc, gid);
 		
+		Map<String, Object> properties = fc.getProperties();
+		String name = "Upated " + properties.get("name").toString();
+		properties.put("name", name);
     	long updatedGid = LocationServices.Wire.update(gid, fc);
 		assertThat(updatedGid).isEqualTo(gid);
-		assertRead(fc, updatedGid);
+		Location updatedLocation = assertRead(fc, updatedGid);
+		assertThat(updatedLocation.getData().getName()).isEqualTo(name);
 		
 		Long deletedGid = LocationServices.Wire.delete(gid);
 		assertThat(deletedGid).isEqualTo(gid);
@@ -164,11 +191,12 @@ public class IntegrationTest {
 		assertThat(deletedLocation).isNull();
 	}
 
-	private void assertRead(FeatureCollection fc, long gid) {
+	private Location assertRead(FeatureCollection fc, long gid) {
 		Location readLocation = LocationRule.read(gid);
 		assertReadLocation(readLocation, fc, gid);
 		FeatureCollection readFc = LocationServices.Wire.read(gid);
 		assertReadFc(readFc, fc, gid);
+		return readLocation;
 	}
 
 	private void assertReadFc(FeatureCollection actual, FeatureCollection fc,
