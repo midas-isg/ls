@@ -1,6 +1,7 @@
 package interactors;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import play.Logger;
@@ -24,6 +25,7 @@ public class GeoInputRule {
 			FeatureGeometry geometry = feature.getGeometry();
 			
 			if(geometry.getType().equals("MultiPolygon")) {
+Logger.debug("Started");
 				models.geo.MultiPolygon multipolygon = (models.geo.MultiPolygon)geometry;
 				List<List<List<double[]>>> polygonCoordinatesCollection = multipolygon.getCoordinates();
 				int polygonCount = polygonCoordinatesCollection.size();
@@ -35,17 +37,15 @@ public class GeoInputRule {
 					polygonBody.setType("Polygon");
 					polygonFeature.setType("Polygon");
 					polygonFeature.setGeometry(polygonBody);
-					
+Logger.debug("j=" + j);
+				
 					Polygon polygon = toPolygon(fact, polygonFeature);
 					polygons.add(polygon);
 				}
+Logger.debug("whatever");
 			}
 			else if(geometry.getType().equals("Polygon")) {
-				Feature polygonFeature = new Feature();
-				polygonFeature.setType("Polygon");
-				polygonFeature.setGeometry(geometry);
-				
-				Polygon polygon = toPolygon(fact, polygonFeature);
+				Polygon polygon = toPolygon(fact, feature);
 				polygons.add(polygon);
 			}
 		}
@@ -67,9 +67,10 @@ public class GeoInputRule {
 		FeatureGeometry fg = feature.getGeometry();
 		String type = fg.getType();
 		List<Coordinate> coordinates = null;
-		
+Logger.debug("type is: " + type);
 		if(type.equals("MultiPolygon")) {
 			models.geo.MultiPolygon mp = (models.geo.MultiPolygon)fg;
+Logger.debug("MultiPolygon: " + mp.toString());
 			List<List<double[]>> p = mp.getCoordinates().get(0);
 			coordinates = new ArrayList<Coordinate>();
 			
@@ -84,6 +85,7 @@ public class GeoInputRule {
 					}
 				}
 			}
+			
 		}
 		else if(type.equals("Polygon")) {
 			models.geo.Polygon polygon = (models.geo.Polygon)fg;
@@ -95,11 +97,11 @@ public class GeoInputRule {
 				for(int j = 0; j < pointCollection.get(i).size(); j++) {
 					double [] point = pointCollection.get(i).get(j);
 					
-					coordinates.add(new Coordinate());
-					Coordinate coordinateToSet = coordinates.get(j);
+					Coordinate coordinateToSet = new Coordinate();
 					for(int k = 0; k < 2/*point.length*/; k++) {
 						coordinateToSet.setOrdinate(k, point[k]);
 					}
+					coordinates.add(coordinateToSet);
 				}
 			}
 		}

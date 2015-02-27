@@ -93,7 +93,12 @@ public class GeoJSONParser {
 	*/
 	
 	private static List<List<double []>> getCoordinatesForPolygon(JsonNode geometryNode) {
-		JsonNode coordinatesNode = geometryNode.withArray("coordinates");
+		JsonNode coordinatesNode = geometryNode.get("coordinates");
+		
+		if(coordinatesNode == null) {
+			coordinatesNode = geometryNode;
+		}
+		
 		List<List<double []>> coordinates = new ArrayList<List<double[]>>();
 		
 		for(int i = 0; i < coordinatesNode.size(); i++) {
@@ -108,6 +113,20 @@ public class GeoJSONParser {
 				
 				for(int k = 0; k < coordinateValues.size(); k++){
 					pointToFill[k] = coordinateValues.get(k).asDouble();
+				}
+				
+if((j < 2) || (j == polygonComponentNode.size() - 1)) {
+	//Logger.debug("[" + String.valueOf(pointToFill[0]) + ", " + String.valueOf(pointToFill[1]) + "]");
+}
+			}
+			
+			double [] firstPoint = componentToFill.get(0).clone();
+			double [] lastPoint = componentToFill.get(componentToFill.size() - 1);
+			for(int l = 0; l < firstPoint.length; l++) {
+				if(firstPoint[l] != lastPoint[l]) {
+					componentToFill.add(firstPoint);
+Logger.debug("~Appended first point~");
+					break;
 				}
 			}
 		}
@@ -135,7 +154,7 @@ public class GeoJSONParser {
 	}
 	
 	private static MultiPolygon parseMultiPolygon(JsonNode geometryNode) throws Exception {
-		JsonNode coordinatesNode = geometryNode.withArray("coordinates");
+		JsonNode coordinatesNode = geometryNode.get("coordinates");
 		MultiPolygon multiPolygon;
 		
 		if(geometryNode.get("type").textValue().equals(MultiPolygon.class.getSimpleName())) {

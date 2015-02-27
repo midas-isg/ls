@@ -543,17 +543,6 @@ function formatGeoJSON(geoJSON, thisMapDriver) {
 	properties["startDate"] = startDate;
 	properties["endDate"] = endDate;
 	
-	/*
-	//TODO: Remove conversion and expand accepted server types
-	for(i = 0; i < geoJSON.features.length; i++) {
-		geometry = geoJSON.features[i].geometry;
-		if(geometry.type == "Polygon") {
-			geometry.coordinates = [geometry.coordinates];
-			geometry.type = "MultiPolygon";
-		}
-	}
-	*/
-	
 	return geoJSON;
 }
 
