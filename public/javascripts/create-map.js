@@ -217,27 +217,7 @@ $(document).ready(function() {
 				}
 				
 				$("#new-button").click(function() {
-					$("#gid").prop("disabled", false);
-					thisMapDriver.featureLayer.clearLayers();
-					thisMapDriver.map.legendControl.removeLegend(thisMapDriver.title);
-					setTextValue("#gid", "");
-					setTextValue("#au-name", "");
-					setTextValue("#au-type", "");
-					setTextValue("#au-code", "");
-					setTextValue("#au-codetype", "");
-					setTextValue("#description", "");
-					
-					var today = new Date();
-					setTextValue("#start-date", today.getUTCFullYear() + "-" + (today.getUTCMonth() + 1) + "-" + today.getUTCDate());
-					setTextValue("#end-date", "");
-					$("#new-button").hide();
-					$("#update-button").hide();
-					$("#save-button").show();
-					PARENT_TREE.resetParent();
-					$("input#parent").val("");
-					$("input#parent").keyup();
-					
-					return;
+					return location.assign(context + "/create");
 				});
 				
 				$("#file-input").change(function() {
