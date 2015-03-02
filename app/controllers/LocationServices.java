@@ -41,6 +41,11 @@ public class LocationServices extends Controller {
 		}
 	}
 	
+	@Transactional
+	public static Result getGeometryMetadata(long gid, Double tolerance){
+		return ok(Json.toJson(LocationRule.getGeometryMetadata(gid, tolerance)));
+	}
+	
 	private static boolean IsFalsified(String text) {
 		return text == null || text.isEmpty();
 	}

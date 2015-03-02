@@ -30,6 +30,12 @@ public class GeometryRule {
 	public static LocationGeometry read(long gid, Class<LocationGeometry> geometryClass){
 		return new GeometryDao().read(gid, geometryClass);
 	}
+	
+	public static LocationGeometry read(long gid, Double tolerance){
+		if (tolerance == null)
+			return read(gid);
+		return new GeometryDao().read(gid, tolerance);
+	}
 
 	public static String readAsKml(Long gid) {
 		return new GeometryDao().readAsKml(gid);

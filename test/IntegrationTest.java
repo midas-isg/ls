@@ -5,6 +5,7 @@ import static play.test.Helpers.contentAsString;
 import static play.test.Helpers.contentType;
 import static play.test.Helpers.fakeApplication;
 import static play.test.Helpers.running;
+import static play.test.Helpers.status;
 import static play.test.Helpers.testServer;
 import interactors.GeoJSONParser;
 import interactors.GeoJsonRule;
@@ -27,6 +28,8 @@ import org.junit.Test;
 import play.Configuration;
 import play.db.jpa.JPA;
 import play.libs.F.Callback;
+import play.libs.Json;
+import play.mvc.Result;
 import play.test.TestBrowser;
 import play.test.TestServer;
 import play.twirl.api.Content;
@@ -71,13 +74,31 @@ public class IntegrationTest {
         		EntityTransaction transaction = em.getTransaction();
 				transaction.begin();
 				transaction.setRollbackOnly();
+				
+				testGeoMetadata();
 				tesCrudAu();
 				testApolloLocation();
 				tesCrudEz();
-        		transaction.rollback();
+				transaction.rollback();
             }
         });
     }
+
+	private void testGeoMetadata() {
+		Result result1 = LocationServices.getGeometryMetadata(11, null);
+		status(result1);
+		String content = contentAsString(result1);
+		JsonNode json = Json.parse(content);
+		assertThat(json.findValue("tolerance").isNull()).isTrue();
+		int nGeo1 = json.findValue("numGeometries").intValue();
+		
+		Result result2 = LocationServices.getGeometryMetadata(1, 0.5);
+		JsonNode json2 = Json.parse(contentAsString(result2));
+		assertThat(json2.findValue("tolerance").doubleValue()).isPositive();
+		int nGeo2 = json2.findValue("numGeometries").intValue();
+		assertThat(nGeo2).isPositive();
+		assertThat(nGeo2).isLessThan(nGeo1);
+	}
 
 	private void testApolloLocation() throws Exception {
 		long gid = 3;

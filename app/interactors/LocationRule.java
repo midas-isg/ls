@@ -2,7 +2,15 @@ package interactors;
 
 
 import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import play.Play;
+
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.LineString;
+import com.vividsolutions.jts.geom.Polygon;
 
 import dao.LocationDao;
 import dao.entities.CodeType;
@@ -56,18 +64,18 @@ public class LocationRule {
 	}
 	
 	public static Location read(long gid) {
-		return read(gid, LocationGeometry.class);
+		return read(gid, null);
 	}
 	
-	public static Location read(long gid, Class<LocationGeometry> geometry) {
+	public static Location read(long gid, Double tolerance) {
 		Location result = new LocationDao().read(gid);
 		if (result != null){
-			LocationGeometry geo = GeometryRule.read(gid, geometry);
+			LocationGeometry geo = GeometryRule.read(gid, tolerance);
 			result.setGeometry(geo);
 			List<Location> locations = result.getLocationsIncluded();
 			if (locations != null){
 				for (Location l : locations){
-					l.setGeometry(GeometryRule.read(l.getGid(), geometry));
+					l.setGeometry(GeometryRule.read(l.getGid(), tolerance));
 				}
 			}
 		}
@@ -109,5 +117,54 @@ public class LocationRule {
 		List<BigInteger> result = GeometryRule.findByPoint(latitude, longitude);
 		List<Location> locations = LocationProxyRule.getLocations(result);
 		return locations;
+	}
+
+	public static Object getGeometryMetadata(long gid, Double tolerance) {
+		Location location = read(gid, tolerance);
+		Geometry multiPolygon = location.getGeometry().getMultiPolygonGeom();
+		Map<String, Object> map = new HashMap<>();
+		String DB_NAME = "Database: " + Play.application().configuration().getString("db.default.url");
+		map.put("DB_NAME", DB_NAME);
+		int numGeometries = multiPolygon.getNumGeometries();
+		map.put("numGeometries", numGeometries);
+		int numCoordinates = multiPolygon.getCoordinates().length;
+		map.put("numCoordinates", numCoordinates);
+		int maxCoordinates = 0;
+		int sumHoles = 0;
+		int sumHolePoints = 0;
+		int sumShells = 0;
+		int sumShellPoints = 0;
+		int sumPoints = 0;
+		for (int i = 0; i < numGeometries; i++){
+			Geometry p = multiPolygon.getGeometryN(i);
+			int points = p.getCoordinates().length;
+			sumPoints += points;
+			if (maxCoordinates < points)
+				maxCoordinates = points;
+			if (p instanceof Polygon){
+				sumShells += 1;
+				Polygon polgon = (Polygon)p;
+				sumShellPoints += polgon.getExteriorRing().getNumPoints();
+				int numHoles = polgon.getNumInteriorRing();
+				sumHoles += numHoles;
+				for (int j = 0; j < numHoles; j++){
+					LineString hole = polgon.getInteriorRingN(j);
+					sumHolePoints += hole.getNumPoints(); 
+				}
+			}
+		}
+		map.put("numExteriorRings", sumShells);
+		map.put("maxCoordinatesIn1Geometry", maxCoordinates);
+		if (sumPoints != numCoordinates)
+			map.put("MISMATCH_sumCoordinates", sumPoints);
+		map.put("coordinatePerGeometry", sumPoints / numGeometries);
+		map.put("sumInteriorRings", sumHoles);
+		map.put("sumInteriorRingPoints", sumHolePoints);
+		map.put("tolerance", tolerance);
+		map.put("sumExteriorRingPoints", sumShellPoints);
+		int nPoints = sumHolePoints + sumShellPoints;
+		if (nPoints != numCoordinates)
+			map.put("MISMATCH_numHolePoints+numShellPoints", nPoints);
+		return map;
 	}
 }
