@@ -1,7 +1,6 @@
 package interactors;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import play.Logger;
@@ -12,6 +11,7 @@ import models.geo.FeatureGeometry;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.LinearRing;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
 
@@ -23,26 +23,29 @@ public class GeoInputRule {
 		
 		for(Feature feature :features) {
 			FeatureGeometry geometry = feature.getGeometry();
-			
+
 			if(geometry.getType().equals("MultiPolygon")) {
-Logger.debug("Started");
+//Logger.debug("============");
 				models.geo.MultiPolygon multipolygon = (models.geo.MultiPolygon)geometry;
-				List<List<List<double[]>>> polygonCoordinatesCollection = multipolygon.getCoordinates();
-				int polygonCount = polygonCoordinatesCollection.size();
+				List<List<List<double[]>>> multipolygonsCoordinatesList = multipolygon.getCoordinates();
+				int polygonCount = multipolygonsCoordinatesList.size();
+//Logger.debug("There exist/s " + polygonCount + " Polygon/s");
 				
 				for(int j = 0; j < polygonCount; j++) {
-					Feature polygonFeature = new Feature();
-					models.geo.Polygon polygonBody = new models.geo.Polygon();
-					polygonBody.setCoordinates(polygonCoordinatesCollection.get(j));
-					polygonBody.setType("Polygon");
-					polygonFeature.setType("Polygon");
-					polygonFeature.setGeometry(polygonBody);
-Logger.debug("j=" + j);
-				
-					Polygon polygon = toPolygon(fact, polygonFeature);
-					polygons.add(polygon);
+					List<List<double []>> polygonsCoordinatesList = multipolygonsCoordinatesList.get(j);
+//Logger.debug("There exist/s " + polygonsCoordinatesList.size() + " linear ring/s");
+						Feature polygonFeature = new Feature();
+						models.geo.Polygon polygonBody = new models.geo.Polygon();
+						
+						polygonBody.setCoordinates(polygonsCoordinatesList);
+						polygonBody.setType("Polygon");
+						polygonFeature.setType("Polygon");
+						polygonFeature.setGeometry(polygonBody);
+//Logger.debug("Polygon[" + j + "]");
+						Polygon polygon = toPolygon(fact, polygonFeature);
+						polygons.add(polygon);
 				}
-Logger.debug("whatever");
+//Logger.debug("============");
 			}
 			else if(geometry.getType().equals("Polygon")) {
 				Polygon polygon = toPolygon(fact, feature);
@@ -51,57 +54,65 @@ Logger.debug("whatever");
 		}
 		
 		Polygon [] polygonArray = polygons.toArray(new Polygon[polygons.size()]);
+//Logger.debug("p0=" + polygonArray[0].getDimension());
+//Logger.debug("\tx=" + polygonArray[0].getExteriorRing().getCoordinateN(0).x);
+//Logger.debug("\ty=" + polygonArray[0].getExteriorRing().getCoordinateN(0).y);
 		MultiPolygon mpg = new MultiPolygon(polygonArray, fact);
 		
 		return mpg;
 	}
 
 	private static Polygon toPolygon(GeometryFactory fact, Feature feature) {
-		Coordinate[] coordinates = toCoordinates(feature);
-		Polygon poly = fact.createPolygon(coordinates);
+		List<Coordinate[]> coordinates = toCoordinates(feature);
+		Polygon poly = null;
+		
+		try {
+				LinearRing shell = fact.createLinearRing(coordinates.get(0));
+				List<LinearRing> holes = new ArrayList<LinearRing>();
+				
+				for(int i = 1; i < coordinates.size(); i++) {
+					holes.add(fact.createLinearRing(coordinates.get(i)));
+//Logger.debug("Inner: " + holes.get(i - 1));
+				}
+				
+				poly = fact.createPolygon(shell, holes.toArray(new LinearRing[coordinates.size() - 1]));
+//Logger.debug("Stored outer: " + poly.getExteriorRing());
+//Logger.debug(poly.getNumInteriorRing() + " inner ring/s");
+		}
+		catch(IllegalArgumentException e) {
+			Logger.error("IllegalArgumentException: \n\t" + e.getLocalizedMessage() + "\n\t" + e.getMessage());
+		}
 		
 		return poly;
 	}
 
-	private static Coordinate[] toCoordinates(Feature feature) {
+	private static List<Coordinate[]> toCoordinates(Feature feature) {
 		FeatureGeometry fg = feature.getGeometry();
 		String type = fg.getType();
-		List<Coordinate> coordinates = null;
-Logger.debug("type is: " + type);
-		if(type.equals("MultiPolygon")) {
-			models.geo.MultiPolygon mp = (models.geo.MultiPolygon)fg;
-Logger.debug("MultiPolygon: " + mp.toString());
-			List<List<double[]>> p = mp.getCoordinates().get(0);
-			coordinates = new ArrayList<Coordinate>();
-			
-			for(List<double[]> line : p) {
-				for(int i = 0; i < line.size(); i++){
-					double[] point = line.get(i);
-					
-					coordinates.add(new Coordinate());
-					Coordinate coordinateToSet = coordinates.get(i);
-					for(int j = 0; j < point.length; j++) {
-						coordinateToSet.setOrdinate(j, point[j]);
-					}
-				}
-			}
-			
-		}
-		else if(type.equals("Polygon")) {
+		List<List<Coordinate>> coordinates = null;
+		
+//Logger.debug("type is: " + type);
+		if(type.equals("Polygon")) {
 			models.geo.Polygon polygon = (models.geo.Polygon)fg;
 			List<List<double[]>> pointCollection = polygon.getCoordinates();
-			int polygonComponentCount = pointCollection.size();
+			int polygonRingsCount = pointCollection.size();
 			
-			coordinates = new ArrayList<Coordinate>();
-			for(int i = 0; i < polygonComponentCount; i++) {
-				for(int j = 0; j < pointCollection.get(i).size(); j++) {
-					double [] point = pointCollection.get(i).get(j);
+			coordinates = new ArrayList<List<Coordinate>>();
+			for(int i = 0; i < polygonRingsCount; i++) {
+				List<double []> polygonComponent = pointCollection.get(i);
+				int pointsCount = polygonComponent.size();
+				
+				coordinates.add(new ArrayList<Coordinate>());
+				List<Coordinate> ringList = coordinates.get(i);
+				
+				for(int j = 0; j < pointsCount; j++) {
+					double point[] = polygonComponent.get(j);
 					
-					Coordinate coordinateToSet = new Coordinate();
-					for(int k = 0; k < 2/*point.length*/; k++) {
-						coordinateToSet.setOrdinate(k, point[k]);
+					Coordinate coordinateToAdd = new Coordinate();
+					for(int k = 0; k < point.length; k++) {
+						coordinateToAdd.setOrdinate(k, point[k]);
 					}
-					coordinates.add(coordinateToSet);
+					ringList.add(coordinateToAdd);
 				}
 			}
 		}
@@ -109,10 +120,19 @@ Logger.debug("MultiPolygon: " + mp.toString());
 			throw new RuntimeException(type + " Geometry is not supported.");
 		}
 		
-		Coordinate [] output = null;
+		List<Coordinate []> output = null;
 		
 		if(coordinates != null) {
-			output = coordinates.toArray(new Coordinate[coordinates.size()]);
+			output = new ArrayList<Coordinate[]>();
+			
+			for(int i = 0; i < coordinates.size(); i++) {
+				output.add(new Coordinate[coordinates.get(i).size()]);
+				
+				for(int j = 0; j < coordinates.get(i).size(); j++) {
+					output.get(i)[j] = coordinates.get(i).get(j);
+//Logger.debug("[" + i + "][" + j + "]: " + output.get(i)[j]);
+				}
+			}
 		}
 		
 		return output;
