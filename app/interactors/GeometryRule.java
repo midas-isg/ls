@@ -32,10 +32,10 @@ public class GeometryRule {
 		return new GeometryDao().read(gid, geometryClass);
 	}
 	
-	public static LocationGeometry readWithTolerance(long gid, Double tolerance){
+	public static LocationGeometry simplify(long gid, Double tolerance){
 		if (tolerance == null)
 			return read(gid);
-		return new GeometryDao().read(gid, tolerance);
+		return new GeometryDao().simplify(gid, tolerance);
 	}
 
 	public static String readAsKml(Long gid) {
@@ -71,10 +71,7 @@ public class GeometryRule {
 		return result;
 	}
 
-	public static Double findTolerance(long gid, Integer maxExteriorRings) {
-		if (maxExteriorRings == null)
-			return null;
-		
+	public static Double searchForTolerance(long gid, int maxExteriorRings) {
 		LocationGeometry geo = read(gid);
 		int n = getNumExteriorRings(geo);
 		if (n <= maxExteriorRings)
@@ -96,12 +93,11 @@ public class GeometryRule {
 				right = mid;
 			}
 		}
-		//Logger.info("not found tolerance resulting in maxExteriorRings="+maxExteriorRings);
 		return right;
 	}
 
 	private static int findNumExteriorRings(long gid, double mid) {
-		int n = new GeometryDao().find(gid, mid);
+		int n = new GeometryDao().numGeometriesAfterSimplified(gid, mid);
 		return n;
 	}
 

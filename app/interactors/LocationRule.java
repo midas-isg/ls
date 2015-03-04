@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import play.Logger;
 import play.Play;
 
 import com.vividsolutions.jts.geom.Geometry;
@@ -64,24 +65,28 @@ public class LocationRule {
 	}
 	
 	public static Location read(long gid) {
-		return read(gid, null);
+		return simplify(gid, null);
 	}
 	
-	public static Location readWithMax(long gid, Integer maxExteriorRings) {
-		Double t = GeometryRule.findTolerance(gid, maxExteriorRings);
-		System.out.println(t);
-		return read(gid, t);
+	public static Location simplifyToMaxExteriorRings(long gid, Integer maxExteriorRings) {
+		if (maxExteriorRings == null)
+			return read(gid);
+		
+		Double t = GeometryRule.searchForTolerance(gid, maxExteriorRings);
+		Logger.info("Found tolerance=" + t + " for GID=" + gid 
+				+ " and maxExteriorRings=" + maxExteriorRings);
+		return simplify(gid, t);
 	}
 	
-	public static Location read(long gid, Double tolerance) {
+	public static Location simplify(long gid, Double tolerance) {
 		Location result = new LocationDao().read(gid);
 		if (result != null){
-			LocationGeometry geo = GeometryRule.readWithTolerance(gid, tolerance);
+			LocationGeometry geo = GeometryRule.simplify(gid, tolerance);
 			result.setGeometry(geo);
 			List<Location> locations = result.getLocationsIncluded();
 			if (locations != null){
 				for (Location l : locations){
-					l.setGeometry(GeometryRule.readWithTolerance(l.getGid(), tolerance));
+					l.setGeometry(GeometryRule.simplify(l.getGid(), tolerance));
 				}
 			}
 		}
@@ -124,8 +129,8 @@ public class LocationRule {
 		return locations;
 	}
 
-	public static Object getGeometryMetadata(long gid, Double tolerance) {
-		Location location = read(gid, tolerance);
+	public static Object getSimplifiedGeometryMetadata(long gid, Double tolerance) {
+		Location location = simplify(gid, tolerance);
 		Geometry multiPolygon = location.getGeometry().getMultiPolygonGeom();
 		Map<String, Object> map = new HashMap<>();
 		String DB_NAME = "Database: " + Play.application().configuration().getString("db.default.url");

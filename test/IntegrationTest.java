@@ -21,6 +21,7 @@ import javax.persistence.EntityTransaction;
 
 import models.geo.FeatureCollection;
 
+import org.fest.assertions.StringAssert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -45,6 +46,7 @@ import controllers.LocationServices;
 import dao.entities.Location;
 
 public class IntegrationTest {
+	private static String context = "http://localhost:3333/ls";
 	private TestServer testServer = null; 
 	private static Map<String, Object> additionalConfiguration = null;
 
@@ -75,39 +77,61 @@ public class IntegrationTest {
 				transaction.begin();
 				transaction.setRollbackOnly();
 				
-				testMaxExteriorRings();
-				testGeoMetadata();
+				testMaxExteriorRings(browser);
+				testGeoMetadata(browser);
 				tesCrudAu();
 				testApolloLocation();
 				tesCrudEz();
+				
 				transaction.rollback();
             }
         });
     }
 
-	private void testMaxExteriorRings() {
-		Location location = LocationRule.readWithMax(11, null);
+	
+	private void testMaxExteriorRings(TestBrowser browser) {
+		long gid = 11;
+		
+		Location location = LocationRule.simplifyToMaxExteriorRings(gid, null);
 		int n = getNumExteriorRings(location);
 		assertThat(n).isEqualTo(80);
 		
-		Location location1 = LocationRule.readWithMax(11, 100);
+		Location location1 = LocationRule.simplifyToMaxExteriorRings(gid, 100);
 		assertThat(location1).isEqualTo(location);
 		
-		assertMaxExteriorRings(11, 78);
-		assertMaxExteriorRings(11, 2);
-		assertMaxExteriorRings(11, 1);
+		int maxExteriorRings = 78;
+		int expectedN = assertMaxExteriorRings(gid, maxExteriorRings);
+		assertMaxExteriorRings(gid, 2);
+		assertMaxExteriorRings(gid, 1);
+		
+		String template = context+"/api/locations/%d.xml?maxExteriorRings=";
+		String url = String.format(template, gid) + maxExteriorRings;
+		String xml = browser.goTo(url).pageSource();
+		assertXmlWithNumberOfTag(xml, expectedN);
 	}
 
-	private void assertMaxExteriorRings(long gid, int max) {
-		Location location = LocationRule.readWithMax(gid, max);
-		assertThat(getNumExteriorRings(location)).isLessThanOrEqualTo(max);
+	private void assertXmlWithNumberOfTag(String xml, int expectedN) {
+		String tag = "<linearRing>";
+		String description = "the number of occurrences of '" + tag +"'";
+		assertThat(count(xml, tag)).as(description).isEqualTo(expectedN);
+	}
+
+	private int count(String xml, String tag) {
+		return xml.split(tag, -1).length-1;
+	}
+
+	private int assertMaxExteriorRings(long gid, int max) {
+		Location location = LocationRule.simplifyToMaxExteriorRings(gid, max);
+		int n = getNumExteriorRings(location);
+		assertThat(n).isLessThanOrEqualTo(max);
+		return n;
 	}
 
 	private int getNumExteriorRings(Location location) {
 		return location.getGeometry().getMultiPolygonGeom().getNumGeometries();
 	}
 
-	private void testGeoMetadata() {
+	private void testGeoMetadata(TestBrowser browser) {
 		Result result1 = LocationServices.getGeometryMetadata(11, null);
 		status(result1);
 		String content = contentAsString(result1);
@@ -121,11 +145,25 @@ public class IntegrationTest {
 		int nGeo2 = json2.findValue("numGeometries").intValue();
 		assertThat(nGeo2).isPositive();
 		assertThat(nGeo2).isLessThan(nGeo1);
+		
+		double t = 0.001234567;
+		String template = context+"/api/geometry-metadata/%d?tolerance=";
+		String url = String.format(template, 1) + t;
+		String jsonText = browser.goTo(url).pageSource();
+		assertTolerance(jsonText, t);
+	}
+
+	private void assertTolerance(String json, double expectedT) {
+		String expected = "\"tolerance\":" + expectedT;
+		StringAssert assertThat = assertThat(json);
+		assertThat.contains(expected);
+		assertThat.contains("\"numGeometries\":6,");
 	}
 
 	private void testApolloLocation() throws Exception {
 		long gid = 3;
-		String xml = ApolloLocationServices.Wire.readAsXml(gid, null);
+		Location location = LocationRule.read(gid);
+		String xml = ApolloLocationServices.Wire.asXml(location);
 		edu.pitt.apollo.types.v3_0_0.Location l = deserializeLocation(xml);
 		assertThat(l.getApolloLocationCode()).isEqualTo("" + gid);
 		
@@ -154,7 +192,7 @@ public class IntegrationTest {
     public void testBrowser() {
 		running(testServer, HTMLUNIT, new Callback<TestBrowser>() {
             public void invoke(TestBrowser browser) {
-        		browser.goTo("http://localhost:3333/ls");
+        		browser.goTo(context);
                 String expected = "apollo location services";
 				assertThat(browser.pageSource()).contains(expected);
                 renderTemplate();
@@ -211,7 +249,7 @@ public class IntegrationTest {
 	private void assertRead(FeatureCollection fc, long gid) {
 		Location readLocation = LocationRule.read(gid);
 		assertReadLocation(readLocation, fc, gid);
-		FeatureCollection readFc = LocationServices.Wire.read(gid);
+		FeatureCollection readFc = LocationServices.Wire.asFeatureCollection(readLocation);
 		assertReadFc(readFc, fc, gid);
 	}
 

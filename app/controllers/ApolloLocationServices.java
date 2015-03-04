@@ -1,7 +1,6 @@
 package controllers;
 
 import interactors.ApolloLocationRule;
-import interactors.LocationRule;
 import interactors.XmlRule;
 import play.db.jpa.Transactional;
 import play.libs.Json;
@@ -12,20 +11,17 @@ import dao.entities.Location;
 public class ApolloLocationServices  extends Controller {
 	
 	@Transactional
-	public static Result locationsInJson(String gid){
-		Location location = LocationRule.read(Long.parseLong(gid));
+	static Result asJson(Location location){
 		return okJson(ApolloLocationRule.asApolloLocation(location));
 	}
 	
 	@Transactional
-	public static Result locationsInXml(String gidText, Integer maxExteriorRings){
-		long gid = Long.parseLong(gidText);
-		return okAsXml(Wire.readAsXml(gid, maxExteriorRings));
+	static Result asXml(Location location){
+		return okAsXml(Wire.asXml(location));
 	}
 
 	public static class Wire { 
-		public static String readAsXml(long gid, Integer maxExteriorRings) {
-			Location location = LocationRule.readWithMax(gid, maxExteriorRings);
+		public static String asXml(Location location) {
 			Object al = ApolloLocationRule.asApolloLocation(location);
 			return toXml(al);
 		}

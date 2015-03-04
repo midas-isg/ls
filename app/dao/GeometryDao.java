@@ -27,7 +27,7 @@ public class GeometryDao {
 		return em.find(geometryClass, gid);
 	}		
 
-	public LocationGeometry read(long gid, Double tolerance) {
+	public LocationGeometry simplify(long gid, Double tolerance) {
 		EntityManager em = JPA.em();
 		//@formatter:off
 		String q = "select 0 as clazz_, 0 as gid, area, update_date, "
@@ -79,7 +79,7 @@ public class GeometryDao {
 		return result;
 	}
 	
-	public int find(long gid, Double tolerance) {
+	public int numGeometriesAfterSimplified(long gid, Double tolerance) {
 		EntityManager em = JPA.em();
 		//@formatter:off
 		String q = "select ST_numGeometries(ST_Simplify(multipolygon,?2)) "
