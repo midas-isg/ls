@@ -109,7 +109,7 @@ public class GeoInputRule {
 					double point[] = polygonComponent.get(j);
 					
 					Coordinate coordinateToAdd = new Coordinate();
-					for(int k = 0; k < point.length; k++) {
+					for(int k = 0; k < 2/*point.length*/; k++) {
 						coordinateToAdd.setOrdinate(k, point[k]);
 					}
 					ringList.add(coordinateToAdd);
