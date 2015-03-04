@@ -18,14 +18,14 @@ public class ApolloLocationServices  extends Controller {
 	}
 	
 	@Transactional
-	public static Result locationsInXml(String gidText){
+	public static Result locationsInXml(String gidText, Integer maxExteriorRings){
 		long gid = Long.parseLong(gidText);
-		return okAsXml(Wire.readAsXml(gid));
+		return okAsXml(Wire.readAsXml(gid, maxExteriorRings));
 	}
 
 	public static class Wire { 
-		public static String readAsXml(long gid) {
-			Location location = LocationRule.read(gid);
+		public static String readAsXml(long gid, Integer maxExteriorRings) {
+			Location location = LocationRule.readWithMax(gid, maxExteriorRings);
 			Object al = ApolloLocationRule.asApolloLocation(location);
 			return toXml(al);
 		}

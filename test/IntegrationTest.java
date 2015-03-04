@@ -75,6 +75,7 @@ public class IntegrationTest {
 				transaction.begin();
 				transaction.setRollbackOnly();
 				
+				testMaxExteriorRings();
 				testGeoMetadata();
 				tesCrudAu();
 				testApolloLocation();
@@ -83,6 +84,28 @@ public class IntegrationTest {
             }
         });
     }
+
+	private void testMaxExteriorRings() {
+		Location location = LocationRule.readWithMax(11, null);
+		int n = getNumExteriorRings(location);
+		assertThat(n).isEqualTo(80);
+		
+		Location location1 = LocationRule.readWithMax(11, 100);
+		assertThat(location1).isEqualTo(location);
+		
+		assertMaxExteriorRings(11, 78);
+		assertMaxExteriorRings(11, 2);
+		assertMaxExteriorRings(11, 1);
+	}
+
+	private void assertMaxExteriorRings(long gid, int max) {
+		Location location = LocationRule.readWithMax(gid, max);
+		assertThat(getNumExteriorRings(location)).isLessThanOrEqualTo(max);
+	}
+
+	private int getNumExteriorRings(Location location) {
+		return location.getGeometry().getMultiPolygonGeom().getNumGeometries();
+	}
 
 	private void testGeoMetadata() {
 		Result result1 = LocationServices.getGeometryMetadata(11, null);
@@ -102,7 +125,7 @@ public class IntegrationTest {
 
 	private void testApolloLocation() throws Exception {
 		long gid = 3;
-		String xml = ApolloLocationServices.Wire.readAsXml(gid);
+		String xml = ApolloLocationServices.Wire.readAsXml(gid, null);
 		edu.pitt.apollo.types.v3_0_0.Location l = deserializeLocation(xml);
 		assertThat(l.getApolloLocationCode()).isEqualTo("" + gid);
 		

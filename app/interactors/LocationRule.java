@@ -67,19 +67,24 @@ public class LocationRule {
 		return read(gid, null);
 	}
 	
+	public static Location readWithMax(long gid, Integer maxExteriorRings) {
+		Double t = GeometryRule.findTolerance(gid, maxExteriorRings);
+		System.out.println(t);
+		return read(gid, t);
+	}
+	
 	public static Location read(long gid, Double tolerance) {
 		Location result = new LocationDao().read(gid);
 		if (result != null){
-			LocationGeometry geo = GeometryRule.read(gid, tolerance);
+			LocationGeometry geo = GeometryRule.readWithTolerance(gid, tolerance);
 			result.setGeometry(geo);
 			List<Location> locations = result.getLocationsIncluded();
 			if (locations != null){
 				for (Location l : locations){
-					l.setGeometry(GeometryRule.read(l.getGid(), tolerance));
+					l.setGeometry(GeometryRule.readWithTolerance(l.getGid(), tolerance));
 				}
 			}
 		}
-
 		return result;
 	}
 	

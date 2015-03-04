@@ -20,7 +20,7 @@ public class LocationServices extends Controller {
 	private static final String FORMAT_DEFAULT = "geojson";
 	
 	@Transactional
-	public static Result locations(Long gid, String format){
+	public static Result locations(Long gid, String format, Integer maxExteriorRings){
 		if (gid == null)
 			return notFound("gid is required but got " + gid);
 		
@@ -33,7 +33,7 @@ public class LocationServices extends Controller {
 		case FORMAT_APOLLOJSON:
 			return ApolloLocationServices.locationsInJson(gid +"");
 		case FORMAT_APOLLOXML:
-			return ApolloLocationServices.locationsInXml(gid +"");
+			return ApolloLocationServices.locationsInXml(gid +"", maxExteriorRings);
 		case FORMAT_KML:
 			return asKml(gid); 
 		default:
