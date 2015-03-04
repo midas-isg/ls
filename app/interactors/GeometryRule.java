@@ -77,7 +77,7 @@ public class GeometryRule {
 		
 		LocationGeometry geo = read(gid);
 		int n = getNumExteriorRings(geo);
-		if (n < maxExteriorRings)
+		if (n <= maxExteriorRings)
 			return null;
 		double left = 0.0;
 		double right = 20.0;
