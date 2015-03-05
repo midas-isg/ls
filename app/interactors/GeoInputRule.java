@@ -23,33 +23,36 @@ public class GeoInputRule {
 		
 		for(Feature feature :features) {
 			FeatureGeometry geometry = feature.getGeometry();
-
-			if(geometry.getType().equals("MultiPolygon")) {
-//Logger.debug("============");
-				models.geo.MultiPolygon multipolygon = (models.geo.MultiPolygon)geometry;
-				List<List<List<double[]>>> multipolygonsCoordinatesList = multipolygon.getCoordinates();
-				int polygonCount = multipolygonsCoordinatesList.size();
-//Logger.debug("There exist/s " + polygonCount + " Polygon/s");
+			
+			if(geometry.getType().equals("GeometryCollection")) {
+				List<FeatureGeometry> subGeometries = ((models.geo.GeometryCollection)geometry).getGeometries();
 				
-				for(int j = 0; j < polygonCount; j++) {
-					List<List<double []>> polygonsCoordinatesList = multipolygonsCoordinatesList.get(j);
-//Logger.debug("There exist/s " + polygonsCoordinatesList.size() + " linear ring/s");
-						Feature polygonFeature = new Feature();
-						models.geo.Polygon polygonBody = new models.geo.Polygon();
+				for(FeatureGeometry subGeometry : subGeometries) {
+					Feature geometryFeature = new Feature();
+					String type = subGeometry.getType();
+					
+					switch(type) {
+						case "MultiPolygon":
+							models.geo.MultiPolygon multipolygonBody = (models.geo.MultiPolygon)subGeometry;
+							geometryFeature.setType(type);
+							geometryFeature.setGeometry(multipolygonBody);
+						break;
 						
-						polygonBody.setCoordinates(polygonsCoordinatesList);
-						polygonBody.setType("Polygon");
-						polygonFeature.setType("Polygon");
-						polygonFeature.setGeometry(polygonBody);
-//Logger.debug("Polygon[" + j + "]");
-						Polygon polygon = toPolygon(fact, polygonFeature);
-						polygons.add(polygon);
+						case "Polygon":
+							models.geo.Polygon polygonBody = (models.geo.Polygon)subGeometry;
+							geometryFeature.setType(type);
+							geometryFeature.setGeometry(polygonBody);
+						break;
+						
+						default:
+						break;
+					}
+					
+					processGeometryTypes(fact, polygons, geometryFeature, subGeometry);
 				}
-//Logger.debug("============");
 			}
-			else if(geometry.getType().equals("Polygon")) {
-				Polygon polygon = toPolygon(fact, feature);
-				polygons.add(polygon);
+			else{
+				processGeometryTypes(fact, polygons, feature, geometry);
 			}
 		}
 		
@@ -60,6 +63,43 @@ public class GeoInputRule {
 		MultiPolygon mpg = new MultiPolygon(polygonArray, fact);
 		
 		return mpg;
+	}
+
+	public static void processGeometryTypes(GeometryFactory fact,
+			List<Polygon> polygons, Feature feature, FeatureGeometry geometry) {
+		if(geometry.getType().equals("MultiPolygon")) {
+//Logger.debug("============");
+			models.geo.MultiPolygon multipolygon = (models.geo.MultiPolygon)geometry;
+			List<List<List<double[]>>> multipolygonsCoordinatesList = multipolygon.getCoordinates();
+			int polygonCount = multipolygonsCoordinatesList.size();
+//Logger.debug("There exist/s " + polygonCount + " Polygon/s");
+			
+			for(int j = 0; j < polygonCount; j++) {
+				List<List<double []>> polygonsCoordinatesList = multipolygonsCoordinatesList.get(j);
+//Logger.debug("There exist/s " + polygonsCoordinatesList.size() + " linear ring/s");
+					Feature polygonFeature = new Feature();
+					models.geo.Polygon polygonBody = new models.geo.Polygon();
+					
+					polygonBody.setCoordinates(polygonsCoordinatesList);
+					polygonBody.setType("Polygon");
+					polygonFeature.setType("Polygon");
+					polygonFeature.setGeometry(polygonBody);
+//Logger.debug("Polygon[" + j + "]");
+					Polygon polygon = toPolygon(fact, polygonFeature);
+					polygons.add(polygon);
+			}
+//Logger.debug("============");
+		}
+		else if(geometry.getType().equals("Polygon")) {
+			Polygon polygon = toPolygon(fact, feature);
+			polygons.add(polygon);
+		}
+		else /*if(geometry.getType() is not supported)*/ {
+			Logger.error("ERROR: Malformed GeoJSON");
+			Logger.error(geometry.getType() + " is not supported at Geometry level.");
+		}
+		
+		return;
 	}
 
 	private static Polygon toPolygon(GeometryFactory fact, Feature feature) {

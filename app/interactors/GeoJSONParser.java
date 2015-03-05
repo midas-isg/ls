@@ -11,6 +11,7 @@ import play.Logger;
 import models.geo.Feature;
 import models.geo.FeatureCollection;
 import models.geo.FeatureGeometry;
+import models.geo.GeometryCollection;
 import models.geo.MultiPolygon;
 import models.geo.Polygon;
 
@@ -50,6 +51,10 @@ public class GeoJSONParser {
 					
 					case "Polygon":
 						geometry = parsePolygon(currentNode.get("geometry"));
+					break;
+					
+					case "GeometryCollection":
+						geometry = parseGeometryCollection(currentNode.get("geometry"));
 					break;
 					
 					case "Point":
@@ -115,9 +120,9 @@ public class GeoJSONParser {
 					pointToFill[k] = coordinateValues.get(k).asDouble();
 				}
 				
-if((j < 2) || (j == polygonComponentNode.size() - 1)) {
-	//Logger.debug("[" + String.valueOf(pointToFill[0]) + ", " + String.valueOf(pointToFill[1]) + "]");
-}
+//if((j < 2) || (j == polygonComponentNode.size() - 1)) {
+//	Logger.debug("[" + String.valueOf(pointToFill[0]) + ", " + String.valueOf(pointToFill[1]) + "]");
+//}
 			}
 			
 			double [] firstPoint = componentToFill.get(0).clone();
@@ -163,29 +168,6 @@ Logger.debug("~Appended first point~");
 			
 			for(int i = 0; i < coordinatesNode.size(); i++) {
 				coordinates.add(getCoordinatesForPolygon(coordinatesNode.get(i)));
-				
-				/*
-				coordinates.add(new ArrayList<List<double[]>>());
-				List<List<double []>> polygonToFill = coordinates.get(i);
-				
-				JsonNode polygon = coordinatesNode.get(i);
-				for(int j = 0; j < polygon.size(); j++) {
-					polygonToFill.add(new ArrayList<double[]>());
-					List<double []> componentToFill = polygonToFill.get(j);
-					
-					JsonNode polygonComponent = polygon.get(j);
-					for(int k = 0; k < polygonComponent.size(); k++){
-						componentToFill.add(new double[polygonComponent.get(k).size()]);
-						double[] pointToFill = componentToFill.get(k);
-						
-						JsonNode point = polygonComponent.get(k);
-						for(int l = 0; l < point.size(); l++) {
-							//point.add(points.get(k).get(l).asDouble());
-							pointToFill[l] = point.get(l).asDouble();
-						}
-					}
-				}
-				*/
 			}
 			
 			multiPolygon.setCoordinates(coordinates);
@@ -195,5 +177,46 @@ Logger.debug("~Appended first point~");
 		}
 		
 		return multiPolygon;
+	}
+	
+	private static GeometryCollection parseGeometryCollection(JsonNode geometryNode) throws Exception {
+		GeometryCollection geometryCollection;
+		
+		if(geometryNode.get("type").textValue().equals(GeometryCollection.class.getSimpleName())) {
+			geometryCollection = new GeometryCollection();
+			List<FeatureGeometry> geometries = new ArrayList<FeatureGeometry>();
+			JsonNode geometriesNode = geometryNode.get("geometries");
+/*
+Logger.debug("GeometryCollection fields: ");
+Iterator<String> fields = geometryNode.fieldNames();
+while(fields.hasNext()) {
+	Logger.debug("\t" + fields.next());
+}
+*/
+			int geometryCount = geometriesNode.size();
+			for(int i = 0; i < geometryCount; i++) {
+				JsonNode geometryToAdd = geometriesNode.get(i);
+				String type = geometryToAdd.get("type").asText();
+				
+				switch(type) {
+					case "MultiPolygon":
+						MultiPolygon multipolygon = parseMultiPolygon(geometryToAdd);
+						geometries.add(multipolygon);
+					break;
+					
+					case "Polygon":
+						Polygon polygon = parsePolygon(geometryToAdd);;
+						geometries.add(polygon);
+					break;
+				}
+			}
+			
+			geometryCollection.setGeometries(geometries);
+		}
+		else {
+			throw new Exception("Not Polygon");
+		}
+		
+		return geometryCollection;
 	}
 }
