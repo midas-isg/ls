@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import play.Logger;
 import dao.GeometryDao;
 import dao.entities.LocationGeometry;
 import dao.entities.LocationLowResolutionGeometry;
@@ -29,6 +30,12 @@ public class GeometryRule {
 
 	public static LocationGeometry read(long gid, Class<LocationGeometry> geometryClass){
 		return new GeometryDao().read(gid, geometryClass);
+	}
+	
+	public static LocationGeometry simplify(long gid, Double tolerance){
+		if (tolerance == null)
+			return read(gid);
+		return new GeometryDao().simplify(gid, tolerance);
 	}
 
 	public static String readAsKml(Long gid) {
@@ -64,5 +71,38 @@ public class GeometryRule {
 		return result;
 	}
 
+	public static Double searchForTolerance(long gid, int maxExteriorRings) {
+		LocationGeometry geo = read(gid);
+		int n = getNumExteriorRings(geo);
+		if (n <= maxExteriorRings)
+			return null;
+		double left = 0.0;
+		double right = 20.0;
+		double mid = left;
+		for (int i = 0; i < 20; i++){
+			mid = (left + right) / 2;
+			n = findNumExteriorRings(gid, mid);
+			Logger.debug(n + ": tolerance=" + mid);
+			/*if (n == maxExteriorRings)
+				return mid;
+			else*/ if (n > maxExteriorRings){
+				Logger.debug("\tleft=" + left + "<=" + mid);
+				left =  mid;
+			} else {
+				Logger.debug("\tright=" + right + "<=" + mid);
+				right = mid;
+			}
+		}
+		return right;
+	}
 
+	private static int findNumExteriorRings(long gid, double mid) {
+		int n = new GeometryDao().numGeometriesAfterSimplified(gid, mid);
+		return n;
+	}
+
+	private static int getNumExteriorRings(LocationGeometry geo) {
+		int n = geo.getMultiPolygonGeom().getNumGeometries();
+		return n;
+	}
 }
