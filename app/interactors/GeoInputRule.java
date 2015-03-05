@@ -34,19 +34,18 @@ public class GeoInputRule {
 					switch(type) {
 						case "MultiPolygon":
 							models.geo.MultiPolygon multipolygonBody = (models.geo.MultiPolygon)subGeometry;
-							geometryFeature.setType(type);
 							geometryFeature.setGeometry(multipolygonBody);
 						break;
 						
 						case "Polygon":
 							models.geo.Polygon polygonBody = (models.geo.Polygon)subGeometry;
-							geometryFeature.setType(type);
 							geometryFeature.setGeometry(polygonBody);
 						break;
 						
 						default:
 						break;
 					}
+					geometryFeature.setType(type);
 					
 					processGeometryTypes(fact, polygons, geometryFeature, subGeometry);
 				}
