@@ -7,9 +7,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import play.Logger;
 import models.geo.Feature;
 import models.geo.FeatureCollection;
 import models.geo.FeatureGeometry;
+import models.geo.GeometryCollection;
 import models.geo.MultiPolygon;
 import models.geo.Polygon;
 
@@ -50,6 +52,11 @@ public class GeoJSONParser {
 					case "Polygon":
 						geometry = parsePolygon(currentNode.get("geometry"));
 					break;
+					
+					case "GeometryCollection":
+						geometry = parseGeometryCollection(currentNode.get("geometry"));
+					break;
+					
 					case "Point":
 					case "MultiLine":
 					default:
@@ -90,32 +97,58 @@ public class GeoJSONParser {
 	}
 	*/
 	
+	private static List<List<double []>> getCoordinatesForPolygon(JsonNode geometryNode) {
+		JsonNode coordinatesNode = geometryNode.get("coordinates");
+		
+		if(coordinatesNode == null) {
+			coordinatesNode = geometryNode;
+		}
+		
+		List<List<double []>> coordinates = new ArrayList<List<double[]>>();
+		
+		for(int i = 0; i < coordinatesNode.size(); i++) {
+			coordinates.add(new ArrayList<double[]>());
+			List<double []> componentToFill = coordinates.get(i);
+			
+			JsonNode polygonComponentNode = coordinatesNode.get(i);
+			for(int j = 0; j < polygonComponentNode.size(); j++) {
+				JsonNode coordinateValues = polygonComponentNode.get(j);
+				componentToFill.add(new double[coordinateValues.size()]);
+				double[] pointToFill = componentToFill.get(j);
+				
+				for(int k = 0; k < coordinateValues.size(); k++){
+					pointToFill[k] = coordinateValues.get(k).asDouble();
+				}
+				
+//if((j < 2) || (j == polygonComponentNode.size() - 1)) {
+//	Logger.debug("[" + String.valueOf(pointToFill[0]) + ", " + String.valueOf(pointToFill[1]) + "]");
+//}
+			}
+			
+			double [] firstPoint = componentToFill.get(0).clone();
+			double [] lastPoint = componentToFill.get(componentToFill.size() - 1);
+			for(int l = 0; l < firstPoint.length; l++) {
+				if(firstPoint[l] != lastPoint[l]) {
+					componentToFill.add(firstPoint);
+Logger.debug("~Appended first point~");
+					break;
+				}
+			}
+		}
+		
+//Logger.debug("coordinates size: " + coordinates.size());
+//Logger.debug("coordinates[0] size: " + coordinates.get(0).size());
+//Logger.debug("coordinates[0][0] length: " + coordinates.get(0).get(0).length);
+		
+		return coordinates;
+	}
+	
 	private static Polygon parsePolygon(JsonNode geometryNode) throws Exception {
-		JsonNode coordinatesNode = geometryNode.withArray("coordinates");
 		Polygon polygon;
 		
 		if(geometryNode.get("type").textValue().equals(Polygon.class.getSimpleName())) {
 			polygon = new Polygon();
-			List<List<double []>> coordinates = new ArrayList<>();
-			
-			JsonNode polygonNode = coordinatesNode.get(0);
-			for(int j = 0; j < polygonNode.size(); j++) {
-				coordinates.add(new ArrayList<double[]>());
-				List<double []> componentToFill = coordinates.get(j);
-				
-				JsonNode polygonComponent = polygonNode.get(j);
-				for(int k = 0; k < polygonComponent.size(); k++){
-					componentToFill.add(new double[polygonComponent.get(k).size()]);
-					double[] pointToFill = componentToFill.get(k);
-					
-					JsonNode point = polygonComponent.get(k);
-					for(int l = 0; l < point.size(); l++) {
-						//point.add(points.get(k).get(l).asDouble());
-						pointToFill[l] = point.get(l).asDouble();
-					}
-				}
-			}
-			
+			List<List<double[]>> coordinates = getCoordinatesForPolygon(geometryNode);
 			polygon.setCoordinates(coordinates);
 		}
 		else {
@@ -126,7 +159,7 @@ public class GeoJSONParser {
 	}
 	
 	private static MultiPolygon parseMultiPolygon(JsonNode geometryNode) throws Exception {
-		JsonNode coordinatesNode = geometryNode.withArray("coordinates");
+		JsonNode coordinatesNode = geometryNode.get("coordinates");
 		MultiPolygon multiPolygon;
 		
 		if(geometryNode.get("type").textValue().equals(MultiPolygon.class.getSimpleName())) {
@@ -134,26 +167,7 @@ public class GeoJSONParser {
 			List<List<List<double []>>> coordinates = new ArrayList<>();
 			
 			for(int i = 0; i < coordinatesNode.size(); i++) {
-				coordinates.add(new ArrayList<List<double[]>>());
-				List<List<double []>> polygonToFill = coordinates.get(i);
-				
-				JsonNode polygon = coordinatesNode.get(i);
-				for(int j = 0; j < polygon.size(); j++) {
-					polygonToFill.add(new ArrayList<double[]>());
-					List<double []> componentToFill = polygonToFill.get(j);
-					
-					JsonNode polygonComponent = polygon.get(j);
-					for(int k = 0; k < polygonComponent.size(); k++){
-						componentToFill.add(new double[polygonComponent.get(k).size()]);
-						double[] pointToFill = componentToFill.get(k);
-						
-						JsonNode point = polygonComponent.get(k);
-						for(int l = 0; l < point.size(); l++) {
-							//point.add(points.get(k).get(l).asDouble());
-							pointToFill[l] = point.get(l).asDouble();
-						}
-					}
-				}
+				coordinates.add(getCoordinatesForPolygon(coordinatesNode.get(i)));
 			}
 			
 			multiPolygon.setCoordinates(coordinates);
@@ -163,5 +177,46 @@ public class GeoJSONParser {
 		}
 		
 		return multiPolygon;
+	}
+	
+	private static GeometryCollection parseGeometryCollection(JsonNode geometryNode) throws Exception {
+		GeometryCollection geometryCollection;
+		
+		if(geometryNode.get("type").textValue().equals(GeometryCollection.class.getSimpleName())) {
+			geometryCollection = new GeometryCollection();
+			List<FeatureGeometry> geometries = new ArrayList<FeatureGeometry>();
+			JsonNode geometriesNode = geometryNode.get("geometries");
+/*
+Logger.debug("GeometryCollection fields: ");
+Iterator<String> fields = geometryNode.fieldNames();
+while(fields.hasNext()) {
+	Logger.debug("\t" + fields.next());
+}
+*/
+			int geometryCount = geometriesNode.size();
+			for(int i = 0; i < geometryCount; i++) {
+				JsonNode geometryToAdd = geometriesNode.get(i);
+				String type = geometryToAdd.get("type").asText();
+				
+				switch(type) {
+					case "MultiPolygon":
+						MultiPolygon multipolygon = parseMultiPolygon(geometryToAdd);
+						geometries.add(multipolygon);
+					break;
+					
+					case "Polygon":
+						Polygon polygon = parsePolygon(geometryToAdd);;
+						geometries.add(polygon);
+					break;
+				}
+			}
+			
+			geometryCollection.setGeometries(geometries);
+		}
+		else {
+			throw new Exception("Not Polygon");
+		}
+		
+		return geometryCollection;
 	}
 }
