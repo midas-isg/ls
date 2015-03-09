@@ -24,7 +24,6 @@ public class GeoJSONParser {
 	
 	public static FeatureCollection parse(JsonNode inputJsonNode) throws Exception {
 		FeatureCollection featureCollection = new FeatureCollection();
-		//featureCollection.setId(inputJsonNode.get("id").textValue());
 		featureCollection.setType(inputJsonNode.get("type").textValue());
 		Map<String, Object> fcProperties = new HashMap<>();
 		toProperties(fcProperties, inputJsonNode);
