@@ -16,6 +16,8 @@ import models.geo.MultiPolygon;
 import models.geo.Polygon;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class GeoJSONParser {
 	private GeoJSONParser() {
@@ -24,14 +26,12 @@ public class GeoJSONParser {
 	
 	public static FeatureCollection parse(JsonNode inputJsonNode) throws Exception {
 		FeatureCollection featureCollection = new FeatureCollection();
-		//featureCollection.setId(inputJsonNode.get("id").textValue());
 		featureCollection.setType(inputJsonNode.get("type").textValue());
 		Map<String, Object> fcProperties = new HashMap<>();
 		toProperties(fcProperties, inputJsonNode);
 		featureCollection.setProperties(fcProperties);
 		
 		JsonNode featuresArrayNode = inputJsonNode.withArray("features");
-		
 		for(int i = 0; i < featuresArrayNode.size(); i++) {
 			Map<String, Object> properties = new HashMap<>();
 			FeatureGeometry geometry;
@@ -39,7 +39,6 @@ public class GeoJSONParser {
 			JsonNode currentNode = featuresArrayNode.get(i);
 			Feature feature = new Feature();
 			feature.setType(currentNode.get("type").textValue());
-			
 			toProperties(properties, currentNode);
 			
 			try {
@@ -69,23 +68,25 @@ public class GeoJSONParser {
 			
 			feature.setProperties(properties);
 			feature.setGeometry(geometry);
-			
 			featureCollection.getFeatures().add(feature);
 		}
 		
 		return featureCollection;
 	}
 
-	private static void toProperties(Map<String, Object> map,
-			JsonNode currentNode) {
+	private static void toProperties(Map<String, Object> map, JsonNode currentNode) {
 		JsonNode properties = currentNode.get("properties");
-		if (properties == null)
+		if (properties == null) {
 			return;
+		}
+		
 		Iterator<Entry<String, JsonNode>> propertiesIterator = properties.fields();
 		while(propertiesIterator.hasNext()) {
 			Entry<String, JsonNode> mapping = propertiesIterator.next();
 			map.put(mapping.getKey(), mapping.getValue().textValue());
 		}
+		
+		return;
 	}
 	
 	/*
@@ -97,11 +98,11 @@ public class GeoJSONParser {
 	}
 	*/
 	
-	private static List<List<double []>> getCoordinatesForPolygon(JsonNode geometryNode) {
+	private static List<List<double []>> getCoordinatesForPolygon(JsonNode geometryNode) throws Exception {
 		JsonNode coordinatesNode = geometryNode.get("coordinates");
 		
 		if(coordinatesNode == null) {
-			coordinatesNode = geometryNode;
+			throw new Exception("Malformed Polygon");
 		}
 		
 		List<List<double []>> coordinates = new ArrayList<List<double[]>>();
@@ -129,9 +130,10 @@ public class GeoJSONParser {
 			double [] lastPoint = componentToFill.get(componentToFill.size() - 1);
 			for(int l = 0; l < firstPoint.length; l++) {
 				if(firstPoint[l] != lastPoint[l]) {
-					componentToFill.add(firstPoint);
-Logger.debug("~Appended first point~");
-					break;
+					//componentToFill.add(firstPoint);
+//Logger.debug("~Appended first point~");
+//					break;
+					throw new Exception("Last point != first point for this polygon");
 				}
 			}
 		}
@@ -167,7 +169,12 @@ Logger.debug("~Appended first point~");
 			List<List<List<double []>>> coordinates = new ArrayList<>();
 			
 			for(int i = 0; i < coordinatesNode.size(); i++) {
-				coordinates.add(getCoordinatesForPolygon(coordinatesNode.get(i)));
+				ObjectNode polygonNode = new ObjectNode(JsonNodeFactory.instance);
+				polygonNode.put("type", Polygon.class.getSimpleName());
+				polygonNode.put("coordinates", coordinatesNode.get(i));
+				Polygon polygon = parsePolygon(polygonNode);
+				
+				coordinates.add(polygon.getCoordinates());
 			}
 			
 			multiPolygon.setCoordinates(coordinates);
