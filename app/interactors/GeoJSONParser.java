@@ -13,6 +13,7 @@ import models.geo.FeatureCollection;
 import models.geo.FeatureGeometry;
 import models.geo.GeometryCollection;
 import models.geo.MultiPolygon;
+import models.geo.Point;
 import models.geo.Polygon;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -57,7 +58,12 @@ public class GeoJSONParser {
 					break;
 					
 					case "Point":
-					case "MultiLine":
+						geometry = parsePoint(currentNode.get("geometry"));
+					break;
+					
+					case "LineString":
+					case "MultiLineString":
+					case "MultiPoint":
 					default:
 						throw (new RuntimeException("Unsupported Geometry: " + type + "\n"));
 				}
@@ -89,14 +95,17 @@ public class GeoJSONParser {
 		return;
 	}
 	
-	/*
-	private static Point parsePoint(JsonNode coordinatesNode) {
+	
+	private static Point parsePoint(JsonNode geometryNode) {
+		JsonNode coordinatesNode = geometryNode.get("coordinates");
 		Point point = new Point();
-			point.setLongitude(coordinatesNode.get(0).asDouble());
-			point.setLatitude(coordinatesNode.get(1).asDouble());
+		double [] coordinates = new double[2];
+		coordinates[0] = coordinatesNode.get(0).doubleValue();
+		coordinates[1] = coordinatesNode.get(1).doubleValue();
+		point.setCoordinates(coordinates);
+		
 		return point;
 	}
-	*/
 	
 	private static List<List<double []>> getCoordinatesForPolygon(JsonNode geometryNode) throws Exception {
 		JsonNode coordinatesNode = geometryNode.get("coordinates");

@@ -27,12 +27,12 @@ public class Point extends FeatureGeometry {
 		this.coordinates = coordinates;
 	}
 	
-	public void setLatitude(double coordinate) {
-		this.coordinates[1] = coordinate;
+	public void setLatitude(double ordinate) {
+		this.coordinates[1] = ordinate;
 	}
 	
-	public void setLongitude(double coordinate) {
-		this.coordinates[0] = coordinate;
+	public void setLongitude(double ordinate) {
+		this.coordinates[0] = ordinate;
 	}
 
 	@Override
