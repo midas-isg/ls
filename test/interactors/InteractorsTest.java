@@ -31,13 +31,15 @@ public class InteractorsTest {
 	static JsonNode multiPolygon;
 	static JsonNode holeyMultiPolygon;
 	static JsonNode geometryCollection;
+	static JsonNode malformed;
 	
 	private static void geoJSONInitialize() {
 		String polygonString = "{\"type\": \"FeatureCollection\",\"features\":[{\"type\": \"Feature\",\"geometry\":{\"type\": \"Polygon\",\"coordinates\":[[[35, 10], [45, 45], [15, 40], [10, 20], [35, 10]]]}}]}";
 		String holeyPolygonString = "{\"type\": \"FeatureCollection\",\"features\":[{\"type\": \"Feature\",\"geometry\":{\"type\": \"Polygon\", \"coordinates\":[[[35, 10], [45, 45], [15, 40], [10, 20], [35, 10]], [[20, 30], [35, 35], [30, 20], [20, 30]]]}}]}";
 		String multiPolygonString = "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"geometry\":{\"type\":\"MultiPolygon\",\"coordinates\":[[[[30,20],[45,40],[10,40],[30,20]]],[[[15,5],[40,10],[10,20],[5,10],[15,5]]]]}}]}";
 		String holeyMultiPolygonString = "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"geometry\":{\"type\":\"MultiPolygon\",\"coordinates\":[[[[40,40],[20,45],[45,30],[40,40]]],[[[20,35],[10,30],[10,10],[30,5],[45,20],[20,35]],[[30,20],[20,15],[20,25],[30,20]]]]}}]}";
-		String geometryCollectionString = "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"geometry\":{\"type\":\"GeometryCollection\",\"geometries\":[{\"type\":\"MultiPolygon\",\"coordinates\":[[[[40,40],[20,45],[45,30],[40,40]]],[[[20,35],[10,30],[10,10],[30,5],[45,20],[20,35]],[[30,20],[20,15],[20,25],[30,20]]]]}]}}]}";
+		String geometryCollectionString = "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"geometry\":{\"type\":\"GeometryCollection\",\"geometries\":[{\"type\":\"MultiPolygon\",\"coordinates\":[[[[40,40],[20,45],[45,30],[40,40]]],[[[20,35],[10,30],[10,10],[30,5],[45,20],[20,35]],[[30,20],[20,15],[20,25],[30,20]]]]},{\"type\":\"Polygon\",\"coordinates\":[[[100,0],[101,0],[101,1],[100,1],[100,0]]]}]}}]}";
+		String malformedString = "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"geometry\":{\"type\":\"GeometryCollection\",\"geometries\":[{\"type\":\"MultiPolygon\",\"coordinates\":[[[100,0],[101,0],[101,1],[100,1],[100,0]]]}]}}]}";
 		
 		ObjectMapper mapper = new ObjectMapper();
 		try {
@@ -46,6 +48,7 @@ public class InteractorsTest {
 			multiPolygon = mapper.readTree(multiPolygonString);
 			holeyMultiPolygon = mapper.readTree(holeyMultiPolygonString);
 			geometryCollection = mapper.readTree(geometryCollectionString);
+			malformed = mapper.readTree(malformedString);
 		}
 		catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
@@ -75,6 +78,7 @@ public class InteractorsTest {
 		FeatureCollection fcMultiPolygon;
 		FeatureCollection fcHoleyMultiPolygon;
 		FeatureCollection fcGeometryCollection;
+		FeatureCollection fcMalformed;
 		
 		try {
 			fcPolygon = GeoJSONParser.parse(polygon);
@@ -117,7 +121,7 @@ public class InteractorsTest {
 			GeometryCollection geometryCollectionGeometry = (GeometryCollection) geometryCollectionFeature.getGeometry();
 			List<FeatureGeometry> geometries = geometryCollectionGeometry.getGeometries();
 			assertThat(geometryCollectionGeometry.getType()).isEqualTo("GeometryCollection");
-			assertThat(geometries.size()).isEqualTo(1);
+			assertThat(geometries.size()).isEqualTo(2);
 			assertThat(geometries.get(0).getType()).isEqualTo("MultiPolygon");
 			assertThat(((MultiPolygon)(geometries.get(0))).getCoordinates().size()).isEqualTo(2);
 			assertThat(((MultiPolygon)(geometries.get(0))).getCoordinates().get(0).size()).isEqualTo(1);
@@ -125,6 +129,13 @@ public class InteractorsTest {
 			assertThat(((MultiPolygon)(geometries.get(0))).getCoordinates().get(1).size()).isEqualTo(2);
 			assertThat(((MultiPolygon)(geometries.get(0))).getCoordinates().get(1).get(0).size()).isEqualTo(6);
 			assertThat(((MultiPolygon)(geometries.get(0))).getCoordinates().get(1).get(1).size()).isEqualTo(4);
+			assertThat(geometries.get(1).getType()).isEqualTo("Polygon");
+			assertThat(((Polygon)(geometries.get(1))).getCoordinates().size()).isEqualTo(1);
+			assertThat(((Polygon)(geometries.get(1))).getCoordinates().get(0).size()).isEqualTo(5);
+			
+			fcMalformed = GeoJSONParser.parse(malformed);
+			//TODO: malformed contains a polygon that is mislabeled as a multipolygon
+			//but the current code can still process it; it should throw an error instead
 		}
 		catch (Exception e) {
 			// TODO Auto-generated catch block
