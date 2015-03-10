@@ -198,7 +198,7 @@ $(document).ready(function() {
 						setTextValue("#au-type", feature.properties.locationTypeName);
 						
 						PARENT_TREE.clickIsAboutByValue(feature.properties.parentGid);
-						setTextValue("input#parent", getFirstAlphaOnly(PARENT_TREE.tree.getNodeByKey(feature.properties.parentGid).title));
+						setTextValue("input#parent", backslashParentheses(PARENT_TREE.tree.getNodeByKey(feature.properties.parentGid).tooltip));
 						$("input#parent").keyup();
 						
 						$("#save-button").hide();
