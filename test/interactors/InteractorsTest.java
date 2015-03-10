@@ -11,6 +11,7 @@ import models.geo.FeatureGeometry;
 import models.geo.GeometryCollection;
 import models.geo.MultiPolygon;
 import models.geo.Polygon;
+import models.geo.Point;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -26,6 +27,7 @@ import play.mvc.Http.RequestBody;
 * Simple (JUnit) tests that can test parts of the interactors package.
 */
 public class InteractorsTest {
+	static JsonNode point;
 	static JsonNode polygon;
 	static JsonNode holeyPolygon;
 	static JsonNode multiPolygon;
@@ -34,6 +36,7 @@ public class InteractorsTest {
 	static JsonNode malformed;
 	
 	private static void geoJSONInitialize() {
+		String pointString = "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[30,10]}}]}";
 		String polygonString = "{\"type\": \"FeatureCollection\",\"features\":[{\"type\": \"Feature\",\"geometry\":{\"type\": \"Polygon\",\"coordinates\":[[[35, 10], [45, 45], [15, 40], [10, 20], [35, 10]]]}}]}";
 		String holeyPolygonString = "{\"type\": \"FeatureCollection\",\"features\":[{\"type\": \"Feature\",\"geometry\":{\"type\": \"Polygon\", \"coordinates\":[[[35, 10], [45, 45], [15, 40], [10, 20], [35, 10]], [[20, 30], [35, 35], [30, 20], [20, 30]]]}}]}";
 		String multiPolygonString = "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"geometry\":{\"type\":\"MultiPolygon\",\"coordinates\":[[[[30,20],[45,40],[10,40],[30,20]]],[[[15,5],[40,10],[10,20],[5,10],[15,5]]]]}}]}";
@@ -43,6 +46,7 @@ public class InteractorsTest {
 		
 		ObjectMapper mapper = new ObjectMapper();
 		try {
+			point = mapper.readTree(pointString);
 			polygon = mapper.readTree(polygonString);
 			holeyPolygon = mapper.readTree(holeyPolygonString);
 			multiPolygon = mapper.readTree(multiPolygonString);
@@ -69,16 +73,24 @@ public class InteractorsTest {
 	}
 	
 	@Test
-	public void geoJSONParseTest () throws Exception
+	public void geoJSONParseTest() throws Exception
 	{
 		geoJSONInitialize();
-		
+		FeatureCollection fcPoint;
 		FeatureCollection fcPolygon;
 		FeatureCollection fcHoleyPolygon;
 		FeatureCollection fcMultiPolygon;
 		FeatureCollection fcHoleyMultiPolygon;
 		FeatureCollection fcGeometryCollection;
 		FeatureCollection fcMalformed;
+		
+		fcPoint = GeoJSONParser.parse(point);
+		Feature pointFeature = fcPoint.getFeatures().get(0);
+		Point pointGeometry = (Point) pointFeature.getGeometry();
+		assertThat(pointGeometry.getType()).isEqualTo("Point");
+		assertThat(pointGeometry.getCoordinates().length).isEqualTo(2);
+		assertThat(pointGeometry.getCoordinates()[0]).isEqualTo(30);
+		assertThat(pointGeometry.getCoordinates()[1]).isEqualTo(10);
 		
 		fcPolygon = GeoJSONParser.parse(polygon);
 		Feature polygonFeature = fcPolygon.getFeatures().get(0);
