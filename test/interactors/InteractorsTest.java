@@ -69,7 +69,7 @@ public class InteractorsTest {
 	}
 	
 	@Test
-	public void geoJSONParseTest()
+	public void geoJSONParseTest () throws Exception
 	{
 		geoJSONInitialize();
 		
@@ -80,67 +80,61 @@ public class InteractorsTest {
 		FeatureCollection fcGeometryCollection;
 		FeatureCollection fcMalformed;
 		
-		try {
-			fcPolygon = GeoJSONParser.parse(polygon);
-			Feature polygonFeature = fcPolygon.getFeatures().get(0);
-			Polygon polygonGeometry = (Polygon) polygonFeature.getGeometry();
-			assertThat(polygonGeometry.getType()).isEqualTo("Polygon");
-			assertThat(polygonGeometry.getCoordinates().get(0).size()).isEqualTo(5);
-			
-			fcHoleyPolygon = GeoJSONParser.parse(holeyPolygon);
-			Feature holeyPolygonFeature = fcHoleyPolygon.getFeatures().get(0);
-			Polygon holeyPolygonGeometry = (Polygon) holeyPolygonFeature.getGeometry();
-			assertThat(holeyPolygonGeometry.getType()).isEqualTo("Polygon");
-			assertThat(holeyPolygonGeometry.getCoordinates().size()).isEqualTo(2);
-			assertThat(holeyPolygonGeometry.getCoordinates().get(0).size()).isEqualTo(5);
-			assertThat(holeyPolygonGeometry.getCoordinates().get(1).size()).isEqualTo(4);
-			
-			fcMultiPolygon = GeoJSONParser.parse(multiPolygon);
-			Feature multiPolygonFeature = fcMultiPolygon.getFeatures().get(0);
-			MultiPolygon multiPolygonGeometry = (MultiPolygon) multiPolygonFeature.getGeometry();
-			assertThat(multiPolygonGeometry.getType()).isEqualTo("MultiPolygon");
-			assertThat(multiPolygonGeometry.getCoordinates().size()).isEqualTo(2);
-			assertThat(multiPolygonGeometry.getCoordinates().get(0).size()).isEqualTo(1);
-			assertThat(multiPolygonGeometry.getCoordinates().get(0).get(0).size()).isEqualTo(4);
-			assertThat(multiPolygonGeometry.getCoordinates().get(1).size()).isEqualTo(1);
-			assertThat(multiPolygonGeometry.getCoordinates().get(1).get(0).size()).isEqualTo(5);
-			
-			fcHoleyMultiPolygon = GeoJSONParser.parse(holeyMultiPolygon);
-			Feature holeyMultiPolygonFeature = fcHoleyMultiPolygon.getFeatures().get(0);
-			MultiPolygon holeyMultiPolygonGeometry = (MultiPolygon) holeyMultiPolygonFeature.getGeometry();
-			assertThat(holeyMultiPolygonGeometry.getType()).isEqualTo("MultiPolygon");
-			assertThat(holeyMultiPolygonGeometry.getCoordinates().size()).isEqualTo(2);
-			assertThat(holeyMultiPolygonGeometry.getCoordinates().get(0).size()).isEqualTo(1);
-			assertThat(holeyMultiPolygonGeometry.getCoordinates().get(0).get(0).size()).isEqualTo(4);
-			assertThat(holeyMultiPolygonGeometry.getCoordinates().get(1).size()).isEqualTo(2);
-			assertThat(holeyMultiPolygonGeometry.getCoordinates().get(1).get(0).size()).isEqualTo(6);
-			assertThat(holeyMultiPolygonGeometry.getCoordinates().get(1).get(1).size()).isEqualTo(4);
-			
-			fcGeometryCollection = GeoJSONParser.parse(geometryCollection);
-			Feature geometryCollectionFeature = fcGeometryCollection.getFeatures().get(0);
-			GeometryCollection geometryCollectionGeometry = (GeometryCollection) geometryCollectionFeature.getGeometry();
-			List<FeatureGeometry> geometries = geometryCollectionGeometry.getGeometries();
-			assertThat(geometryCollectionGeometry.getType()).isEqualTo("GeometryCollection");
-			assertThat(geometries.size()).isEqualTo(2);
-			assertThat(geometries.get(0).getType()).isEqualTo("MultiPolygon");
-			assertThat(((MultiPolygon)(geometries.get(0))).getCoordinates().size()).isEqualTo(2);
-			assertThat(((MultiPolygon)(geometries.get(0))).getCoordinates().get(0).size()).isEqualTo(1);
-			assertThat(((MultiPolygon)(geometries.get(0))).getCoordinates().get(0).get(0).size()).isEqualTo(4);
-			assertThat(((MultiPolygon)(geometries.get(0))).getCoordinates().get(1).size()).isEqualTo(2);
-			assertThat(((MultiPolygon)(geometries.get(0))).getCoordinates().get(1).get(0).size()).isEqualTo(6);
-			assertThat(((MultiPolygon)(geometries.get(0))).getCoordinates().get(1).get(1).size()).isEqualTo(4);
-			assertThat(geometries.get(1).getType()).isEqualTo("Polygon");
-			assertThat(((Polygon)(geometries.get(1))).getCoordinates().size()).isEqualTo(1);
-			assertThat(((Polygon)(geometries.get(1))).getCoordinates().get(0).size()).isEqualTo(5);
-			
-			fcMalformed = GeoJSONParser.parse(malformed);
-			//TODO: malformed contains a polygon that is mislabeled as a multipolygon
-			//but the current code can still process it; it should throw an error instead
-		}
-		catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		fcPolygon = GeoJSONParser.parse(polygon);
+		Feature polygonFeature = fcPolygon.getFeatures().get(0);
+		Polygon polygonGeometry = (Polygon) polygonFeature.getGeometry();
+		assertThat(polygonGeometry.getType()).isEqualTo("Polygon");
+		assertThat(polygonGeometry.getCoordinates().get(0).size()).isEqualTo(5);
+		
+		fcHoleyPolygon = GeoJSONParser.parse(holeyPolygon);
+		Feature holeyPolygonFeature = fcHoleyPolygon.getFeatures().get(0);
+		Polygon holeyPolygonGeometry = (Polygon) holeyPolygonFeature.getGeometry();
+		assertThat(holeyPolygonGeometry.getType()).isEqualTo("Polygon");
+		assertThat(holeyPolygonGeometry.getCoordinates().size()).isEqualTo(2);
+		assertThat(holeyPolygonGeometry.getCoordinates().get(0).size()).isEqualTo(5);
+		assertThat(holeyPolygonGeometry.getCoordinates().get(1).size()).isEqualTo(4);
+		
+		fcMultiPolygon = GeoJSONParser.parse(multiPolygon);
+		Feature multiPolygonFeature = fcMultiPolygon.getFeatures().get(0);
+		MultiPolygon multiPolygonGeometry = (MultiPolygon) multiPolygonFeature.getGeometry();
+		assertThat(multiPolygonGeometry.getType()).isEqualTo("MultiPolygon");
+		assertThat(multiPolygonGeometry.getCoordinates().size()).isEqualTo(2);
+		assertThat(multiPolygonGeometry.getCoordinates().get(0).size()).isEqualTo(1);
+		assertThat(multiPolygonGeometry.getCoordinates().get(0).get(0).size()).isEqualTo(4);
+		assertThat(multiPolygonGeometry.getCoordinates().get(1).size()).isEqualTo(1);
+		assertThat(multiPolygonGeometry.getCoordinates().get(1).get(0).size()).isEqualTo(5);
+		
+		fcHoleyMultiPolygon = GeoJSONParser.parse(holeyMultiPolygon);
+		Feature holeyMultiPolygonFeature = fcHoleyMultiPolygon.getFeatures().get(0);
+		MultiPolygon holeyMultiPolygonGeometry = (MultiPolygon) holeyMultiPolygonFeature.getGeometry();
+		assertThat(holeyMultiPolygonGeometry.getType()).isEqualTo("MultiPolygon");
+		assertThat(holeyMultiPolygonGeometry.getCoordinates().size()).isEqualTo(2);
+		assertThat(holeyMultiPolygonGeometry.getCoordinates().get(0).size()).isEqualTo(1);
+		assertThat(holeyMultiPolygonGeometry.getCoordinates().get(0).get(0).size()).isEqualTo(4);
+		assertThat(holeyMultiPolygonGeometry.getCoordinates().get(1).size()).isEqualTo(2);
+		assertThat(holeyMultiPolygonGeometry.getCoordinates().get(1).get(0).size()).isEqualTo(6);
+		assertThat(holeyMultiPolygonGeometry.getCoordinates().get(1).get(1).size()).isEqualTo(4);
+		
+		fcGeometryCollection = GeoJSONParser.parse(geometryCollection);
+		Feature geometryCollectionFeature = fcGeometryCollection.getFeatures().get(0);
+		GeometryCollection geometryCollectionGeometry = (GeometryCollection) geometryCollectionFeature.getGeometry();
+		List<FeatureGeometry> geometries = geometryCollectionGeometry.getGeometries();
+		assertThat(geometryCollectionGeometry.getType()).isEqualTo("GeometryCollection");
+		assertThat(geometries.size()).isEqualTo(2);
+		assertThat(geometries.get(0).getType()).isEqualTo("MultiPolygon");
+		assertThat(((MultiPolygon)(geometries.get(0))).getCoordinates().size()).isEqualTo(2);
+		assertThat(((MultiPolygon)(geometries.get(0))).getCoordinates().get(0).size()).isEqualTo(1);
+		assertThat(((MultiPolygon)(geometries.get(0))).getCoordinates().get(0).get(0).size()).isEqualTo(4);
+		assertThat(((MultiPolygon)(geometries.get(0))).getCoordinates().get(1).size()).isEqualTo(2);
+		assertThat(((MultiPolygon)(geometries.get(0))).getCoordinates().get(1).get(0).size()).isEqualTo(6);
+		assertThat(((MultiPolygon)(geometries.get(0))).getCoordinates().get(1).get(1).size()).isEqualTo(4);
+		assertThat(geometries.get(1).getType()).isEqualTo("Polygon");
+		assertThat(((Polygon)(geometries.get(1))).getCoordinates().size()).isEqualTo(1);
+		assertThat(((Polygon)(geometries.get(1))).getCoordinates().get(0).size()).isEqualTo(5);
+		
+		fcMalformed = GeoJSONParser.parse(malformed);
+		//TODO: malformed contains a polygon that is mislabeled as a multipolygon
+		//but the current code can still process it; it should throw an error instead
 		
 		return;
 	}
