@@ -25,6 +25,22 @@ public class GeometryDao {
 			Class<LocationGeometry> geometryClass) {
 		//Logger.debug("Find " + geometry.getSimpleName() +  " where gid=" + gid);
 		return em.find(geometryClass, gid);
+	}		
+
+	public LocationGeometry simplify(long gid, Double tolerance) {
+		EntityManager em = JPA.em();
+		//@formatter:off
+		String q = "select 0 as clazz_, 0 as gid, area, update_date, "
+				+ "  ST_Simplify(multipolygon,?2) multipolygon"
+				+ " from location_geometry "
+				+ " where gid=?1";
+		//@formatter:on
+		Query query = em.createNativeQuery(q, LocationGeometry.class);
+		query.setParameter(1, gid);
+		query.setParameter(2, tolerance);
+		LocationGeometry geo = (LocationGeometry)query.getSingleResult();
+		em.detach(geo);
+		return geo;
 	}
 	
 	public Long delete(LocationGeometry lg) {
@@ -62,4 +78,19 @@ public class GeometryDao {
 		List<BigInteger> result = (List<BigInteger>)resultList;
 		return result;
 	}
+	
+	public int numGeometriesAfterSimplified(long gid, Double tolerance) {
+		EntityManager em = JPA.em();
+		//@formatter:off
+		String q = "select ST_numGeometries(ST_Simplify(multipolygon,?2)) "
+		+ " from location_geometry where gid=?1";
+		//@formatter:on
+		Query query = em.createNativeQuery(q);
+		query.setParameter(1, gid);
+		query.setParameter(2, tolerance);
+		String text = query.getSingleResult().toString();
+		return Integer.parseInt(text);
+	}
+	
+
 }
