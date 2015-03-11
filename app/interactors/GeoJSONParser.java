@@ -95,7 +95,6 @@ public class GeoJSONParser {
 		return;
 	}
 	
-	
 	private static Point parsePoint(JsonNode geometryNode) {
 		JsonNode coordinatesNode = geometryNode.get("coordinates");
 		Point point = new Point();
@@ -221,16 +220,24 @@ while(fields.hasNext()) {
 					break;
 					
 					case "Polygon":
-						Polygon polygon = parsePolygon(geometryToAdd);;
+						Polygon polygon = parsePolygon(geometryToAdd);
 						geometries.add(polygon);
 					break;
+					
+					case "Point":
+						Point point = parsePoint(geometryToAdd);
+						geometries.add(point);
+					break;
+					
+					default:
+						throw new Exception(type + " not supported");
 				}
 			}
 			
 			geometryCollection.setGeometries(geometries);
 		}
 		else {
-			throw new Exception("Not Polygon");
+			throw new Exception(geometryNode.get("type").textValue() + "not supported");
 		}
 		
 		return geometryCollection;
