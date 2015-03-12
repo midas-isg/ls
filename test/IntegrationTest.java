@@ -76,6 +76,7 @@ public class IntegrationTest {
 				transaction.begin();
 				transaction.setRollbackOnly();
 				
+				testCreateEzFromAu();
 				testLocationType_PumaComposedOfCensusTract();
 				testGetAuTypes();
 				tesCrudAu();
@@ -84,10 +85,13 @@ public class IntegrationTest {
         		
 				transaction.rollback();
             }
-
         });
     }
 
+	private void testCreateEzFromAu() throws Exception {
+		FeatureCollection fc = readFeatureCollectionFromFile("test/EzFromAu.geojson");
+		System.out.println(fc);
+	}
 	private void testLocationType_PumaComposedOfCensusTract() {
 		String pumaName = "PUMA";
 		LocationType puma = LocationTypeRule.findByName(pumaName);
@@ -170,8 +174,7 @@ public class IntegrationTest {
 	}
 
 	private void testCrud(String fileName) throws Exception {
-		JsonNode json = readJsonNodeFromFile(fileName);
-		FeatureCollection fc = GeoJSONParser.parse(json);
+		FeatureCollection fc = readFeatureCollectionFromFile(fileName);
     	
     	long gid = LocationServices.Wire.create(fc);
 		assertThat(gid).isPositive();
@@ -189,6 +192,13 @@ public class IntegrationTest {
 		assertThat(deletedGid).isEqualTo(gid);
 		Location deletedLocation = LocationRule.read(gid);
 		assertThat(deletedLocation).isNull();
+	}
+
+	private FeatureCollection readFeatureCollectionFromFile(String fileName)
+			throws Exception {
+		JsonNode json = readJsonNodeFromFile(fileName);
+		FeatureCollection fc = GeoJSONParser.parse(json);
+		return fc;
 	}
 
 	private Location assertRead(FeatureCollection fc, long gid) {
