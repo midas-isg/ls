@@ -28,7 +28,6 @@ GET		/api/locations				controllers.LocationServices.findLocations(q, limit:Int?=
 GET		/api/locations-by-coordinate controllers.LocationServices.findLocationsByPoint(lat:Double, long:Double)
 
 GET		/api/unique-location-names	controllers.LocationServices.findLocationNames(q, limit:Int?=10)
-GET		/api/location-type-names	controllers.ListServices.findLocationTypeNames(superTypeName)
 GET		/api/geometry-metadata/:gid	controllers.LocationServices.getGeometryMetadata(gid:Long, tolerance:java.lang.Double?=null)
 
 # Map static resources from the /public folder to the /assets URL path
