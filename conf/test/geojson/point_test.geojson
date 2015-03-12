@@ -8,6 +8,11 @@
 			{
 				"type": "Point", 
 				"coordinates": [30, 10]
+			},
+			"properties":
+			{
+				"name": "POINT TEST",
+				"description": "This is a test"
 			}
 		}
 	]

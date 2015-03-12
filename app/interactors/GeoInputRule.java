@@ -9,23 +9,39 @@ import models.geo.FeatureCollection;
 import models.geo.FeatureGeometry;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LinearRing;
 import com.vividsolutions.jts.geom.MultiPolygon;
+import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
+import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
 
 public class GeoInputRule {
-	static Geometry toMultiPolygon(FeatureCollection fc) {
+	static Geometry toGeometry(FeatureCollection fc) {
 		GeometryFactory fact = new GeometryFactory();
 		List<Feature> features = fc.getFeatures();
-		List<Polygon> polygons = new ArrayList<Polygon>();
+		List<Geometry> polygons = new ArrayList<Geometry>();
 		
 		for(Feature feature :features) {
-			FeatureGeometry geometry = feature.getGeometry();
+			FeatureGeometry featureGeometry = feature.getGeometry();
+			String geometryType = featureGeometry.getType();
 			
-			if(geometry.getType().equals("GeometryCollection")) {
-				List<FeatureGeometry> subGeometries = ((models.geo.GeometryCollection)geometry).getGeometries();
+			if(features.size() == 1) {
+				if(geometryType.equals("Point")) {
+					models.geo.Point pointGeometry = (models.geo.Point) featureGeometry;
+					Coordinate [] coordinates = new Coordinate[1];
+					coordinates[0] = new Coordinate(pointGeometry.getLatitude(), pointGeometry.getLongitude());
+					CoordinateSequence coordinate = new CoordinateArraySequence(coordinates);
+					Point outputPoint = new Point((CoordinateSequence) coordinate, fact);
+					
+					return outputPoint;
+				}
+			}
+			
+			if(geometryType.equals("GeometryCollection")) {
+				List<FeatureGeometry> subGeometries = ((models.geo.GeometryCollection)featureGeometry).getGeometries();
 				
 				for(FeatureGeometry subGeometry : subGeometries) {
 					Feature geometryFeature = new Feature();
@@ -50,10 +66,12 @@ public class GeoInputRule {
 					processGeometryTypes(fact, polygons, geometryFeature, subGeometry);
 				}
 			}
-			else{
-				processGeometryTypes(fact, polygons, feature, geometry);
+			else {
+				processGeometryTypes(fact, polygons, feature, featureGeometry);
 			}
 		}
+		
+		//TODO: return Point for point-based entries, MultiPolygon for specific case
 		
 		Polygon [] polygonArray = polygons.toArray(new Polygon[polygons.size()]);
 //Logger.debug("p0=" + polygonArray[0].getDimension());
@@ -65,7 +83,7 @@ public class GeoInputRule {
 	}
 
 	public static void processGeometryTypes(GeometryFactory fact,
-			List<Polygon> polygons, Feature feature, FeatureGeometry geometry) {
+			List<Geometry> polygons, Feature feature, FeatureGeometry geometry) {
 		if(geometry.getType().equals("MultiPolygon")) {
 //Logger.debug("============");
 			models.geo.MultiPolygon multipolygon = (models.geo.MultiPolygon)geometry;

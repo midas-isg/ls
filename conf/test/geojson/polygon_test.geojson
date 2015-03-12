@@ -11,6 +11,11 @@
 				[
 					[[35, 10], [45, 45], [15, 40], [10, 20], [35, 10]]
 				]
+			},
+			"properties":
+			{
+				"name": "POLGYON TEST",
+				"description": "This is a test"
 			}
 		}
 	]

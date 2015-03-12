@@ -101,7 +101,7 @@ public class GeoJsonRule {
 			geometry = GeometryRule.read(location.getGid());
 		
 		if (geometry != null){
-			Geometry multiPolygonGeom = geometry.getMultiPolygonGeom();
+			Geometry multiPolygonGeom = geometry.getShapeGeom();
 			feature.setGeometry(GeoOutputRule.toFeatureGeometry(multiPolygonGeom));
 			if (includeField(fields, KEY_BBOX)) 
 				feature.setBbox(computeBbox(location));
@@ -123,7 +123,7 @@ public class GeoJsonRule {
 		LocationGeometry geometry = l.getGeometry();
 		if (geometry == null)
 			return null;
-		return computeBbox(geometry.getMultiPolygonGeom());
+		return computeBbox(geometry.getShapeGeom());
 	}
 	
 	private static double[] computeBbox(List<Feature> features) {
@@ -317,7 +317,7 @@ public class GeoJsonRule {
 	private static LocationGeometry createLocationGeometry(
 			FeatureCollection fc, Location l) {
 		LocationGeometry lg = new LocationGeometry();
-		lg.setMultiPolygonGeom(GeoInputRule.toMultiPolygon(fc));
+		lg.setShapeGeom(GeoInputRule.toGeometry(fc));
 		lg.setLocation(l);
 		Date now = l.getData().getUpdateDate();
 		lg.setUpdateDate(now);
