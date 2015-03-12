@@ -28,18 +28,6 @@ public class GeoInputRule {
 			FeatureGeometry featureGeometry = feature.getGeometry();
 			String geometryType = featureGeometry.getType();
 			
-			if(features.size() == 1) {
-				if(geometryType.equals("Point")) {
-					models.geo.Point pointGeometry = (models.geo.Point) featureGeometry;
-					Coordinate [] coordinates = new Coordinate[1];
-					coordinates[0] = new Coordinate(pointGeometry.getLatitude(), pointGeometry.getLongitude());
-					CoordinateSequence coordinate = new CoordinateArraySequence(coordinates);
-					Point outputPoint = new Point((CoordinateSequence) coordinate, fact);
-					
-					return outputPoint;
-				}
-			}
-			
 			if(geometryType.equals("GeometryCollection")) {
 				List<FeatureGeometry> subGeometries = ((models.geo.GeometryCollection)featureGeometry).getGeometries();
 				
@@ -72,6 +60,19 @@ public class GeoInputRule {
 					
 					processGeometryTypes(fact, polygons, geometryFeature, subGeometry);
 				}
+			}
+			else if(geometryType.equals("Point")) {
+				if(features.size() == 1) {
+					models.geo.Point pointGeometry = (models.geo.Point) featureGeometry;
+					Coordinate [] coordinates = new Coordinate[1];
+					coordinates[0] = new Coordinate(pointGeometry.getLatitude(), pointGeometry.getLongitude());
+					CoordinateSequence coordinate = new CoordinateArraySequence(coordinates);
+					Point outputPoint = new Point((CoordinateSequence) coordinate, fact);
+					
+					return outputPoint;
+				}
+				
+				throw new RuntimeException("A Point cannot be saved with other points or geometry types");
 			}
 			else {
 				processGeometryTypes(fact, polygons, feature, featureGeometry);
