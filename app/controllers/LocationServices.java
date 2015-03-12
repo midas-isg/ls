@@ -1,10 +1,16 @@
 package controllers;
 
+import java.math.BigInteger;
+import java.util.List;
+
 import interactors.GeoJsonRule;
+import interactors.GeometryRule;
 import interactors.KmlRule;
 import interactors.LocationProxyRule;
 import interactors.LocationRule;
+import models.geo.Feature;
 import models.geo.FeatureCollection;
+import models.geo.FeatureGeometry;
 import play.Logger;
 import play.db.jpa.Transactional;
 import play.libs.Json;
@@ -132,6 +138,12 @@ public class LocationServices extends Controller {
 		return ok(result);
 	}
 
+	@Transactional
+	public static Result findByFeatureCollection(Long superTypeId, Long typeId) throws Exception {
+		FeatureCollection fc = parseRequestAsFeatureCollection();
+		return Wire.findByFeatureCollection(fc, superTypeId, typeId);
+	}
+	
 	public static class Wire {
 		public static Long create(FeatureCollection fc) {
 			Location location = GeoJsonRule.asLocation(fc);
@@ -153,6 +165,18 @@ public class LocationServices extends Controller {
 		public static Long delete(long gid) {
 			Long id = LocationRule.deleteTogetherWithAllGeometries(gid);
 			return id;
+		}
+
+		public static Result findByFeatureCollection(FeatureCollection fc, Long superTypeId, Long typeId) {
+			List<Feature> features = fc.getFeatures();
+			Feature feature0 = features.get(0);
+			FeatureGeometry geometry = feature0.getGeometry();
+			String geo = Json.toJson(geometry).toString();
+			Logger.debug(geo);
+			List<BigInteger> gids = GeometryRule.findGidsByGeometry(geo, superTypeId, typeId);
+			List<Location> locations = LocationProxyRule.getLocations(gids);
+			response().setContentType("application/vnd.geo+json");
+			return ok(Json.toJson(GeoJsonRule.toFeatureCollection(locations, GeoJsonRule.MINIMUM_KEYS)));
 		}
 	}
 }

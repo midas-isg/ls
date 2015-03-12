@@ -1,26 +1,37 @@
 
 import static org.fest.assertions.Assertions.assertThat;
+import static play.mvc.Http.HeaderNames.LOCATION;
+import static play.test.Helpers.DELETE;
 import static play.test.Helpers.HTMLUNIT;
+import static play.test.Helpers.POST;
+import static play.test.Helpers.callAction;
 import static play.test.Helpers.contentAsString;
 import static play.test.Helpers.contentType;
 import static play.test.Helpers.fakeApplication;
+import static play.test.Helpers.header;
 import static play.test.Helpers.running;
+import static play.test.Helpers.status;
 import static play.test.Helpers.testServer;
 import interactors.GeoJSONParser;
 import interactors.GeoJsonRule;
+import interactors.GeometryRule;
 import interactors.KmlRule;
 import interactors.LocationRule;
 import interactors.LocationTypeRule;
 import interactors.XmlRule;
 
 import java.io.File;
+import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 
+import models.geo.Feature;
 import models.geo.FeatureCollection;
+import models.geo.FeatureGeometry;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -29,6 +40,10 @@ import org.junit.Test;
 import play.Configuration;
 import play.db.jpa.JPA;
 import play.libs.F.Callback;
+import play.libs.Json;
+import play.mvc.Http.Status;
+import play.mvc.Result;
+import play.test.FakeRequest;
 import play.test.TestBrowser;
 import play.test.TestServer;
 import play.twirl.api.Content;
@@ -76,6 +91,7 @@ public class IntegrationTest {
 				transaction.begin();
 				transaction.setRollbackOnly();
 				
+				testFindLocationsByFeatureCollection();
 				testLocationType_PumaComposedOfCensusTract();
 				testGetAuTypes();
 				tesCrudAu();
@@ -87,6 +103,69 @@ public class IntegrationTest {
 
         });
     }
+
+	private void testFindLocationsByFeatureCollection() throws Exception {
+		long supertTypeIdAdministrativeUnit = 3L;
+		String geojson = KmlRule.getStringFromFile("test/geometry.geojson");
+		
+		long superTypeIdComposite = 2L;
+		List<BigInteger> list = GeometryRule.findGidsByGeometry(geojson, superTypeIdComposite, null);
+		assertGids(list, 84687L);
+
+		list = GeometryRule.findGidsByGeometry(geojson, 1L, null);
+		assertGids(list);
+
+		list = GeometryRule.findGidsByGeometry(geojson, supertTypeIdAdministrativeUnit, null);
+		assertGids(list, new long[] {1234568, 123456, 1169, 1213});
+
+		list = GeometryRule.findGidsByGeometry(geojson, 4L, null);
+		assertGids(list, new long[] {67079, 66676, 67136, 67173, 66735, 66822, 67019, 66820, 67081, 66664, 67117, 67111});
+
+		String json = KmlRule.getStringFromFile("test/AuMaridiTown.geojson");
+		FeatureCollection fc = readFeatureCollection(json);
+		Feature feature0 = fc.getFeatures().get(0);
+		FeatureGeometry geometry = feature0.getGeometry();
+		String geo = Json.toJson(geometry).toString();
+		List<BigInteger> list2 = GeometryRule.findGidsByGeometry(geo, supertTypeIdAdministrativeUnit, null);
+		assertGids(list2, new long[] {1417, 1563, 1449, 1375, 1427, 1365, 1421});
+
+        JsonNode node = Json.parse(json);
+        String path = "/api/locations"; // "/resources/aus";
+		FakeRequest request = new FakeRequest(POST, path).withJsonBody(node);
+		Result postResult = callAction(controllers.routes.ref.LocationServices.findByFeatureCollection(supertTypeIdAdministrativeUnit, 0L), request);
+        assertThat(status(postResult)).isEqualTo(Status.OK);
+        assertThat(contentType(postResult)).isEqualTo("application/vnd.geo+json");
+        String jsonResult = contentAsString(postResult);
+        JsonNode resultNode = Json.parse(jsonResult);
+        assertThat(resultNode.get("type").asText()).isEqualTo("FeatureCollection");
+        assertThat(jsonResult).contains("\"gid\":\"1417\"");
+	}
+
+	private void assertGids(List<BigInteger> list, long... expects) {
+		List<Long> actual = toList(list);
+		for (long expect : expects)
+			assertThat(actual).contains(expect);
+	}
+
+	private long toGid(String url) {
+		String[] tokens = url.split("/");
+		String gid = tokens[tokens.length - 1];
+		return Long.parseLong(gid);
+	}
+
+	private List<Long> toList(List<BigInteger> list) {
+		List<Long> actual = new ArrayList<>();
+		for (BigInteger bi : list){
+			actual.add(bi.longValue());
+		}
+		return actual;
+	}
+
+	private FeatureCollection readFeatureCollection(String json) throws Exception {
+		ObjectMapper mapper = new ObjectMapper();
+		JsonNode node = mapper.readTree(json);
+		return GeoJSONParser.parse(node);
+	}
 
 	private void testLocationType_PumaComposedOfCensusTract() {
 		String pumaName = "PUMA";
@@ -166,7 +245,24 @@ public class IntegrationTest {
 	}
 
 	private void tesCrudAu() throws Exception {
-    	testCrud("test/AuMaridiTown.geojson");
+    	String fileName = "test/AuMaridiTown.geojson";
+		testCrud(fileName);
+		
+		String json = KmlRule.getStringFromFile(fileName);
+        JsonNode node = Json.parse(json);
+        String path = "/api/locations";
+		FakeRequest request = new FakeRequest(POST, path).withJsonBody(node);
+
+        Result result = callAction(controllers.routes.ref.LocationServices.create(), request);
+        assertThat(status(result)).isEqualTo(Status.CREATED);
+        String location = header(LOCATION, result);
+        assertThat(location).containsIgnoringCase(path);
+        long gid = toGid(location);
+        String deletePath = path + "/" + gid;
+		FakeRequest deletRequest = new FakeRequest(DELETE, deletePath);
+        Result deleteResult = callAction(controllers.routes.ref.LocationServices.delete(gid), deletRequest);
+        assertThat(status(deleteResult)).isEqualTo(Status.NO_CONTENT);
+		assertThat(header(LOCATION, deleteResult)).endsWith(deletePath);
 	}
 
 	private void testCrud(String fileName) throws Exception {

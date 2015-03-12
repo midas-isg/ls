@@ -5,6 +5,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+
+import play.db.jpa.JPA;
 import dao.GeometryDao;
 import dao.entities.LocationGeometry;
 import dao.entities.LocationLowResolutionGeometry;
@@ -64,5 +68,32 @@ public class GeometryRule {
 		return result;
 	}
 
+	public static List<BigInteger> findGidsByGeometry(String geojsonGeometry, Long superTypeId, Long typeId) {
+		String q = toQuery(geojsonGeometry, superTypeId, typeId);
 
+		EntityManager em = JPA.em();
+		Query query = em.createNativeQuery(q);
+		@SuppressWarnings("unchecked")
+		List<BigInteger> list = (List<BigInteger>)query.getResultList();
+
+		return list;
+	}
+	
+	private static String toQuery(String geojsonGeometry, Long superTypeId, Long typeId) {
+		String q = 
+		"select a.gid "
+		+ "from "
+		+ " location_geometry a, location l, location_type t, "
+		+ " ST_SetSRID(ST_GeomFromGeoJSON('" + geojsonGeometry + "'), 4326) as b "
+		+ "where "
+		+ " l.gid = a.gid and l.location_type_id = t.id and "
+		+ (superTypeId == null ? "" : " t.super_type_id = " + superTypeId + " and ")
+		+ " st_intersects(a.multipolygon,b) = true and "
+		+ " a.gid !=1216 and "
+		+ " a.gid !=1216000 "
+		+ "order by "
+		+ " st_area(st_intersection(a.multipolygon,b),true) desc, "
+		+ " st_area(a.multipolygon,true)";
+		return q;
+	}
 }
