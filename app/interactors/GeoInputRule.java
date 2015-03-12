@@ -58,6 +58,13 @@ public class GeoInputRule {
 							geometryFeature.setGeometry(polygonBody);
 						break;
 						
+						case "Point":
+							//TODO: uncomment this once processGeometryTypes() supports Point processing
+							//TODO: update processGeometryTypes() to support Points
+							//models.geo.Point pointBody = (models.geo.Point) featureGeometry;
+							//geometryFeature.setGeometry(pointBody);
+						//break;
+						
 						default:
 						break;
 					}
@@ -71,7 +78,7 @@ public class GeoInputRule {
 			}
 		}
 		
-		//TODO: return Point for point-based entries, MultiPolygon for specific case
+		//TODO: return GeometryCollection instead of MultiPolygon so that system supports points
 		
 		Polygon [] polygonArray = polygons.toArray(new Polygon[polygons.size()]);
 //Logger.debug("p0=" + polygonArray[0].getDimension());
