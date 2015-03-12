@@ -105,16 +105,14 @@ public class AdministrativeUnitServices extends Controller {
 		JsonNode requestJSON = null;
 		
 Logger.debug("\n");
-Logger.debug("=====");
-		
 		if(request != null) {
 			RequestBody requestBody = request.body();
 			
 			String requestBodyText = requestBody.toString();
-Logger.debug("Request [" + request.getHeader("Content-Type") + "], Length: " + requestBodyText.length() + "\n");
-Logger.debug("Request Body:\n" + requestBodyText + "\n");
-Logger.debug("Request.queryString():\n" + request.queryString() + "\n");
-Logger.debug("Request.headers().toString():\n" + request.headers().toString() + "\n");
+//Logger.debug("Request [" + request.getHeader("Content-Type") + "], Length: " + requestBodyText.length() + "\n");
+//Logger.debug("Request Body:\n" + requestBodyText + "\n");
+//Logger.debug("Request.queryString():\n" + request.queryString() + "\n");
+//Logger.debug("Request.headers().toString():\n" + request.headers().toString() + "\n");
 			
 			requestJSON = requestBody.asJson();
 			if(requestJSON == null) {
@@ -127,8 +125,10 @@ Logger.debug("Request.headers().toString():\n" + request.headers().toString() + 
 					throw new RuntimeException("Missing parameter [type]");
 				}
 			}
+			
 			return GeoJSONParser.parse(requestJSON);
-		} else {
+		}
+		else {
 			String message = "Request is null";
 Logger.debug("\n" + message + "\n");
 			throw new RuntimeException(message);

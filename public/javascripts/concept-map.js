@@ -13,7 +13,8 @@ $(document).ready(function() {
 			AU_COMPOSITE_TREE.initInteractBetweenTreeAndTable("au-list", initialize());
 			
 			function initialize() {
-				MapDriver.loadFeatureLayer = function() {
+				MapDriver.prototype.loadFeatureLayer = function() {
+					var noLoad = false;
 					var thisMapDriver = this;
 					
 					if(this.geoJSONURL) {
@@ -22,48 +23,61 @@ $(document).ready(function() {
 					else if(this.mapID) {
 						this.featureLayer = L.mapbox.featureLayer().loadID(this.mapID);
 					}
+					else {
+						this.featureLayer = L.mapbox.featureLayer();
+						noLoad = true;
+					}
 					
 					this.featureLayer.on('ready', function() {
-						thisMapDriver.loadJSON(thisMapDriver.featureLayer.getGeoJSON());
+						var geoJSON = thisMapDriver.featureLayer.getGeoJSON();
+						thisMapDriver.loadJSON(geoJSON);
 						
 						thisMapDriver.featureLayer.addTo(thisMapDriver.map);
 						
-						var feature = thisMapDriver.featureLayer.getGeoJSON().features[0];
-						
-						centerMap(thisMapDriver.featureLayer.getGeoJSON(), thisMapDriver);
-						
-						thisMapDriver.mapID = thisMapDriver.featureLayer.getGeoJSON().id;
-						setTextValue("#au-name", feature.properties.name);
-						setTextValue("#au-code", feature.properties.code);
-						setTextValue("#au-codepath", feature.properties.codePath);
-						setTextValue("#start-date", feature.properties.startDate);
-						setTextValue("#end-date", feature.properties.endDate);
-						PARENT_TREE.resetIsAboutList();
-						AU_COMPOSITE_TREE.resetIsAboutList();
-						
-						var i;
-						var parentGID = feature.properties.parentGid;
-						if(parentGID) {
-							//for(i = 0; i < parentGID.length; i++) {
-							//	AU_COMPOSITE_TREE.clickIsAboutByValue(parentGID[i]);
-							//}
+						if(geoJSON) {
+							var feature = geoJSON.features[0];
 							
-							PARENT_TREE.clickIsAboutByValue(parentGID);
+							var minLng = geoJSON.bbox[0];
+							var minLat = geoJSON.bbox[1];
+							var maxLng = geoJSON.bbox[2];
+							var maxLat = geoJSON.bbox[3];
+							var southWest = L.latLng(minLat, minLng);
+							var northEast = L.latLng(maxLat, maxLng);
+							var bounds = L.latLngBounds(southWest, northEast);
+							thisMapDriver.map.fitBounds(bounds);
+							
+							thisMapDriver.mapID = thisMapDriver.featureLayer.getGeoJSON().id;
+							setTextValue("#au-name", feature.properties.name);
+							setTextValue("#au-code", feature.properties.code);
+							setTextValue("#start-date", feature.properties.startDate);
+							setTextValue("#end-date", feature.properties.endDate);
+							PARENT_TREE.resetIsAboutList();
+							AU_COMPOSITE_TREE.resetIsAboutList();
+							
+							var parentGID = feature.properties.parentGid;
+							if(parentGID) {
+								//var i;
+								//for(i = 0; i < parentGID.length; i++) {
+								//	AU_COMPOSITE_TREE.clickIsAboutByValue(parentGID[i]);
+								//}
+								
+								PARENT_TREE.clickIsAboutByValue(parentGID);
+							}
+							
+							setTextValue("#gid", feature.properties.gid);
+							feature.properties.title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
+							
+							if(feature.properties.endDate) {
+								feature.properties.title = feature.properties.title + " to " + feature.properties.endDate;
+							}
+							else {
+								feature.properties.title += " to present";
+							}
+							
+							thisMapDriver.map.legendControl.removeLegend(thisMapDriver.title);
+							thisMapDriver.title = "<strong>" + feature.properties.title + "</strong>";
+							thisMapDriver.map.legendControl.addLegend(thisMapDriver.title);
 						}
-						
-						setTextValue("#gid", feature.properties.gid);
-						feature.properties.title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
-						
-						if(feature.properties.endDate) {
-							feature.properties.title = feature.properties.title + " to " + feature.properties.endDate;
-						}
-						else {
-							feature.properties.title += " to present";
-						}
-						
-						thisMapDriver.map.legendControl.removeLegend(thisMapDriver.title);
-						thisMapDriver.title = "<strong>" + feature.properties.title + "</strong>";
-						thisMapDriver.map.legendControl.addLegend(thisMapDriver.title);
 						
 						if(!thisMapDriver.drawControl) {
 							thisMapDriver.drawControl = new L.Control.Draw({
@@ -140,6 +154,41 @@ $(document).ready(function() {
 				
 				CONCEPT_MAP = new MapDriver();
 				MAP_DRIVER = CONCEPT_MAP;
+				var thisMapDriver = CONCEPT_MAP;
+				
+				function loadFromDatabase(mapID) {
+					thisMapDriver.geoJSONURL = crudPath + "/" + mapID;
+					
+					if(thisMapDriver.geoJSONURL) {
+						thisMapDriver.featureLayer.loadURL(thisMapDriver.geoJSONURL);
+					}
+					
+					thisMapDriver.featureLayer.on("ready", function() {
+						var feature = thisMapDriver.featureLayer.getGeoJSON().features[0];
+						
+						thisMapDriver.kml = feature.properties.kml;
+						
+						$("#gid").prop("disabled", true);
+						setTextValue("#au-type", feature.properties.locationTypeName);
+						
+						PARENT_TREE.clickIsAboutByValue(feature.properties.parentGid);
+						setTextValue("input#parent", getFirstAlphaOnly(PARENT_TREE.tree.getNodeByKey(feature.properties.parentGid).title));
+						$("input#parent").keyup();
+						
+						$("#save-button").hide();
+						if(feature.properties.locationTypeName == "Epidemic Zone") {
+							$("#update-button").show();
+						}
+						
+						$("#new-button").show();
+					});
+					
+					return;
+				}
+				var id = getURLParameterByName("id");
+				if(id) {
+					loadFromDatabase(id);
+				}
 				
 				$("#new-button").click(function() {
 					CONCEPT_MAP.mapID = Date().valueOf();
@@ -151,6 +200,12 @@ $(document).ready(function() {
 					var today = new Date();
 					setTextValue("#start-date", today.getUTCFullYear() + "-" + (today.getUTCMonth() + 1) + "-" + today.getUTCDate());
 					setTextValue("#end-date", "");
+				});
+				
+				$("#delete-button").click(function() {
+					CONCEPT_MAP.deleteLocation();
+					
+					return;
 				});
 				
 				$("#upload-button").click(function() {

@@ -1,4 +1,3 @@
-var oldPath = context + '/resources/aus';
 var crudPath = context + '/api/locations';
 
 function MapDriver() {
@@ -304,6 +303,40 @@ console.log("Length: " + JSON.stringify(data).length);
 	return;
 }
 
+MapDriver.prototype.deleteLocation = function() {
+	// DELETE //DELETE /resources/aus
+	// DELETE //DELETE /api/locations
+	var httpType = "DELETE";
+	var URL = crudPath;
+	
+	URL = URL + "/" + getValueText("#gid");
+	
+	$.ajax({
+		type: httpType,
+		url: URL,
+		success: function(data, status, response) {
+			console.log(data);
+			console.log(status);
+			
+			setTextValue("#server-result", "Success, ID: " + $("#gid").val() + " deleted");
+			$("#server-result").css("color", "#008080");
+			$("#server-result").show();
+			$("#server-result").fadeOut(15000);
+		},
+		error: function(data, status) {
+			console.log(status);
+			console.log(data);
+			
+			setTextValue("#server-result", status + ": " + data.statusText + " - " + data.responseText);
+			$("#server-result").css("color", "#800000");
+			$("#server-result").show();
+			$("#server-result").fadeOut(15000);
+		}
+	});
+	
+	return;
+}
+
 MapDriver.prototype.download = function() {
 	var jsonData = this.featureLayer.toGeoJSON();
 	var properties = null;
@@ -509,15 +542,6 @@ function formatGeoJSON(geoJSON, thisMapDriver) {
 	properties["parentGid"] = auParentGID;
 	properties["startDate"] = startDate;
 	properties["endDate"] = endDate;
-	
-	//TODO: Remove conversion and expand accepted server types
-	for(i = 0; i < geoJSON.features.length; i++) {
-		geometry = geoJSON.features[i].geometry;
-		if(geometry.type == "Polygon") {
-			geometry.coordinates = [geometry.coordinates];
-			geometry.type = "MultiPolygon";
-		}
-	}
 	
 	return geoJSON;
 }

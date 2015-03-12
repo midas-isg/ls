@@ -19,32 +19,39 @@ import play.mvc.Result;
 import dao.entities.Location;
 
 public class LocationServices extends Controller {
-	private static final String FORMAT_GEOJSON = "geojson";
-	private static final String FORMAT_APOLLOJSON = "json";
-	private static final String FORMAT_APOLLOXML = "xml";
-	private static final String FORMAT_KML = "kml";
-	private static final String FORMAT_DEFAULT = "geojson";
+	public static final String FORMAT_GEOJSON = "geojson";
+	public static final String FORMAT_APOLLOJSON = "json";
+	public static final String FORMAT_APOLLOXML = "xml";
+	public static final String FORMAT_KML = "kml";
+	public static final String FORMAT_DEFAULT = "geojson";
 	
 	@Transactional
-	public static Result locations(Long gid, String format){
+	public static Result locations(Long gid, String format, Integer maxExteriorRings){
 		if (gid == null)
 			return notFound("gid is required but got " + gid);
 		
 		if (IsFalsified(format))
 			format = FORMAT_DEFAULT;
 		
+		Location location = LocationRule.simplifyToMaxExteriorRings(gid, maxExteriorRings);
 		switch (format.toLowerCase()){
 		case FORMAT_GEOJSON:
-			return read(gid);
+			return asGeoJson(location);
 		case FORMAT_APOLLOJSON:
-			return ApolloLocationServices.locationsInJson(gid +"");
+			return ApolloLocationServices.asJson(location);
 		case FORMAT_APOLLOXML:
-			return ApolloLocationServices.locationsInXml(gid +"");
+			return ApolloLocationServices.asXml(location); 
 		case FORMAT_KML:
-			return asKml(gid); 
+			return asKml(location);
 		default:
 			return badRequest(format + " is not supported.");
 		}
+	}
+	
+	@Transactional
+	public static Result getGeometryMetadata(long gid, Double tolerance){
+		Object object = LocationRule.getSimplifiedGeometryMetadata(gid, tolerance);
+		return ok(Json.toJson(object));
 	}
 	
 	private static boolean IsFalsified(String text) {
@@ -75,14 +82,19 @@ public class LocationServices extends Controller {
 			FeatureCollection parsed = parseRequestAsFeatureCollection();
 			Long id = Wire.create(parsed);
 			setResponseLocation(id);
+			
 			return created();
-		} catch (RuntimeException e){
+		}
+		catch (RuntimeException e) {
 			String message = e.getMessage();
 			Logger.error(message, e);
+			
 			return badRequest(message);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			String message = e.getMessage();
 			Logger.error(message, e);
+			
 			return forbidden(message);
 		}
 	}
@@ -97,9 +109,9 @@ public class LocationServices extends Controller {
 	}
 	
 	@Transactional
-	public static Result read(long gid) {
+	static Result asGeoJson(Location location) {
 		response().setContentType("application/vnd.geo+json");
-		return ok(Json.toJson(Wire.read(gid)));
+		return ok(Json.toJson(Wire.asFeatureCollection(location)));
 	}
 	
 	@Transactional
@@ -131,8 +143,7 @@ public class LocationServices extends Controller {
 	}
 
 	@Transactional
-	public static Result asKml(long gid) {
-		Location location = LocationRule.read(gid);
+	public static Result asKml(Location location) {
 		String result = KmlRule.asKml(location);
 		response().setContentType("application/vnd.google-earth.kml+xml");
 		return ok(result);
@@ -151,8 +162,7 @@ public class LocationServices extends Controller {
 			return id;
 		}
 
-		public static FeatureCollection read(long gid) {
-			Location location = LocationRule.read(gid);
+		public static FeatureCollection asFeatureCollection(Location location) {
 			FeatureCollection fc = GeoJsonRule.asFeatureCollection(location);
 			return fc;
 		}
