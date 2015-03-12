@@ -305,6 +305,7 @@ public class GeoJsonRule {
 		}
 		location.setParent(parent);
 		location.setGeometry(createLocationGeometry(fc, location));
+		
 		return location;
 	}
 

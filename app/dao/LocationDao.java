@@ -33,12 +33,14 @@ public class LocationDao {
 		LocationProxyRule.notifyChange();
 		Long gid = location.getGid();
 		Logger.info("persisted " + gid);
+		
 		return gid;
 	}
 
 	public Location read(long gid) {
 		EntityManager em = JPA.em();
 		Location result = em.find(Location.class, gid);
+		
 		return result;
 	}
 
@@ -50,6 +52,7 @@ public class LocationDao {
 		LocationProxyRule.notifyChange();
 		Long gid = location.getGid();
 		Logger.info("merged " + gid);
+		
 		return gid;
 	}
 
@@ -58,6 +61,7 @@ public class LocationDao {
 		setSridToDefault(geometry);
 		geometry.setLocation(location);
 		geometry.setGid(location.getGid());
+		
 		return geometry;
 	}
 
@@ -73,6 +77,7 @@ public class LocationDao {
 			em.remove(location);
 			Logger.info("removed Location with gid=" + gid);
 		}
+		
 		return gid;
 	}
 	
@@ -105,6 +110,7 @@ public class LocationDao {
 			l.setHeadline(objects[1].toString());
 			l.setRank(objects[2].toString());
 		}
+		
 		return locations;
 	}
 
@@ -114,6 +120,7 @@ public class LocationDao {
 			Object[] l = (Object[])o;
 			list.add((BigInteger)l[0]);
 		}
+		
 		return list;
 	}
 
@@ -132,6 +139,7 @@ public class LocationDao {
 			result += del + t.toLowerCase();
 			del = "&";
 		}
+		
 		return result;
 	}
 	
@@ -144,6 +152,7 @@ public class LocationDao {
 		Query query = em.createQuery("from Location where parent=null");
 		@SuppressWarnings("unchecked")
 		List<Location> result = (List<Location>)query.getResultList();
+		
 		return result;
 	}
 
@@ -152,13 +161,14 @@ public class LocationDao {
 		List<Location> result = new ArrayList<>();
 		Map<Long, Location> gid2location = new HashMap<>();
 		Map<Long, List<Location>> gid2orphans = new HashMap<>();
-		for (Location location : all){
+		for(Location location : all) {
 			em.detach(location);
 			List<Location> children = null;
 			Long gid = location.getGid();
 			if (gid2orphans.containsKey(gid)){
 				children = gid2orphans.remove(gid);
-			} else {
+			}
+			else {
 				children = new ArrayList<Location>();
 			}
 			location.setChildren(children);
@@ -167,7 +177,8 @@ public class LocationDao {
 			Location parentFromDb = location.getParent();
 			if (parentFromDb == null){
 				result.add(location);
-			} else {
+			}
+			else {
 				Long parentGid = parentFromDb.getGid();
 				Location foundParent = gid2location.get(parentGid);
 				if (foundParent == null){
@@ -182,6 +193,7 @@ public class LocationDao {
 				}
 			}
 		}
+		
 		return result;
 	}
 
@@ -190,6 +202,7 @@ public class LocationDao {
 		Query query = em.createQuery("from Location");
 		@SuppressWarnings("unchecked")
 		List<Location> result = (List<Location>)query.getResultList();
+		
 		return result;
 	}
 
@@ -227,9 +240,10 @@ public class LocationDao {
 			if (parentGid != null){
 				Location parent = result.get(parentGid);
 				loc.setParent(parent);
-				if (parent == null){
+				if(parent == null) {
 					orphants.put(gid, parentGid);
-				} else {
+				}
+				else {
 					parent.getChildren().add(loc);
 				}
 			}
@@ -237,17 +251,19 @@ public class LocationDao {
 			loc.setChildren(new ArrayList<Location>());
 			result.put(gid, loc);
 		}
-		for (Map.Entry<Long, Long> pair : orphants.entrySet()){
+		for(Map.Entry<Long, Long> pair : orphants.entrySet()) {
 			Long gid = pair.getKey();
 			Location parent = result.get(pair.getValue());
-			if (parent == null){
+			if (parent == null) {
 				Logger.warn(gid + " has no parent!");
-			} else {
+			}
+			else {
 				Location child = result.get(gid);
 				child.setParent(parent);
 				parent.getChildren().add(child);
 			}
-		} 
+		}
+		
 		return result;
 	}
 
@@ -257,18 +273,24 @@ public class LocationDao {
 
 	private String getString(Map<String, Object> m, String key) {
 		Object obj = m.get(key);
-		if (obj == null)
+		if (obj == null) {
 			return null;
+		}
+		
 		return String.valueOf(obj);
 	}
 
 	private Long getLong(Map<String, Object> m, String key) {
 		Object object = m.get(key);
-		if (object == null)
+		if (object == null) {
 			return null;
-		if (object instanceof BigInteger)
+		}
+		
+		if (object instanceof BigInteger) {
 			return ((BigInteger)object).longValue();
-		else
+		}
+		//else {
 			return Long.parseLong(object.toString());
+		//}
 	}
 }

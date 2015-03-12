@@ -13,15 +13,15 @@ GET		/create						controllers.Application.create()
 POST	/resources/aus				controllers.AdministrativeUnitServices.create()
 GET		/resources/aus/:gid			controllers.AdministrativeUnitServices.read(gid)
 PUT		/resources/aus/:gid			controllers.AdministrativeUnitServices.update(gid:Long)
-DELETE	/resources/aus/:gid				controllers.AdministrativeUnitServices.delete(gid:Long)
+DELETE	/resources/aus/:gid			controllers.AdministrativeUnitServices.delete(gid:Long)
 
 GET		/api/au-tree				controllers.TreeView.tree()
 
 #Alternate
-GET		/api/locations/:gid.:format			controllers.LocationServices.locations(gid:Long, format)
+GET		/api/locations/:gid.:format		controllers.LocationServices.locations(gid:Long, format, maxExteriorRings:java.lang.Integer ?= null)
 
 POST	/api/locations				controllers.LocationServices.create()
-GET		/api/locations/:gid			controllers.LocationServices.locations(gid:Long, format?="GeoJSON")
+GET		/api/locations/:gid			controllers.LocationServices.locations(gid:Long, format?="GeoJSON", maxExteriorRings:java.lang.Integer?=null)
 PUT		/api/locations/:gid			controllers.LocationServices.update(gid:Long)
 DELETE	/api/locations/:gid			controllers.LocationServices.delete(gid:Long)
 GET		/api/locations				controllers.LocationServices.findLocations(q, limit:Int?=10, offset:Int?=0)
@@ -29,6 +29,7 @@ GET		/api/locations-by-coordinate controllers.LocationServices.findLocationsByPo
 
 GET		/api/unique-location-names	controllers.LocationServices.findLocationNames(q, limit:Int?=10)
 GET		/api/location-type-names	controllers.ListServices.findLocationTypeNames(superTypeName)
+GET		/api/geometry-metadata/:gid	controllers.LocationServices.getGeometryMetadata(gid:Long, tolerance:java.lang.Double?=null)
 
 # Map static resources from the /public folder to the /assets URL path
 GET		/assets/*file				controllers.Assets.at(path="/public", file)
