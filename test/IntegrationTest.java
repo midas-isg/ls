@@ -120,7 +120,7 @@ public class IntegrationTest {
 		assertGids(list);
 
 		list = GeometryRule.findGidsByGeometry(geojson, supertTypeIdAdministrativeUnit, null);
-		assertGids(list, new long[] {1234568, 123456, 1169, 1213});
+		assertGids(list, new long[] {1169, 1213});
 
 		list = GeometryRule.findGidsByGeometry(geojson, 4L, null);
 		assertGids(list, new long[] {67079, 66676, 67136, 67173, 66735, 66822, 67019, 66820, 67081, 66664, 67117, 67111});
