@@ -35,27 +35,7 @@ public class GeoInputRule {
 					Feature geometryFeature = new Feature();
 					String type = subGeometry.getType();
 					
-					switch(type) {
-						case "MultiPolygon":
-							models.geo.MultiPolygon multipolygonBody = (models.geo.MultiPolygon)subGeometry;
-							geometryFeature.setGeometry(multipolygonBody);
-						break;
-						
-						case "Polygon":
-							models.geo.Polygon polygonBody = (models.geo.Polygon)subGeometry;
-							geometryFeature.setGeometry(polygonBody);
-						break;
-						
-						case "Point":
-							//TODO: uncomment this once processGeometryTypes() supports Point processing
-							//TODO: update processGeometryTypes() to support Points
-							//models.geo.Point pointBody = (models.geo.Point) featureGeometry;
-							//geometryFeature.setGeometry(pointBody);
-						//break;
-						
-						default:
-						break;
-					}
+					geometryFeature.setGeometry(subGeometry);
 					geometryFeature.setType(type);
 					
 					processGeometryTypes(fact, polygons, geometryFeature, subGeometry);
@@ -89,8 +69,9 @@ public class GeoInputRule {
 		
 		return mpg;
 	}
-
-	public static void processGeometryTypes(GeometryFactory fact,
+	
+	//TODO: Refactor this so that parameters don't include lists (and also support mixed geometries such as point/s)
+	private static void processGeometryTypes(GeometryFactory fact,
 			List<Geometry> polygons, Feature feature, FeatureGeometry geometry) {
 		if(geometry.getType().equals("MultiPolygon")) {
 //Logger.debug("============");
@@ -120,8 +101,7 @@ public class GeoInputRule {
 			polygons.add(polygon);
 		}
 		else /*if(geometry.getType() is not supported)*/ {
-			Logger.error("ERROR: Malformed GeoJSON");
-			Logger.error(geometry.getType() + " is not supported at Geometry level.");
+			throw new RuntimeException("ERROR: Malformed GeoJSON\n" + geometry.getType() + " is not supported at Geometry level.");
 		}
 		
 		return;
@@ -145,7 +125,8 @@ public class GeoInputRule {
 //Logger.debug(poly.getNumInteriorRing() + " inner ring/s");
 		}
 		catch(IllegalArgumentException e) {
-			Logger.error("IllegalArgumentException: \n\t" + e.getLocalizedMessage() + "\n\t" + e.getMessage());
+			Logger.error("IllegalArgumentException: \n\t" + e.getLocalizedMessage() + "\n\t" + e.getMessage(), e);
+			throw e;
 		}
 		
 		return poly;
