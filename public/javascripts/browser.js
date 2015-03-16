@@ -221,60 +221,29 @@ BrowserMap.prototype.loadFeatureLayer = function() {
 		}
 		
 		var children = properties.children;
-		show = false;
-		var show2 = false;
-		var show3 = false;
 		if(children && (children.length > 0)) {
-			//console.log(children);
-			//auName = children[0].name;
-			//auGID = children[0].gid;
-			//$("#au-children").append("<a href='./browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
-			
 			for(i = 0; i < children.length; i++) {
 				auName = children[i].name;
 				auGID = children[i].gid;
 				
-				if(children[i].locationTypeName == "Epidemic Zone") {
-					if(show) {
-						$("#au-epidemic-zones").append(",");
-					}
-					
-					$("#au-epidemic-zones").append("<a href='./browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
-					show = true;
+				var locationType = children[i].locationTypeName;
+				var locationDivID = locationType.replace(" ", "-").toLowerCase();
+				
+				if($("#" + locationDivID).length == 0) {
+					$("#au-children").append("<div id='" + locationDivID + "' class='extra-bottom-space'><em class='pull-left'>" + locationType + "s:</em></div>");
 				}
-				else if(children[i].locationTypeName == "Census Tract") {
-					if(show2) {
-						$("#census-tract").append(", ");
-					}
-					
-					$("#census-tract").append("<a href='./browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
-					show2 = true;
+				else {
+					$("#" + locationDivID).append(", ");
 				}
-				else /* if(children[i].locationTypeName != "Epidemic Zone") */ {
-					if(show3) {
-						$("#au-children").append(", ");
-					}
-					
-					$("#au-children").append("<a href='./browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
-					show3 = true;
-				}
+				
+				$("#" + locationDivID).append("<a href='./browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
 			}
 			
-			if(show) {
-				$("#au-epidemic-zones").show();
-			}
-			
-			if(show2) {
-				$("#census-tract").show();
-			}
-			
-			if(show3) {
-				$("#au-children").show();
-			}
+			$("#au-children").show();
 		}
 		
 		setTextValue("#gid", thisBrowserMap.mapID);
-		show = false;
+		var show = false;
 		var codes = properties.codes;
 		if(codes) {
 			for(i = 0; i < codes.length; i++) {
