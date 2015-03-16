@@ -76,14 +76,19 @@ public class LocationServices extends Controller {
 			FeatureCollection parsed = parseRequestAsFeatureCollection();
 			Long id = Wire.create(parsed);
 			setResponseLocation(id);
+			
 			return created();
-		} catch (RuntimeException e){
+		}
+		catch (RuntimeException e) {
 			String message = e.getMessage();
 			Logger.error(message, e);
+			
 			return badRequest(message);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			String message = e.getMessage();
 			Logger.error(message, e);
+			
 			return forbidden(message);
 		}
 	}

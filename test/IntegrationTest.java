@@ -1,9 +1,14 @@
 
 import static org.fest.assertions.Assertions.assertThat;
+import static play.mvc.Http.HeaderNames.LOCATION;
+import static play.test.Helpers.DELETE;
 import static play.test.Helpers.HTMLUNIT;
+import static play.test.Helpers.POST;
+import static play.test.Helpers.callAction;
 import static play.test.Helpers.contentAsString;
 import static play.test.Helpers.contentType;
 import static play.test.Helpers.fakeApplication;
+import static play.test.Helpers.header;
 import static play.test.Helpers.running;
 import static play.test.Helpers.status;
 import static play.test.Helpers.testServer;
@@ -21,6 +26,7 @@ import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 
+import models.geo.Feature;
 import models.geo.FeatureCollection;
 
 import org.fest.assertions.StringAssert;
@@ -33,6 +39,8 @@ import play.db.jpa.JPA;
 import play.libs.F.Callback;
 import play.libs.Json;
 import play.mvc.Result;
+import play.mvc.Http.Status;
+import play.test.FakeRequest;
 import play.test.TestBrowser;
 import play.test.TestServer;
 import play.twirl.api.Content;
@@ -41,6 +49,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.MultiPolygon;
 
 import controllers.AdministrativeUnitServices;
 import controllers.ApolloLocationServices;
@@ -67,7 +77,7 @@ public class IntegrationTest {
 	}
 
 	private EntityManager initEntityManager() {
-		EntityManager em = JPA.em("test");
+		EntityManager em = JPA.em("default");
     	JPA.bindForCurrentThread(em);
 		return em;
 	}
@@ -81,6 +91,9 @@ public class IntegrationTest {
 				transaction.begin();
 				transaction.setRollbackOnly();
 				
+				testCreateEzFromAu();
+				testLocationType_PumaComposedOfCensusTract();
+				testGetAuTypes();
 				testMaxExteriorRings(browser);
 				testGeoMetadata(browser);
 				tesCrudAu();
@@ -89,10 +102,65 @@ public class IntegrationTest {
 				
 				transaction.rollback();
             }
-
         });
     }
 
+	private void testCreateEzFromAu() throws Exception {
+		String fileName = "test/EzFromAu.geojson";
+		FeatureCollection fc = readFeatureCollectionFromFile(fileName);
+		Feature f0 = fc.getFeatures().get(0);
+		assertThat(f0.getId()).isEqualTo("11");
+		Location l = GeoJsonRule.asLocation(fc);
+		Geometry geometry = l.getGeometry().getMultiPolygonGeom();
+		String type = geometry.getGeometryType();
+		assertThat(type).isEqualTo(MultiPolygon.class.getSimpleName());
+		MultiPolygon mp = (MultiPolygon)geometry;
+		int expectedNumGeometries = 80;
+		assertThat(mp.getNumGeometries()).isEqualTo(expectedNumGeometries);
+		
+		String json = KmlRule.getStringFromFile(fileName);
+        JsonNode node = Json.parse(json);
+        String path = "/api/locations";
+		FakeRequest request = new FakeRequest(POST, path).withJsonBody(node);
+
+        Result result = callAction(controllers.routes.ref.LocationServices.create(), request);
+        assertThat(status(result)).isEqualTo(Status.CREATED);
+        String location = header(LOCATION, result);
+        assertThat(location).containsIgnoringCase(path);
+        long gid = toGid(location);
+        Location readLocation = LocationRule.read(gid);
+        assertThat(readLocation.getGid()).isEqualTo(gid);
+        MultiPolygon readMp = (MultiPolygon)readLocation.getGeometry().getMultiPolygonGeom();
+		assertThat(readMp.getNumGeometries()).isEqualTo(expectedNumGeometries);
+
+        String deletePath = path + "/" + gid;
+		FakeRequest deletRequest = new FakeRequest(DELETE, deletePath);
+        Result deleteResult = callAction(controllers.routes.ref.LocationServices.delete(gid), deletRequest);
+        assertThat(status(deleteResult)).isEqualTo(Status.NO_CONTENT);
+		assertThat(header(LOCATION, deleteResult)).endsWith(deletePath);
+	}
+	
+	private long toGid(String url) {
+		String[] tokens = url.split("/");
+		String gid = tokens[tokens.length - 1];
+		return Long.parseLong(gid);
+	}
+
+
+	private void testLocationType_PumaComposedOfCensusTract() {
+		String pumaName = "PUMA";
+		LocationType puma = LocationTypeRule.findByName(pumaName);
+		assertThat(puma.getName()).isEqualToIgnoringCase(pumaName);
+		assertThat(puma.getComposedOf().getName()).isEqualToIgnoringCase("Census Tract");
+	}
+	
+	private void testGetAuTypes() {
+		List<String> auTypes = ListServices.Wire.getTypes("Administrative Unit");
+		assertThat(auTypes).contains("Town", "Country");
+		assertThat(auTypes).doesNotHaveDuplicates();
+		assertThat(auTypes).excludes("PUMA", "Census Tract", "Epidemic Zone");
+	}
+	
 	private void testMaxExteriorRings(TestBrowser browser) {
 		long gid = 11;
 		
@@ -233,8 +301,7 @@ public class IntegrationTest {
 	}
 
 	private void testCrud(String fileName) throws Exception {
-		JsonNode json = readJsonNodeFromFile(fileName);
-		FeatureCollection fc = GeoJSONParser.parse(json);
+		FeatureCollection fc = readFeatureCollectionFromFile(fileName);
     	
     	long gid = LocationServices.Wire.create(fc);
 		assertThat(gid).isPositive();
@@ -252,6 +319,13 @@ public class IntegrationTest {
 		assertThat(deletedGid).isEqualTo(gid);
 		Location deletedLocation = LocationRule.read(gid);
 		assertThat(deletedLocation).isNull();
+	}
+
+	private FeatureCollection readFeatureCollectionFromFile(String fileName)
+			throws Exception {
+		JsonNode json = readJsonNodeFromFile(fileName);
+		FeatureCollection fc = GeoJSONParser.parse(json);
+		return fc;
 	}
 
 	private Location assertRead(FeatureCollection fc, long gid) {

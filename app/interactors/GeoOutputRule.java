@@ -12,16 +12,17 @@ import com.vividsolutions.jts.geom.Polygon;
 
 public class GeoOutputRule {
 	static FeatureGeometry toFeatureGeometry(Geometry geom) {
-		List<List<List<double[]>>> list = new ArrayList<>();
-		list.add(toMultipolygonCoordinates(geom));
+		//List<List<List<double[]>>> list = new ArrayList<>();
+		List<List<List<double[]>>> list = toMultipolygonCoordinates(geom);
+		//list.add(toMultipolygonCoordinates(geom));
 		MultiPolygon g = new MultiPolygon();
 		g.setCoordinates(list);
 		
 		return g; 
 	}
 
-	private static List<List<double[]>> toMultipolygonCoordinates(Geometry geom) {
-		List<List<double[]>> multipolygon = new ArrayList<>();
+	private static List<List<List<double[]>>> toMultipolygonCoordinates(Geometry geom) {
+		List<List<List<double[]>>> multipolygon = new ArrayList<>();
 		if (geom == null)
 			return multipolygon;
 		int n = geom.getNumGeometries();
@@ -31,13 +32,18 @@ public class GeoOutputRule {
 				Polygon poly = (Polygon)polygonGeo;
 				//List<double[]> polygon = toPolygonCoordinates(polygonGeo.getCoordinates());
 				//multipolygon.add(polygon);
+				
+				List<List<double []>> polygonToAdd = new ArrayList<List<double []>>();
 				List<double[]> exteriorRing = toPolygonCoordinates(poly.getExteriorRing().getCoordinates());
-				multipolygon.add(exteriorRing);
+				polygonToAdd.add(exteriorRing);
+				
 				int rings = poly.getNumInteriorRing();
 				for (int j = 0 ; j < rings; j++){
 					List<double[]> interiorRing = toPolygonCoordinates(poly.getInteriorRingN(j).getCoordinates());
-					multipolygon.add(interiorRing);
+					polygonToAdd.add(interiorRing);
 				}
+				
+				multipolygon.add(polygonToAdd);
 			}
 		}
 		
