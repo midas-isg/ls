@@ -93,7 +93,7 @@ public class IntegrationTest {
 				
 				testCreateEzFromAu();
 				testLocationType_PumaComposedOfCensusTract();
-				 testGetAuTypes();
+				testGetAuTypes();
 				testMaxExteriorRings(browser);
 				testGeoMetadata(browser);
 				tesCrudAu();
@@ -160,7 +160,6 @@ public class IntegrationTest {
 		assertThat(auTypes).doesNotHaveDuplicates();
 		assertThat(auTypes).excludes("PUMA", "Census Tract", "Epidemic Zone");
 	}
-	
 	
 	private void testMaxExteriorRings(TestBrowser browser) {
 		long gid = 11;
