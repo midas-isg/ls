@@ -15,16 +15,28 @@ import com.vividsolutions.jts.geom.LinearRing;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
 
+import dao.entities.LocationGeometry;
+
 public class GeoInputRule {
 	static Geometry toMultiPolygon(FeatureCollection fc) {
 		GeometryFactory fact = new GeometryFactory();
 		List<Feature> features = fc.getFeatures();
 		List<Polygon> polygons = new ArrayList<Polygon>();
+		List<MultiPolygon> multipolygons = new ArrayList<>();
 		
 		for(Feature feature :features) {
 			FeatureGeometry geometry = feature.getGeometry();
-			
-			if(geometry.getType().equals("GeometryCollection")) {
+			if (geometry == null){
+				String id = feature.getId();
+				if (id != null){
+					LocationGeometry lg = GeometryRule.read(Long.parseLong(id));
+					Geometry geo = lg.getMultiPolygonGeom();
+					if ("MultiPolygon".equals(geo.getGeometryType())){
+						MultiPolygon mp = (MultiPolygon)geo;
+						multipolygons.add(mp);
+					}
+				}
+			} else if(geometry.getType().equals("GeometryCollection")) {
 				List<FeatureGeometry> subGeometries = ((models.geo.GeometryCollection)geometry).getGeometries();
 				
 				for(FeatureGeometry subGeometry : subGeometries) {
@@ -60,7 +72,9 @@ public class GeoInputRule {
 //Logger.debug("\tx=" + polygonArray[0].getExteriorRing().getCoordinateN(0).x);
 //Logger.debug("\ty=" + polygonArray[0].getExteriorRing().getCoordinateN(0).y);
 		MultiPolygon mpg = new MultiPolygon(polygonArray, fact);
-		
+		for (MultiPolygon mp : multipolygons){
+			mpg = (MultiPolygon)mpg.union(mp);
+		}
 		return mpg;
 	}
 
