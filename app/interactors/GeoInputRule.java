@@ -18,6 +18,16 @@ import com.vividsolutions.jts.geom.Polygon;
 import dao.entities.LocationGeometry;
 
 public class GeoInputRule {
+	/** 
+	 * Converts every features into geometries and union them all into 
+	 * a single multipolygon to be persisted into the database. The geometries 
+	 * could be in form of geometry coordinates or referring to a GID of 
+	 * an existing location in the database. 
+	 * 
+	 * This can be used to create an EZ from an existing AU but the client 
+	 * (e.g. front-end) has to make sure that only one feature with a GID 
+	 * in the FeatureCollection.  
+	 */
 	static Geometry toMultiPolygon(FeatureCollection fc) {
 		GeometryFactory fact = new GeometryFactory();
 		List<Feature> features = fc.getFeatures();
@@ -72,6 +82,7 @@ public class GeoInputRule {
 //Logger.debug("\tx=" + polygonArray[0].getExteriorRing().getCoordinateN(0).x);
 //Logger.debug("\ty=" + polygonArray[0].getExteriorRing().getCoordinateN(0).y);
 		MultiPolygon mpg = new MultiPolygon(polygonArray, fact);
+		
 		for (MultiPolygon mp : multipolygons){
 			mpg = (MultiPolygon)mpg.union(mp);
 		}
