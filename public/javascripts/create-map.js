@@ -197,9 +197,18 @@ $(document).ready(function() {
 						$("#gid").prop("disabled", true);
 						setTextValue("#au-type", feature.properties.locationTypeName);
 						
-						PARENT_TREE.clickIsAboutByValue(feature.properties.parentGid);
-						setTextValue("input#parent", getFirstAlphaOnly(PARENT_TREE.tree.getNodeByKey(feature.properties.parentGid).title));
-						$("input#parent").keyup();
+						if(feature.properties.parentGid) {
+							PARENT_TREE.clickIsAboutByValue(feature.properties.parentGid);
+							var IDs = [feature.properties.parentGid];
+							PARENT_TREE.tree.filterNodes(function(node) {
+								var set = new Set(IDs);
+								
+								return set.has(node.key);
+							});
+							PARENT_TREE.tree.visit(function(node) {
+								node.setExpanded(true);
+							});
+						}
 						
 						$("#save-button").hide();
 						if(feature.properties.locationTypeName == "Epidemic Zone") {

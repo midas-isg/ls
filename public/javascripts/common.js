@@ -160,3 +160,8 @@ function getFirstAlphaOnly(input) {
 	
 	return output;
 }
+
+function backslashParentheses(input) {
+	output = input.replace("(", "\\(");
+	return output.replace(")", "\\)");
+}
