@@ -111,7 +111,7 @@ public class IntegrationTest {
 		Feature f0 = fc.getFeatures().get(0);
 		assertThat(f0.getId()).isEqualTo("11");
 		Location l = GeoJsonRule.asLocation(fc);
-		Geometry geometry = l.getGeometry().getMultiPolygonGeom();
+		Geometry geometry = l.getGeometry().getShapeGeom();
 		String type = geometry.getGeometryType();
 		assertThat(type).isEqualTo(MultiPolygon.class.getSimpleName());
 		MultiPolygon mp = (MultiPolygon)geometry;
@@ -130,7 +130,7 @@ public class IntegrationTest {
         long gid = toGid(location);
         Location readLocation = LocationRule.read(gid);
         assertThat(readLocation.getGid()).isEqualTo(gid);
-        MultiPolygon readMp = (MultiPolygon)readLocation.getGeometry().getMultiPolygonGeom();
+        MultiPolygon readMp = (MultiPolygon)readLocation.getGeometry().getShapeGeom();
 		assertThat(readMp.getNumGeometries()).isEqualTo(expectedNumGeometries);
 
         String deletePath = path + "/" + gid;
@@ -200,7 +200,7 @@ public class IntegrationTest {
 	}
 
 	private int getNumExteriorRings(Location location) {
-		return location.getGeometry().getMultiPolygonGeom().getNumGeometries();
+		return location.getGeometry().getShapeGeom().getNumGeometries();
 	}
 
 	private void testGeoMetadata(TestBrowser browser) {

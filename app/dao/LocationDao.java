@@ -66,7 +66,7 @@ public class LocationDao {
 	}
 
 	private void setSridToDefault(LocationGeometry geo) {
-		geo.getMultiPolygonGeom().setSRID(SRID);
+		geo.getShapeGeom().setSRID(SRID);
 	}
 
 	public Long delete(Location location) {

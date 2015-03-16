@@ -31,7 +31,7 @@ public class Location implements Comparable<Location> {
 	private List<Location> locationsIncluded;
 	private List<Code> otherCodes;
 	private List<Location> relatedLocations;
-	private LocationGeometry multiPolygonGeom;
+	private LocationGeometry locationGeom;
 	
 	private String headline;
 	private String rank;
@@ -124,11 +124,11 @@ public class Location implements Comparable<Location> {
 	@JoinColumn(name = "gid")*/
 	@Transient
 	public LocationGeometry getGeometry() {
-		return multiPolygonGeom;
+		return locationGeom;
 	}
 
 	public void setGeometry(LocationGeometry geom) {
-		this.multiPolygonGeom = geom;
+		this.locationGeom = geom;
 	}
 
 	@Override
@@ -170,7 +170,7 @@ public class Location implements Comparable<Location> {
 						.hashCode());
 		result = prime
 				* result
-				+ ((multiPolygonGeom == null) ? 0 : multiPolygonGeom.hashCode());
+				+ ((locationGeom == null) ? 0 : locationGeom.hashCode());
 		result = prime * result
 				+ ((otherCodes == null) ? 0 : otherCodes.hashCode());
 		result = prime * result + ((parent == null) ? 0 : parent.hashCode());
@@ -209,10 +209,10 @@ public class Location implements Comparable<Location> {
 				return false;
 		} else if (!locationsIncluded.equals(other.locationsIncluded))
 			return false;
-		if (multiPolygonGeom == null) {
-			if (other.multiPolygonGeom != null)
+		if (locationGeom == null) {
+			if (other.locationGeom != null)
 				return false;
-		} else if (!multiPolygonGeom.equals(other.multiPolygonGeom))
+		} else if (!locationGeom.equals(other.locationGeom))
 			return false;
 		if (otherCodes == null) {
 			if (other.otherCodes != null)
