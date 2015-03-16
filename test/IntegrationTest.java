@@ -132,7 +132,7 @@ public class IntegrationTest {
 	}
 
 	private int getNumExteriorRings(Location location) {
-		return location.getGeometry().getMultiPolygonGeom().getNumGeometries();
+		return location.getGeometry().getShapeGeom().getNumGeometries();
 	}
 
 	private void testGeoMetadata(TestBrowser browser) {

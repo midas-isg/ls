@@ -33,6 +33,11 @@
 						]
 					}
 				]
+			},
+			"properties":
+			{
+				"name": "TEST",
+				"description": "This is a test"
 			}
 		}
 	]
