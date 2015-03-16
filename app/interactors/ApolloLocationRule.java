@@ -18,7 +18,7 @@ public class ApolloLocationRule {
 		al.setTextualDescription(toText(location));
 		al.setApolloLocationCode("" + location.getGid());
 		
-		if (location.getGeometry().getMultiPolygonGeom() != null){
+		if (location.getGeometry().getShapeGeom() != null){
 			NamedMultiGeometry nmg = toNamedMultiGeometry(location);
 			al.setNamedMultiGeometry(nmg);
 		} else if (! location.getLocationsIncluded().isEmpty()) {
@@ -102,7 +102,7 @@ public class ApolloLocationRule {
 
 	private static void populatePoygons(List<LocationPolygon> polygons,
 			Location l) {
-		Geometry mpg = l.getGeometry().getMultiPolygonGeom();
+		Geometry mpg = l.getGeometry().getShapeGeom();
 		if (mpg == null){
 			return;
 		}

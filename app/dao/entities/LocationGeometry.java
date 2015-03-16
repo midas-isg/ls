@@ -28,7 +28,7 @@ import com.vividsolutions.jts.geom.Geometry;
 public class LocationGeometry {
 	
 	private Long gid;
-	private Geometry multiPolygonGeom;
+	private Geometry shapeGeom;
 	private Location location;
 	private Double area;
 	private Date updateDate;
@@ -50,12 +50,12 @@ public class LocationGeometry {
 	@Basic(fetch = FetchType.LAZY)
 	@Type(type = "org.hibernate.spatial.GeometryType")
 	@Column(name = "multipolygon")
-	public Geometry getMultiPolygonGeom() {
-		return multiPolygonGeom;
+	public Geometry getShapeGeom() {
+		return shapeGeom;
 	}
 
-	public void setMultiPolygonGeom(Geometry multiPolygonGeom) {
-		this.multiPolygonGeom = multiPolygonGeom;
+	public void setShapeGeom(Geometry shapeGeom) {
+		this.shapeGeom = shapeGeom;
 	}
 
 	@OneToOne(fetch = FetchType.LAZY)
@@ -84,7 +84,7 @@ public class LocationGeometry {
 		result = prime * result + ((gid == null) ? 0 : gid.hashCode());
 		result = prime
 				* result
-				+ ((multiPolygonGeom == null) ? 0 : multiPolygonGeom.hashCode());
+				+ ((shapeGeom == null) ? 0 : shapeGeom.hashCode());
 		return result;
 	}
 
@@ -107,10 +107,10 @@ public class LocationGeometry {
 				return false;
 		} else if (!gid.equals(other.gid))
 			return false;
-		if (multiPolygonGeom == null) {
-			if (other.multiPolygonGeom != null)
+		if (shapeGeom == null) {
+			if (other.shapeGeom != null)
 				return false;
-		} else if (!multiPolygonGeom.equals(other.multiPolygonGeom))
+		} else if (!shapeGeom.equals(other.shapeGeom))
 			return false;
 		return true;
 	}

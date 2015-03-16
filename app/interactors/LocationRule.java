@@ -131,13 +131,13 @@ public class LocationRule {
 
 	public static Object getSimplifiedGeometryMetadata(long gid, Double tolerance) {
 		Location location = simplify(gid, tolerance);
-		Geometry multiPolygon = location.getGeometry().getMultiPolygonGeom();
+		Geometry shapeGeometry = location.getGeometry().getShapeGeom();
 		Map<String, Object> map = new HashMap<>();
 		String DB_NAME = "Database: " + Play.application().configuration().getString("db.default.url");
 		map.put("DB_NAME", DB_NAME);
-		int numGeometries = multiPolygon.getNumGeometries();
+		int numGeometries = shapeGeometry.getNumGeometries();
 		map.put("numGeometries", numGeometries);
-		int numCoordinates = multiPolygon.getCoordinates().length;
+		int numCoordinates = shapeGeometry.getCoordinates().length;
 		map.put("numCoordinates", numCoordinates);
 		int maxCoordinates = 0;
 		int sumHoles = 0;
@@ -146,7 +146,7 @@ public class LocationRule {
 		int sumShellPoints = 0;
 		int sumPoints = 0;
 		for (int i = 0; i < numGeometries; i++){
-			Geometry p = multiPolygon.getGeometryN(i);
+			Geometry p = shapeGeometry.getGeometryN(i);
 			int points = p.getCoordinates().length;
 			sumPoints += points;
 			if (maxCoordinates < points)
