@@ -135,7 +135,7 @@ public class GeometryRule {
 	}
 
 	private static int getNumExteriorRings(LocationGeometry geo) {
-		int n = geo.getMultiPolygonGeom().getNumGeometries();
+		int n = geo.getShapeGeom().getNumGeometries();
 		return n;
 	}
 }

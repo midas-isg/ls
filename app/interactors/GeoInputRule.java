@@ -9,51 +9,78 @@ import models.geo.FeatureCollection;
 import models.geo.FeatureGeometry;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LinearRing;
 import com.vividsolutions.jts.geom.MultiPolygon;
+import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
+import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
+
+import dao.entities.LocationGeometry;
 
 public class GeoInputRule {
-	static Geometry toMultiPolygon(FeatureCollection fc) {
+	/** 
+	 * Converts every features into geometries and union them all into 
+	 * a single multipolygon to be persisted into the database. The geometries 
+	 * could be in form of geometry coordinates or referring to a GID of 
+	 * an existing location in the database. 
+	 * 
+	 * This can be used to create an EZ from an existing AU but the client 
+	 * (e.g. front-end) has to make sure that only one feature with a GID 
+	 * in the FeatureCollection.  
+	 */
+	static Geometry toGeometry(FeatureCollection fc) {
 		GeometryFactory fact = new GeometryFactory();
 		List<Feature> features = fc.getFeatures();
-		List<Polygon> polygons = new ArrayList<Polygon>();
+		List<Geometry> polygons = new ArrayList<>();
+		List<MultiPolygon> multipolygons = new ArrayList<>();
 		
 		for(Feature feature :features) {
-			FeatureGeometry geometry = feature.getGeometry();
-			
-			if(geometry.getType().equals("GeometryCollection")) {
-				List<FeatureGeometry> subGeometries = ((models.geo.GeometryCollection)geometry).getGeometries();
+			FeatureGeometry featureGeometry = feature.getGeometry();
+			if (featureGeometry == null){
+				String id = feature.getId();
+				if (id != null){
+					LocationGeometry lg = GeometryRule.read(Long.parseLong(id));
+					Geometry geo = lg.getShapeGeom();
+					if ("MultiPolygon".equals(geo.getGeometryType())){
+						MultiPolygon mp = (MultiPolygon)geo;
+						multipolygons.add(mp);
+					}
+				}
+			} else if(featureGeometry.getType().equals("GeometryCollection")) {
+				List<FeatureGeometry> subGeometries = ((models.geo.GeometryCollection)featureGeometry).getGeometries();
 				
 				for(FeatureGeometry subGeometry : subGeometries) {
 					Feature geometryFeature = new Feature();
 					String type = subGeometry.getType();
 					
-					switch(type) {
-						case "MultiPolygon":
-							models.geo.MultiPolygon multipolygonBody = (models.geo.MultiPolygon)subGeometry;
-							geometryFeature.setGeometry(multipolygonBody);
-						break;
-						
-						case "Polygon":
-							models.geo.Polygon polygonBody = (models.geo.Polygon)subGeometry;
-							geometryFeature.setGeometry(polygonBody);
-						break;
-						
-						default:
-						break;
-					}
+					geometryFeature.setGeometry(subGeometry);
 					geometryFeature.setType(type);
 					
 					processGeometryTypes(fact, polygons, geometryFeature, subGeometry);
 				}
 			}
-			else{
-				processGeometryTypes(fact, polygons, feature, geometry);
+			else if(featureGeometry.getType().equals("Point")) {
+				if(features.size() == 1) {
+					models.geo.Point pointGeometry = (models.geo.Point) featureGeometry;
+					Coordinate [] coordinates = new Coordinate[1];
+					coordinates[0] = new Coordinate(pointGeometry.getLatitude(), pointGeometry.getLongitude());
+					CoordinateSequence coordinate = new CoordinateArraySequence(coordinates);
+					Point outputPoint = new Point((CoordinateSequence) coordinate, fact);
+					
+					return outputPoint;
+				}
+				
+				throw new RuntimeException("A Point cannot be saved with other points or geometry types");
+			}
+			else {
+				processGeometryTypes(fact, polygons, feature, featureGeometry);
 			}
 		}
+		
+		//TODO: return GeometryCollection instead of MultiPolygon so that system supports points
 		
 		Polygon [] polygonArray = polygons.toArray(new Polygon[polygons.size()]);
 //Logger.debug("p0=" + polygonArray[0].getDimension());
@@ -61,11 +88,15 @@ public class GeoInputRule {
 //Logger.debug("\ty=" + polygonArray[0].getExteriorRing().getCoordinateN(0).y);
 		MultiPolygon mpg = new MultiPolygon(polygonArray, fact);
 		
+		for (MultiPolygon mp : multipolygons){
+			mpg = (MultiPolygon)mpg.union(mp);
+		}
 		return mpg;
 	}
-
-	public static void processGeometryTypes(GeometryFactory fact,
-			List<Polygon> polygons, Feature feature, FeatureGeometry geometry) {
+	
+	//TODO: Refactor this so that parameters don't include lists (and also support mixed geometries such as point/s)
+	private static void processGeometryTypes(GeometryFactory fact,
+			List<Geometry> polygons, Feature feature, FeatureGeometry geometry) {
 		if(geometry.getType().equals("MultiPolygon")) {
 //Logger.debug("============");
 			models.geo.MultiPolygon multipolygon = (models.geo.MultiPolygon)geometry;
@@ -94,8 +125,7 @@ public class GeoInputRule {
 			polygons.add(polygon);
 		}
 		else /*if(geometry.getType() is not supported)*/ {
-			Logger.error("ERROR: Malformed GeoJSON");
-			Logger.error(geometry.getType() + " is not supported at Geometry level.");
+			throw new RuntimeException("ERROR: Malformed GeoJSON\n" + geometry.getType() + " is not supported at Geometry level.");
 		}
 		
 		return;
@@ -119,7 +149,8 @@ public class GeoInputRule {
 //Logger.debug(poly.getNumInteriorRing() + " inner ring/s");
 		}
 		catch(IllegalArgumentException e) {
-			Logger.error("IllegalArgumentException: \n\t" + e.getLocalizedMessage() + "\n\t" + e.getMessage());
+			Logger.error("IllegalArgumentException: \n\t" + e.getLocalizedMessage() + "\n\t" + e.getMessage(), e);
+			throw e;
 		}
 		
 		return poly;

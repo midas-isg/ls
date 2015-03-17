@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import play.Logger;
 import models.geo.Feature;
 import models.geo.FeatureCollection;
 import models.geo.FeatureGeometry;
@@ -35,30 +34,31 @@ public class GeoJSONParser {
 		JsonNode featuresArrayNode = inputJsonNode.withArray("features");
 		for(int i = 0; i < featuresArrayNode.size(); i++) {
 			Map<String, Object> properties = new HashMap<>();
-			FeatureGeometry geometry;
+			FeatureGeometry geometry = null;
 			
 			JsonNode currentNode = featuresArrayNode.get(i);
 			Feature feature = new Feature();
 			feature.setType(currentNode.get("type").textValue());
 			toProperties(properties, currentNode);
 			
-			try {
-				String type = currentNode.get("geometry").get("type").textValue();
+			JsonNode currentGeometry = currentNode.get("geometry");
+			if ( ! currentGeometry.isNull()){
+				String type = currentGeometry.get("type").textValue();
 				switch(type) {
 					case "MultiPolygon":
-						geometry = parseMultiPolygon(currentNode.get("geometry"));
+						geometry = parseMultiPolygon(currentGeometry);
 					break;
 					
 					case "Polygon":
-						geometry = parsePolygon(currentNode.get("geometry"));
+						geometry = parsePolygon(currentGeometry);
 					break;
 					
 					case "GeometryCollection":
-						geometry = parseGeometryCollection(currentNode.get("geometry"));
+						geometry = parseGeometryCollection(currentGeometry);
 					break;
 					
 					case "Point":
-						geometry = parsePoint(currentNode.get("geometry"));
+						geometry = parsePoint(currentGeometry);
 					break;
 					
 					case "LineString":
@@ -68,10 +68,13 @@ public class GeoJSONParser {
 						throw (new RuntimeException("Unsupported Geometry: " + type + "\n"));
 				}
 			}
-			catch(Exception e) {
-				throw(e);
+			String id = null;
+			JsonNode currentId = currentNode.get("id");
+			if (currentId != null && ! currentId.isNull()){
+				id = currentId.textValue();
 			}
 			
+			feature.setId(id);
 			feature.setProperties(properties);
 			feature.setGeometry(geometry);
 			featureCollection.getFeatures().add(feature);

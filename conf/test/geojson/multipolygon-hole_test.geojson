@@ -17,6 +17,11 @@
 						[[30, 20], [20, 15], [20, 25], [30, 20]]
 					]
 				]
+			},
+			"properties":
+			{
+				"name": "MULTIPOLYGON HOLE TEST",
+				"description": "This is a test"
 			}
 		}
 	]
