@@ -235,7 +235,7 @@ BrowserMap.prototype.loadFeatureLayer = function() {
 				locationDivID = buckets[i].replace(/ /g, "-").toLowerCase();
 				
 				if($("#" + locationDivID).length == 0) {
-					$("#au-children").append("<div id='" + locationDivID + "' class='extra-bottom-space'><em class='pull-left'>" + buckets[i] + " children:</em></div>");
+					$("#au-children").append("<div id='" + locationDivID + "' class='extra-bottom-space'><em class='pull-left'>" + buckets[i] + " sub-locations:</em></div>");
 				}
 			}
 			
@@ -254,6 +254,10 @@ BrowserMap.prototype.loadFeatureLayer = function() {
 			}
 			
 			$("#au-children").show();
+			
+			if($("#epidemic-zone").children().length > 1) {
+				$("#epidemic-zone").show();
+			}
 		}
 		
 		setTextValue("#gid", thisBrowserMap.mapID);
