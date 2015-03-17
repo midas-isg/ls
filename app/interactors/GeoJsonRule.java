@@ -11,6 +11,7 @@ import java.util.Map;
 import models.Response;
 import models.geo.Feature;
 import models.geo.FeatureCollection;
+import models.geo.FeatureGeometry;
 import play.Logger;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -382,5 +383,10 @@ public class GeoJsonRule {
 				+ " longitude=" + longitude;
 		properties.put("locationDescription", descritpion);
 		return response;
+	}
+
+	public static FeatureGeometry asFetureGeometry(FeatureCollection fc) {
+		Geometry geometry = GeoInputRule.toGeometry(fc);
+		return GeoOutputRule.toFeatureGeometry(geometry);
 	}
 }

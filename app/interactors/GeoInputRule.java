@@ -22,12 +22,16 @@ import dao.entities.LocationGeometry;
 
 public class GeoInputRule {
 	/** 
-	 * Converts every features into geometries and union them all into 
-	 * a single multipolygon to be persisted into the database. The geometries 
-	 * could be in form of geometry coordinates or referring to a GID of 
-	 * an existing location in the database. 
+	 * If a single point, returns the point from the first feature. 
 	 * 
-	 * This can be used to create an EZ from an existing AU but the client 
+	 * If a point mix with other points or geometry types, 
+	 * RuntimeException will be thrown. 
+	 * 
+	 * Else converts every features into geometries and union them all into 
+	 * a single multipolygon. The geometries could be in form of geometry
+	 * coordinates or referring to a GID of an existing location in the database. 
+	 * 
+	 * This can be used to create an EZ from an existing location but the client 
 	 * (e.g. front-end) has to make sure that only one feature with a GID 
 	 * in the FeatureCollection.  
 	 */
@@ -73,7 +77,7 @@ public class GeoInputRule {
 					return outputPoint;
 				}
 				
-				throw new RuntimeException("A Point cannot be saved with other points or geometry types");
+				throw new RuntimeException("A Point cannot be mixed with other points or geometry types");
 			}
 			else {
 				processGeometryTypes(fact, polygons, feature, featureGeometry);

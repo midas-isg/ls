@@ -92,5 +92,28 @@ public class GeometryDao {
 		return Integer.parseInt(text);
 	}
 	
+	public List<BigInteger> findGidsByGeometry(String geojsonGeometry, Long superTypeId, Long typeId) {
+		String q = toQuery(geojsonGeometry, superTypeId, typeId);
 
+		EntityManager em = JPA.em();
+		Query query = em.createNativeQuery(q);
+		@SuppressWarnings("unchecked")
+		List<BigInteger> list = (List<BigInteger>)query.getResultList();
+
+		return list;
+	}
+	
+	private String toQuery(String geojsonGeometry, Long superTypeId, Long typeId) {
+		String q = 
+		"select a.gid "
+		+ "from "
+		+ " location_geometry a, location l, location_type t, "
+		+ " ST_SetSRID(ST_GeomFromGeoJSON('" + geojsonGeometry + "'), 4326) as b "
+		+ "where "
+		+ " l.gid = a.gid and l.location_type_id = t.id and "
+		+ (superTypeId == null ? "" : " t.super_type_id = " + superTypeId + " and ")
+		+ " st_intersects(a.envelope,b) = true "
+		;
+		return q;
+	}
 }

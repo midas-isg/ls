@@ -39,12 +39,12 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import play.Configuration;
+import play.api.mvc.HandlerRef;
 import play.db.jpa.JPA;
 import play.libs.F.Callback;
 import play.libs.Json;
 import play.mvc.Http.Status;
 import play.mvc.Result;
-import play.mvc.Http.Status;
 import play.test.FakeRequest;
 import play.test.TestBrowser;
 import play.test.TestServer;
@@ -61,6 +61,7 @@ import controllers.AdministrativeUnitServices;
 import controllers.ApolloLocationServices;
 import controllers.ListServices;
 import controllers.LocationServices;
+import controllers.ref.ReverseLocationServices;
 import dao.entities.Location;
 import dao.entities.LocationType;
 
@@ -113,7 +114,8 @@ public class IntegrationTest {
 
 	private void testFindLocationsByFeatureCollection() throws Exception {
 		long supertTypeIdAdministrativeUnit = 3L;
-		String geojson = KmlRule.getStringFromFile("test/geometry.geojson");
+		String text = KmlRule.getStringFromFile("test/circleCenteredAtDbmi.geojson");
+		String geojson = toGeometryString(text);
 		
 		long superTypeIdComposite = 2L;
 		List<BigInteger> list = GeometryRule.findGidsByGeometry(geojson, superTypeIdComposite, null);
@@ -126,26 +128,29 @@ public class IntegrationTest {
 		assertGids(list, new long[] {1169, 1213});
 
 		list = GeometryRule.findGidsByGeometry(geojson, 4L, null);
-		assertGids(list, new long[] {67079, 66676, 67136, 67173, 66735, 66822, 67019, 66820, 67081, 66664, 67117, 67111});
+		assertGids(list, new long[] {67079, 66676, 67136, 67173, 66735, 66822, 
+				67019, 66820, 67081, 66664, 67117, 67111});
 
-		String json = KmlRule.getStringFromFile("test/AuMaridiTown.geojson");
-		FeatureCollection fc = readFeatureCollection(json);
-		Feature feature0 = fc.getFeatures().get(0);
-		FeatureGeometry geometry = feature0.getGeometry();
-		String geo = Json.toJson(geometry).toString();
-		List<BigInteger> list2 = GeometryRule.findGidsByGeometry(geo, supertTypeIdAdministrativeUnit, null);
-		assertGids(list2, new long[] {1417, 1563, 1449, 1375, 1427, 1365, 1421});
-
-        JsonNode node = Json.parse(json);
-        String path = "/api/locations"; // "/resources/aus";
+        JsonNode node = Json.parse(text);
+        String path = "/api/locations";
 		FakeRequest request = new FakeRequest(POST, path).withJsonBody(node);
-		Result postResult = callAction(controllers.routes.ref.LocationServices.findByFeatureCollection(supertTypeIdAdministrativeUnit, 0L), request);
+		ReverseLocationServices ls = controllers.routes.ref.LocationServices;
+		HandlerRef<?> action = ls.findByFeatureCollection(supertTypeIdAdministrativeUnit, null);
+		Result postResult = callAction(action, request);
         assertThat(status(postResult)).isEqualTo(Status.OK);
         assertThat(contentType(postResult)).isEqualTo("application/vnd.geo+json");
         String jsonResult = contentAsString(postResult);
         JsonNode resultNode = Json.parse(jsonResult);
         assertThat(resultNode.get("type").asText()).isEqualTo("FeatureCollection");
-        assertThat(jsonResult).contains("\"gid\":\"1417\"");
+        assertThat(jsonResult).contains("\"gid\":\"1169\"");
+	}
+
+	private String toGeometryString(String json) throws Exception {
+		FeatureCollection fc = readFeatureCollection(json);
+		Feature feature0 = fc.getFeatures().get(0);
+		FeatureGeometry geometry = feature0.getGeometry();
+		String geo = Json.toJson(geometry).toString();
+		return geo;
 	}
 
 	private void assertGids(List<BigInteger> list, long... expects) {
@@ -210,10 +215,10 @@ public class IntegrationTest {
 	}
 
 	private void testLocationType_PumaComposedOfCensusTract() {
-		String pumaName = "PUMA";
+		String pumaName = "PUMA 2010";
 		LocationType puma = LocationTypeRule.findByName(pumaName);
 		assertThat(puma.getName()).isEqualToIgnoringCase(pumaName);
-		assertThat(puma.getComposedOf().getName()).isEqualToIgnoringCase("Census Tract");
+		assertThat(puma.getComposedOf().getName()).isEqualToIgnoringCase("Census Tract 2010");
 	}
 	
 	private void testGetAuTypes() {
@@ -374,7 +379,8 @@ public class IntegrationTest {
         long gid = toGid(location);
         String deletePath = path + "/" + gid;
 		FakeRequest deletRequest = new FakeRequest(DELETE, deletePath);
-        Result deleteResult = callAction(controllers.routes.ref.LocationServices.delete(gid), deletRequest);
+        HandlerRef<?> action = controllers.routes.ref.LocationServices.delete(gid);
+		Result deleteResult = callAction(action, deletRequest);
         assertThat(status(deleteResult)).isEqualTo(Status.NO_CONTENT);
 		assertThat(header(LOCATION, deleteResult)).endsWith(deletePath);
 	}
