@@ -222,17 +222,31 @@ BrowserMap.prototype.loadFeatureLayer = function() {
 		
 		var children = properties.children;
 		if(children && (children.length > 0)) {
+			var buckets = [],
+			i,
+			locationType,
+			locationDivID;
+			for(i = 0; i < children.length; i++) {
+				buckets[i] = children[i].locationTypeName;
+			}
+			buckets.sort();
+			
+			for(i = 0; i < buckets.length; i++) {
+				locationDivID = buckets[i].replace(" ", "-").toLowerCase();
+				
+				if($("#" + locationDivID).length == 0) {
+					$("#au-children").append("<div id='" + locationDivID + "' class='extra-bottom-space'><em class='pull-left'>" + buckets[i] + "s:</em></div>");
+				}
+			}
+			
 			for(i = 0; i < children.length; i++) {
 				auName = children[i].name;
 				auGID = children[i].gid;
 				
-				var locationType = children[i].locationTypeName;
-				var locationDivID = locationType.replace(" ", "-").toLowerCase();
+				locationType = children[i].locationTypeName;
+				locationDivID = locationType.replace(" ", "-").toLowerCase();
 				
-				if($("#" + locationDivID).length == 0) {
-					$("#au-children").append("<div id='" + locationDivID + "' class='extra-bottom-space'><em class='pull-left'>" + locationType + "s:</em></div>");
-				}
-				else {
+				if($("#" + locationDivID).children().length > 1) {
 					$("#" + locationDivID).append(", ");
 				}
 				
