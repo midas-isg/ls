@@ -232,10 +232,10 @@ BrowserMap.prototype.loadFeatureLayer = function() {
 			buckets.sort();
 			
 			for(i = 0; i < buckets.length; i++) {
-				locationDivID = buckets[i].replace(" ", "-").toLowerCase();
+				locationDivID = buckets[i].replace(/ /g, "-").toLowerCase();
 				
 				if($("#" + locationDivID).length == 0) {
-					$("#au-children").append("<div id='" + locationDivID + "' class='extra-bottom-space'><em class='pull-left'>" + buckets[i] + "s:</em></div>");
+					$("#au-children").append("<div id='" + locationDivID + "' class='extra-bottom-space'><em class='pull-left'>" + buckets[i] + " children:</em></div>");
 				}
 			}
 			
@@ -244,7 +244,7 @@ BrowserMap.prototype.loadFeatureLayer = function() {
 				auGID = children[i].gid;
 				
 				locationType = children[i].locationTypeName;
-				locationDivID = locationType.replace(" ", "-").toLowerCase();
+				locationDivID = locationType.replace(/ /g, "-").toLowerCase();
 				
 				if($("#" + locationDivID).children().length > 1) {
 					$("#" + locationDivID).append(", ");
