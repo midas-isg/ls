@@ -2,7 +2,6 @@ package interactors;
 import static org.fest.assertions.Assertions.assertThat;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import models.geo.Feature;
@@ -10,18 +9,17 @@ import models.geo.FeatureCollection;
 import models.geo.FeatureGeometry;
 import models.geo.GeometryCollection;
 import models.geo.MultiPolygon;
-import models.geo.Polygon;
 import models.geo.Point;
+import models.geo.Polygon;
 
+import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import play.Logger;
-import play.mvc.Http.RequestBody;
 
 /**
 * Simple (JUnit) tests that can test parts of the interactors package.
@@ -35,7 +33,8 @@ public class InteractorsTest {
 	static JsonNode geometryCollection;
 	static JsonNode malformed;
 	
-	private static void geoJSONInitialize() {
+	@BeforeClass
+	public static void geoJSONInitialize() {
 		String pointString = "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[30,10]}}]}";
 		String polygonString = "{\"type\": \"FeatureCollection\",\"features\":[{\"type\": \"Feature\",\"geometry\":{\"type\": \"Polygon\",\"coordinates\":[[[35, 10], [45, 45], [15, 40], [10, 20], [35, 10]]]}}]}";
 		String holeyPolygonString = "{\"type\": \"FeatureCollection\",\"features\":[{\"type\": \"Feature\",\"geometry\":{\"type\": \"Polygon\", \"coordinates\":[[[35, 10], [45, 45], [15, 40], [10, 20], [35, 10]], [[20, 30], [35, 35], [30, 20], [20, 30]]]}}]}";
@@ -75,15 +74,12 @@ public class InteractorsTest {
 	@Test
 	public void geoJSONParseTest() throws Exception
 	{
-		geoJSONInitialize();
-		
 		parsePoint();
 		parsePolygon();
 		parseHoleyPolygon();
 		parseMultiPolygon();
 		parseHoleyMultiPolygon();
 		parseGeometryCollection();
-		parseMalformed();
 		
 		return;
 	}
@@ -179,11 +175,12 @@ public class InteractorsTest {
 		return;
 	}
 	
-	private void parseMalformed() throws Exception {
-	FeatureCollection fcMalformed = GeoJSONParser.parse(malformed);
-		//TODO: malformed contains a polygon that is mislabeled as a multipolygon
-		//but the current code can still process it; it should throw an error instead
-		
-		return;
+	@Test 
+	@Ignore("TODO: malformed contains a polygon that is mislabeled as"
+			+ " a multipolygon but the current code can still process it;"
+			+ " it should throw an error instead")
+	public void parseMalformed() throws Exception {
+		GeoJSONParser.parse(malformed);
+		Assert.fail("it should throw an error");
 	}
 }

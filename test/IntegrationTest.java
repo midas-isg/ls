@@ -57,7 +57,6 @@ import com.typesafe.config.ConfigFactory;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.MultiPolygon;
 
-import controllers.AdministrativeUnitServices;
 import controllers.ApolloLocationServices;
 import controllers.ListServices;
 import controllers.LocationServices;
@@ -346,21 +345,26 @@ public class IntegrationTest {
     }
 
 	private void tesCrudEz() throws Exception {
-    	JsonNode json = readJsonNodeFromFile("test/EzMaridi.geojson");
+		String fileName = "test/EzMaridi.geojson";
+		JsonNode json = readJsonNodeFromFile(fileName);
+    	
     	FeatureCollection fc = GeoJSONParser.parse(json);
-    	long gid = AdministrativeUnitServices.Wire.create(fc);
+    	long gid = LocationServices.Wire.create(fc);
 		assertThat(gid).isPositive();
 		Location readLocation = LocationRule.read(gid);
-		Location expectedLocation = asDeprecatedLocation(fc, gid);
+		Location expectedLocation = asLocation(fc, gid);
 		assertISEqualTo(readLocation, expectedLocation);
 		assertThat(readLocation.getData().getLocationType().getName()).isEqualTo("Epidemic Zone");
-		FeatureCollection readFc = AdministrativeUnitServices.Wire.read(gid);
-		toExpected(fc, gid);
-		assertISEqualTo(removeIrrelavantInfo(readFc), fc);
+		testRead(gid, fc);
 		Long deletedGid = deleteTogetherWithAllGeometries(gid);
 		assertThat(deletedGid).isEqualTo(gid);
 		Location deletedLocation = LocationRule.read(gid);
 		assertThat(deletedLocation).isNull();
+	}
+
+	private FeatureCollection asFeatureCollection(long gid) throws Exception {
+		Location location = LocationServices.Wire.read(gid);
+		return LocationServices.Wire.asFeatureCollection(location);
 	}
 
 	private void tesCrudAu() throws Exception {
@@ -377,12 +381,20 @@ public class IntegrationTest {
         String location = header(LOCATION, result);
         assertThat(location).containsIgnoringCase(path);
         long gid = toGid(location);
+		testRead(gid, null);
         String deletePath = path + "/" + gid;
 		FakeRequest deletRequest = new FakeRequest(DELETE, deletePath);
         HandlerRef<?> action = controllers.routes.ref.LocationServices.delete(gid);
 		Result deleteResult = callAction(action, deletRequest);
         assertThat(status(deleteResult)).isEqualTo(Status.NO_CONTENT);
 		assertThat(header(LOCATION, deleteResult)).endsWith(deletePath);
+	}
+
+	private void testRead(long gid, FeatureCollection fc) throws Exception {
+		FeatureCollection readFc = asFeatureCollection(gid);
+		toExpected(readFc, gid);
+		if (fc != null)
+			assertISEqualTo(removeIrrelavantInfo(readFc), fc);
 	}
 
 	private void testCrud(String fileName) throws Exception {
@@ -467,13 +479,6 @@ public class IntegrationTest {
 
 	private Location asLocation(FeatureCollection fc, long gid) {
 		Location fcLocation = GeoJsonRule.asLocation(fc);
-		fcLocation.setGid(gid);
-		fcLocation.getGeometry().setGid(gid);
-		return fcLocation;
-	}
-    
-	private Location asDeprecatedLocation(FeatureCollection fc, long gid) {
-		Location fcLocation = GeoJsonRule.asDeprecatedLocation(fc);
 		fcLocation.setGid(gid);
 		fcLocation.getGeometry().setGid(gid);
 		return fcLocation;
