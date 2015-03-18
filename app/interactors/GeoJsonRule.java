@@ -58,7 +58,7 @@ public class GeoJsonRule {
 		List<Feature> features = toFeatures(locationsIncluded, null);
 		fc.setFeatures(features);
 		fc.setType("FeatureCollection");
-		fc.setProperties(toProperties(composite));
+		fc.setProperties(toPropertiesOfFeature(composite));
 		double[] computeBbox = computeBbox(composite);
 		if (computeBbox == null)
 			computeBbox =  computeBbox(features);
@@ -84,17 +84,7 @@ public class GeoJsonRule {
 	private static Feature toFeature(Location location, List<String> fields) {
 		Feature feature = new Feature();
 		if (includeField(fields, KEY_PROPERTIES)){
-			Map<String, Object> properties = toProperties(location);
-			List<Location> children = location.getChildren();
-			if (children != null)
-				Collections.sort(children);
-			putAsLocationObjectsIfNotNull(properties, "children", children);
-			putAsLocationObjectsIfNotNull(properties, "lineage", 
-					LocationProxyRule.getLineage(location.getGid()));
-			putAsLocationObjectsIfNotNull(properties, "related", 
-					location.getRelatedLocations());
-			putAsCodeObjectsIfNotNull(properties, "codes", location);
-			putAsStringIfNotNull(properties, "kml", location.getData().getKml());
+			Map<String, Object> properties = toPropertiesOfFeature(location);
 			feature.setProperties(properties);
 		}
 		LocationGeometry geometry = null;
@@ -110,6 +100,21 @@ public class GeoJsonRule {
 		}
 		
 		return feature;
+	}
+
+	private static Map<String, Object> toPropertiesOfFeature(Location location) {
+		Map<String, Object> properties = toProperties(location);
+		List<Location> children = location.getChildren();
+		if (children != null)
+			Collections.sort(children);
+		putAsLocationObjectsIfNotNull(properties, "children", children);
+		putAsLocationObjectsIfNotNull(properties, "lineage", 
+				LocationProxyRule.getLineage(location.getGid()));
+		putAsLocationObjectsIfNotNull(properties, "related", 
+				location.getRelatedLocations());
+		putAsCodeObjectsIfNotNull(properties, "codes", location);
+		putAsStringIfNotNull(properties, "kml", location.getData().getKml());
+		return properties;
 	}
 
 	private static boolean includeField(List<String> fields, String key) {
@@ -216,9 +221,6 @@ public class GeoJsonRule {
 		putAsStringIfNotNull(properties, "locationDescription", data.getDescription());
 		putAsStringIfNotNull(properties, "headline", location.getHeadline());
 		putAsStringIfNotNull(properties, "rank", location.getRank());
-		/*putAsStringIfNotNull(properties, "code", data.getCode());
-		String codeTypeName = getName(data.getCodeType(), data.getCodeType().getName());
-		putAsStringIfNotNull(properties, "codeTypeName", codeTypeName);*/
 		putAsStringIfNotNull(properties, "startDate", data.getStartDate());
 		putAsStringIfNotNull(properties, "endDate", data.getEndDate());
 		String locationTypeName = getLocationTypeName(data.getLocationType());
