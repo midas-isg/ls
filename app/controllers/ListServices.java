@@ -20,9 +20,9 @@ public class ListServices extends Controller {
 	}
 
 	@Transactional
-	public static Result findLocationTypeNames(String superTypeName){
-		List<String> result = Wire.getTypes(superTypeName);
-		return okAsJson(result);
+	public static Result findLocationTypes(Long superTypeId){
+		List<LocationType> types = LocationTypeRule.findAllBySuperTypeId(superTypeId);
+		return okAsJson(types);
 	}
 
 	private static Result okAsJson(Object result) {
@@ -30,8 +30,8 @@ public class ListServices extends Controller {
 	}
 	
 	public static class Wire {
-		public static List<String> getTypes(String superTypeName){
-			List<LocationType> types = LocationTypeRule.findAllBySuperTypeName(superTypeName);
+		public static List<String> findLocationTypeNamesBySuperTypeId(Long superTypeId){
+			List<LocationType> types = LocationTypeRule.findAllBySuperTypeId(superTypeId);
 			List<String> names = toNames(types);
 			return names;
 		}

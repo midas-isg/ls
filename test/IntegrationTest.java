@@ -53,6 +53,7 @@ import play.twirl.api.Content;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -60,7 +61,6 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.MultiPolygon;
 
 import controllers.ApolloLocationServices;
-import controllers.ListServices;
 import controllers.LocationServices;
 import controllers.ref.ReverseLocationServices;
 import dao.entities.Location;
@@ -98,11 +98,11 @@ public class IntegrationTest {
 				transaction.begin();
 				transaction.setRollbackOnly();
 				
+				testLocationTypes(browser);
 				testGetSuperTypes(browser);
 				testFindLocationsByFeatureCollection();
 				testCreateEzFromAu();
 				testLocationType_PumaComposedOfCensusTract();
-				testGetAuTypes();
 				testMaxExteriorRings(browser);
 				testGeoMetadata(browser);
 				tesCrudAu();
@@ -119,8 +119,14 @@ public class IntegrationTest {
 		String json = page.pageSource();
 		assertJsonNameValue(json, "Administrative Unit");
 		assertJsonNameValue(json, "Epidemic Zone");
+		assertJsonArrayAsNonEmpty(json);
+	}
+
+	public ArrayNode assertJsonArrayAsNonEmpty(String json) {
 		JsonNode node = Json.parse(json);
 		assertThat(node.getNodeType()).isEqualTo(JsonNodeType.ARRAY);
+		assertThat(node.size()).isGreaterThan(0);
+		return (ArrayNode)node;
 	}
 
 	public void assertJsonNameValue(String json, String expected) {
@@ -244,11 +250,67 @@ public class IntegrationTest {
 		assertThat(puma.getComposedOf().getName()).isEqualToIgnoringCase("Census Tract 2010");
 	}
 	
-	private void testGetAuTypes() {
-		List<String> auTypes = ListServices.Wire.getTypes("Administrative Unit");
-		assertThat(auTypes).contains("Town", "Country");
-		assertThat(auTypes).doesNotHaveDuplicates();
-		assertThat(auTypes).excludes("PUMA", "Census Tract", "Epidemic Zone");
+	private void testLocationTypes(TestBrowser browser) {
+		String baseUrl = context + "/api/location-types";
+		List<String> allTypes = getTypeNames(browser, baseUrl);
+		assertThat(allTypes).doesNotHaveDuplicates();
+		
+		String queryUrl = baseUrl + "?superTypeId=";
+		
+		int ez = 1;
+		String ez1 = "Epidemic Zone";
+		int composite = 2;
+		String composite1 = "PUMA 2010";
+		int au = 3;
+		String au1 = "Country";
+		int census = 4;
+		String census1 = "Census Tract 2010";
+
+		List<String> ezTypes = getTypeNames(browser, queryUrl + ez);
+		assertThat(ezTypes).contains(ez1);
+		assertThat(ezTypes).excludes(au1, composite1, census1);
+		assertContainsAll(allTypes, ezTypes);
+		
+		List<String> compositeTypes = getTypeNames(browser, queryUrl + composite);
+		assertThat(compositeTypes).contains(composite1);
+		assertThat(compositeTypes).excludes(au1, ez1, census1);
+		assertContainsAll(allTypes, compositeTypes);
+		
+		List<String> auTypes = getTypeNames(browser, queryUrl + au);
+		assertThat(auTypes).contains(au1);
+		assertThat(auTypes).excludes(composite1, census1, ez1);
+		assertContainsAll(allTypes, auTypes);
+		
+		List<String> censusTypes = getTypeNames(browser, queryUrl + census);
+		assertThat(censusTypes).contains(census1);
+		assertThat(censusTypes).excludes(composite1, au1, ez1);
+		assertContainsAll(allTypes, censusTypes);
+		
+		//throw new RuntimeException("PASS but stop here!");
+	}
+
+	public List<String> getTypeNames(TestBrowser browser, String url) {
+		String auJson = browser.goTo(url).pageSource();
+		ArrayNode auArray = assertJsonArrayAsNonEmpty(auJson);
+		List<String> auTypes = toListByName(auArray);
+		return auTypes;
+	}
+
+	private void assertContainsAll(List<?> actual, List<?> expected) {
+		for (Object obj: expected){
+			assertThat(actual).contains(obj);
+		}
+	}
+
+	public List<String> toListByName(ArrayNode array) {
+		List<String> list = new ArrayList<>();
+		for (JsonNode node : array){
+			JsonNode nameNode = node.get("name");
+			if (nameNode == null || nameNode.isNull())
+				throw new RuntimeException("Unexpected null at key=name of " + node);
+			list.add(nameNode.textValue());
+		}
+		return list;
 	}
 
 	private void testMaxExteriorRings(TestBrowser browser) {

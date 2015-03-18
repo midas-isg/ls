@@ -23,6 +23,7 @@ GET		/api/locations-by-coordinate controllers.LocationServices.findLocationsByPo
 POST	/api/locations-by-geometry controllers.LocationServices.findByFeatureCollection(superTypeId:java.lang.Long ?= null, typeId:java.lang.Long ?= null)
 
 GET		/api/super-types			controllers.ListServices.findSuperTypes()
+GET		/api/location-types			controllers.ListServices.findLocationTypes(superTypeId:java.lang.Long ?= null)
 
 GET		/api/unique-location-names	controllers.LocationServices.findLocationNames(q, limit:Int?=10)
 GET		/api/geometry-metadata/:gid	controllers.LocationServices.getGeometryMetadata(gid:Long, tolerance:java.lang.Double?=null)

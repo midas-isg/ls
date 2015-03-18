@@ -12,12 +12,12 @@ public class LocationTypeRule {
 		return new SuperTypeDao().findAll();
 	}
 
+	public static List<LocationType> findAllBySuperTypeId(Long superTypeId) {
+		return new LocationTypeDao().findAllBySuperTypeId(superTypeId);
+	}
+
 	public static LocationType findByName(String name) {
 		LocationType type = new LocationTypeDao().findByName(name);
 		return type;
-	}
-
-	public static List<LocationType> findAllBySuperTypeName(String stName) {
-		return new LocationTypeDao().findAllBySuperTypeName(stName);
 	}
 }
