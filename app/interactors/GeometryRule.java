@@ -105,4 +105,8 @@ public class GeometryRule {
 		int n = geo.getShapeGeom().getNumGeometries();
 		return n;
 	}
+
+	public static List<BigInteger> findGidsByGeometry(String geojsonGeometry, Long superTypeId, Long typeId) {
+		return new GeometryDao().findGidsByGeometry(geojsonGeometry, superTypeId, typeId);
+	}
 }
