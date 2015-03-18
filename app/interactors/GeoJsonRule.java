@@ -11,6 +11,7 @@ import java.util.Map;
 import models.Response;
 import models.geo.Feature;
 import models.geo.FeatureCollection;
+import models.geo.FeatureGeometry;
 import play.Logger;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -26,7 +27,7 @@ public class GeoJsonRule {
 	private static final String KEY_PROPERTIES = "properties";
 	private static final String KEY_BBOX = "bbox";
 	private static final String KEY_GEOMETRY = "geometry";
-	private static final List<String> MINIMUM_KEYS = Arrays.asList(new String[]{
+	public static final List<String> MINIMUM_KEYS = Arrays.asList(new String[]{
 			KEY_PROPERTIES
 	});
 
@@ -41,7 +42,7 @@ public class GeoJsonRule {
 		return toFeatureCollection(list, null);
 	}
 
-	private static FeatureCollection toFeatureCollection(List<Location> locations,
+	public static FeatureCollection toFeatureCollection(List<Location> locations,
 			List<String> fields) {
 		FeatureCollection fc = new FeatureCollection();
 		List<Feature> features = toFeatures(locations, fields);
@@ -382,5 +383,10 @@ public class GeoJsonRule {
 				+ " longitude=" + longitude;
 		properties.put("locationDescription", descritpion);
 		return response;
+	}
+
+	public static FeatureGeometry asFetureGeometry(FeatureCollection fc) {
+		Geometry geometry = GeoInputRule.toGeometry(fc);
+		return GeoOutputRule.toFeatureGeometry(geometry);
 	}
 }

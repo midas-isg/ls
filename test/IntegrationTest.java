@@ -14,12 +14,15 @@ import static play.test.Helpers.status;
 import static play.test.Helpers.testServer;
 import interactors.GeoJSONParser;
 import interactors.GeoJsonRule;
+import interactors.GeometryRule;
 import interactors.KmlRule;
 import interactors.LocationRule;
 import interactors.LocationTypeRule;
 import interactors.XmlRule;
 
 import java.io.File;
+import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +31,7 @@ import javax.persistence.EntityTransaction;
 
 import models.geo.Feature;
 import models.geo.FeatureCollection;
+import models.geo.FeatureGeometry;
 
 import org.fest.assertions.StringAssert;
 import org.junit.Before;
@@ -35,11 +39,12 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import play.Configuration;
+import play.api.mvc.HandlerRef;
 import play.db.jpa.JPA;
 import play.libs.F.Callback;
 import play.libs.Json;
-import play.mvc.Result;
 import play.mvc.Http.Status;
+import play.mvc.Result;
 import play.test.FakeRequest;
 import play.test.TestBrowser;
 import play.test.TestServer;
@@ -56,6 +61,7 @@ import controllers.AdministrativeUnitServices;
 import controllers.ApolloLocationServices;
 import controllers.ListServices;
 import controllers.LocationServices;
+import controllers.ref.ReverseLocationServices;
 import dao.entities.Location;
 import dao.entities.LocationType;
 
@@ -91,6 +97,7 @@ public class IntegrationTest {
 				transaction.begin();
 				transaction.setRollbackOnly();
 				
+				testFindLocationsByFeatureCollection();
 				testCreateEzFromAu();
 				testLocationType_PumaComposedOfCensusTract();
 				testGetAuTypes();
@@ -104,6 +111,53 @@ public class IntegrationTest {
             }
         });
     }
+
+	private void testFindLocationsByFeatureCollection() throws Exception {
+		long supertTypeIdAdministrativeUnit = 3L;
+		String text = KmlRule.getStringFromFile("test/circleCenteredAtDbmi.geojson");
+		String geojson = toGeometryString(text);
+		
+		long superTypeIdComposite = 2L;
+		List<BigInteger> list = GeometryRule.findGidsByGeometry(geojson, superTypeIdComposite, null);
+		assertGids(list, 84687L);
+
+		list = GeometryRule.findGidsByGeometry(geojson, 1L, null);
+		assertGids(list);
+
+		list = GeometryRule.findGidsByGeometry(geojson, supertTypeIdAdministrativeUnit, null);
+		assertGids(list, new long[] {1169, 1213});
+
+		list = GeometryRule.findGidsByGeometry(geojson, 4L, null);
+		assertGids(list, new long[] {67079, 66676, 67136, 67173, 66735, 66822, 
+				67019, 66820, 67081, 66664, 67117, 67111});
+
+        JsonNode node = Json.parse(text);
+        String path = "/api/locations";
+		FakeRequest request = new FakeRequest(POST, path).withJsonBody(node);
+		ReverseLocationServices ls = controllers.routes.ref.LocationServices;
+		HandlerRef<?> action = ls.findByFeatureCollection(supertTypeIdAdministrativeUnit, null);
+		Result postResult = callAction(action, request);
+        assertThat(status(postResult)).isEqualTo(Status.OK);
+        assertThat(contentType(postResult)).isEqualTo("application/vnd.geo+json");
+        String jsonResult = contentAsString(postResult);
+        JsonNode resultNode = Json.parse(jsonResult);
+        assertThat(resultNode.get("type").asText()).isEqualTo("FeatureCollection");
+        assertThat(jsonResult).contains("\"gid\":\"1169\"");
+	}
+
+	private String toGeometryString(String json) throws Exception {
+		FeatureCollection fc = readFeatureCollection(json);
+		Feature feature0 = fc.getFeatures().get(0);
+		FeatureGeometry geometry = feature0.getGeometry();
+		String geo = Json.toJson(geometry).toString();
+		return geo;
+	}
+
+	private void assertGids(List<BigInteger> list, long... expects) {
+		List<Long> actual = toList(list);
+		for (long expect : expects)
+			assertThat(actual).contains(expect);
+	}
 
 	private void testCreateEzFromAu() throws Exception {
 		String fileName = "test/EzFromAu.geojson";
@@ -146,12 +200,25 @@ public class IntegrationTest {
 		return Long.parseLong(gid);
 	}
 
+	private List<Long> toList(List<BigInteger> list) {
+		List<Long> actual = new ArrayList<>();
+		for (BigInteger bi : list){
+			actual.add(bi.longValue());
+		}
+		return actual;
+	}
+
+	private FeatureCollection readFeatureCollection(String json) throws Exception {
+		ObjectMapper mapper = new ObjectMapper();
+		JsonNode node = mapper.readTree(json);
+		return GeoJSONParser.parse(node);
+	}
 
 	private void testLocationType_PumaComposedOfCensusTract() {
-		String pumaName = "PUMA";
+		String pumaName = "PUMA 2010";
 		LocationType puma = LocationTypeRule.findByName(pumaName);
 		assertThat(puma.getName()).isEqualToIgnoringCase(pumaName);
-		assertThat(puma.getComposedOf().getName()).isEqualToIgnoringCase("Census Tract");
+		assertThat(puma.getComposedOf().getName()).isEqualToIgnoringCase("Census Tract 2010");
 	}
 	
 	private void testGetAuTypes() {
@@ -160,7 +227,7 @@ public class IntegrationTest {
 		assertThat(auTypes).doesNotHaveDuplicates();
 		assertThat(auTypes).excludes("PUMA", "Census Tract", "Epidemic Zone");
 	}
-	
+
 	private void testMaxExteriorRings(TestBrowser browser) {
 		long gid = 11;
 		
@@ -297,7 +364,25 @@ public class IntegrationTest {
 	}
 
 	private void tesCrudAu() throws Exception {
-    	testCrud("test/AuMaridiTown.geojson");
+    	String fileName = "test/AuMaridiTown.geojson";
+		testCrud(fileName);
+		
+		String json = KmlRule.getStringFromFile(fileName);
+        JsonNode node = Json.parse(json);
+        String path = "/api/locations";
+		FakeRequest request = new FakeRequest(POST, path).withJsonBody(node);
+
+        Result result = callAction(controllers.routes.ref.LocationServices.create(), request);
+        assertThat(status(result)).isEqualTo(Status.CREATED);
+        String location = header(LOCATION, result);
+        assertThat(location).containsIgnoringCase(path);
+        long gid = toGid(location);
+        String deletePath = path + "/" + gid;
+		FakeRequest deletRequest = new FakeRequest(DELETE, deletePath);
+        HandlerRef<?> action = controllers.routes.ref.LocationServices.delete(gid);
+		Result deleteResult = callAction(action, deletRequest);
+        assertThat(status(deleteResult)).isEqualTo(Status.NO_CONTENT);
+		assertThat(header(LOCATION, deleteResult)).endsWith(deletePath);
 	}
 
 	private void testCrud(String fileName) throws Exception {
