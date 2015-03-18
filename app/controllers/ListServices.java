@@ -10,16 +10,28 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import dao.entities.LocationType;
+import dao.entities.SuperType;
 
 public class ListServices extends Controller {
 	@Transactional
+	public static Result findSuperTypes(){
+		List<SuperType> result = LocationTypeRule.findSuperTypes();
+		return okAsJson(result);
+	}
+
+	@Transactional
 	public static Result findLocationTypeNames(String superTypeName){
-		return ok(Json.toJson(Wire.getTypes(superTypeName)));
+		List<String> result = Wire.getTypes(superTypeName);
+		return okAsJson(result);
+	}
+
+	private static Result okAsJson(Object result) {
+		return ok(Json.toJson(result));
 	}
 	
 	public static class Wire {
 		public static List<String> getTypes(String superTypeName){
-			List<LocationType> types = LocationTypeRule.finaAllBySuperTypeName(superTypeName);
+			List<LocationType> types = LocationTypeRule.findAllBySuperTypeName(superTypeName);
 			List<String> names = toNames(types);
 			return names;
 		}
@@ -32,4 +44,5 @@ public class ListServices extends Controller {
 			return names;
 		}
 	}
+	
 }

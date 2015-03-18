@@ -34,6 +34,7 @@ import models.geo.FeatureCollection;
 import models.geo.FeatureGeometry;
 
 import org.fest.assertions.StringAssert;
+import org.fluentlenium.core.Fluent;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -52,6 +53,7 @@ import play.twirl.api.Content;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.vividsolutions.jts.geom.Geometry;
@@ -96,6 +98,7 @@ public class IntegrationTest {
 				transaction.begin();
 				transaction.setRollbackOnly();
 				
+				testGetSuperTypes(browser);
 				testFindLocationsByFeatureCollection();
 				testCreateEzFromAu();
 				testLocationType_PumaComposedOfCensusTract();
@@ -110,6 +113,27 @@ public class IntegrationTest {
             }
         });
     }
+
+	private void testGetSuperTypes(TestBrowser browser) {
+		Fluent page = browser.goTo(context+"/api/super-types");
+		String json = page.pageSource();
+		assertJsonNameValue(json, "Administrative Unit");
+		assertJsonNameValue(json, "Epidemic Zone");
+		JsonNode node = Json.parse(json);
+		assertThat(node.getNodeType()).isEqualTo(JsonNodeType.ARRAY);
+	}
+
+	public void assertJsonNameValue(String json, String expected) {
+		assertThat(json).containsIgnoringCase(asJsonPair("name", expected));
+	}
+
+	public String asJsonPair(String key, String value) {
+		return quote(key) + ":" + quote(value);
+	}
+	
+	private String quote(String text) {
+		return "\"" + text + "\"";
+	}
 
 	private void testFindLocationsByFeatureCollection() throws Exception {
 		long supertTypeIdAdministrativeUnit = 3L;

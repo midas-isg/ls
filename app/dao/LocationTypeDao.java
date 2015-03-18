@@ -23,7 +23,7 @@ public class LocationTypeDao {
 		return result;
 	}
 
-	public List<LocationType> finaAllBySuperTypeName(String stName) {
+	public List<LocationType> findAllBySuperTypeName(String stName) {
 		EntityManager em = JPA.em();
 		String q = "from LocationType where superType.name = '" + stName 
 				+"' order by name";
