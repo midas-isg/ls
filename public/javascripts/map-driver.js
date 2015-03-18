@@ -15,6 +15,7 @@ function MapDriver() {
 	this.kml = null;
 	this.parent = null;
 	this.auComponents = [];
+	this.suggestionIDs = [];
 	
 	this.initialize();
 	
@@ -416,6 +417,7 @@ MapDriver.prototype.upload = function() {
 
 MapDriver.prototype.suggestParents = function() {
 	//POST /api/locations-by-geometry
+	var thisMapDriver = this;
 	var httpType = "POST";
 	var URL = context + "/api/locations-by-geometry?superTypeId=3";
 	
@@ -434,17 +436,11 @@ MapDriver.prototype.suggestParents = function() {
 			console.log(response);
 			
 			//filter parent widget to features returned
-			var IDs = [],
-			i;
+			var i;
 			for(i = 0; i < data.features.length; i++) {
-				IDs.push(data.features[i].properties.gid);
+				thisMapDriver.suggestionIDs.push(data.features[i].properties.gid);
 			}
-			
-			PARENT_TREE.tree.filterNodes(function(node) {
-				var set = new Set(IDs);
-				
-				return set.has(node.key);
-			});
+			thisMapDriver.populateSuggestions();
 		},
 		error: function(data, status) {
 			console.log(status);
@@ -455,6 +451,22 @@ MapDriver.prototype.suggestParents = function() {
 			$("#server-result").fadeOut(15000);
 		}
 	});
+	
+	return;
+}
+
+MapDriver.prototype.populateSuggestions = function() {
+	thisMapDriver = this;
+	
+	if(this.suggestionIDs.length > 0) {
+		PARENT_TREE.tree.filterNodes(function(node) {
+			var set = new Set(thisMapDriver.suggestionIDs);
+			
+			return set.has(node.key);
+		});
+		
+		$("#resetParentSearchButton").removeAttr("disabled");
+	}
 	
 	return;
 }
