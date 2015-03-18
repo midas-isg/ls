@@ -520,21 +520,45 @@ function formatGeoJSON(geoJSON, thisMapDriver) {
 		return null;
 	}
 	
-	if((!geoJSON) || (!thisMapDriver.kml)) {
-		alert("Please upload a kml file");
-		
-		return null;
-	}
-	
 	if(description.length == 0) {
 		description = null;
+	}
+	
+	if(geoJSON.features.length == 0) {
+		var useParent = confirm("No geometry found. Press OK to use the parent geometry.");
+		
+		if(useParent) {
+			geoJSON.features = [
+				{
+					"type": "Feature",
+					"geometry": null,
+					 "id": auParentGID
+				}
+			];
+			
+			geoJSON.id = auParentGID;
+			geoJSON.properties = {};
+			var properties = geoJSON.properties;
+			
+			geoJSON.id = Number(id);
+			properties["name"] = auName;
+			properties["locationTypeName"] = locationTypeName;
+			properties["codes"] = [{"code": auCode, "codeTypeName": auCodeType}];
+			properties["locationDescription"] = description;
+			properties["parentGid"] = auParentGID;
+			properties["startDate"] = startDate;
+			properties["endDate"] = endDate;
+			
+			return geoJSON
+		}
+		
+		return null;
 	}
 	
 	geoJSON.properties = {};
 	var properties = geoJSON.properties;
 	
 	geoJSON.id = Number(id);
-	properties["kml"] = thisMapDriver.kml;
 	properties["name"] = auName;
 	properties["locationTypeName"] = locationTypeName;
 	properties["codes"] = [{"code": auCode, "codeTypeName": auCodeType}];
@@ -542,6 +566,7 @@ function formatGeoJSON(geoJSON, thisMapDriver) {
 	properties["parentGid"] = auParentGID;
 	properties["startDate"] = startDate;
 	properties["endDate"] = endDate;
+	properties["kml"] = thisMapDriver.kml;
 	
 	return geoJSON;
 }
