@@ -456,7 +456,7 @@ MapDriver.prototype.suggestParents = function() {
 }
 
 MapDriver.prototype.populateSuggestions = function() {
-	thisMapDriver = this;
+	var thisMapDriver = this;
 	
 	if(this.suggestionIDs.length > 0) {
 		PARENT_TREE.tree.filterNodes(function(node) {
