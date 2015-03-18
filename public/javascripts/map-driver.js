@@ -406,9 +406,55 @@ MapDriver.prototype.upload = function() {
 		console.log("parent GID: " + parentGID);
 		
 		thisMapDriver.loadJSON(jsonData);
+		thisMapDriver.suggestParents();
 	});
 	
 	var fileString = fileReader.readAsText(file);
+	
+	return;
+}
+
+MapDriver.prototype.suggestParents = function() {
+	//POST /api/locations-by-geometry
+	var httpType = "POST";
+	var URL = context + "/api/locations-by-geometry?superTypeId=3";
+	
+	var data = this.featureLayer.toGeoJSON();
+	
+	$.ajax({
+		type: httpType,
+		url: URL,
+		data: JSON.stringify(data),
+		contentType: "application/json; charset=UTF-8",
+		//dataType: "json",
+		//processData: false,
+		success: function(data, status, response) {
+			console.log(data);
+			console.log(status);
+			console.log(response);
+			
+			//filter parent widget to features returned
+			var IDs = [],
+			i;
+			for(i = 0; i < data.features.length; i++) {
+				IDs.push(data.features[i].properties.gid);
+			}
+			
+			PARENT_TREE.tree.filterNodes(function(node) {
+				var set = new Set(IDs);
+				
+				return set.has(node.key);
+			});
+		},
+		error: function(data, status) {
+			console.log(status);
+			console.log(data);
+			setTextValue("#server-result", status + ": " + data.statusText + " - " + data.responseText);
+			$("#server-result").css("color", "#800000");
+			$("#server-result").show();
+			$("#server-result").fadeOut(15000);
+		}
+	});
 	
 	return;
 }
