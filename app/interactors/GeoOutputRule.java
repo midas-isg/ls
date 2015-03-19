@@ -5,6 +5,7 @@ import java.util.List;
 
 import models.geo.FeatureGeometry;
 import models.geo.MultiPolygon;
+import models.geo.Point;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
@@ -12,13 +13,17 @@ import com.vividsolutions.jts.geom.Polygon;
 
 public class GeoOutputRule {
 	static FeatureGeometry toFeatureGeometry(Geometry geom) {
-		//List<List<List<double[]>>> list = new ArrayList<>();
 		List<List<List<double[]>>> list = toMultipolygonCoordinates(geom);
-		//list.add(toMultipolygonCoordinates(geom));
-		MultiPolygon g = new MultiPolygon();
-		g.setCoordinates(list);
-		
-		return g; 
+		if (!list.isEmpty()){
+			MultiPolygon g = new MultiPolygon();
+			g.setCoordinates(list);
+			return g; 
+		} else {
+			 double[] coordinates = toPoint(geom.getCoordinate());
+			 Point p = new Point();
+			 p.setCoordinates(coordinates);
+			 return p;
+		}
 	}
 
 	private static List<List<List<double[]>>> toMultipolygonCoordinates(Geometry geom) {
@@ -30,8 +35,6 @@ public class GeoOutputRule {
 			Geometry polygonGeo = geom.getGeometryN(i);
 			if (polygonGeo instanceof Polygon){
 				Polygon poly = (Polygon)polygonGeo;
-				//List<double[]> polygon = toPolygonCoordinates(polygonGeo.getCoordinates());
-				//multipolygon.add(polygon);
 				
 				List<List<double []>> polygonToAdd = new ArrayList<List<double []>>();
 				List<double[]> exteriorRing = toPolygonCoordinates(poly.getExteriorRing().getCoordinates());

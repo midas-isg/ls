@@ -16,11 +16,11 @@ public class Point extends FeatureGeometry {
 	}
 	
 	public double getLatitude() {
-		return coordinates[1];
+		return coordinates[0];
 	}
 	
 	public double getLongitude() {
-		return coordinates[0];
+		return coordinates[1];
 	}
 
 	public void setCoordinates(double[] coordinates) {
@@ -28,11 +28,11 @@ public class Point extends FeatureGeometry {
 	}
 	
 	public void setLatitude(double ordinate) {
-		this.coordinates[1] = ordinate;
+		this.coordinates[0] = ordinate;
 	}
 	
 	public void setLongitude(double ordinate) {
-		this.coordinates[0] = ordinate;
+		this.coordinates[1] = ordinate;
 	}
 
 	@Override
