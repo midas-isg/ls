@@ -20,4 +20,8 @@ public class LocationTypeRule {
 		LocationType type = new LocationTypeDao().findByName(name);
 		return type;
 	}
+
+	public static LocationType findById(long id) {
+		return new LocationTypeDao().read(id);
+	}
 }

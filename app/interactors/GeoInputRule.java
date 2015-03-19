@@ -90,10 +90,15 @@ public class GeoInputRule {
 //Logger.debug("p0=" + polygonArray[0].getDimension());
 //Logger.debug("\tx=" + polygonArray[0].getExteriorRing().getCoordinateN(0).x);
 //Logger.debug("\ty=" + polygonArray[0].getExteriorRing().getCoordinateN(0).y);
-		MultiPolygon mpg = new MultiPolygon(polygonArray, fact);
+		Geometry mpg = new MultiPolygon(polygonArray, fact);
 		
 		for (MultiPolygon mp : multipolygons){
-			mpg = (MultiPolygon)mpg.union(mp);
+			mpg = mpg.union(mp);
+		}
+		String geometryType = mpg.getGeometryType();
+		if ("Polygon".equals(geometryType)){
+			Polygon pg = (Polygon)mpg;
+			mpg = new MultiPolygon(new Polygon[]{pg}, fact);
 		}
 		return mpg;
 	}

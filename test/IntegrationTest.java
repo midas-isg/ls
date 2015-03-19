@@ -98,6 +98,7 @@ public class IntegrationTest {
 				transaction.begin();
 				transaction.setRollbackOnly();
 				
+				testCreateComposite();
 				testLocationTypes(browser);
 				testGetSuperTypes(browser);
 				testFindLocationsByFeatureCollection();
@@ -113,6 +114,42 @@ public class IntegrationTest {
             }
         });
     }
+	
+	private void testCreateComposite() throws Exception {
+		String fileName = "test/CompositeTestPUMA.geojson";
+		FeatureCollection fc = readFeatureCollectionFromFile(fileName);
+		Feature f0 = fc.getFeatures().get(0);
+		assertThat(f0.getId()).isEqualTo("72676");
+		Location l = GeoJsonRule.asLocation(fc);
+		Geometry geometry = l.getGeometry().getShapeGeom();
+		String type = geometry.getGeometryType();
+		assertThat(type).isEqualTo(MultiPolygon.class.getSimpleName());
+		MultiPolygon mp = (MultiPolygon)geometry;
+		int expectedNumGeometries = 1;
+		assertThat(mp.getNumGeometries()).isEqualTo(expectedNumGeometries);
+		
+		String json = KmlRule.getStringFromFile(fileName);
+        JsonNode node = Json.parse(json);
+        String path = "/api/locations";
+		FakeRequest request = new FakeRequest(POST, path).withJsonBody(node);
+
+        Result result = callAction(controllers.routes.ref.LocationServices.create(), request);
+        assertThat(status(result)).isEqualTo(Status.CREATED);
+        String location = header(LOCATION, result);
+        assertThat(location).containsIgnoringCase(path);
+        long gid = toGid(location);
+        Location readLocation = LocationRule.read(gid);
+        assertThat(readLocation.getGid()).isEqualTo(gid);
+        MultiPolygon readMp = (MultiPolygon)readLocation.getGeometry().getShapeGeom();
+		assertThat(readMp.getNumGeometries()).isEqualTo(expectedNumGeometries);
+		assertThat(readLocation.getLocationsIncluded()).isNotEmpty();
+
+        String deletePath = path + "/" + gid;
+		FakeRequest deletRequest = new FakeRequest(DELETE, deletePath);
+        Result deleteResult = callAction(controllers.routes.ref.LocationServices.delete(gid), deletRequest);
+        assertThat(status(deleteResult)).isEqualTo(Status.NO_CONTENT);
+		assertThat(header(LOCATION, deleteResult)).endsWith(deletePath);
+	}
 
 	private void testGetSuperTypes(TestBrowser browser) {
 		Fluent page = browser.goTo(context+"/api/super-types");
@@ -215,8 +252,9 @@ public class IntegrationTest {
         assertThat(readLocation.getGid()).isEqualTo(gid);
         MultiPolygon readMp = (MultiPolygon)readLocation.getGeometry().getShapeGeom();
 		assertThat(readMp.getNumGeometries()).isEqualTo(expectedNumGeometries);
+		assertThat(readLocation.getLocationsIncluded()).isEmpty();
 
-        String deletePath = path + "/" + gid;
+		String deletePath = path + "/" + gid;
 		FakeRequest deletRequest = new FakeRequest(DELETE, deletePath);
         Result deleteResult = callAction(controllers.routes.ref.LocationServices.delete(gid), deletRequest);
         assertThat(status(deleteResult)).isEqualTo(Status.NO_CONTENT);
@@ -285,8 +323,6 @@ public class IntegrationTest {
 		assertThat(censusTypes).contains(census1);
 		assertThat(censusTypes).excludes(composite1, au1, ez1);
 		assertContainsAll(allTypes, censusTypes);
-		
-		//throw new RuntimeException("PASS but stop here!");
 	}
 
 	public List<String> getTypeNames(TestBrowser browser, String url) {
