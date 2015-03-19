@@ -19,8 +19,8 @@ GET		/api/locations/:gid			controllers.LocationServices.locations(gid:Long, form
 PUT		/api/locations/:gid			controllers.LocationServices.update(gid:Long)
 DELETE	/api/locations/:gid			controllers.LocationServices.delete(gid:Long)
 GET		/api/locations				controllers.LocationServices.findLocations(q, limit:Int?=10, offset:Int?=0)
-GET		/api/locations-by-coordinate controllers.LocationServices.findLocationsByPoint(lat:Double, long:Double)
-POST	/api/locations-by-geometry controllers.LocationServices.findByFeatureCollection(superTypeId:java.lang.Long ?= null, typeId:java.lang.Long ?= null)
+GET		/api/locations-by-coordinate	controllers.LocationServices.findLocationsByPoint(lat:Double, long:Double)
+POST	/api/locations-by-geometry	controllers.LocationServices.findByFeatureCollection(superTypeId:java.lang.Long ?= null, typeId:java.lang.Long ?= null)
 
 GET		/api/super-types			controllers.ListServices.findSuperTypes()
 GET		/api/location-types			controllers.ListServices.findLocationTypes(superTypeId:java.lang.Long ?= null)

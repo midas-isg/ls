@@ -15,6 +15,7 @@ function MapDriver() {
 	this.kml = null;
 	this.parent = null;
 	this.auComponents = [];
+	this.suggestionIDs = [];
 	
 	this.initialize();
 	
@@ -406,9 +407,66 @@ MapDriver.prototype.upload = function() {
 		console.log("parent GID: " + parentGID);
 		
 		thisMapDriver.loadJSON(jsonData);
+		thisMapDriver.suggestParents();
 	});
 	
 	var fileString = fileReader.readAsText(file);
+	
+	return;
+}
+
+MapDriver.prototype.suggestParents = function() {
+	//POST /api/locations-by-geometry
+	var thisMapDriver = this;
+	var httpType = "POST";
+	var URL = context + "/api/locations-by-geometry?superTypeId=3";
+	
+	var data = this.featureLayer.toGeoJSON();
+	
+	$.ajax({
+		type: httpType,
+		url: URL,
+		data: JSON.stringify(data),
+		contentType: "application/json; charset=UTF-8",
+		//dataType: "json",
+		//processData: false,
+		success: function(data, status, response) {
+			console.log(data);
+			console.log(status);
+			console.log(response);
+			
+			//filter parent widget to features returned
+			var i;
+			for(i = 0; i < data.features.length; i++) {
+				thisMapDriver.suggestionIDs.push(data.features[i].properties.gid);
+			}
+			thisMapDriver.populateSuggestions();
+		},
+		error: function(data, status) {
+			console.log(status);
+			console.log(data);
+			setTextValue("#server-result", status + ": " + data.statusText + " - " + data.responseText);
+			$("#server-result").css("color", "#800000");
+			$("#server-result").show();
+			$("#server-result").fadeOut(15000);
+		}
+	});
+	
+	return;
+}
+
+MapDriver.prototype.populateSuggestions = function() {
+	var thisMapDriver = this;
+	
+	if(this.suggestionIDs.length > 0) {
+		PARENT_TREE.tree.filterNodes(function(node) {
+			var set = new Set(thisMapDriver.suggestionIDs);
+			
+			return set.has(node.key);
+		});
+		
+		$("#resetParentSearchButton").removeAttr("disabled");
+	}
 	
 	return;
 }
@@ -520,21 +578,45 @@ function formatGeoJSON(geoJSON, thisMapDriver) {
 		return null;
 	}
 	
-	if((!geoJSON) || (!thisMapDriver.kml)) {
-		alert("Please upload a kml file");
-		
-		return null;
-	}
-	
 	if(description.length == 0) {
 		description = null;
+	}
+	
+	if(geoJSON.features.length == 0) {
+		var useParent = confirm("You did not upload a KML file. Press OK if you want to use the selected Parent location as the Epidemic Zone.");
+		
+		if(useParent) {
+			geoJSON.features = [
+				{
+					"type": "Feature",
+					"geometry": null,
+					 "id": auParentGID
+				}
+			];
+			
+			geoJSON.id = auParentGID;
+			geoJSON.properties = {};
+			var properties = geoJSON.properties;
+			
+			geoJSON.id = Number(id);
+			properties["name"] = auName;
+			properties["locationTypeName"] = locationTypeName;
+			properties["codes"] = [{"code": auCode, "codeTypeName": auCodeType}];
+			properties["locationDescription"] = description;
+			properties["parentGid"] = auParentGID;
+			properties["startDate"] = startDate;
+			properties["endDate"] = endDate;
+			
+			return geoJSON
+		}
+		
+		return null;
 	}
 	
 	geoJSON.properties = {};
 	var properties = geoJSON.properties;
 	
 	geoJSON.id = Number(id);
-	properties["kml"] = thisMapDriver.kml;
 	properties["name"] = auName;
 	properties["locationTypeName"] = locationTypeName;
 	properties["codes"] = [{"code": auCode, "codeTypeName": auCodeType}];
@@ -542,6 +624,7 @@ function formatGeoJSON(geoJSON, thisMapDriver) {
 	properties["parentGid"] = auParentGID;
 	properties["startDate"] = startDate;
 	properties["endDate"] = endDate;
+	properties["kml"] = thisMapDriver.kml;
 	
 	return geoJSON;
 }
