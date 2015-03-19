@@ -583,7 +583,7 @@ function formatGeoJSON(geoJSON, thisMapDriver) {
 	}
 	
 	if(geoJSON.features.length == 0) {
-		var useParent = confirm("No geometry found. Press OK to use the parent geometry.");
+		var useParent = confirm("You did not upload a KML file. Press OK if you want to use the selected Parent location as the Epidemic Zone.");
 		
 		if(useParent) {
 			geoJSON.features = [
