@@ -235,6 +235,12 @@ $(document).ready(function() {
 					return;
 				});
 				
+				$("#suggestion-button").click(function() {
+					CREATE_MAP.populateSuggestions();
+					
+					return;
+				});
+				
 				$("#download-button").click(function() {
 					CREATE_MAP.download();
 					
