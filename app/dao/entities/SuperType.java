@@ -43,4 +43,10 @@ public class SuperType {
 	public void setUserDefinable(Boolean userDefinable) {
 		this.userDefinable = userDefinable;
 	}
+
+	@Override
+	public String toString() {
+		return "SuperType [id=" + id + ", name=" + name + ", userDefinable="
+				+ userDefinable + "]";
+	}
 }

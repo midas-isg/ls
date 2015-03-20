@@ -20,6 +20,7 @@ import dao.entities.Data;
 import dao.entities.Location;
 
 public class TreeView extends Controller {
+	private static final long superTypeId_au = 3L;
 	private static boolean isHideCheckbox = false;
 
 	private static Status auTree = null;
@@ -104,7 +105,7 @@ public class TreeView extends Controller {
 			return null;
 		if (auTypes == null){
 			auTypes = new HashSet<>();
-			auTypes.addAll(ListServices.Wire.getTypes("Administrative Unit"));
+			auTypes.addAll(ListServices.Wire.findLocationTypeNamesBySuperTypeId(superTypeId_au));
 		}
 		
 		Iterator<FancyTreeNode> iterator = input.iterator();
@@ -114,9 +115,6 @@ public class TreeView extends Controller {
 				iterator.remove();
 			} else {
 				removeNonAu(node.children);
-				if (node.children.isEmpty()){
-					
-				}
 			}
 		}
 		return input;

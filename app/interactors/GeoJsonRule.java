@@ -58,7 +58,7 @@ public class GeoJsonRule {
 		List<Feature> features = toFeatures(locationsIncluded, null);
 		fc.setFeatures(features);
 		fc.setType("FeatureCollection");
-		fc.setProperties(toProperties(composite));
+		fc.setProperties(toPropertiesOfFeature(composite));
 		double[] computeBbox = computeBbox(composite);
 		if (computeBbox == null)
 			computeBbox =  computeBbox(features);
@@ -84,17 +84,7 @@ public class GeoJsonRule {
 	private static Feature toFeature(Location location, List<String> fields) {
 		Feature feature = new Feature();
 		if (includeField(fields, KEY_PROPERTIES)){
-			Map<String, Object> properties = toProperties(location);
-			List<Location> children = location.getChildren();
-			if (children != null)
-				Collections.sort(children);
-			putAsLocationObjectsIfNotNull(properties, "children", children);
-			putAsLocationObjectsIfNotNull(properties, "lineage", 
-					LocationProxyRule.getLineage(location.getGid()));
-			putAsLocationObjectsIfNotNull(properties, "related", 
-					location.getRelatedLocations());
-			putAsCodeObjectsIfNotNull(properties, "codes", location);
-			putAsStringIfNotNull(properties, "kml", location.getData().getKml());
+			Map<String, Object> properties = toPropertiesOfFeature(location);
 			feature.setProperties(properties);
 		}
 		LocationGeometry geometry = null;
@@ -110,6 +100,21 @@ public class GeoJsonRule {
 		}
 		
 		return feature;
+	}
+
+	private static Map<String, Object> toPropertiesOfFeature(Location location) {
+		Map<String, Object> properties = toProperties(location);
+		List<Location> children = location.getChildren();
+		if (children != null)
+			Collections.sort(children);
+		putAsLocationObjectsIfNotNull(properties, "children", children);
+		putAsLocationObjectsIfNotNull(properties, "lineage", 
+				LocationProxyRule.getLineage(location.getGid()));
+		putAsLocationObjectsIfNotNull(properties, "related", 
+				location.getRelatedLocations());
+		putAsCodeObjectsIfNotNull(properties, "codes", location);
+		putAsStringIfNotNull(properties, "kml", location.getData().getKml());
+		return properties;
 	}
 
 	private static boolean includeField(List<String> fields, String key) {
@@ -216,9 +221,6 @@ public class GeoJsonRule {
 		putAsStringIfNotNull(properties, "locationDescription", data.getDescription());
 		putAsStringIfNotNull(properties, "headline", location.getHeadline());
 		putAsStringIfNotNull(properties, "rank", location.getRank());
-		/*putAsStringIfNotNull(properties, "code", data.getCode());
-		String codeTypeName = getName(data.getCodeType(), data.getCodeType().getName());
-		putAsStringIfNotNull(properties, "codeTypeName", codeTypeName);*/
 		putAsStringIfNotNull(properties, "startDate", data.getStartDate());
 		putAsStringIfNotNull(properties, "endDate", data.getEndDate());
 		String locationTypeName = getLocationTypeName(data.getLocationType());
@@ -251,39 +253,11 @@ public class GeoJsonRule {
 		properties.put(key, toString(value));
 	}
 
-	@Deprecated
-	public static Location asDeprecatedLocation(FeatureCollection fc){
-		Location location = new Location();
-		Data data = new Data();
-		data.setLocationType(findLocationTypeByName(getDeprecatedString(fc, "locationTypeName")));
-		data.setCodeType(LocationRule.getIsgCodeType());
-		data.setGisSource(LocationRule.getAlsGisSource());
-		String name = getDeprecatedString(fc, "name");
-		data.setName(name);
-		data.setDescription(getDeprecatedString(fc, "locationDescription"));
-		data.setKml(getDeprecatedString(fc, "kml"));
-		Date startDate = newDate(getDeprecatedString(fc, "startDate"));
-		data.setStartDate(startDate);
-		Date endDate = newDate(getDeprecatedString(fc, "endDate"));
-		data.setEndDate(endDate);
-		data.setUpdateDate(getNowDate());
-		String code = getDeprecatedString(fc, "code");
-		data.setCode(code);
-		location.setData(data);
-		String parentGid = getDeprecatedString(fc, "parent");
-		Location parent = LocationRule.read(Long.parseLong(parentGid));
-		if (parent == null){
-			throw new RuntimeException("Cannot find parent gid=" + parentGid);
-		}
-		location.setParent(parent);
-		location.setGeometry(createLocationGeometry(fc, location));
-		return location;
-	}
-	
 	public static Location asLocation(FeatureCollection fc){
 		Location location = new Location();
 		Data data = new Data();
-		data.setLocationType(findLocationTypeByName(getString(fc, "locationTypeName")));
+		LocationType type = findLocationType(fc);
+		data.setLocationType(type);
 		Date now = getNowDate();
 		data.setCodeType(LocationRule.getIsgCodeType());
 		data.setGisSource(LocationRule.getAlsGisSource());
@@ -305,13 +279,59 @@ public class GeoJsonRule {
 			throw new RuntimeException("Cannot find parent gid=" + parentGid);
 		}
 		location.setParent(parent);
+		if (type.getSuperType().getId().equals(2L)){
+			List<Location> locations = wireLocationsIncluded(fc, type);
+			location.setLocationsIncluded(locations);
+		}		
 		location.setGeometry(createLocationGeometry(fc, location));
-		
 		return location;
 	}
 
-	private static LocationType findLocationTypeByName(String name) {
-		LocationType type = LocationTypeRule.findByName(name);
+	private static List<Location> wireLocationsIncluded(FeatureCollection fc, LocationType type) {
+		LocationType allowType = type.getComposedOf();
+		List<Location> locations = new ArrayList<>();
+		for (Feature f : fc.getFeatures()){
+			String gid = f.getId();
+			if (gid != null){
+				Location location = LocationRule.read(Long.parseLong(gid));
+				if (location == null){
+					throw new RuntimeException("Cannot find LocationIncluded gid=" + gid);
+				}
+				LocationType foundType = location.getData().getLocationType();
+				if (allowType != null &&! foundType.equals(allowType))
+					throw new RuntimeException(foundType.getName() 
+							+ " type of gid=" + gid 
+							+ " is not allowed  to compose type " 
+							+ type.getName());
+						
+				locations.add(location);
+			}
+		}
+		return locations;
+	}
+
+	private static LocationType findLocationType(FeatureCollection fc) {
+		String idKey = "locationTypeId";
+		String id = getString(fc, idKey);
+		String nameKey = "locationTypeName";
+		String name = getString(fc, nameKey);
+		if (id == null && name == null)
+			throw new RuntimeException("undefined location type by id or name");
+		LocationType type = null;
+		
+		try {
+			if (id != null)
+				type = LocationTypeRule.findById(Long.parseLong(id));
+		} catch (Exception e){
+			Logger.info(e.getMessage(), e);
+		}
+		try {
+			if (type == null)
+				type = LocationTypeRule.findByName(name);
+		} catch (Exception e2){
+			throw new RuntimeException("Requested location type not found: "
+					+ idKey + "=" + id + ", " + nameKey +"=" + name);
+		}
 		return type;
 	}
 
@@ -338,14 +358,6 @@ public class GeoJsonRule {
 
 	private static String getString(FeatureCollection fc, String key) {
 		Object object = fc.getProperties().get(key);
-		if (object == null)
-			return null;
-		return object.toString();
-	}
-
-	@Deprecated
-	private static String getDeprecatedString(FeatureCollection fc, String key) {
-		Object object = fc.getFeatures().get(0).getProperties().get(key);
 		if (object == null)
 			return null;
 		return object.toString();

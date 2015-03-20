@@ -23,10 +23,11 @@ public class LocationTypeDao {
 		return result;
 	}
 
-	public List<LocationType> finaAllBySuperTypeName(String stName) {
+	public List<LocationType> findAllBySuperTypeId(Long superTypeId) {
 		EntityManager em = JPA.em();
-		String q = "from LocationType where superType.name = '" + stName 
-				+"' order by name";
+		String q = "from LocationType "
+				+ (superTypeId == null ? "" : "where superType.id = '" + superTypeId + "' ") 
+				+" order by name";
 		Query query = em.createQuery(q);
 		@SuppressWarnings("unchecked")
 		List<LocationType> result = (List<LocationType>)query.getResultList();

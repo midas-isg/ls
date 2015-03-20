@@ -33,7 +33,7 @@ public class LocationServices extends Controller {
 		if (IsFalsified(format))
 			format = FORMAT_DEFAULT;
 		
-		Location location = LocationRule.simplifyToMaxExteriorRings(gid, maxExteriorRings);
+		Location location = Wire.simplifyToMaxExteriorRings(gid, maxExteriorRings);
 		switch (format.toLowerCase()){
 		case FORMAT_GEOJSON:
 			return asGeoJson(location);
@@ -47,7 +47,7 @@ public class LocationServices extends Controller {
 			return badRequest(format + " is not supported.");
 		}
 	}
-	
+
 	@Transactional
 	public static Result getGeometryMetadata(long gid, Double tolerance){
 		Object object = LocationRule.getSimplifiedGeometryMetadata(gid, tolerance);
@@ -163,6 +163,16 @@ public class LocationServices extends Controller {
 			return id;
 		}
 
+		public static Location read(Long gid){
+			return simplifyToMaxExteriorRings(gid, null);
+		}
+		
+		public static Location simplifyToMaxExteriorRings(Long gid,
+				Integer maxExteriorRings) {
+			Location location = LocationRule.simplifyToMaxExteriorRings(gid, maxExteriorRings);
+			return location;
+		}
+		
 		public static FeatureCollection asFeatureCollection(Location location) {
 			FeatureCollection fc = GeoJsonRule.asFeatureCollection(location);
 			return fc;

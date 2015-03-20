@@ -34,6 +34,7 @@ import models.geo.FeatureCollection;
 import models.geo.FeatureGeometry;
 
 import org.fest.assertions.StringAssert;
+import org.fluentlenium.core.Fluent;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -52,14 +53,14 @@ import play.twirl.api.Content;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.MultiPolygon;
 
-import controllers.AdministrativeUnitServices;
 import controllers.ApolloLocationServices;
-import controllers.ListServices;
 import controllers.LocationServices;
 import controllers.ref.ReverseLocationServices;
 import dao.entities.Location;
@@ -97,10 +98,12 @@ public class IntegrationTest {
 				transaction.begin();
 				transaction.setRollbackOnly();
 				
+				testCreateComposite();
+				testLocationTypes(browser);
+				testGetSuperTypes(browser);
 				testFindLocationsByFeatureCollection();
 				testCreateEzFromAu();
 				testLocationType_PumaComposedOfCensusTract();
-				testGetAuTypes();
 				testMaxExteriorRings(browser);
 				testGeoMetadata(browser);
 				tesCrudAu();
@@ -111,6 +114,69 @@ public class IntegrationTest {
             }
         });
     }
+	
+	private void testCreateComposite() throws Exception {
+		String fileName = "test/CompositeTestPUMA.geojson";
+		FeatureCollection fc = readFeatureCollectionFromFile(fileName);
+		Feature f0 = fc.getFeatures().get(0);
+		assertThat(f0.getId()).isEqualTo("72676");
+		Location l = GeoJsonRule.asLocation(fc);
+		Geometry geometry = l.getGeometry().getShapeGeom();
+		String type = geometry.getGeometryType();
+		assertThat(type).isEqualTo(MultiPolygon.class.getSimpleName());
+		MultiPolygon mp = (MultiPolygon)geometry;
+		int expectedNumGeometries = 1;
+		assertThat(mp.getNumGeometries()).isEqualTo(expectedNumGeometries);
+		
+		String json = KmlRule.getStringFromFile(fileName);
+        JsonNode node = Json.parse(json);
+        String path = "/api/locations";
+		FakeRequest request = new FakeRequest(POST, path).withJsonBody(node);
+
+        Result result = callAction(controllers.routes.ref.LocationServices.create(), request);
+        assertThat(status(result)).isEqualTo(Status.CREATED);
+        String location = header(LOCATION, result);
+        assertThat(location).containsIgnoringCase(path);
+        long gid = toGid(location);
+        Location readLocation = LocationRule.read(gid);
+        assertThat(readLocation.getGid()).isEqualTo(gid);
+        MultiPolygon readMp = (MultiPolygon)readLocation.getGeometry().getShapeGeom();
+		assertThat(readMp.getNumGeometries()).isEqualTo(expectedNumGeometries);
+		assertThat(readLocation.getLocationsIncluded()).isNotEmpty();
+
+        String deletePath = path + "/" + gid;
+		FakeRequest deletRequest = new FakeRequest(DELETE, deletePath);
+        Result deleteResult = callAction(controllers.routes.ref.LocationServices.delete(gid), deletRequest);
+        assertThat(status(deleteResult)).isEqualTo(Status.NO_CONTENT);
+		assertThat(header(LOCATION, deleteResult)).endsWith(deletePath);
+	}
+
+	private void testGetSuperTypes(TestBrowser browser) {
+		Fluent page = browser.goTo(context+"/api/super-types");
+		String json = page.pageSource();
+		assertJsonNameValue(json, "Administrative Unit");
+		assertJsonNameValue(json, "Epidemic Zone");
+		assertJsonArrayAsNonEmpty(json);
+	}
+
+	public ArrayNode assertJsonArrayAsNonEmpty(String json) {
+		JsonNode node = Json.parse(json);
+		assertThat(node.getNodeType()).isEqualTo(JsonNodeType.ARRAY);
+		assertThat(node.size()).isGreaterThan(0);
+		return (ArrayNode)node;
+	}
+
+	public void assertJsonNameValue(String json, String expected) {
+		assertThat(json).containsIgnoringCase(asJsonPair("name", expected));
+	}
+
+	public String asJsonPair(String key, String value) {
+		return quote(key) + ":" + quote(value);
+	}
+	
+	private String quote(String text) {
+		return "\"" + text + "\"";
+	}
 
 	private void testFindLocationsByFeatureCollection() throws Exception {
 		long supertTypeIdAdministrativeUnit = 3L;
@@ -186,8 +252,9 @@ public class IntegrationTest {
         assertThat(readLocation.getGid()).isEqualTo(gid);
         MultiPolygon readMp = (MultiPolygon)readLocation.getGeometry().getShapeGeom();
 		assertThat(readMp.getNumGeometries()).isEqualTo(expectedNumGeometries);
+		assertThat(readLocation.getLocationsIncluded()).isEmpty();
 
-        String deletePath = path + "/" + gid;
+		String deletePath = path + "/" + gid;
 		FakeRequest deletRequest = new FakeRequest(DELETE, deletePath);
         Result deleteResult = callAction(controllers.routes.ref.LocationServices.delete(gid), deletRequest);
         assertThat(status(deleteResult)).isEqualTo(Status.NO_CONTENT);
@@ -221,11 +288,65 @@ public class IntegrationTest {
 		assertThat(puma.getComposedOf().getName()).isEqualToIgnoringCase("Census Tract 2010");
 	}
 	
-	private void testGetAuTypes() {
-		List<String> auTypes = ListServices.Wire.getTypes("Administrative Unit");
-		assertThat(auTypes).contains("Town", "Country");
-		assertThat(auTypes).doesNotHaveDuplicates();
-		assertThat(auTypes).excludes("PUMA", "Census Tract", "Epidemic Zone");
+	private void testLocationTypes(TestBrowser browser) {
+		String baseUrl = context + "/api/location-types";
+		List<String> allTypes = getTypeNames(browser, baseUrl);
+		assertThat(allTypes).doesNotHaveDuplicates();
+		
+		String queryUrl = baseUrl + "?superTypeId=";
+		
+		int ez = 1;
+		String ez1 = "Epidemic Zone";
+		int composite = 2;
+		String composite1 = "PUMA 2010";
+		int au = 3;
+		String au1 = "Country";
+		int census = 4;
+		String census1 = "Census Tract 2010";
+
+		List<String> ezTypes = getTypeNames(browser, queryUrl + ez);
+		assertThat(ezTypes).contains(ez1);
+		assertThat(ezTypes).excludes(au1, composite1, census1);
+		assertContainsAll(allTypes, ezTypes);
+		
+		List<String> compositeTypes = getTypeNames(browser, queryUrl + composite);
+		assertThat(compositeTypes).contains(composite1);
+		assertThat(compositeTypes).excludes(au1, ez1, census1);
+		assertContainsAll(allTypes, compositeTypes);
+		
+		List<String> auTypes = getTypeNames(browser, queryUrl + au);
+		assertThat(auTypes).contains(au1);
+		assertThat(auTypes).excludes(composite1, census1, ez1);
+		assertContainsAll(allTypes, auTypes);
+		
+		List<String> censusTypes = getTypeNames(browser, queryUrl + census);
+		assertThat(censusTypes).contains(census1);
+		assertThat(censusTypes).excludes(composite1, au1, ez1);
+		assertContainsAll(allTypes, censusTypes);
+	}
+
+	public List<String> getTypeNames(TestBrowser browser, String url) {
+		String auJson = browser.goTo(url).pageSource();
+		ArrayNode auArray = assertJsonArrayAsNonEmpty(auJson);
+		List<String> auTypes = toListByName(auArray);
+		return auTypes;
+	}
+
+	private void assertContainsAll(List<?> actual, List<?> expected) {
+		for (Object obj: expected){
+			assertThat(actual).contains(obj);
+		}
+	}
+
+	public List<String> toListByName(ArrayNode array) {
+		List<String> list = new ArrayList<>();
+		for (JsonNode node : array){
+			JsonNode nameNode = node.get("name");
+			if (nameNode == null || nameNode.isNull())
+				throw new RuntimeException("Unexpected null at key=name of " + node);
+			list.add(nameNode.textValue());
+		}
+		return list;
 	}
 
 	private void testMaxExteriorRings(TestBrowser browser) {
@@ -346,21 +467,26 @@ public class IntegrationTest {
     }
 
 	private void tesCrudEz() throws Exception {
-    	JsonNode json = readJsonNodeFromFile("test/EzMaridi.geojson");
+		String fileName = "test/EzMaridi.geojson";
+		JsonNode json = readJsonNodeFromFile(fileName);
+    	
     	FeatureCollection fc = GeoJSONParser.parse(json);
-    	long gid = AdministrativeUnitServices.Wire.create(fc);
+    	long gid = LocationServices.Wire.create(fc);
 		assertThat(gid).isPositive();
 		Location readLocation = LocationRule.read(gid);
-		Location expectedLocation = asDeprecatedLocation(fc, gid);
+		Location expectedLocation = asLocation(fc, gid);
 		assertISEqualTo(readLocation, expectedLocation);
 		assertThat(readLocation.getData().getLocationType().getName()).isEqualTo("Epidemic Zone");
-		FeatureCollection readFc = AdministrativeUnitServices.Wire.read(gid);
-		toExpected(fc, gid);
-		assertISEqualTo(removeIrrelavantInfo(readFc), fc);
+		testRead(gid, fc);
 		Long deletedGid = deleteTogetherWithAllGeometries(gid);
 		assertThat(deletedGid).isEqualTo(gid);
 		Location deletedLocation = LocationRule.read(gid);
 		assertThat(deletedLocation).isNull();
+	}
+
+	private FeatureCollection asFeatureCollection(long gid) throws Exception {
+		Location location = LocationServices.Wire.read(gid);
+		return LocationServices.Wire.asFeatureCollection(location);
 	}
 
 	private void tesCrudAu() throws Exception {
@@ -377,12 +503,20 @@ public class IntegrationTest {
         String location = header(LOCATION, result);
         assertThat(location).containsIgnoringCase(path);
         long gid = toGid(location);
+		testRead(gid, null);
         String deletePath = path + "/" + gid;
 		FakeRequest deletRequest = new FakeRequest(DELETE, deletePath);
         HandlerRef<?> action = controllers.routes.ref.LocationServices.delete(gid);
 		Result deleteResult = callAction(action, deletRequest);
         assertThat(status(deleteResult)).isEqualTo(Status.NO_CONTENT);
 		assertThat(header(LOCATION, deleteResult)).endsWith(deletePath);
+	}
+
+	private void testRead(long gid, FeatureCollection fc) throws Exception {
+		FeatureCollection readFc = asFeatureCollection(gid);
+		toExpected(readFc, gid);
+		if (fc != null)
+			assertISEqualTo(removeIrrelavantInfo(readFc), fc);
 	}
 
 	private void testCrud(String fileName) throws Exception {
@@ -467,13 +601,6 @@ public class IntegrationTest {
 
 	private Location asLocation(FeatureCollection fc, long gid) {
 		Location fcLocation = GeoJsonRule.asLocation(fc);
-		fcLocation.setGid(gid);
-		fcLocation.getGeometry().setGid(gid);
-		return fcLocation;
-	}
-    
-	private Location asDeprecatedLocation(FeatureCollection fc, long gid) {
-		Location fcLocation = GeoJsonRule.asDeprecatedLocation(fc);
 		fcLocation.setGid(gid);
 		fcLocation.getGeometry().setGid(gid);
 		return fcLocation;
