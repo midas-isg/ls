@@ -242,11 +242,10 @@ $(document).ready(function() {
 				$("#composite-button").click(function() {
 					console.log(CONCEPT_MAP.getAUComponents());
 					
-					var i;
-					var currentAUGID;
-					var currentAU;
-					
-					var compositeJSON = {};
+					var i,
+					currentAUGID,
+					currentAU,
+					compositeJSON = {};
 					compositeJSON.type = "FeatureCollection";
 					compositeJSON.id = null;
 					compositeJSON.features = [];

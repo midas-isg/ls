@@ -44,6 +44,46 @@ function searchQuery() {
 	return;
 }
 
+function searchByGeoJSON(geoJSON) {
+	//POST /api/locations-by-geometry
+	var httpType = "POST",
+	URL = context + "/api/locations-by-geometry?superTypeId=3",
+	data = geoJSON,
+	result = $("#result");
+	result.text("Please wait...");
+	
+	$.ajax({
+		type: httpType,
+		url: URL,
+		data: JSON.stringify(data),
+		contentType: "application/json; charset=UTF-8",
+		//dataType: "json",
+		//processData: false,
+		success: function(data, status, response) {
+			console.log(data);
+			console.log(status);
+			console.log(response);
+			
+			data = {geoJSON: data, properties: {resultSize: data.features.length}};
+			
+			updateOutput(data, status, result);
+			$("#result-count").append("<strong>user selection</strong>");
+			
+			return;
+		},
+		error: function(data, status) {
+			console.log(status);
+			console.log(data);
+			result.text(status + ": " + data.statusText);
+			result.append(data.responseText);
+			
+			return;
+		}
+	});
+	
+	return;
+}
+
 function searchPoint(latitude, longitude) {
 	var url = pointURL + "?lat=" + latitude + "&long=" + longitude;
 	var result = $("#result");
@@ -69,15 +109,13 @@ function searchPoint(latitude, longitude) {
 	return;
 }
 
-var geoJSON;
 function updateOutput(data, status, result) {
-	geoJSON = data.geoJSON;
+	var geoJSON = data.geoJSON;
 	result.text("");
 	
-	var features = geoJSON.features;
-	var size = data.properties.resultSize;
-	
-	var appendString = "<table class='table table-condensed pre-spaced' style='margin-bottom: 0px;'>";
+	var features = geoJSON.features,
+	size = data.properties.resultSize,
+	appendString = "<table class='table table-condensed pre-spaced' style='margin-bottom: 0px;'>";
 	appendString += "<caption id='result-count'>" + size + " result(s) from searching </caption>";
 	
 	if(size > 0) {
@@ -93,31 +131,32 @@ function updateOutput(data, status, result) {
 		var resultBody = $("#results-tbody");
 		
 		appendString = "";
-		var p;
-		var gid;
-		var url;
-		var to;
-		var i;
-		var l;
-		for(i = 0, l = features.length; i < l; i++){
-			p = features[i].properties;
-			gid = p.gid;
+		var properties,
+		gid,
+		url,
+		to,
+		i,
+		length,
+		root;
+		for(i = 0, length = features.length; i < length; i++){
+			properties = features[i].properties;
+			gid = properties.gid;
 			url = browswerURL + "?id=" + gid;
 			to = "";
 			
-			if(p.endDate) {
-				to = " to " + p.endDate;
+			if(properties.endDate) {
+				to = " to " + properties.endDate;
 			}
 			
-			appendString = "<tr><td class='location-col'><a href='"+ url +"'>"+ p.headline  + "</a> from " + p.startDate + to + "</td>";
-			appendString = appendString + "<td class='type-col'>" + p.locationTypeName + "</td>";
+			appendString = "<tr><td class='location-col'><a href='"+ url +"'>"+ properties.headline  + "</a> from " + properties.startDate + to + "</td>";
+			appendString = appendString + "<td class='type-col'>" + properties.locationTypeName + "</td>";
 			
-			var root = p.lineage[0];
+			root = properties.lineage[0];
 			if(root) {
 				appendString = appendString + "<td class='within-col' id='result_lineage" + i + "'></td></tr>";
 				resultBody.append(appendString);
 				
-				listLineageRefs(p.lineage, "#result_lineage" + i);
+				listLineageRefs(properties.lineage, "#result_lineage" + i);
 			}
 			else {
 				appendString = appendString + "<td class='within-col'></td></tr>";

@@ -59,7 +59,7 @@ $(document).ready(function() {
 				thisMapDriver.drawControl = new L.Control.Draw({
 					draw: {
 						polyline: false,
-						polygon: false,
+						polygon: true,
 						rectangle: false,
 						circle: false,
 						marker: true
@@ -79,7 +79,17 @@ $(document).ready(function() {
 			
 			thisMapDriver.map.on('draw:created', function(e) {
 				thisMapDriver.featureLayer.addLayer(e.layer);
-				searchPoint(e.layer._latlng.lat, e.layer._latlng.lng);
+				var geoJSON = e.layer.toGeoJSON();
+				
+				if(geoJSON.geometry.type === "Point") {
+					searchPoint(e.layer._latlng.lat, e.layer._latlng.lng);
+				}
+				else {
+					geoJSON = { features:[geoJSON], type: "FeatureCollection" };
+					
+					searchByGeoJSON(geoJSON);
+				}
+				
 				console.log(e);
 				
 				return;
