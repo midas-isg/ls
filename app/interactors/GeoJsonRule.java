@@ -159,13 +159,15 @@ public class GeoJsonRule {
 		return result;
 	}
 
-	private static double[] computeBbox(Geometry multiPolygonGeom) {
-		if (multiPolygonGeom == null)
+	private static double[] computeBbox(Geometry geometry) {
+		if (geometry == null)
 			return null;
-		Geometry envelope = multiPolygonGeom.getEnvelope();
+		Geometry envelope = geometry.getEnvelope();
 		Coordinate[] coordinates = envelope.getCoordinates();
 		Coordinate westSouth = coordinates[0];
-		Coordinate eastNorth = coordinates[2];
+		Coordinate eastNorth = coordinates.length >=2 
+				? coordinates[2] 
+				: westSouth;
 		double[] bbox = new double[]{westSouth.x, westSouth.y, 
 				eastNorth.x, eastNorth.y};
 		return bbox;

@@ -179,6 +179,33 @@ public class IntegrationTest {
 	}
 
 	private void testFindLocationsByFeatureCollection() throws Exception {
+		testFindLocationsByPoint();
+		testFindLocationsByPolygon();
+	}
+	
+	private void testFindLocationsByPoint() throws Exception {
+		String text = KmlRule.getStringFromFile("test/geojson/point_test.geojson");
+		String geojson = toGeometryString(text);
+		
+		List<BigInteger> list = GeometryRule.findGidsByGeometry(geojson, null, null);
+		assertThat(list).isNotEmpty();
+		BigInteger gid = list.get(0);
+		
+        JsonNode node = Json.parse(text);
+        String path = "/api/locations";
+		FakeRequest request = new FakeRequest(POST, path).withJsonBody(node);
+		ReverseLocationServices ls = controllers.routes.ref.LocationServices;
+		HandlerRef<?> action = ls.findByFeatureCollection(null, null);
+		Result postResult = callAction(action, request);
+        assertThat(status(postResult)).isEqualTo(Status.OK);
+        assertThat(contentType(postResult)).isEqualTo("application/vnd.geo+json");
+        String jsonResult = contentAsString(postResult);
+        JsonNode resultNode = Json.parse(jsonResult);
+        assertThat(resultNode.get("type").asText()).isEqualTo("FeatureCollection");
+        assertThat(jsonResult).contains("\"gid\":\""+gid+"\"");
+	}
+
+	private void testFindLocationsByPolygon() throws Exception {
 		long supertTypeIdAdministrativeUnit = 3L;
 		String text = KmlRule.getStringFromFile("test/circleCenteredAtDbmi.geojson");
 		String geojson = toGeometryString(text);
