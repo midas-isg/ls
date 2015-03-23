@@ -39,7 +39,7 @@ public class GeoInputRule {
 		GeometryFactory fact = new GeometryFactory();
 		List<Feature> features = fc.getFeatures();
 		List<Geometry> polygons = new ArrayList<>();
-		List<MultiPolygon> multipolygons = new ArrayList<>();
+		List<Geometry> geometriesFromDb = new ArrayList<>();
 		
 		for(Feature feature :features) {
 			FeatureGeometry featureGeometry = feature.getGeometry();
@@ -48,9 +48,14 @@ public class GeoInputRule {
 				if (id != null){
 					LocationGeometry lg = GeometryRule.read(Long.parseLong(id));
 					Geometry geo = lg.getShapeGeom();
-					if ("MultiPolygon".equals(geo.getGeometryType())){
-						MultiPolygon mp = (MultiPolygon)geo;
-						multipolygons.add(mp);
+					String type = geo.getGeometryType();
+					if ("MultiPolygon".equals(type) 
+					|| "Polygon".equals(type)
+					){
+						geometriesFromDb.add(geo);
+					} else {
+						throw new RuntimeException(type + " is not expected. "
+								+ " Couldn't compose geometry due to unexpected type of geometry of id=" + id);
 					}
 				}
 			} else if(featureGeometry.getType().equals("GeometryCollection")) {
@@ -92,9 +97,10 @@ public class GeoInputRule {
 //Logger.debug("\ty=" + polygonArray[0].getExteriorRing().getCoordinateN(0).y);
 		Geometry mpg = new MultiPolygon(polygonArray, fact);
 		
-		for (MultiPolygon mp : multipolygons){
+		for (Geometry mp : geometriesFromDb){
 			mpg = mpg.union(mp);
 		}
+		
 		String geometryType = mpg.getGeometryType();
 		if ("Polygon".equals(geometryType)){
 			Polygon pg = (Polygon)mpg;
