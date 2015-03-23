@@ -56,6 +56,16 @@ $(document).ready(function() {
 			}
 			
 			if(!thisMapDriver.drawControl) {
+				// Set the button title text for buttons
+				L.drawLocal.draw.toolbar.buttons.polygon = "Search within user-defined area";
+				L.drawLocal.draw.toolbar.buttons.marker = "Search via a point";
+				
+				// Set the tooltip start text when drawing
+				L.drawLocal.draw.handlers.polygon.tooltip.start = "Click to define search area";
+				L.drawLocal.draw.handlers.polygon.tooltip.cont = "Click to continue defining search area";
+				L.drawLocal.draw.handlers.polygon.tooltip.end = "Click to continue defining search area <br> or click first point to finish";
+				L.drawLocal.draw.handlers.marker.tooltip.start = "Click to place search point";
+				
 				thisMapDriver.drawControl = new L.Control.Draw({
 					draw: {
 						polyline: false,

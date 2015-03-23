@@ -321,12 +321,6 @@ BrowserMap.prototype.loadJSON = function(jsonData) {
 }
 
 BrowserMap.prototype.getJSONData = function(URL) {
-	/*
-	$.get(URL, function(data, status) {
-		$("#map-data").text(JSON.stringify(data));
-	});
-	*/
-	
 	window.location.assign(URL);
 	
 	return;
