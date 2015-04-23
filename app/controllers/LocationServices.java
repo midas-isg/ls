@@ -1,5 +1,6 @@
 package controllers;
 
+import com.wordnik.swagger.annotations.*;
 import interactors.GeoJsonRule;
 import interactors.GeometryRule;
 import interactors.KmlRule;
@@ -18,6 +19,10 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import dao.entities.Location;
 
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
+
+@Api(value = "/api/locations", description = "Endpoint for locations")
 public class LocationServices extends Controller {
 	public static final String FORMAT_GEOJSON = "geojson";
 	public static final String FORMAT_APOLLOJSON = "json";
@@ -26,7 +31,23 @@ public class LocationServices extends Controller {
 	public static final String FORMAT_DEFAULT = "geojson";
 	
 	@Transactional
-	public static Result locations(Long gid, String format, Integer maxExteriorRings){
+    @ApiOperation(
+      nickname = "getLocation",
+      value = "Returns a location",
+      notes = "",
+      httpMethod = "GET",
+      response = FeatureCollection.class)
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Successful retrieval of location", response = FeatureCollection.class),
+        @ApiResponse(code = 404, message = "Location not found"),
+        @ApiResponse(code = 500, message = "Internal server error"),
+        @ApiResponse(code = 400, message = "Format is not supported")}
+    )
+    public static Result locations(
+            @ApiParam(value = "ID of the location", required = true) @PathParam("gid") Long gid,
+            @ApiParam(value = "Requested serialization format (geojson, json, xml, or kml)", allowableValues = "[geojson, json, xml, kml]") @QueryParam("format") String format,
+            @ApiParam(value = "Number of exterior rings (integer)", required = false) @QueryParam("maxExteriorRings") Integer maxExteriorRings) {
+
 		if (gid == null)
 			return notFound("gid is required but got " + gid);
 		
@@ -59,7 +80,22 @@ public class LocationServices extends Controller {
 	}
 	
 	@Transactional
-	public static Result findLocations(String q, Integer limit, Integer offset){
+    @ApiOperation(
+      nickname = "locationsByName",
+      value = "Returns a location by searching their name",
+      notes = "",
+      httpMethod = "GET",
+      response = FeatureCollection.class)
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Successful retrieval of location", response = FeatureCollection.class),
+        @ApiResponse(code = 404, message = "Location not found"),
+        @ApiResponse(code = 500, message = "Internal server error"),
+        @ApiResponse(code = 400, message = "Format is not supported")}
+    )
+	public static Result findLocations(
+            @ApiParam(value = "Search terms", required = true) @QueryParam("q") String q,
+            @ApiParam(value = "Number of locations to return", required = false) @QueryParam("limit") Integer limit,
+            @ApiParam(value = "Page offset if number of locations exceeds limit", required = false) @QueryParam("offset") Integer offset){
 		Object result = GeoJsonRule.findByName(q, limit, offset);
 		return ok(Json.toJson(result));
 	}
@@ -71,7 +107,21 @@ public class LocationServices extends Controller {
 	}
 	
 	@Transactional
-	public static Result findLocationsByPoint(double lat, double lon){
+    @ApiOperation(
+          nickname = "locationsByPoint",
+          value = "Returns a location by submitting a coordinate",
+          notes = "",
+          httpMethod = "GET",
+          response = FeatureCollection.class)
+        @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Successful retrieval of location", response = FeatureCollection.class),
+            @ApiResponse(code = 404, message = "Location not found"),
+            @ApiResponse(code = 500, message = "Internal server error"),
+            @ApiResponse(code = 400, message = "Format is not supported")}
+        )
+	public static Result findLocationsByPoint(
+            @ApiParam(value = "Latitude", required = true) @QueryParam("lat") double lat,
+            @ApiParam(value = "Longitude", required = true) @QueryParam("lon") double lon){
 		Object result = GeoJsonRule.findByNameByPoint(lat, lon);
 		return ok(Json.toJson(result));
 	}
@@ -134,6 +184,12 @@ public class LocationServices extends Controller {
 	
 	@Transactional
 	public static Result delete(long gid) {
+
+        String remote = request().remoteAddress();
+        if (! remote.equalsIgnoreCase("127.0.0.1")) {
+            return unauthorized();
+        }
+
 		Long id = Wire.delete(gid);
 		setResponseLocation(null);
 		if (id == null){

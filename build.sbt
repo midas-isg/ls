@@ -21,5 +21,6 @@ libraryDependencies ++= Seq(
   javaWs,
   "com.thoughtworks.xstream" % "xstream" % "1.4.7",  
   "org.hibernate" % "hibernate-entitymanager" % "4.3.7.Final",
-  "org.hibernate" % "hibernate-spatial" % "4.3"
+  "org.hibernate" % "hibernate-spatial" % "4.3" ,
+  "com.wordnik" %% "swagger-play2" % "1.3.12"
 )

@@ -31,4 +31,8 @@ public class Application extends Controller {
 	public static Result create() {
 		return ok(views.html.create.render("apollo location creator", VERSION));
 	}
+
+    public static Result swagger() {
+        return ok(views.html.swagger.render());
+    }
 }
