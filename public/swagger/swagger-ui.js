@@ -2133,8 +2133,14 @@ SwaggerSpecConverter.prototype.declaration = function(obj, swagger) {
   }
 
   var basePath = obj.basePath;
-  if(obj.basePath.indexOf('http://') === 0) {
-    var p = obj.basePath.substring('http://'.length);
+  if(obj.basePath.indexOf('http://') === 0 || obj.basePath.indexOf('https://') === 0) {
+    var p;
+    if (obj.basePath.indexOf('http://') === 0) {
+        p = obj.basePath.substring('http://'.length);
+    }
+    if (obj.basePath.indexOf('https://') === 0) {
+        p = obj.basePath.substring('https://'.length);
+    }
     var pos = p.indexOf('/');
     if(pos > 0) {
       swagger.host = p.substring(0, pos);
