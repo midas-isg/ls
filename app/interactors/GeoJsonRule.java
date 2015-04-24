@@ -383,7 +383,7 @@ public class GeoJsonRule {
 		return response;
 	}
 
-	public static Response findByNameByPoint(double latitude, double longitude) {
+	public static Response findByPoint(double latitude, double longitude) {
 		List<Location> result = LocationRule.findByPoint(latitude, longitude);
 		Response response = new Response();
 		response.setGeoJSON(toFeatureCollection(result, MINIMUM_KEYS));

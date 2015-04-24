@@ -171,6 +171,7 @@ public class GeoJSONParser {
 		return polygon;
 	}
 	
+	@SuppressWarnings("deprecation")
 	private static MultiPolygon parseMultiPolygon(JsonNode geometryNode) throws Exception {
 		JsonNode coordinatesNode = geometryNode.get("coordinates");
 		MultiPolygon multiPolygon;

@@ -1,7 +1,5 @@
 package controllers;
 
-import com.wordnik.swagger.annotations.*;
-import dao.entities.Location;
 import interactors.GeoJsonRule;
 import interactors.GeometryRule;
 import interactors.KmlRule;
@@ -11,6 +9,10 @@ import interactors.LocationRule;
 import java.math.BigInteger;
 import java.util.List;
 
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
+
+import models.Response;
 import models.geo.FeatureCollection;
 import models.geo.FeatureGeometry;
 import play.Logger;
@@ -20,8 +22,15 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiImplicitParam;
+import com.wordnik.swagger.annotations.ApiImplicitParams;
+import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiParam;
+import com.wordnik.swagger.annotations.ApiResponse;
+import com.wordnik.swagger.annotations.ApiResponses;
+
+import dao.entities.Location;
 
 @Api(value = "/api/locations", description = "Endpoint for locations")
 public class LocationServices extends Controller {
@@ -32,16 +41,50 @@ public class LocationServices extends Controller {
 	public static final String FORMAT_DEFAULT = "geojson";
 
 	@Transactional
-	@ApiOperation(nickname = "getLocation", value = "Returns a location by ID", notes = "", httpMethod = "GET", response = FeatureCollection.class)
+	@ApiOperation(
+			httpMethod = "GET", 
+			nickname = "readLocation", 
+			value = "Returns a location by ID", 
+			notes = "This endpoint returns a location in the requested format (format) by ID (gid). "
+			+ "The ID is usaully called as GID by Geographic Information System (GIS) "
+			+ "and we refer to as 'Apollo Location Code'. "
+			+ "For some locations, "
+			+ "their geometry information is too big to use in other services. "
+			+ "To simplify geometry information, "
+			+ "request the maximum number of exterior rings (maxExteriorRings) "
+			+ "to a number that other services can handle", 
+			response = FeatureCollection.class
+	)
 	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Successful retrieval of location", response = FeatureCollection.class),
-			@ApiResponse(code = 404, message = "Location not found"),
-			@ApiResponse(code = 500, message = "Internal server error"),
-			@ApiResponse(code = 400, message = "Format is not supported") })
+			@ApiResponse(code = OK, message = "Successful retrieval of location", 
+					response = FeatureCollection.class),
+			@ApiResponse(code = NOT_FOUND, message = "Location not found"),
+			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
+			@ApiResponse(code = BAD_REQUEST, message = "Format is not supported") 
+	})
 	public static Result locations(
-			@ApiParam(value = "ID of the location", required = true) @PathParam("gid") Long gid,
-			@ApiParam(value = "Requested serialization format (geojson, json, xml, or kml)", allowableValues = "[geojson, json, xml, kml]") @QueryParam("format") String format,
-			@ApiParam(value = "Number of exterior rings (integer)", required = false) @QueryParam("maxExteriorRings") Integer maxExteriorRings) {
+			@ApiParam(value = "ID of the location (Apollo Location Code)", required = true) 
+			@PathParam("gid") 
+			Long gid,
+			
+			@ApiParam(
+					value = "Requested response format: GeoJSON (geojson), "
+					+ "Apollo Location JSON (json), Apollo Location XML (xml), "
+					+ "or Keyhole Markup Language (kml). ", 
+					required = false, 
+					allowableValues = "[geojson, json, xml, kml]", 
+					defaultValue = "geojson"
+			) 
+			@PathParam("format") 
+			String format,
+			
+			@ApiParam(
+					value = "Maximum number of exterior rings in the response. ", 
+					required = false
+			) 
+			@QueryParam("maxExteriorRings") 
+			Integer maxExteriorRings
+	) {
 
 		if (gid == null)
 			return notFound("gid is required but got " + gid);
@@ -75,16 +118,43 @@ public class LocationServices extends Controller {
 	}
 
 	@Transactional
-	@ApiOperation(nickname = "locationsByName", value = "Returns locations by name search", notes = "", httpMethod = "GET", response = FeatureCollection.class)
+	@ApiOperation(
+			httpMethod = "GET", 
+			nickname = "findLocationsByName", 
+			value = "Returns locations by name search", 
+			notes = "This endpoint returns locations whose name matches the requested search terms (q). "
+			+ "To do pagination, use 'limit' and 'offset'. "
+			+ "Note: The schema of the 'geoJSON' field in the response is GeoJSON FeatureCollection. ", 
+			response = Response.class)
 	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Successful retrieval of location", response = FeatureCollection.class),
-			@ApiResponse(code = 404, message = "Location not found"),
-			@ApiResponse(code = 500, message = "Internal server error"),
-			@ApiResponse(code = 400, message = "Format is not supported") })
+			@ApiResponse(code = OK, message = "Successful retrieval of location", response = Response.class),
+			//@ApiResponse(code = 404, message = "Location not found"),
+			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
+			//@ApiResponse(code = 400, message = "Format is not supported") 
+	})
 	public static Result findLocations(
-			@ApiParam(value = "Search terms", required = true) @QueryParam("q") String q,
-			@ApiParam(value = "Number of locations to return", required = false) @QueryParam("limit") Integer limit,
-			@ApiParam(value = "Page offset if number of locations exceeds limit", required = false) @QueryParam("offset") Integer offset) {
+			@ApiParam(
+					value = "Search terms delimited by a space charactor. "
+					+ "The search terms are combined together with conjunction. ",
+					required = true
+			) 
+			@QueryParam("q") 
+			String q,
+			
+			@ApiParam(
+					value = "Maximum number of locations to return. ", 
+					required = true, defaultValue = "10"
+			) 
+			@QueryParam("limit") 
+			Integer limit,
+			
+			@ApiParam(
+					value = "Page offset if number of locations exceeds limit. ", 
+					required = true, defaultValue = "0"
+			) 
+			@QueryParam("offset") 
+			Integer offset
+	) {
 		Object result = GeoJsonRule.findByName(q, limit, offset);
 		return ok(Json.toJson(result));
 	}
@@ -96,26 +166,56 @@ public class LocationServices extends Controller {
 	}
 
 	@Transactional
-	@ApiOperation(nickname = "locationsByPoint", value = "Returns a location by submitting a coordinate", notes = "", httpMethod = "GET", response = FeatureCollection.class)
+	@ApiOperation(
+			httpMethod = "GET", 
+			nickname = "findLocationsByPoint", 
+			value = "Returns locations by coordinate search", 
+			notes = "This endpoint returns locations whose geometry encompasses the submitting coordinate. "
+			+ "The coordinate is defined by latitude (lat) and longtitude (long). "
+			+ "Note: The schema of the 'geoJSON' field in the response is GeoJSON FeatureCollection. ", 
+			response = Response.class
+	)
 	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Successful retrieval of location", response = FeatureCollection.class),
-			@ApiResponse(code = 404, message = "Location not found"),
-			@ApiResponse(code = 500, message = "Internal server error"),
-			@ApiResponse(code = 400, message = "Format is not supported") })
+			@ApiResponse(code = OK, message = "Successful retrieval of location", response = Response.class),
+			//@ApiResponse(code = NOT_FOUND, message = "Location not found"),
+			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
+			//@ApiResponse(code = BAD_REQUEST, message = "Format is not supported") 
+	})
 	public static Result findLocationsByPoint(
-			@ApiParam(value = "Latitude", required = true) @QueryParam("lat") double lat,
-			@ApiParam(value = "Longitude", required = true) @QueryParam("lon") double lon) {
-		Object result = GeoJsonRule.findByNameByPoint(lat, lon);
+			@ApiParam(value = "Latitude in degree", required = true) @QueryParam("lat") 
+			double lat,
+			@ApiParam(value = "Longitude in degree", required = true) @QueryParam("long") 
+			double lon
+	) {
+		Object result = GeoJsonRule.findByPoint(lat, lon);
 		return ok(Json.toJson(result));
 	}
 
 	@Transactional
-	@ApiOperation(nickname = "createLocation", value = "Creates a location", notes = "", httpMethod = "POST", response = FeatureCollection.class)
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successful location creation"),
-			@ApiResponse(code = 404, message = "Location not found"),
-			@ApiResponse(code = 500, message = "Internal server error"),
-			@ApiResponse(code = 400, message = "Format is not supported") })
-    @ApiImplicitParams( { @ApiImplicitParam(value = "Location object", required = true, dataType = "models.geo.FeatureCollection", paramType = "body") } )
+	@ApiOperation(
+			httpMethod = "POST", 
+			nickname = "createLocation", 
+			value = "Creates a location", 
+			notes = "This endpoint creates a location using submitted GeoJSON FeatureCollection object "
+					+ "in body and return the URI via the 'Location' Header in the response. "
+					+ "Currently, no content returns in the body. ", 
+			response = Void.class
+	)
+	@ApiResponses(value = { 
+			@ApiResponse(code = OK, message = "(Not used yet)"),
+			@ApiResponse(code = CREATED, message = "Successful location creation", response = Void.class),
+			@ApiResponse(code = FORBIDDEN, message = "Failed location creation due to duplication"),
+			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
+			@ApiResponse(code = BAD_REQUEST, message = "Invalid input") 
+	})
+    @ApiImplicitParams( { 
+    	@ApiImplicitParam(
+    			value = "GeoJSON FeatureCollection", 
+    			required = true, 
+    			dataType = "models.geo.FeatureCollection", 
+    			paramType = "body"
+    	) 
+    } )
 	public static Result create() {
 		try {
 			FeatureCollection parsed = parseRequestAsFeatureCollection();
@@ -151,13 +251,38 @@ public class LocationServices extends Controller {
 	}
 
 	@Transactional
-	@ApiOperation(nickname = "updateLocation", value = "Updates a location using submitted json object in body", notes = "", httpMethod = "PUT", response = FeatureCollection.class)
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Location updated"),
-			@ApiResponse(code = 404, message = "Location not found"),
-			@ApiResponse(code = 500, message = "Internal server error"),
-			@ApiResponse(code = 400, message = "Format is not supported") })
-    @ApiImplicitParams( { @ApiImplicitParam(value = "Location object", required = true, dataType = "models.geo.FeatureCollection", paramType = "body") } )
-	public static Result update(@ApiParam(value = "ID of the location", required = true) @PathParam("gid") Long gid) {
+	@ApiOperation(
+			httpMethod = "PUT", 
+			nickname = "updateLocation", 
+			value = "Updates a location", 
+			notes = "This endpoint does full update the given location "
+					+ "idientified by 'gid' with submitted GeoJSON "
+					+ "FeatureCollection object in body "
+					+ "and returns the URI via the 'Location' Header in the response. "
+					+ "Currently, no content in the body. ",
+			response = Void.class
+	)
+	@ApiResponses(value = { 
+			@ApiResponse(code = OK, message = "(Not used yet)"),
+			@ApiResponse(code = NO_CONTENT, message = "Location updated", response = Void.class),
+			@ApiResponse(code = FORBIDDEN, message = "Failed location update due to duplication"),
+			//@ApiResponse(code = NOT_FOUND, message = "Location not found"),
+			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
+			@ApiResponse(code = BAD_REQUEST, message = "Format is not supported") 
+	})
+    @ApiImplicitParams( { 
+    	@ApiImplicitParam(
+    			value = "GeoJSON FeatureCollection", 
+    			required = true, 
+    			dataType = "models.geo.FeatureCollection", 
+    			paramType = "body"
+    	) 
+    } )
+	public static Result update(
+			@ApiParam(value = "ID of the location (Apollo Location Code)", required = true) 
+			@PathParam("gid") 
+			Long gid
+	) {
 		try {
 			FeatureCollection parsed = parseRequestAsFeatureCollection();
 			Wire.update(gid, parsed);
@@ -175,14 +300,29 @@ public class LocationServices extends Controller {
 	}
 
 	@Transactional
-	@ApiOperation(nickname = "deleteLocation", value = "Deletes a location", notes = "This method is restricted based on application configuration", httpMethod = "DELETE")
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Location deleted"),
-            @ApiResponse(code = 401, message = "Unauthorized"),
-			@ApiResponse(code = 204, message = "Location deleted"),
-			@ApiResponse(code = 500, message = "Internal server error"),
-			@ApiResponse(code = 400, message = "Format is not supported") })
-	public static Result delete(@ApiParam(value = "ID of the location", required = true) @PathParam("gid") Long gid) {
-
+	@ApiOperation(
+			httpMethod = "DELETE",
+			nickname = "deleteLocation", 
+			value = "Deletes a location", 
+			notes = "This endpoint deletes the given location idientified by 'gid' "
+					+ "and returns the URI via the 'Location' Header in the response. "
+					+ "Currently, no content in the body. "
+					+ "Note: This enpoint is restricted based on application configuration. ", 
+			response = Void.class
+	)
+	@ApiResponses(value = { 
+			@ApiResponse(code = OK, message = "(Not used yet)"),
+            @ApiResponse(code = UNAUTHORIZED , message = "Unauthorized"),
+			@ApiResponse(code = NO_CONTENT , message = "Location deleted", response = Void.class),
+			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
+			//@ApiResponse(code = 400, message = "Format is not supported")
+			@ApiResponse(code = NOT_FOUND, message = "Location not found")
+	})
+	public static Result delete(
+			@ApiParam(value = "ID of the location (Apollo Location Code)", required = true) 
+			@PathParam("gid") 
+			Long gid
+	) {
 		String remote = request().remoteAddress();
 		if (Play.application().configuration().getString("permission.delete", "127.0.0.1").indexOf(remote) == -1) {
 
