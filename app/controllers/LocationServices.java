@@ -75,7 +75,7 @@ public class LocationServices extends Controller {
 					allowableValues = "[geojson, json, xml, kml]", 
 					defaultValue = "geojson"
 			) 
-			@PathParam("format") 
+			@QueryParam("format")
 			String format,
 			
 			@ApiParam(
