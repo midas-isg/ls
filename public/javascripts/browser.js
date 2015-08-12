@@ -147,19 +147,28 @@ BrowserMap.prototype.loadFeatureLayer = function() {
 		
 		thisBrowserMap.featureLayer.addTo(thisBrowserMap.map);
 		
-		var geoJSON = thisBrowserMap.featureLayer.getGeoJSON();
-		var feature = geoJSON.features[0];
+		var geoJSON = thisBrowserMap.featureLayer.getGeoJSON(),
+			feature = geoJSON.features[0],
+			minLng = geoJSON.bbox[0],
+			minLat = geoJSON.bbox[1],
+			maxLng = geoJSON.bbox[2],
+			maxLat = geoJSON.bbox[3],
+			southWest = L.latLng(minLat, minLng),
+			northEast = L.latLng(maxLat, maxLng),
+			bounds = L.latLngBounds(southWest, northEast),
+			properties = null,
+			related,
+			children,
+			buckets = [],
+			locationType,
+			locationDivID,
+			show,
+			codes,
+			i,
+			unsupportedCharactersRegExp = /([^a-zA-Z0-9À-öø-ÿ])/g;
 		
-		var minLng = geoJSON.bbox[0];
-		var minLat = geoJSON.bbox[1];
-		var maxLng = geoJSON.bbox[2];
-		var maxLat = geoJSON.bbox[3];
-		var southWest = L.latLng(minLat, minLng);
-		var northEast = L.latLng(maxLat, maxLng);
-		var bounds = L.latLngBounds(southWest, northEast);
 		thisBrowserMap.map.fitBounds(bounds);
 		
-		var properties = null;
 		if(geoJSON.properties) {
 			properties = geoJSON.properties;
 		}
@@ -207,7 +216,7 @@ BrowserMap.prototype.loadFeatureLayer = function() {
 		
 		listLineageRefs(properties.lineage, "#au-lineage");
 		
-		var related = properties.related;
+		related = properties.related;
 		if(related && (related.length > 0)){
 			$("#au-related").show();
 			
@@ -220,19 +229,15 @@ BrowserMap.prototype.loadFeatureLayer = function() {
 			}
 		}
 		
-		var children = properties.children;
+		children = properties.children;
 		if(children && (children.length > 0)) {
-			var buckets = [],
-			i,
-			locationType,
-			locationDivID;
 			for(i = 0; i < children.length; i++) {
 				buckets[i] = children[i].locationTypeName;
 			}
 			buckets.sort();
 			
 			for(i = 0; i < buckets.length; i++) {
-				locationDivID = buckets[i].replace(/ /g, "-").toLowerCase();
+				locationDivID = buckets[i].replace(unsupportedCharactersRegExp, "-").toLowerCase();
 				
 				if($("#" + locationDivID).length == 0) {
 					$("#au-children").append("<div id='" + locationDivID + "' class='extra-bottom-space'><em class='pull-left'>" + buckets[i] + " sub-locations:</em></div>");
@@ -244,7 +249,7 @@ BrowserMap.prototype.loadFeatureLayer = function() {
 				auGID = children[i].gid;
 				
 				locationType = children[i].locationTypeName;
-				locationDivID = locationType.replace(/ /g, "-").toLowerCase();
+				locationDivID = locationType.replace(unsupportedCharactersRegExp, "-").toLowerCase();
 				
 				if($("#" + locationDivID).children().length > 1) {
 					$("#" + locationDivID).append(", ");
@@ -261,8 +266,8 @@ BrowserMap.prototype.loadFeatureLayer = function() {
 		}
 		
 		setTextValue("#gid", thisBrowserMap.mapID);
-		var show = false;
-		var codes = properties.codes;
+		show = false;
+		codes = properties.codes;
 		if(codes) {
 			for(i = 0; i < codes.length; i++) {
 				if(codes[i].codeTypeName != "ISG") {
@@ -287,6 +292,8 @@ BrowserMap.prototype.loadFeatureLayer = function() {
 		thisBrowserMap.map.legendControl.removeLegend(thisBrowserMap.title);
 		thisBrowserMap.title = "<strong>" + properties.title + "</strong>";
 		thisBrowserMap.map.legendControl.addLegend(thisBrowserMap.title);
+		
+		return;
 	});
 	
 	this.featureLayer.on('error', function(err) {
@@ -308,8 +315,9 @@ BrowserMap.prototype.loadFeatureLayer = function() {
 BrowserMap.prototype.loadJSON = function(jsonData) {
 	if(jsonData) {
 		//multiPolygonsToPolygons(jsonData);
-		var i;
-		var features = jsonData.features;
+		var i,
+		features = jsonData.features;
+		
 		for(i = 0; i < features.length; i++) {
 			features[i].properties.description = features[i].properties.name;
 		}
