@@ -36,6 +36,7 @@ import dao.entities.Location;
 public class LocationServices extends Controller {
 	public static final String FORMAT_GEOJSON = "geojson";
 	public static final String FORMAT_APOLLOJSON = "json";
+	public static final String FORMAT_JSONP = "jsonp";
 	public static final String FORMAT_APOLLOXML = "xml";
 	public static final String FORMAT_KML = "kml";
 	public static final String FORMAT_DEFAULT = "geojson";
@@ -72,7 +73,7 @@ public class LocationServices extends Controller {
 					+ "Apollo Location JSON (json), Apollo Location XML (xml), "
 					+ "or Keyhole Markup Language (kml). ", 
 					required = false, 
-					allowableValues = "[geojson, json, xml, kml]", 
+					allowableValues = "[geojson, json, xml, kml, jsonp]", 
 					defaultValue = "geojson"
 			) 
 			@QueryParam("format")
@@ -98,6 +99,8 @@ public class LocationServices extends Controller {
 			return asGeoJson(location);
 		case FORMAT_APOLLOJSON:
 			return ApolloLocationServices.asJson(location);
+		case FORMAT_JSONP:
+			return ApolloLocationServices.asJsonp(location);
 		case FORMAT_APOLLOXML:
 			return ApolloLocationServices.asXml(location);
 		case FORMAT_KML:

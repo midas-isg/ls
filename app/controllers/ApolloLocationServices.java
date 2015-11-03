@@ -15,6 +15,12 @@ public class ApolloLocationServices  extends Controller {
 		return okJson(ApolloLocationRule.asApolloLocation(location));
 	}
 	
+	static Result asJsonp(Location location){
+		//return okJson(ApolloLocationRule.asApolloLocation(location));
+		
+		return ok("jsonp(" + Json.toJson(ApolloLocationRule.asApolloLocation(location)) + ");");
+	}
+	
 	@Transactional
 	static Result asXml(Location location){
 		return okAsXml(Wire.asXml(location));
