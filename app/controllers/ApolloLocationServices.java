@@ -16,8 +16,6 @@ public class ApolloLocationServices  extends Controller {
 	}
 	
 	static Result asJsonp(Location location){
-		//return okJson(ApolloLocationRule.asApolloLocation(location));
-		
 		return ok("jsonp(" + Json.toJson(ApolloLocationRule.asApolloLocation(location)) + ");");
 	}
 	
