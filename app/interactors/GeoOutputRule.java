@@ -13,6 +13,8 @@ import com.vividsolutions.jts.geom.Polygon;
 
 public class GeoOutputRule {
 	static FeatureGeometry toFeatureGeometry(Geometry geom) {
+		if (geom == null)
+			return null;
 		List<List<List<double[]>>> list = toMultipolygonCoordinates(geom);
 		if (!list.isEmpty()){
 			MultiPolygon g = new MultiPolygon();
