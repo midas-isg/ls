@@ -36,6 +36,6 @@ GET           /api/geometry-metadata/:gid         controllers.LocationServices.g
 GET           /assets/*file                       controllers.Assets.at(path="/public", file)
 
 # Swagger API documentation
-GET           /api-docs.json                      controllers.ApiHelpController.getResources
-GET           /api-docs.json/api/locations        controllers.ApiHelpController.getResource(path = "/api/locations")
-GET           /api-docs                           controllers.Application.swagger
+#GET           /api-docs.json                      controllers.ApiHelpController.getResources
+#GET           /api-docs.json/api/locations        controllers.ApiHelpController.getResource(path = "/api/locations")
+#GET           /api-docs                           controllers.Application.swagger
