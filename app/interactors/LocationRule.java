@@ -71,6 +71,8 @@ public class LocationRule {
 	public static Location simplifyToMaxExteriorRings(long gid, Integer maxExteriorRings) {
 		if (maxExteriorRings == null)
 			return read(gid);
+		if (maxExteriorRings.equals(0))
+			return readWithoutGeometry(gid);
 		
 		Double t = GeometryRule.searchForTolerance(gid, maxExteriorRings);
 		Logger.info("Found tolerance=" + t + " for GID=" + gid 
@@ -78,6 +80,13 @@ public class LocationRule {
 		return simplify(gid, t);
 	}
 	
+	private static Location readWithoutGeometry(long gid) {
+		LocationDao locationDao = new LocationDao();
+		Location location = locationDao.read(gid);
+		location.setGeometry(new LocationGeometry());
+		return location;
+	}
+
 	public static Location simplify(long gid, Double tolerance) {
 		Location result = new LocationDao().read(gid);
 		if (result != null){
