@@ -41,3 +41,6 @@ GET           /assets/*file                       controllers.Assets.at(path="/p
 GET           /api-docs.json                      @pl.matisoft.swagger.ApiHelpController.getResources
 GET           /api-docs.json/api/locations        @pl.matisoft.swagger.ApiHelpController.getResource(path = "/api/locations")
 GET           /api-docs                           controllers.Application.swagger()
+
+# Test page
+GET     /test/acceptance            controllers.Test.acceptance()
