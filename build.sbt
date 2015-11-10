@@ -23,13 +23,11 @@ libraryDependencies ++= Seq(
   "com.thoughtworks.xstream" % "xstream" % "1.4.7",  
   "org.hibernate" % "hibernate-entitymanager" % "4.3.7.Final",
   "org.hibernate" % "hibernate-spatial" % "4.3" ,
-  //"com.wordnik" %% "swagger-play2" % "1.3.12",
-  "com.wordnik" % "swagger-annotations" % "1.3.12",
-  //"pl.matisoft" % "swagger-play24_2.11" % "1.4",
+  "pl.matisoft" %% "swagger-play24" % "1.4",
   "org.easytesting" % "fest-assert" % "1.4" % Test
 )
 										  
 
 // Play provides two styles of routers, one expects its actions to be injected, the
 // other, legacy style, accesses its actions statically.
-//routesGenerator := InjectedRoutesGenerator
+routesGenerator := InjectedRoutesGenerator

@@ -62,7 +62,7 @@ public class LocationServices extends Controller {
 			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
 			@ApiResponse(code = BAD_REQUEST, message = "Format is not supported") 
 	})
-	public static Result locations(
+	public Result locations(
 			@ApiParam(value = "ID of the location (Apollo Location Code)", required = true) 
 			@PathParam("gid") 
 			Long gid,
@@ -108,12 +108,12 @@ public class LocationServices extends Controller {
 	}
 
 	@Transactional
-	public static Result getGeometryMetadata(long gid, Double tolerance) {
+	public Result getGeometryMetadata(long gid, Double tolerance) {
 		Object object = LocationRule.getSimplifiedGeometryMetadata(gid, tolerance);
 		return ok(Json.toJson(object));
 	}
 
-	private static boolean IsFalsified(String text) {
+	private boolean IsFalsified(String text) {
 		return text == null || text.isEmpty();
 	}
 
@@ -132,7 +132,7 @@ public class LocationServices extends Controller {
 			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
 			//@ApiResponse(code = 400, message = "Format is not supported") 
 	})
-	public static Result findLocations(
+	public Result findLocations(
 			@ApiParam(
 					value = "Search terms delimited by a space charactor. "
 					+ "The search terms are combined together with conjunction. ",
@@ -160,7 +160,7 @@ public class LocationServices extends Controller {
 	}
 
 	@Transactional
-	public static Result findLocationNames(String q, Integer limit) {
+	public Result findLocationNames(String q, Integer limit) {
 		Object result = LocationProxyRule.findLocationNames(q, limit);
 		return ok(Json.toJson(result));
 	}
@@ -181,7 +181,7 @@ public class LocationServices extends Controller {
 			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
 			//@ApiResponse(code = BAD_REQUEST, message = "Format is not supported") 
 	})
-	public static Result findLocationsByPoint(
+	public Result findLocationsByPoint(
 			@ApiParam(value = "Latitude in degree", required = true) @QueryParam("lat") 
 			double lat,
 			@ApiParam(value = "Longitude in degree", required = true) @QueryParam("long") 
@@ -216,7 +216,7 @@ public class LocationServices extends Controller {
     			paramType = "body"
     	) 
     } )
-	public static Result create() {
+	public Result create() {
 		try {
 			FeatureCollection parsed = parseRequestAsFeatureCollection();
 			Long id = Wire.create(parsed);
@@ -236,16 +236,16 @@ public class LocationServices extends Controller {
 		}
 	}
 
-	private static void setResponseLocation(Long id) {
+	private void setResponseLocation(Long id) {
 		AdministrativeUnitServices.setResponseLocation(id);
 	}
 
-	private static FeatureCollection parseRequestAsFeatureCollection() throws Exception {
+	private FeatureCollection parseRequestAsFeatureCollection() throws Exception {
 		return AdministrativeUnitServices.parseRequestAsFeatureCollection();
 	}
 
 	@Transactional
-	static Result asGeoJson(Location location) {
+	Result asGeoJson(Location location) {
 		response().setContentType("application/vnd.geo+json");
 		return ok(Json.toJson(Wire.asFeatureCollection(location)));
 	}
@@ -278,7 +278,7 @@ public class LocationServices extends Controller {
     			paramType = "body"
     	) 
     } )
-	public static Result update(
+	public Result update(
 			@ApiParam(value = "ID of the location (Apollo Location Code)", required = true) 
 			@PathParam("gid") 
 			Long gid
@@ -318,7 +318,7 @@ public class LocationServices extends Controller {
 			//@ApiResponse(code = 400, message = "Format is not supported")
 			@ApiResponse(code = NOT_FOUND, message = "Location not found")
 	})
-	public static Result delete(
+	public Result delete(
 			@ApiParam(value = "ID of the location (Apollo Location Code)", required = true) 
 			@PathParam("gid") 
 			Long gid
@@ -340,14 +340,14 @@ public class LocationServices extends Controller {
 	}
 
 	@Transactional
-	public static Result asKml(Location location) {
+	public Result asKml(Location location) {
 		String result = KmlRule.asKml(location);
 		response().setContentType("application/vnd.google-earth.kml+xml");
 		return ok(result);
 	}
 
 	@Transactional
-	public static Result findByFeatureCollection(Long superTypeId, Long typeId) throws Exception {
+	public Result findByFeatureCollection(Long superTypeId, Long typeId) throws Exception {
 		FeatureCollection fc = parseRequestAsFeatureCollection();
 		response().setContentType("application/vnd.geo+json");
 		return Wire.findByFeatureCollection(fc, superTypeId, typeId);
