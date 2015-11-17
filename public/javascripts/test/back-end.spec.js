@@ -1,7 +1,8 @@
 describe("Back-End", ()=>{
 	'use strict'; `comment: use ES6`;
-	testPages();
+	changeJasmineTimeout(1000);
 	testApis();
+	testPages();
 	/*
 POST          /api/locations                      controllers.LocationServices.create()
 GET           /api/locations/:gid                 controllers.LocationServices.locations(gid:Long, format?="GeoJSON", maxExteriorRings:java.lang.Integer?=null)
@@ -30,16 +31,14 @@ POST          /api/locations-by-geometry          controllers.LocationServices.f
 	function testApisGetReturnJSON(){
 		describe("GET methods returning JSON", ()=>{
 			let validGid = 12;
-			let original =  changeJasmineTimeout(10000);
-			testApiGetReturnJSON("api/au-tree");
-			changeJasmineTimeout(original);
+			testApiGetReturnJSON("api/au-tree", 30000);
 			testApiGetReturnJSON("api/locations/" + validGid);
-			testApiGetReturnJSON("api/locations?q=abcd");
+			testApiGetReturnJSON("api/locations?q=abcd", 3000);
 			//TODO [PersistenceException: org.hibernate.exception.GenericJDBCException: could not extract ResultSet] testApiGetReturnJSON("api/locations-by-coordinate?lat=0.1&long=0.2");
 			testApiGetReturnJSON("api/locations-by-coordinate?lat=-73.8&long=9.1");
 			testApiGetReturnJSON("api/super-types");
 			testApiGetReturnJSON("api/location-types");
-			testApiGetReturnJSON("api/unique-location-names?q=abc");
+			testApiGetReturnJSON("api/unique-location-names?q=abc", 3000);
 			testApiGetReturnJSON("api/geometry-metadata/" + validGid);
 			testApiGetReturnJSON("api-docs.json");
 			testApiGetReturnJSON("api-docs.json/api/locations");
@@ -53,8 +52,13 @@ POST          /api/locations-by-geometry          controllers.LocationServices.f
 		return original;
 	}
 	
-	function testApiGetReturnJSON(path){
+	function testApiGetReturnJSON(path, timeout){
 		describe(`when call ${path}`, ()=>{
+			var originalTimeout;
+			beforeAll(()=>{
+				if (timeout)
+					originalTimeout = changeJasmineTimeout(timeout);
+			});
 			var response = null;
 			beforeEach((done)=>{
 				get(path, ($0, $1, rsp)=>{
@@ -64,6 +68,9 @@ POST          /api/locations-by-geometry          controllers.LocationServices.f
 			});
 			let statusText = 'OK'
 			it(`should return ${statusText} with a valid JSON`, ()=>{
+				if (originalTimeout){
+					changeJasmineTimeout(originalTimeout);
+				}
 				expect(response.statusText).toBe(statusText);
 				expect(response.responseText).toBeJsonString();
 				let contentType = response.getResponseHeader('Content-Type');

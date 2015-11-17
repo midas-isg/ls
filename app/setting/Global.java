@@ -34,8 +34,10 @@ public class Global extends GlobalSettings {
 			public F.Promise<Result> call(Context ctx) throws Throwable {
 				try {
 					return delegate.call(ctx);
-				} catch (Throwable e) {
-					throw new RuntimeException(e);
+				} catch (RuntimeException|Error e) {
+					throw e;
+				} catch (Throwable t) {
+					throw new RuntimeException(t);
 				}
 			}
 		};
