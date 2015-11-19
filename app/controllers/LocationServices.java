@@ -19,6 +19,7 @@ import play.Logger;
 import play.Play;
 import play.db.jpa.Transactional;
 import play.libs.Json;
+import play.libs.Jsonp;
 import play.mvc.Controller;
 import play.mvc.Result;
 
@@ -35,6 +36,7 @@ import dao.entities.Location;
 @Api(value = "/api/locations", description = "Endpoint for locations")
 public class LocationServices extends Controller {
 	public static final String FORMAT_GEOJSON = "geojson";
+	public static final String FORMAT_GEOJSONP = "jsonp";
 	public static final String FORMAT_APOLLOJSON = "json";
 	public static final String FORMAT_APOLLOXML = "xml";
 	public static final String FORMAT_KML = "kml";
@@ -69,10 +71,11 @@ public class LocationServices extends Controller {
 			
 			@ApiParam(
 					value = "Requested response format: GeoJSON (geojson), "
+					+ "JSON-P of GeoJSON (jsonp), "
 					+ "Apollo Location JSON (json), Apollo Location XML (xml), "
 					+ "or Keyhole Markup Language (kml). ", 
 					required = false, 
-					allowableValues = "[geojson, json, xml, kml]", 
+					allowableValues = "[geojson, jsonp, json, xml, kml]", 
 					defaultValue = "geojson"
 			) 
 			@QueryParam("format")
@@ -96,6 +99,8 @@ public class LocationServices extends Controller {
 		switch (format.toLowerCase()) {
 		case FORMAT_GEOJSON:
 			return asGeoJson(location);
+		case FORMAT_GEOJSONP:
+			return asGeoJsonp(location, "jsonpCallback");
 		case FORMAT_APOLLOJSON:
 			return ApolloLocationServices.asJson(location);
 		case FORMAT_APOLLOXML:
@@ -106,6 +111,26 @@ public class LocationServices extends Controller {
 			return badRequest(format + " is not supported.");
 		}
 	}
+
+	@Transactional
+	public Result jsonp(
+			Long gid,
+			String callback,
+			Integer maxExteriorRings
+	) {
+
+		if (gid == null)
+			return notFound("gid is required but got " + gid);
+
+		Location location = Wire.simplifyToMaxExteriorRings(gid, maxExteriorRings);
+		return asGeoJsonp(location, callback);
+	}
+
+	static Result asGeoJsonp(Location location, String callback) {
+		response().setContentType("text/javascript");
+		return ok(Jsonp.jsonp(callback, Json.toJson(Wire.asFeatureCollection(location))));
+	}
+
 
 	@Transactional
 	public Result getGeometryMetadata(long gid, Double tolerance) {

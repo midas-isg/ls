@@ -88,8 +88,13 @@ public class GeoJsonRule {
 			feature.setProperties(properties);
 		}
 		LocationGeometry geometry = null;
-		if (includeField(fields, KEY_GEOMETRY))
-			geometry = GeometryRule.read(location.getGid());
+		if (includeField(fields, KEY_GEOMETRY)){
+			final LocationGeometry locationGeometry = location.getGeometry();
+			if (locationGeometry == null)
+				geometry = GeometryRule.read(location.getGid());
+			else
+				geometry = locationGeometry;
+		}
 		
 		if (geometry != null){
 			Geometry multiPolygonGeom = geometry.getShapeGeom();
