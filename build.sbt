@@ -10,7 +10,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayJava)
 
 resolvers += "Hibernate Spatial" at "http://www.hibernatespatial.org/repository"
 
-scalaVersion := "2.11.6"
+scalaVersion := "2.11.7"
 
 libraryDependencies ++= Seq(
   javaJpa, 
