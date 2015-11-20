@@ -1,5 +1,6 @@
 package controllers;
 
+import play.Configuration;
 import play.Play;
 import play.db.jpa.Transactional;
 import play.mvc.Controller;
@@ -8,31 +9,44 @@ import play.mvc.Result;
 
 public class Application extends Controller {
 
-    private static String APP_VERSION = "Version: "	+ Play.application().configuration().getString("app.version");
-   	private static String DB_NAME = "Database: " + Play.application().configuration().getString("db.default.url");
-   	private static String VERSION = "Copyright 2014 - University of Pittsburgh, " + APP_VERSION + ", " + DB_NAME;
+   	private static String INFO = null;
+
+    public static String info() {
+    	init();
+        return INFO;
+    }
+
+   	private static void init(){
+   		if (INFO == null){
+	   	    final Configuration cfg = Play.application().configuration();
+			String version = "Version: " + cfg.getString("app.version");
+	   	    String dbName = "Database: " + cfg.getString("db.default.url");
+	   	   	INFO = "Copyright 2014-2015 - University of Pittsburgh, " 
+	   	    + version + ", " + dbName;
+   		}
+   	}
+   	
+	@Transactional
+	public Result index() {
+		return ok(views.html.search.render("apollo location search", info()));
+	}
 
 	@Transactional
-	public static Result index() {
-		return ok(views.html.search.render("apollo location search", VERSION));
+	public Result concept() {
+		return ok(views.html.concept.render("apollo location services", info()));
 	}
 	
 	@Transactional
-	public static Result concept() {
-		return ok(views.html.concept.render("apollo location services", VERSION));
+	public Result browser() {
+		return ok(views.html.browser.render("apollo location browser", info()));
 	}
 	
 	@Transactional
-	public static Result browser() {
-		return ok(views.html.browser.render("apollo location browser", VERSION));
-	}
-	
-	@Transactional
-	public static Result create() {
-		return ok(views.html.create.render("apollo location creator", VERSION));
+	public Result create() {
+		return ok(views.html.create.render("apollo location creator", info()));
 	}
 
-    public static Result swagger() {
+	public Result swagger() {
         return ok(views.html.swagger.render());
     }
 }

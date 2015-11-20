@@ -27,7 +27,7 @@ public class TreeView extends Controller {
 	private static Set<String> auTypes = null;
 
 	@Transactional
-	public synchronized static Result tree() {
+	public synchronized Result tree() {
 		if (auTree == null){
 			List<FancyTreeNode> tree = toFancyTree(LocationProxyRule.getHierarchy());
 			auTypes = null;
@@ -37,11 +37,11 @@ public class TreeView extends Controller {
 		return auTree;
 	}
 	
-	static Status okJson(Object resultObject) {
+	Status okJson(Object resultObject) {
 		return ok(Json.toJson(resultObject));
 	}
 
-	private static List<FancyTreeNode> toFancyTree(
+	private List<FancyTreeNode> toFancyTree(
 			List<Location> roots) {
 		List<FancyTreeNode> newTree = new ArrayList<>();
 		for (Location root : roots) {
@@ -53,7 +53,7 @@ public class TreeView extends Controller {
 		return newTree;
 	}
 
-	static FancyTreeNode toNode(Location au, String path) {
+	FancyTreeNode toNode(Location au, String path) {
 		FancyTreeNode node = new FancyTreeNode();
 		Data data = au.getData();
 		node.title = makeTitle(data);
@@ -77,7 +77,7 @@ public class TreeView extends Controller {
 		return node;
 	}
 
-	private static String makeTitle(Data data) {
+	private String makeTitle(Data data) {
 		Date startDate = data.getStartDate();
 		String fromStartDateText = "";
 		if (startDate != null){
@@ -100,7 +100,7 @@ public class TreeView extends Controller {
 		return data.getName() + variant; 
 	}
 
-	public static List<FancyTreeNode> removeNonAu(List<FancyTreeNode> input){
+	public List<FancyTreeNode> removeNonAu(List<FancyTreeNode> input){
 		if (input == null)
 			return null;
 		if (auTypes == null){
@@ -120,7 +120,7 @@ public class TreeView extends Controller {
 		return input;
 	}
 	
-	public static List<FancyTreeNode> replaceParentWithOneChildButNotRoot(
+	public List<FancyTreeNode> replaceParentWithOneChildButNotRoot(
 			List<FancyTreeNode> input) {
 		if (input == null)
 			return null;
@@ -130,7 +130,7 @@ public class TreeView extends Controller {
 		return input;
 	}
 
-	public static List<FancyTreeNode> replaceParentWithOneChild(
+	public List<FancyTreeNode> replaceParentWithOneChild(
 			List<FancyTreeNode> input) {
 		if (input == null)
 			return null;
@@ -148,7 +148,7 @@ public class TreeView extends Controller {
 		return input;
 	}
 
-	static void changeClassToInstanceNode(FancyTreeNode classNode,
+	void changeClassToInstanceNode(FancyTreeNode classNode,
 			FancyTreeNode instanceNode) {
 		classNode.title = instanceNode.title;
 		classNode.path = instanceNode.path;
@@ -161,7 +161,7 @@ public class TreeView extends Controller {
 		classNode.hideCheckbox = instanceNode.hideCheckbox;
 	}
 
-	public static List<FancyTreeNode> removeJunior(List<FancyTreeNode> input) {
+	public List<FancyTreeNode> removeJunior(List<FancyTreeNode> input) {
 		if (input == null)
 			return null;
 		for (FancyTreeNode node : input) {
@@ -175,7 +175,7 @@ public class TreeView extends Controller {
 		return input;
 	}
 
-	private static FancyTreeNode findJunior(List<FancyTreeNode> children,
+	private FancyTreeNode findJunior(List<FancyTreeNode> children,
 			String title) {
 		if (children == null)
 			return null;
@@ -186,7 +186,7 @@ public class TreeView extends Controller {
 		return null;
 	}
 
-	public static List<FancyTreeNode> removeParentWithNoChild(
+	public List<FancyTreeNode> removeParentWithNoChild(
 			List<FancyTreeNode> input) {
 		if (input == null)
 			return null;

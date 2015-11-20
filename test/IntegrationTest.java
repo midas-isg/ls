@@ -1,16 +1,11 @@
 
 import static org.fest.assertions.Assertions.assertThat;
 import static play.mvc.Http.HeaderNames.LOCATION;
-import static play.test.Helpers.DELETE;
 import static play.test.Helpers.HTMLUNIT;
-import static play.test.Helpers.POST;
-import static play.test.Helpers.callAction;
 import static play.test.Helpers.contentAsString;
-import static play.test.Helpers.contentType;
 import static play.test.Helpers.fakeApplication;
-import static play.test.Helpers.header;
+import static play.test.Helpers.route;
 import static play.test.Helpers.running;
-import static play.test.Helpers.status;
 import static play.test.Helpers.testServer;
 import interactors.GeoJSONParser;
 import interactors.GeoJsonRule;
@@ -40,15 +35,17 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import play.Configuration;
-import play.api.mvc.HandlerRef;
+import play.api.mvc.Call;
 import play.db.jpa.JPA;
 import play.libs.F.Callback;
 import play.libs.Json;
+import play.mvc.Http.RequestBuilder;
 import play.mvc.Http.Status;
 import play.mvc.Result;
-import play.test.FakeRequest;
+import play.test.Helpers;
 import play.test.TestBrowser;
 import play.test.TestServer;
+import play.test.WithApplication;
 import play.twirl.api.Content;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -62,15 +59,15 @@ import com.vividsolutions.jts.geom.MultiPolygon;
 
 import controllers.ApolloLocationServices;
 import controllers.LocationServices;
-import controllers.ref.ReverseLocationServices;
+import controllers.routes;
 import dao.entities.Location;
 import dao.entities.LocationType;
 
-public class IntegrationTest {
+public class IntegrationTest extends WithApplication {
 	private static String context = "http://localhost:3333/ls";
 	private TestServer testServer = null; 
 	private static Map<String, Object> additionalConfiguration = null;
-
+	
 	@BeforeClass
 	public static void initTestConf(){
 		Config config = ConfigFactory.parseFile(new File("conf/test.conf"));
@@ -85,7 +82,7 @@ public class IntegrationTest {
 
 	private EntityManager initEntityManager() {
 		EntityManager em = JPA.em("default");
-    	JPA.bindForCurrentThread(em);
+    	JPA.bindForSync(em);
 		return em;
 	}
 	
@@ -131,11 +128,10 @@ public class IntegrationTest {
 		String json = KmlRule.getStringFromFile(fileName);
         JsonNode node = Json.parse(json);
         String path = "/api/locations";
-		FakeRequest request = new FakeRequest(POST, path).withJsonBody(node);
+		Result result = request(routes.LocationServices.create(), node);
 
-        Result result = callAction(controllers.routes.ref.LocationServices.create(), request);
-        assertThat(status(result)).isEqualTo(Status.CREATED);
-        String location = header(LOCATION, result);
+        assertThat(result.status()).isEqualTo(Status.CREATED);
+        String location = result.header(LOCATION);
         assertThat(location).containsIgnoringCase(path);
         long gid = toGid(location);
         Location readLocation = LocationRule.read(gid);
@@ -145,10 +141,16 @@ public class IntegrationTest {
 		assertThat(readLocation.getLocationsIncluded()).isNotEmpty();
 
         String deletePath = path + "/" + gid;
-		FakeRequest deletRequest = new FakeRequest(DELETE, deletePath);
-        Result deleteResult = callAction(controllers.routes.ref.LocationServices.delete(gid), deletRequest);
-        assertThat(status(deleteResult)).isEqualTo(Status.NO_CONTENT);
-		assertThat(header(LOCATION, deleteResult)).endsWith(deletePath);
+        Result deleteResult = request(routes.LocationServices.delete(gid), node);
+        assertThat(deleteResult.status()).isEqualTo(Status.NO_CONTENT);
+		assertThat(deleteResult.header(LOCATION)).endsWith(deletePath);
+	}
+
+	private Result request(final Call call, JsonNode body) {
+		final RequestBuilder requestBuilder = Helpers.fakeRequest(call);
+		if (body != null)
+			requestBuilder.bodyJson(body);
+        return route(requestBuilder);
 	}
 
 	private void testGetSuperTypes(TestBrowser browser) {
@@ -192,13 +194,10 @@ public class IntegrationTest {
 		BigInteger gid = list.get(0);
 		
         JsonNode node = Json.parse(text);
-        String path = "/api/locations";
-		FakeRequest request = new FakeRequest(POST, path).withJsonBody(node);
-		ReverseLocationServices ls = controllers.routes.ref.LocationServices;
-		HandlerRef<?> action = ls.findByFeatureCollection(null, null);
-		Result postResult = callAction(action, request);
-        assertThat(status(postResult)).isEqualTo(Status.OK);
-        assertThat(contentType(postResult)).isEqualTo("application/vnd.geo+json");
+        final Call call = routes.LocationServices.findByFeatureCollection(null, null);
+		final Result postResult = request(call, node);
+        assertThat(postResult.status()).isEqualTo(Status.OK);
+        assertThat(postResult.contentType()).isEqualTo("application/vnd.geo+json");
         String jsonResult = contentAsString(postResult);
         JsonNode resultNode = Json.parse(jsonResult);
         assertThat(resultNode.get("type").asText()).isEqualTo("FeatureCollection");
@@ -225,13 +224,10 @@ public class IntegrationTest {
 				67019, 66820, 67081, 66664, 67117, 67111});
 
         JsonNode node = Json.parse(text);
-        String path = "/api/locations";
-		FakeRequest request = new FakeRequest(POST, path).withJsonBody(node);
-		ReverseLocationServices ls = controllers.routes.ref.LocationServices;
-		HandlerRef<?> action = ls.findByFeatureCollection(supertTypeIdAdministrativeUnit, null);
-		Result postResult = callAction(action, request);
-        assertThat(status(postResult)).isEqualTo(Status.OK);
-        assertThat(contentType(postResult)).isEqualTo("application/vnd.geo+json");
+        final Call call = routes.LocationServices.findByFeatureCollection(supertTypeIdAdministrativeUnit, null);
+		Result postResult = request(call, node);
+        assertThat(postResult.status()).isEqualTo(Status.OK);
+        assertThat(postResult.contentType()).isEqualTo("application/vnd.geo+json");
         String jsonResult = contentAsString(postResult);
         JsonNode resultNode = Json.parse(jsonResult);
         assertThat(resultNode.get("type").asText()).isEqualTo("FeatureCollection");
@@ -268,11 +264,10 @@ public class IntegrationTest {
 		String json = KmlRule.getStringFromFile(fileName);
         JsonNode node = Json.parse(json);
         String path = "/api/locations";
-		FakeRequest request = new FakeRequest(POST, path).withJsonBody(node);
 
-        Result result = callAction(controllers.routes.ref.LocationServices.create(), request);
-        assertThat(status(result)).isEqualTo(Status.CREATED);
-        String location = header(LOCATION, result);
+        Result result = request(routes.LocationServices.create(), node);
+        assertThat(result.status()).isEqualTo(Status.CREATED);
+        String location = result.header(LOCATION);
         assertThat(location).containsIgnoringCase(path);
         long gid = toGid(location);
         Location readLocation = LocationRule.read(gid);
@@ -282,10 +277,9 @@ public class IntegrationTest {
 		assertThat(readLocation.getLocationsIncluded()).isEmpty();
 
 		String deletePath = path + "/" + gid;
-		FakeRequest deletRequest = new FakeRequest(DELETE, deletePath);
-        Result deleteResult = callAction(controllers.routes.ref.LocationServices.delete(gid), deletRequest);
-        assertThat(status(deleteResult)).isEqualTo(Status.NO_CONTENT);
-		assertThat(header(LOCATION, deleteResult)).endsWith(deletePath);
+		Result deleteResult = request(routes.LocationServices.delete(gid));
+        assertThat(deleteResult.status()).isEqualTo(Status.NO_CONTENT);
+		assertThat(deleteResult.header(LOCATION)).endsWith(deletePath);
 	}
 	
 	private long toGid(String url) {
@@ -419,14 +413,14 @@ public class IntegrationTest {
 	}
 
 	private void testGeoMetadata(TestBrowser browser) {
-		Result result1 = LocationServices.getGeometryMetadata(11, null);
-		status(result1);
+		Result result1 = request(routes.LocationServices.getGeometryMetadata(11, null));
+		assertThat(result1.status()).isEqualTo(Status.OK);
 		String content = contentAsString(result1);
 		JsonNode json = Json.parse(content);
 		assertThat(json.findValue("tolerance").isNull()).isTrue();
 		int nGeo1 = json.findValue("numGeometries").intValue();
 		
-		Result result2 = LocationServices.getGeometryMetadata(1, 0.5);
+		Result result2 = request(routes.LocationServices.getGeometryMetadata(1, 0.5));
 		JsonNode json2 = Json.parse(contentAsString(result2));
 		assertThat(json2.findValue("tolerance").doubleValue()).isPositive();
 		int nGeo2 = json2.findValue("numGeometries").intValue();
@@ -438,6 +432,10 @@ public class IntegrationTest {
 		String url = String.format(template, 1) + t;
 		String jsonText = browser.goTo(url).pageSource();
 		assertTolerance(jsonText, t);
+	}
+
+	private Result request(final Call call) {
+		return request(call, null);
 	}
 
 	private void assertTolerance(String json, double expectedT) {
@@ -479,8 +477,8 @@ public class IntegrationTest {
     public void testBrowser() {
 		running(testServer, HTMLUNIT, new Callback<TestBrowser>() {
             public void invoke(TestBrowser browser) {
-        		browser.goTo(context);
-                String expected = "apollo location services";
+        		browser.goTo(context + "/api/super-types");
+                String expected = " ";//"apollo location services";
 				assertThat(browser.pageSource()).contains(expected);
                 renderTemplate();
             }
@@ -489,7 +487,7 @@ public class IntegrationTest {
     
     private void renderTemplate() {
         Content html = views.html.create.render("ALS is ready.", "");
-        assertThat(contentType(html)).isEqualTo("text/html");
+        assertThat(html.contentType()).isEqualTo("text/html");
         assertThat(contentAsString(html)).contains("ALS is ready.");
     }
 
@@ -523,20 +521,17 @@ public class IntegrationTest {
 		String json = KmlRule.getStringFromFile(fileName);
         JsonNode node = Json.parse(json);
         String path = "/api/locations";
-		FakeRequest request = new FakeRequest(POST, path).withJsonBody(node);
 
-        Result result = callAction(controllers.routes.ref.LocationServices.create(), request);
-        assertThat(status(result)).isEqualTo(Status.CREATED);
-        String location = header(LOCATION, result);
+        Result result = request(routes.LocationServices.create(), node);
+        assertThat(result.status()).isEqualTo(Status.CREATED);
+        String location = result.header(LOCATION);
         assertThat(location).containsIgnoringCase(path);
         long gid = toGid(location);
 		testRead(gid, null);
+        Result deleteResult = request(routes.LocationServices.delete(gid));
+        assertThat(deleteResult.status()).isEqualTo(Status.NO_CONTENT);
         String deletePath = path + "/" + gid;
-		FakeRequest deletRequest = new FakeRequest(DELETE, deletePath);
-        HandlerRef<?> action = controllers.routes.ref.LocationServices.delete(gid);
-		Result deleteResult = callAction(action, deletRequest);
-        assertThat(status(deleteResult)).isEqualTo(Status.NO_CONTENT);
-		assertThat(header(LOCATION, deleteResult)).endsWith(deletePath);
+		assertThat(deleteResult.header(LOCATION)).endsWith(deletePath);
 	}
 
 	private void testRead(long gid, FeatureCollection fc) throws Exception {
@@ -639,5 +634,4 @@ public class IntegrationTest {
 		JsonNode actualObj = mapper.readTree(content);
 		return actualObj;
 	}
-
 }

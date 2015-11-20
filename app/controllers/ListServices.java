@@ -14,18 +14,18 @@ import dao.entities.SuperType;
 
 public class ListServices extends Controller {
 	@Transactional
-	public static Result findSuperTypes(){
+	public Result findSuperTypes(){
 		List<SuperType> result = LocationTypeRule.findSuperTypes();
 		return okAsJson(result);
 	}
 
 	@Transactional
-	public static Result findLocationTypes(Long superTypeId){
+	public Result findLocationTypes(Long superTypeId){
 		List<LocationType> types = LocationTypeRule.findAllBySuperTypeId(superTypeId);
 		return okAsJson(types);
 	}
 
-	private static Result okAsJson(Object result) {
+	private Result okAsJson(Object result) {
 		return ok(Json.toJson(result));
 	}
 	
