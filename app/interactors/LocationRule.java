@@ -2,6 +2,7 @@ package interactors;
 
 
 import java.math.BigInteger;
+import java.sql.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -129,6 +130,11 @@ public class LocationRule {
 	static List<Location> findByName(String q, Integer limit,
 			Integer offset) {
 		List<Location> result = new LocationDao().findByName(q, limit, offset);
+		return result;
+	}
+	
+	static List<Location> find(String name, List<Integer> locTypeIds, Date startDate, Date endDate) {
+		List<Location> result = new LocationDao().find(name, locTypeIds, startDate, endDate);
 		return result;
 	}
 	

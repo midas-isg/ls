@@ -7,12 +7,16 @@ import interactors.LocationProxyRule;
 import interactors.LocationRule;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
 import models.Response;
+//import models.filters.LocationFilter;
 import models.geo.FeatureCollection;
 import models.geo.FeatureGeometry;
 import play.Logger;
@@ -22,7 +26,11 @@ import play.libs.Json;
 import play.libs.Jsonp;
 import play.mvc.Controller;
 import play.mvc.Result;
+import play.twirl.api.Content;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiImplicitParam;
 import com.wordnik.swagger.annotations.ApiImplicitParams;
@@ -184,6 +192,49 @@ public class LocationServices extends Controller {
 		return ok(Json.toJson(result));
 	}
 
+	@Transactional
+	@ApiOperation(
+			httpMethod = "POST", 
+			nickname = "findBulkLocationsByName", 
+			value = "Returns locations by name search", 
+			notes = "This endpoint returns locations whose name matches the requested search terms (q). "
+			+ "To do pagination, use 'limit' and 'offset'. "
+			+ "Note: The schema of the 'geoJSON' field in the response is GeoJSON FeatureCollection. ", 
+			response = Response.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = OK, message = "Successful retrieval of location", response = Response.class),
+			//@ApiResponse(code = 404, message = "Location not found"),
+			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
+			//@ApiResponse(code = 400, message = "Format is not supported") 
+	})
+	
+	public Result findBulkLocations() {
+		ArrayList<Map<String, Object>> params = toParams((ArrayNode)request().body().asJson());
+		Map<String, Object> result = GeoJsonRule.findBulkLocations(params);
+		return ok(toJson(result));
+	}
+	
+	private ObjectNode toJson(Map<String, Object> map) {
+		ObjectNode result = Json.newObject();
+		for(String key : map.keySet()){
+			result.set(key, Json.toJson(map.get(key)));
+		}
+	    return result;
+	}
+
+	private static ArrayList<Map<String, Object>> toParams(ArrayNode array) {
+		ArrayList<Map<String,Object>> params = new ArrayList<>();
+		for(JsonNode node: array){
+			Map<String,Object> map = new HashMap<>();
+			map.put("name",node.findValue("name").asText());
+			map.put("location_type_ids", node.get("location_type_ids"));
+			map.put("start_date", node.findValue("start_date").asText());
+			map.put("end_date", node.findValue("end_date").asText());
+			params.add(map);
+		}
+		return params;
+	}
+	
 	@Transactional
 	public Result findLocationNames(String q, Integer limit) {
 		Object result = LocationProxyRule.findLocationNames(q, limit);

@@ -22,6 +22,7 @@ PUT           /api/locations/:gid                 controllers.LocationServices.u
 DELETE        /api/locations/:gid                 controllers.LocationServices.delete(gid:Long)
 
 GET           /api/locations                      controllers.LocationServices.findLocations(q, limit:Int?=10, offset:Int?=0)
+POST           /api/bulk-locations                controllers.LocationServices.findBulkLocations()
 
 # Deprecated
 GET           /api/locations/byCoordinate        controllers.LocationServices.findLocationsByPoint(lat:Double, long:Double)

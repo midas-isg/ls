@@ -5,8 +5,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 import models.Response;
 import models.geo.Feature;
@@ -14,6 +16,7 @@ import models.geo.FeatureCollection;
 import models.geo.FeatureGeometry;
 import play.Logger;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -386,6 +389,76 @@ public class GeoJsonRule {
 		+ limit + " offset=" + offset;
 		properties.put("locationDescription", descritpion);
 		return response;
+	}
+	
+	public static FeatureCollection findBulkLocations(String q, 
+			Integer limit, Integer offset){
+		List<Location> result = LocationRule.findByName(q, limit, offset);
+		FeatureCollection geoJSON = toFeatureCollection(result, MINIMUM_KEYS);
+		Map<String, Object> properties = new HashMap<>();
+		geoJSON.setProperties(properties);
+		properties.put("q", q);
+		putAsStringIfNotNull(properties, "limit", limit);
+		putAsStringIfNotNull(properties, "offset", offset);
+		putAsStringIfNotNull(properties, "resultSize", "" + result.size());
+		properties.put("locationTypeName", "Result from a query");
+		String descritpion = "Result from the query for '" + q + "' limit=" 
+		+ limit + " offset=" + offset;
+		properties.put("locationDescription", descritpion);
+		return geoJSON;
+	}
+	
+	public static Map<String, Object> findBulkLocations(ArrayList<Map<String,Object>> params){
+		Map<String, Object> result = new HashMap<>();
+		String geoJSONKey = "";
+		FeatureCollection fc;
+		for (Map<String, Object> param : params) {
+			geoJSONKey = makeGeoJSONKey(param);
+			String name = (String) param.get("name");
+			List<Integer> locTypeIds = toListOfInt((JsonNode) param.get("location_type_ids"));
+			Date startDate = Date.valueOf((String)param.get("start_date"));
+			Date endDate = Date.valueOf((String)param.get("end_date"));
+
+			fc = findBulkLocations(name, locTypeIds, startDate, endDate);
+			result.put(geoJSONKey, fc);
+		}
+		return result;
+	}
+
+	private static FeatureCollection findBulkLocations(String name,
+			List<Integer> locTypeIds, Date startDate, Date endDate) {
+		List<Location> result = LocationRule.find(name, locTypeIds, startDate, endDate);
+		FeatureCollection geoJSON = toFeatureCollection(result, MINIMUM_KEYS);
+		Map<String, Object> properties = new HashMap<>();
+		geoJSON.setProperties(properties);
+		properties.put("name", name);
+		//putAsStringIfNotNull(properties, "limit", limit);
+		//putAsStringIfNotNull(properties, "offset", offset);
+		putAsStringIfNotNull(properties, "resultSize", "" + result.size());
+		properties.put("locationTypeName", "Result from a query");
+		//String descritpion = "Result from the query for '" + q + "' limit=" 
+		//+ limit + " offset=" + offset;
+		//properties.put("locationDescription", descritpion);
+		return geoJSON;
+	}
+
+	private static List<Integer> toListOfInt(JsonNode jsonNode) {
+		List<Integer> intList = new ArrayList<>();
+		Iterator<JsonNode> elements = jsonNode.elements();
+		while(elements.hasNext()){
+			intList.add(elements.next().asInt());
+		}
+		return intList;
+	}
+
+	private static String makeGeoJSONKey(Map<String, Object> param) {
+		StringJoiner joiner = new StringJoiner("_");
+		joiner.add((String)param.get("name"));
+		joiner.add((String)param.get("start_date"));
+		joiner.add((String)param.get("end_date"));
+		//String key = concatNameAndDate((String)param.get("q"),(String)param.get("date"));
+		String key = joiner.toString();
+		return key;
 	}
 
 	public static Response findByPoint(double latitude, double longitude) {

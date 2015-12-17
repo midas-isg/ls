@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -112,6 +113,56 @@ public class LocationDao {
 		}
 		
 		return locations;
+	}
+	
+	public List<Location> find(String name, List<Integer> locTypeIds, Date startDate, Date endDate) {
+		EntityManager em = JPA.em();
+		String tsVector = "to_tsvector('simple', name)";
+		String queryText = toQueryText(name);
+		String qt = "'" + queryText + "'";
+		String typeIdsList = toList(locTypeIds);
+		//@formatter:off
+		String q = 
+			"SELECT gid, ts_headline('simple', name, "+ qt + ") headline, rank" 
+			+ " FROM (SELECT gid, name, ts_rank_cd(ti, " + qt + ") AS rank"
+			+ "  FROM location, " + tsVector + " ti"
+			+ "  WHERE ti @@ " + qt
+			+ " AND "
+			+ " location_type_id in " + typeIdsList
+			+ " AND "
+			+ " start_date <= " + " '" + startDate.toString() + "' "
+			+ " AND "
+			+  " '" + endDate.toString() + "' " + " <= LEAST('" + endDate.toString() + "',end_date) "
+			+ "  ORDER BY rank DESC, name"
+			+ " ) AS foo";
+		//@formatter:on
+		Logger.debug("name=" + name + " q=\n" + q);
+		System.out.println(q);
+		Query query = em.createNativeQuery(q);
+//		if (limit != null)
+//			query.setMaxResults(limit);
+//		if (offset != null)
+//			query.setFirstResult(offset);
+		List<?> resultList = query.getResultList();
+		List<BigInteger> result = getGids(resultList);
+		List<Location> locations = LocationProxyRule.getLocations(result);
+		int i = 0;
+		for (Location l : locations){
+			Object[] objects = (Object[])resultList.get(i++);
+			l.setHeadline(objects[1].toString());
+			l.setRank(objects[2].toString());
+		}
+		
+		return locations;
+	}
+
+	private String toList(List<Integer> locTypeIds) {
+		StringJoiner joiner = new StringJoiner(",", "(", ")");
+		for(int i: locTypeIds){
+			joiner.add(Integer.toString(i));
+		}
+		String list = joiner.toString();
+		return list;
 	}
 
 	private List<BigInteger> getGids(List<?> resultList) {
