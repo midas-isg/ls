@@ -227,9 +227,9 @@ public class LocationServices extends Controller {
 		for(JsonNode node: array){
 			Map<String,Object> map = new HashMap<>();
 			map.put("name",node.findValue("name").asText());
-			map.put("location_type_ids", node.get("location_type_ids"));
-			map.put("start_date", node.findValue("start_date").asText());
-			map.put("end_date", node.findValue("end_date").asText());
+			map.put("locationTypeIds", node.get("locationTypeIds"));
+			map.put("start", node.findValue("start").asText());
+			map.put("end", node.findValue("end").asText());
 			params.add(map);
 		}
 		return params;

@@ -125,19 +125,18 @@ public class LocationDao {
 		String q = 
 			"SELECT gid, ts_headline('simple', name, "+ qt + ") headline, rank" 
 			+ " FROM (SELECT gid, name, ts_rank_cd(ti, " + qt + ") AS rank"
-			+ "  FROM location, " + tsVector + " ti"
-			+ "  WHERE ti @@ " + qt
+			+ " FROM location, " + tsVector + " ti"
+			+ " WHERE ti @@ " + qt
 			+ " AND "
 			+ " location_type_id in " + typeIdsList
 			+ " AND "
-			+ " start_date <= " + " '" + startDate.toString() + "' "
+			+ " '" + startDate.toString() + "' BETWEEN start_date AND " + " LEAST('" + startDate.toString() + "',end_date) "
 			+ " AND "
-			+  " '" + endDate.toString() + "' " + " <= LEAST('" + endDate.toString() + "',end_date) "
-			+ "  ORDER BY rank DESC, name"
+			+ " '" + endDate.toString() + "' BETWEEN start_date AND " + " LEAST('" + endDate.toString() + "',end_date) "
+			+ " ORDER BY rank DESC, name"
 			+ " ) AS foo";
 		//@formatter:on
 		Logger.debug("name=" + name + " q=\n" + q);
-		System.out.println(q);
 		Query query = em.createNativeQuery(q);
 //		if (limit != null)
 //			query.setMaxResults(limit);

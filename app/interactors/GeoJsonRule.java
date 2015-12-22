@@ -28,10 +28,11 @@ import dao.entities.LocationType;
 
 public class GeoJsonRule {
 	private static final String KEY_PROPERTIES = "properties";
+	private static final String KEY_CHILDREN = "children";
 	private static final String KEY_BBOX = "bbox";
 	private static final String KEY_GEOMETRY = "geometry";
-	public static final List<String> MINIMUM_KEYS = Arrays.asList(new String[]{
-			KEY_PROPERTIES
+	private static final List<String> MINIMUM_KEYS = Arrays.asList(new String[]{
+			KEY_PROPERTIES, KEY_CHILDREN
 	});
 
 	public static FeatureCollection asFeatureCollection(Location location) {
@@ -61,7 +62,7 @@ public class GeoJsonRule {
 		List<Feature> features = toFeatures(locationsIncluded, null);
 		fc.setFeatures(features);
 		fc.setType("FeatureCollection");
-		fc.setProperties(toPropertiesOfFeature(composite));
+		fc.setProperties(toPropertiesOfFeature(composite, false));
 		double[] computeBbox = computeBbox(composite);
 		if (computeBbox == null)
 			computeBbox =  computeBbox(features);
@@ -86,8 +87,12 @@ public class GeoJsonRule {
 
 	private static Feature toFeature(Location location, List<String> fields) {
 		Feature feature = new Feature();
-		if (includeField(fields, KEY_PROPERTIES)){
-			Map<String, Object> properties = toPropertiesOfFeature(location);
+		if (includeField(fields, KEY_PROPERTIES, KEY_CHILDREN)){
+			Map<String, Object> properties = toPropertiesOfFeature(location, true);
+			feature.setProperties(properties);
+		}
+		else if (includeField(fields, KEY_PROPERTIES)){
+			Map<String, Object> properties = toPropertiesOfFeature(location, false);
 			feature.setProperties(properties);
 		}
 		LocationGeometry geometry = null;
@@ -110,12 +115,14 @@ public class GeoJsonRule {
 		return feature;
 	}
 
-	private static Map<String, Object> toPropertiesOfFeature(Location location) {
+	private static Map<String, Object> toPropertiesOfFeature(Location location, boolean includeChildren) {
 		Map<String, Object> properties = toProperties(location);
-		List<Location> children = location.getChildren();
-		if (children != null)
-			Collections.sort(children);
-		putAsLocationObjectsIfNotNull(properties, "children", children);
+		if (includeChildren){
+			List<Location> children = location.getChildren();
+			if (children != null)
+				Collections.sort(children);
+			putAsLocationObjectsIfNotNull(properties, "children", children);
+		}
 		putAsLocationObjectsIfNotNull(properties, "lineage", 
 				LocationProxyRule.getLineage(location.getGid()));
 		putAsLocationObjectsIfNotNull(properties, "related", 
@@ -125,10 +132,11 @@ public class GeoJsonRule {
 		return properties;
 	}
 
-	private static boolean includeField(List<String> fields, String key) {
+	private static boolean includeField(List<String> fields, String... keys) {
 		if (fields == null || fields.isEmpty())
 			return true;
-		return fields.contains(key);
+		
+		return fields.containsAll(Arrays.asList(keys));
 	}
 	
 	private static double[] computeBbox(Location l) {
@@ -391,23 +399,6 @@ public class GeoJsonRule {
 		return response;
 	}
 	
-	public static FeatureCollection findBulkLocations(String q, 
-			Integer limit, Integer offset){
-		List<Location> result = LocationRule.findByName(q, limit, offset);
-		FeatureCollection geoJSON = toFeatureCollection(result, MINIMUM_KEYS);
-		Map<String, Object> properties = new HashMap<>();
-		geoJSON.setProperties(properties);
-		properties.put("q", q);
-		putAsStringIfNotNull(properties, "limit", limit);
-		putAsStringIfNotNull(properties, "offset", offset);
-		putAsStringIfNotNull(properties, "resultSize", "" + result.size());
-		properties.put("locationTypeName", "Result from a query");
-		String descritpion = "Result from the query for '" + q + "' limit=" 
-		+ limit + " offset=" + offset;
-		properties.put("locationDescription", descritpion);
-		return geoJSON;
-	}
-	
 	public static Map<String, Object> findBulkLocations(ArrayList<Map<String,Object>> params){
 		Map<String, Object> result = new HashMap<>();
 		String geoJSONKey = "";
@@ -415,31 +406,41 @@ public class GeoJsonRule {
 		for (Map<String, Object> param : params) {
 			geoJSONKey = makeGeoJSONKey(param);
 			String name = (String) param.get("name");
-			List<Integer> locTypeIds = toListOfInt((JsonNode) param.get("location_type_ids"));
-			Date startDate = Date.valueOf((String)param.get("start_date"));
-			Date endDate = Date.valueOf((String)param.get("end_date"));
+			List<Integer> locTypeIds = toListOfInt((JsonNode) param.get("locationTypeIds"));
+			Date startDate = Date.valueOf((String)param.get("start"));
+			Date endDate = Date.valueOf((String)param.get("end"));
 
-			fc = findBulkLocations(name, locTypeIds, startDate, endDate);
+			fc = findLocation(name, locTypeIds, startDate, endDate);
 			result.put(geoJSONKey, fc);
 		}
 		return result;
 	}
 
-	private static FeatureCollection findBulkLocations(String name,
+	private static FeatureCollection findLocation(String name,
 			List<Integer> locTypeIds, Date startDate, Date endDate) {
 		List<Location> result = LocationRule.find(name, locTypeIds, startDate, endDate);
-		FeatureCollection geoJSON = toFeatureCollection(result, MINIMUM_KEYS);
+		List<String> fields = Arrays.asList(new String[] {KEY_PROPERTIES});
+		FeatureCollection geoJSON = toFeatureCollection(result, fields);
 		Map<String, Object> properties = new HashMap<>();
 		geoJSON.setProperties(properties);
 		properties.put("name", name);
-		//putAsStringIfNotNull(properties, "limit", limit);
-		//putAsStringIfNotNull(properties, "offset", offset);
+		putAsStringIfNotNull(properties, "locationTypeIds", listToString(locTypeIds));
+		putAsStringIfNotNull(properties, "startDate", startDate.toString());
+		putAsStringIfNotNull(properties, "endDate", endDate.toString());
 		putAsStringIfNotNull(properties, "resultSize", "" + result.size());
 		properties.put("locationTypeName", "Result from a query");
-		//String descritpion = "Result from the query for '" + q + "' limit=" 
-		//+ limit + " offset=" + offset;
-		//properties.put("locationDescription", descritpion);
+		String descritpion = "Result from the query for '" + name + "' loctionTypeIds=" 
+				+ listToString(locTypeIds) + " startDate=" + startDate.toString() 
+				+ " endDate=" + endDate.toString();
+		properties.put("locationDescription", descritpion);
 		return geoJSON;
+	}
+
+	private static String listToString(List<Integer> locTypeIds) {
+		StringJoiner joiner = new StringJoiner(",", "[", "]");
+		for(int id: locTypeIds)
+			joiner.add(Integer.toString(id));
+		return joiner.toString();
 	}
 
 	private static List<Integer> toListOfInt(JsonNode jsonNode) {
@@ -454,8 +455,8 @@ public class GeoJsonRule {
 	private static String makeGeoJSONKey(Map<String, Object> param) {
 		StringJoiner joiner = new StringJoiner("_");
 		joiner.add((String)param.get("name"));
-		joiner.add((String)param.get("start_date"));
-		joiner.add((String)param.get("end_date"));
+		joiner.add((String)param.get("start"));
+		joiner.add((String)param.get("end"));
 		//String key = concatNameAndDate((String)param.get("q"),(String)param.get("date"));
 		String key = joiner.toString();
 		return key;
