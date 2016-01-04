@@ -26,11 +26,9 @@ import play.libs.Json;
 import play.libs.Jsonp;
 import play.mvc.Controller;
 import play.mvc.Result;
-import play.twirl.api.Content;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiImplicitParam;
 import com.wordnik.swagger.annotations.ApiImplicitParams;
@@ -195,10 +193,9 @@ public class LocationServices extends Controller {
 	@Transactional
 	@ApiOperation(
 			httpMethod = "POST", 
-			nickname = "findBulkLocationsByName", 
-			value = "Returns locations by name search", 
-			notes = "This endpoint returns locations whose name matches the requested search terms (q). "
-			+ "To do pagination, use 'limit' and 'offset'. "
+			nickname = "findBulkLocationsByNameAndDate", 
+			value = "Returns locations by name and start and end dates", 
+			notes = "This endpoint returns locations whose name matches the requested search terms (name, start date, end date). "
 			+ "Note: The schema of the 'geoJSON' field in the response is GeoJSON FeatureCollection. ", 
 			response = Response.class)
 	@ApiResponses(value = {
@@ -210,14 +207,14 @@ public class LocationServices extends Controller {
 	
 	public Result findBulkLocations() {
 		ArrayList<Map<String, Object>> params = toParams((ArrayNode)request().body().asJson());
-		Map<String, Object> result = GeoJsonRule.findBulkLocations(params);
+		List<Object> result = GeoJsonRule.findBulkLocations(params);
 		return ok(toJson(result));
 	}
 	
-	private ObjectNode toJson(Map<String, Object> map) {
-		ObjectNode result = Json.newObject();
-		for(String key : map.keySet()){
-			result.set(key, Json.toJson(map.get(key)));
+	private ArrayNode toJson(List<Object> list) {
+		ArrayNode result = Json.newArray();
+		for(Object item : list){
+			result.add(Json.toJson(item));
 		}
 	    return result;
 	}

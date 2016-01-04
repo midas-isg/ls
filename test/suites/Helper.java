@@ -50,6 +50,12 @@ public class Helper {
 	public static void assertAreEqual(Object actual, Object expected) {
 		assertThat(actual).isEqualTo(expected);
 	}
+	
+	public static void assertContainsAll(Object[] actual, Object[] expected) {
+		for(Object obj: expected){
+			assertThat(actual).contains(obj);
+		}
+	}
 
 	public static JsonNode testJsonResponseMin(String url, int min) {
 		return testJsonResponseClosedInterval(url, min, null);

@@ -17,8 +17,8 @@ import com.typesafe.config.ConfigFactory;
 
 public class App {
 	private FakeApplication fakeApp = null;
-	private static String IN_MEMO_DB_CONF_PATH = "test/resources/conf/test_in_memory_DB.conf";
-	private static String TEST_CONF_PATH = "test/resources/conf/test.conf";
+	private static String IN_MEMO_DB_CONF_PATH = "test/resources/test_in_memory_DB.conf";
+	private static String TEST_CONF_PATH = "test/resources/test.conf";
 
 
 	public static App newWithTestDb() {

@@ -130,18 +130,16 @@ public class LocationDao {
 			+ " AND "
 			+ " location_type_id in " + typeIdsList
 			+ " AND "
+			+ " ( "
 			+ " '" + startDate.toString() + "' BETWEEN start_date AND " + " LEAST('" + startDate.toString() + "',end_date) "
-			+ " AND "
+			+ " OR "
 			+ " '" + endDate.toString() + "' BETWEEN start_date AND " + " LEAST('" + endDate.toString() + "',end_date) "
+			+ " ) "
 			+ " ORDER BY rank DESC, name"
 			+ " ) AS foo";
 		//@formatter:on
-		Logger.debug("name=" + name + " q=\n" + q);
+		//Logger.debug("name=" + name + " q=\n" + q);
 		Query query = em.createNativeQuery(q);
-//		if (limit != null)
-//			query.setMaxResults(limit);
-//		if (offset != null)
-//			query.setFirstResult(offset);
 		List<?> resultList = query.getResultList();
 		List<BigInteger> result = getGids(resultList);
 		List<Location> locations = LocationProxyRule.getLocations(result);

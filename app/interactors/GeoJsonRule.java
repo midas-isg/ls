@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 
+import org.joda.time.LocalDate;
+
 import models.Response;
 import models.geo.Feature;
 import models.geo.FeatureCollection;
@@ -31,7 +33,7 @@ public class GeoJsonRule {
 	private static final String KEY_CHILDREN = "children";
 	private static final String KEY_BBOX = "bbox";
 	private static final String KEY_GEOMETRY = "geometry";
-	private static final List<String> MINIMUM_KEYS = Arrays.asList(new String[]{
+	public static final List<String> MINIMUM_KEYS = Arrays.asList(new String[]{
 			KEY_PROPERTIES, KEY_CHILDREN
 	});
 
@@ -239,8 +241,8 @@ public class GeoJsonRule {
 		putAsStringIfNotNull(properties, "locationDescription", data.getDescription());
 		putAsStringIfNotNull(properties, "headline", location.getHeadline());
 		putAsStringIfNotNull(properties, "rank", location.getRank());
-		putAsStringIfNotNull(properties, "startDate", data.getStartDate());
-		putAsStringIfNotNull(properties, "endDate", data.getEndDate());
+		putAsStringIfNotNull(properties, "start", data.getStartDate());
+		putAsStringIfNotNull(properties, "end", data.getEndDate());
 		String locationTypeName = getLocationTypeName(data.getLocationType());
 		putAsStringIfNotNull(properties, "locationTypeName", locationTypeName);
 		Location parent = location.getParent();
@@ -399,19 +401,21 @@ public class GeoJsonRule {
 		return response;
 	}
 	
-	public static Map<String, Object> findBulkLocations(ArrayList<Map<String,Object>> params){
-		Map<String, Object> result = new HashMap<>();
-		String geoJSONKey = "";
+	public static List<Object> findBulkLocations(ArrayList<Map<String,Object>> params){
+		List<Object> result = new ArrayList<>();
+		//String geoJSONKey = "";
 		FeatureCollection fc;
 		for (Map<String, Object> param : params) {
-			geoJSONKey = makeGeoJSONKey(param);
+			//geoJSONKey = makeGeoJSONKey(param);
 			String name = (String) param.get("name");
 			List<Integer> locTypeIds = toListOfInt((JsonNode) param.get("locationTypeIds"));
-			Date startDate = Date.valueOf((String)param.get("start"));
-			Date endDate = Date.valueOf((String)param.get("end"));
+			LocalDate localDt = new LocalDate((String)param.get("start"));
+			Date startDate = Date.valueOf(localDt.toString());
+			localDt = new LocalDate((String)param.get("end"));
+			Date endDate = Date.valueOf(localDt.toString());
 
 			fc = findLocation(name, locTypeIds, startDate, endDate);
-			result.put(geoJSONKey, fc);
+			result.add(fc);
 		}
 		return result;
 	}
@@ -425,14 +429,8 @@ public class GeoJsonRule {
 		geoJSON.setProperties(properties);
 		properties.put("name", name);
 		putAsStringIfNotNull(properties, "locationTypeIds", listToString(locTypeIds));
-		putAsStringIfNotNull(properties, "startDate", startDate.toString());
-		putAsStringIfNotNull(properties, "endDate", endDate.toString());
-		putAsStringIfNotNull(properties, "resultSize", "" + result.size());
-		properties.put("locationTypeName", "Result from a query");
-		String descritpion = "Result from the query for '" + name + "' loctionTypeIds=" 
-				+ listToString(locTypeIds) + " startDate=" + startDate.toString() 
-				+ " endDate=" + endDate.toString();
-		properties.put("locationDescription", descritpion);
+		putAsStringIfNotNull(properties, "start", startDate.toString());
+		putAsStringIfNotNull(properties, "end", endDate.toString());
 		return geoJSON;
 	}
 
@@ -451,17 +449,7 @@ public class GeoJsonRule {
 		}
 		return intList;
 	}
-
-	private static String makeGeoJSONKey(Map<String, Object> param) {
-		StringJoiner joiner = new StringJoiner("_");
-		joiner.add((String)param.get("name"));
-		joiner.add((String)param.get("start"));
-		joiner.add((String)param.get("end"));
-		//String key = concatNameAndDate((String)param.get("q"),(String)param.get("date"));
-		String key = joiner.toString();
-		return key;
-	}
-
+	
 	public static Response findByPoint(double latitude, double longitude) {
 		List<Location> result = LocationRule.findByPoint(latitude, longitude);
 		Response response = new Response();
