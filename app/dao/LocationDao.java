@@ -12,9 +12,12 @@ import java.util.StringJoiner;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaQuery;
 
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
+import org.hibernate.criterion.Restrictions;
 import org.hibernate.transform.Transformers;
 
 import play.Logger;
@@ -123,7 +126,7 @@ public class LocationDao {
 		String typeIdsList = toList(locTypeIds);
 		//@formatter:off
 		String q = 
-			"SELECT gid, ts_headline('simple', name, "+ qt + ") headline, rank" 
+			"SELECT gid, ts_headline('simple', name, "+ qt + ") as headline, rank" 
 			+ " FROM (SELECT gid, name, ts_rank_cd(ti, " + qt + ") AS rank"
 			+ " FROM location, " + tsVector + " ti"
 			+ " WHERE ti @@ " + qt
@@ -131,15 +134,17 @@ public class LocationDao {
 			+ " location_type_id in " + typeIdsList
 			+ " AND "
 			+ " ( "
-			+ " '" + startDate.toString() + "' BETWEEN start_date AND " + " LEAST('" + startDate.toString() + "',end_date) "
+			+ " :start BETWEEN start_date AND LEAST( :start, end_date) "
 			+ " OR "
-			+ " '" + endDate.toString() + "' BETWEEN start_date AND " + " LEAST('" + endDate.toString() + "',end_date) "
+			+ " :end BETWEEN start_date AND LEAST( :end ,end_date) "
 			+ " ) "
 			+ " ORDER BY rank DESC, name"
 			+ " ) AS foo";
 		//@formatter:on
 		//Logger.debug("name=" + name + " q=\n" + q);
 		Query query = em.createNativeQuery(q);
+		query = query.setParameter("start", startDate);
+		query = query.setParameter("end", endDate);
 		List<?> resultList = query.getResultList();
 		List<BigInteger> result = getGids(resultList);
 		List<Location> locations = LocationProxyRule.getLocations(result);
