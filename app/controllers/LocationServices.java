@@ -9,6 +9,7 @@ import interactors.LocationRule;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -224,12 +225,36 @@ public class LocationServices extends Controller {
 		for(JsonNode node: array){
 			Map<String,Object> map = new HashMap<>();
 			map.put("name",node.findValue("name").asText());
-			map.put("locationTypeIds", node.get("locationTypeIds"));
-			map.put("start", node.findValue("start").asText());
-			map.put("end", node.findValue("end").asText());
+			putIfNotNull(node, map, "locationTypeIds");
+			putAsTextIfNotNull(node, map, "start");
+			putAsTextIfNotNull(node, map, "end");
+			
 			params.add(map);
 		}
 		return params;
+	}
+
+	private static void putIfNotNull(JsonNode node, Map<String, Object> map, String key) {
+		if(getKeyList(node).contains(key))
+			map.put(key, node.get(key));
+		else
+			map.put(key, null);
+	}
+	
+	private static void putAsTextIfNotNull(JsonNode node, Map<String, Object> map, String key) {
+		if(getKeyList(node).contains(key))
+			map.put(key, node.findValue(key).asText());
+		else
+			map.put(key, null);
+	}
+	
+	private static List<String> getKeyList(JsonNode node) {
+		List<String> keys = new ArrayList<>();
+		Iterator<String> l = node.fieldNames();
+		while(l.hasNext()){
+			keys.add(l.next());
+		}
+		return keys;
 	}
 	
 	@Transactional

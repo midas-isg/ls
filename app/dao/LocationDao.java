@@ -1,6 +1,7 @@
 package dao;
 
 import interactors.LocationProxyRule;
+import interactors.SQLSanitizer;
 
 import java.math.BigInteger;
 import java.sql.Date;
@@ -12,6 +13,8 @@ import java.util.StringJoiner;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
 
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
@@ -118,6 +121,7 @@ public class LocationDao {
 	public List<Location> find(String name, List<Integer> locTypeIds, Date startDate, Date endDate) {
 		EntityManager em = JPA.em();
 		String tsVector = "to_tsvector('simple', name)";
+		sanitize(name);
 		String queryText = toQueryText(name);
 		String qt = "'" + queryText + "'";
 		String typeIdsList = toList(locTypeIds);
@@ -126,22 +130,32 @@ public class LocationDao {
 			"SELECT gid, ts_headline('simple', name, "+ qt + ") as headline, rank" 
 			+ " FROM (SELECT gid, name, ts_rank_cd(ti, " + qt + ") AS rank"
 			+ " FROM location, " + tsVector + " ti"
-			+ " WHERE ti @@ " + qt
-			+ " AND "
-			+ " location_type_id in " + typeIdsList
-			+ " AND "
+			+ " WHERE ti @@ " + qt;
+		if(typeIdsList != null)
+			q += " AND "
+			+ " location_type_id in " + typeIdsList;
+		if(startDate != null && endDate != null)
+			q += " AND "
 			+ " ( "
 			+ " :start BETWEEN start_date AND LEAST( :start, end_date) "
 			+ " OR "
 			+ " :end BETWEEN start_date AND LEAST( :end ,end_date) "
-			+ " ) "
-			+ " ORDER BY rank DESC, name"
+			+ " ) ";
+		else if(startDate != null)
+			q += " AND :start BETWEEN start_date AND LEAST( :start, end_date) ";
+		else if(endDate != null)
+			q += " AND :end BETWEEN start_date AND LEAST( :end ,end_date) ";
+			
+		q += " ORDER BY rank DESC, name"
 			+ " ) AS foo";
 		//@formatter:on
-		//Logger.debug("name=" + name + " q=\n" + q);
+		Logger.debug("name=" + name + " q=\n" + q);
+		
 		Query query = em.createNativeQuery(q);
-		query = query.setParameter("start", startDate);
-		query = query.setParameter("end", endDate);
+		if(startDate != null)
+			query = query.setParameter("start", startDate);
+		if(endDate != null)
+			query = query.setParameter("end", endDate);
 		List<?> resultList = query.getResultList();
 		List<BigInteger> result = getGids(resultList);
 		List<Location> locations = LocationProxyRule.getLocations(result);
@@ -155,7 +169,20 @@ public class LocationDao {
 		return locations;
 	}
 
+	private void sanitize(String value) {
+		String tokenized = SQLSanitizer.tokenize(value);
+		if(SQLSanitizer.isUnsafe(tokenized)){
+			throw new RuntimeException("Unsafe request!");
+		}
+		
+	}
+
 	private String toList(List<Integer> locTypeIds) {
+		if (locTypeIds == null){
+			return null;
+		}
+		if(locTypeIds.isEmpty())
+			return null;
 		StringJoiner joiner = new StringJoiner(",", "(", ")");
 		for(int i: locTypeIds){
 			joiner.add(Integer.toString(i));

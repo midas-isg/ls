@@ -409,15 +409,23 @@ public class GeoJsonRule {
 			//geoJSONKey = makeGeoJSONKey(param);
 			String name = (String) param.get("name");
 			List<Integer> locTypeIds = toListOfInt((JsonNode) param.get("locationTypeIds"));
-			LocalDate localDt = new LocalDate((String)param.get("start"));
-			Date startDate = Date.valueOf(localDt.toString());
-			localDt = new LocalDate((String)param.get("end"));
-			Date endDate = Date.valueOf(localDt.toString());
+			Date startDate = toDate(param, "start");
+			Date endDate = toDate(param, "end");
 
 			fc = findLocation(name, locTypeIds, startDate, endDate);
 			result.add(fc);
 		}
 		return result;
+	}
+
+	private static Date toDate(Map<String, Object> param, String key) {
+		if(param.get(key) == null){
+			return null;
+		}
+		String dateString = (String)param.get(key);
+		LocalDate localDt = new LocalDate(dateString);
+		Date startDate = Date.valueOf(localDt.toString());
+		return startDate;
 	}
 
 	private static FeatureCollection findLocation(String name,
@@ -429,12 +437,20 @@ public class GeoJsonRule {
 		geoJSON.setProperties(properties);
 		properties.put("name", name);
 		putAsStringIfNotNull(properties, "locationTypeIds", listToString(locTypeIds));
-		putAsStringIfNotNull(properties, "start", startDate.toString());
-		putAsStringIfNotNull(properties, "end", endDate.toString());
+		putAsStringIfNotNull(properties, "start", toStringValue(startDate));
+		putAsStringIfNotNull(properties, "end", toStringValue(endDate));
 		return geoJSON;
 	}
 
+	private static String toStringValue(Date date) {
+		if(date == null)
+			return null;
+		return date.toString();
+	}
+
 	private static String listToString(List<Integer> locTypeIds) {
+		if (locTypeIds == null)
+			return null;
 		StringJoiner joiner = new StringJoiner(",", "[", "]");
 		for(int id: locTypeIds)
 			joiner.add(Integer.toString(id));
@@ -442,6 +458,8 @@ public class GeoJsonRule {
 	}
 
 	private static List<Integer> toListOfInt(JsonNode jsonNode) {
+		if(jsonNode == null)
+			return null;
 		List<Integer> intList = new ArrayList<>();
 		Iterator<JsonNode> elements = jsonNode.elements();
 		while(elements.hasNext()){
