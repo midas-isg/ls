@@ -34,8 +34,7 @@ public class TestFindBulkLocation {
 	}
 
 	private void unsafeRequestTest() {
-		String body = "[{\"name\":\"drop ;\",\"locationTypeIds\":[16,104],\"start\":\"1780-12-12\","
-				+ " \"end\":\"2016-11-11\"}]";
+		String body = "[{\"name\":\" ; drop ;\"}]";
 		String url = Server.makeTestUrl(basePath);
 		WSResponse response = requestBatchLocation(url, body);		
 		assertStatus(response, BAD_REQUEST);

@@ -14,14 +14,15 @@ public class SQLSanitizer {
 			"ROLLBACK", "SELECT", "SET", "SHOW", "START", "TRUNCATE",
 			"UNLISTEN", "UPDATE" };
 
-	private final static String[] ESPECIAL_CHARS = { ";", "\"", "\'", "/*",
-			"*/", "--", "=", "<", ">", "@" };
+	private final static String[] ESPECIAL_CHARS = { "\"", "\'", "/*", "*/",
+			"--", "=", "<", ">", "@" };
 
 	public static boolean isUnsafe(String value) {
 		if (value == null)
 			return false;
 		for (String keyword : KEYWORDS) {
-			String regEx = "(^|[^\\w])" + keyword + "([^\\w]|$)";
+			String regEx = "(;[^\\w]*" + keyword + "[^\\w])" + "|" + "([^\\w]*"
+					+ keyword + "[^\\w].*;)";
 			Pattern pattern = compile(regEx, CASE_INSENSITIVE);
 			Matcher matcher = pattern.matcher(value);
 			if (matcher.find())
