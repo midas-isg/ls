@@ -1,4 +1,4 @@
-package interactors;
+package gateways.database.sql;
 
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import static java.util.regex.Pattern.compile;
@@ -15,7 +15,7 @@ public class SQLSanitizer {
 			"UNLISTEN", "UPDATE" };
 
 	private final static String[] ESPECIAL_CHARS = { ";", "\"", "\'", "/*",
-			"*/", "--", "=" };
+			"*/", "--", "=", "<", ">", "@" };
 
 	public static boolean isUnsafe(String value) {
 		if (value == null)

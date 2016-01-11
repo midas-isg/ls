@@ -1,7 +1,7 @@
 package dao;
 
+import gateways.database.sql.SQLSanitizer;
 import interactors.LocationProxyRule;
-import interactors.SQLSanitizer;
 
 import java.math.BigInteger;
 import java.sql.Date;
@@ -13,8 +13,8 @@ import java.util.StringJoiner;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
+
+import models.exceptions.BadRequest;
 
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
@@ -149,7 +149,7 @@ public class LocationDao {
 		q += " ORDER BY rank DESC, name"
 			+ " ) AS foo";
 		//@formatter:on
-		Logger.debug("name=" + name + " q=\n" + q);
+		//Logger.debug("name=" + name + " q=\n" + q);
 		
 		Query query = em.createNativeQuery(q);
 		if(startDate != null)
@@ -172,7 +172,7 @@ public class LocationDao {
 	private void sanitize(String value) {
 		String tokenized = SQLSanitizer.tokenize(value);
 		if(SQLSanitizer.isUnsafe(tokenized)){
-			throw new RuntimeException("Unsafe request!");
+			throw new BadRequest("value [ " + value + " ] contains unsafe character(s)!");
 		}
 		
 	}

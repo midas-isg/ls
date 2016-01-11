@@ -1,5 +1,7 @@
 package integrations.server;
 
+import static play.mvc.Http.Status.BAD_REQUEST;
+import static play.mvc.Http.Status.OK;
 import static suites.Helper.assertAreEqual;
 import static suites.Helper.assertContainsAll;
 
@@ -7,13 +9,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import play.libs.ws.WS;
 import play.libs.ws.WSRequest;
 import play.libs.ws.WSResponse;
-import static org.fest.assertions.Assertions.assertThat;
-import static play.mvc.Http.Status.OK;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 public class TestFindBulkLocation {
 
@@ -29,6 +29,20 @@ public class TestFindBulkLocation {
 	}
 
 	public void testFindBatchLocation() {
+		endToEndTest();
+		unsafeRequestTest();
+	}
+
+	private void unsafeRequestTest() {
+		String body = "[{\"name\":\"drop ;\",\"locationTypeIds\":[16,104],\"start\":\"1780-12-12\","
+				+ " \"end\":\"2016-11-11\"}]";
+		String url = Server.makeTestUrl(basePath);
+		WSResponse response = requestBatchLocation(url, body);		
+		assertStatus(response, BAD_REQUEST);
+		
+	}
+
+	private void endToEndTest() {
 		String body = "[{\"name\":\"pennsylvania\",\"locationTypeIds\":[16,104],\"start\":\"1780-12-12\","
 				+ " \"end\":\"2016-11-11\"},{\"name\":\"sudan\",\"locationTypeIds\":[1,17],"
 				+ "\"start\":\"2010-11-11\", \"end\":\"2012-11-11\"}]";
