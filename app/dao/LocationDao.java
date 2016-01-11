@@ -1,5 +1,6 @@
 package dao;
 
+import gateways.database.sql.SQLSanitizer;
 import interactors.LocationProxyRule;
 
 import java.math.BigInteger;
@@ -8,9 +9,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+
+import models.exceptions.BadRequest;
 
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
@@ -112,6 +116,79 @@ public class LocationDao {
 		}
 		
 		return locations;
+	}
+	
+	public List<Location> find(String name, List<Integer> locTypeIds, Date startDate, Date endDate) {
+		EntityManager em = JPA.em();
+		String tsVector = "to_tsvector('simple', name)";
+		sanitize(name);
+		String queryText = toQueryText(name);
+		String qt = "'" + queryText + "'";
+		String typeIdsList = toList(locTypeIds);
+		//@formatter:off
+		String q = 
+			"SELECT gid, ts_headline('simple', name, "+ qt + ") as headline, rank" 
+			+ " FROM (SELECT gid, name, ts_rank_cd(ti, " + qt + ") AS rank"
+			+ " FROM location, " + tsVector + " ti"
+			+ " WHERE ti @@ " + qt;
+		if(typeIdsList != null)
+			q += " AND "
+			+ " location_type_id in " + typeIdsList;
+		if(startDate != null && endDate != null)
+			q += " AND "
+			+ " ( "
+			+ " :start BETWEEN start_date AND LEAST( :start, end_date) "
+			+ " OR "
+			+ " :end BETWEEN start_date AND LEAST( :end ,end_date) "
+			+ " ) ";
+		else if(startDate != null)
+			q += " AND :start BETWEEN start_date AND LEAST( :start, end_date) ";
+		else if(endDate != null)
+			q += " AND :end BETWEEN start_date AND LEAST( :end ,end_date) ";
+			
+		q += " ORDER BY rank DESC, name"
+			+ " ) AS foo";
+		//@formatter:on
+		//Logger.debug("name=" + name + " q=\n" + q);
+		
+		Query query = em.createNativeQuery(q);
+		if(startDate != null)
+			query = query.setParameter("start", startDate);
+		if(endDate != null)
+			query = query.setParameter("end", endDate);
+		List<?> resultList = query.getResultList();
+		List<BigInteger> result = getGids(resultList);
+		List<Location> locations = LocationProxyRule.getLocations(result);
+		int i = 0;
+		for (Location l : locations){
+			Object[] objects = (Object[])resultList.get(i++);
+			l.setHeadline(objects[1].toString());
+			l.setRank(objects[2].toString());
+		}
+		
+		return locations;
+	}
+
+	private void sanitize(String value) {
+		String tokenized = SQLSanitizer.tokenize(value);
+		if(SQLSanitizer.isUnsafe(tokenized)){
+			throw new BadRequest("value [ " + value + " ] contains unsafe character(s)!");
+		}
+		
+	}
+
+	private String toList(List<Integer> locTypeIds) {
+		if (locTypeIds == null){
+			return null;
+		}
+		if(locTypeIds.isEmpty())
+			return null;
+		StringJoiner joiner = new StringJoiner(",", "(", ")");
+		for(int i: locTypeIds){
+			joiner.add(Integer.toString(i));
+		}
+		String list = joiner.toString();
+		return list;
 	}
 
 	private List<BigInteger> getGids(List<?> resultList) {

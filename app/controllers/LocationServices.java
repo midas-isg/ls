@@ -7,12 +7,17 @@ import interactors.LocationProxyRule;
 import interactors.LocationRule;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
 import models.Response;
+//import models.filters.LocationFilter;
 import models.geo.FeatureCollection;
 import models.geo.FeatureGeometry;
 import play.Logger;
@@ -23,6 +28,8 @@ import play.libs.Jsonp;
 import play.mvc.Controller;
 import play.mvc.Result;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiImplicitParam;
 import com.wordnik.swagger.annotations.ApiImplicitParams;
@@ -184,6 +191,72 @@ public class LocationServices extends Controller {
 		return ok(Json.toJson(result));
 	}
 
+	@Transactional
+	@ApiOperation(
+			httpMethod = "POST", 
+			nickname = "findBulkLocationsByNameAndDate", 
+			value = "Returns locations by name and start and end dates", 
+			notes = "This endpoint returns locations whose name matches the requested search terms (name, start date, end date). "
+			+ "Note: The schema of the 'geoJSON' field in the response is GeoJSON FeatureCollection. ", 
+			response = Response.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = OK, message = "Successful retrieval of location", response = Response.class),
+			//@ApiResponse(code = 404, message = "Location not found"),
+			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
+			//@ApiResponse(code = 400, message = "Format is not supported") 
+	})
+	
+	public Result findBulkLocations() {
+		ArrayList<Map<String, Object>> params = toParams((ArrayNode)request().body().asJson());
+		List<Object> result = GeoJsonRule.findBulkLocations(params);
+		return ok(toJson(result));
+	}
+	
+	private ArrayNode toJson(List<Object> list) {
+		ArrayNode result = Json.newArray();
+		for(Object item : list){
+			result.add(Json.toJson(item));
+		}
+	    return result;
+	}
+
+	private static ArrayList<Map<String, Object>> toParams(ArrayNode array) {
+		ArrayList<Map<String,Object>> params = new ArrayList<>();
+		for(JsonNode node: array){
+			Map<String,Object> map = new HashMap<>();
+			map.put("name",node.findValue("name").asText());
+			putIfNotNull(node, map, "locationTypeIds");
+			putAsTextIfNotNull(node, map, "start");
+			putAsTextIfNotNull(node, map, "end");
+			
+			params.add(map);
+		}
+		return params;
+	}
+
+	private static void putIfNotNull(JsonNode node, Map<String, Object> map, String key) {
+		if(getKeyList(node).contains(key))
+			map.put(key, node.get(key));
+		else
+			map.put(key, null);
+	}
+	
+	private static void putAsTextIfNotNull(JsonNode node, Map<String, Object> map, String key) {
+		if(getKeyList(node).contains(key))
+			map.put(key, node.findValue(key).asText());
+		else
+			map.put(key, null);
+	}
+	
+	private static List<String> getKeyList(JsonNode node) {
+		List<String> keys = new ArrayList<>();
+		Iterator<String> l = node.fieldNames();
+		while(l.hasNext()){
+			keys.add(l.next());
+		}
+		return keys;
+	}
+	
 	@Transactional
 	public Result findLocationNames(String q, Integer limit) {
 		Object result = LocationProxyRule.findLocationNames(q, limit);
