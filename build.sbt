@@ -31,3 +31,6 @@ routesGenerator := InjectedRoutesGenerator
 
 // Compile the project before generating Eclipse files, so that generated .scala or .class files for views and routes are present
 EclipseKeys.preTasks := Seq(compile in Compile)
+
+// Needed as workaround for jpa persistence.xml bug   https://github.com/playframework/playframework/issues/4590
+PlayKeys.externalizeResources := false
