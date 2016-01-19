@@ -91,13 +91,21 @@ public class LocationDao {
 		String queryText = toQueryText(name);
 		String qt = "'" + queryText + "'";
 		//@formatter:off
-		String q = 
-			"SELECT gid, ts_headline('simple', name, "+ qt + ") headline, rank" 
-			+ " FROM (SELECT gid, name, ts_rank_cd(ti, " + qt + ") AS rank"
-			+ "  FROM location, " + tsVector + " ti"
-			+ "  WHERE ti @@ " + qt 
-			+ "  ORDER BY rank DESC, name"
-			+ " ) AS foo";
+		String q = "with origin_names as ( "
+				+ " SELECT gid, name, ts_rank_cd(ti, "+ qt + " ) AS rank "
+				+ " FROM location, " + tsVector + " ti " 
+				+ " WHERE ti @@ "+ qt + "  "
+				+ " ORDER BY rank DESC,	name ), "
+				+ " alt_names as ( "
+				+ " SELECT gid, name, ts_rank_cd(ti, "+ qt + " ) AS rank "
+				+ " FROM alt_name , " + tsVector + " ti "
+				+ " WHERE gid not in (select gid from origin_names) and ti @@ "+ qt + "  "
+				+ " ORDER BY rank DESC, name ) "
+				+ " SELECT gid, ts_headline('simple', name, "+ qt + " ) headline, rank "
+				+ " FROM origin_names "
+				+ " UNION "
+				+ " SELECT gid, ts_headline('simple', name, "+ qt + " ) headline, rank "
+				+ " FROM alt_names ";
 		//@formatter:on
 		//Logger.debug("name=" + name + " q=\n" + q);
 		Query query = em.createNativeQuery(q);
