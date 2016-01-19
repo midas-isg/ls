@@ -241,8 +241,8 @@ public class GeoJsonRule {
 		putAsStringIfNotNull(properties, "locationDescription", data.getDescription());
 		putAsStringIfNotNull(properties, "headline", location.getHeadline());
 		putAsStringIfNotNull(properties, "rank", location.getRank());
-		putAsStringIfNotNull(properties, "start", data.getStartDate());
-		putAsStringIfNotNull(properties, "end", data.getEndDate());
+		putAsStringIfNotNull(properties, "startDate", data.getStartDate());
+		putAsStringIfNotNull(properties, "endDate", data.getEndDate());
 		String locationTypeName = getLocationTypeName(data.getLocationType());
 		putAsStringIfNotNull(properties, "locationTypeName", locationTypeName);
 		Location parent = location.getParent();
