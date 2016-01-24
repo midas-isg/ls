@@ -36,31 +36,38 @@ public class TestFindBulkLocation {
 	private void unsafeRequestTest() {
 		String body = "[{\"name\":\" ; drop ;\"}]";
 		String url = Server.makeTestUrl(basePath);
-		WSResponse response = requestBatchLocation(url, body);		
+		WSResponse response = requestBatchLocation(url, body);
 		assertStatus(response, BAD_REQUEST);
-		
+
 	}
 
 	private void endToEndTest() {
 		String body = "[{\"name\":\"pennsylvania\",\"locationTypeIds\":[16,104],\"start\":\"1780-12-12\","
-				+ " \"end\":\"2016-11-11\"},{\"name\":\"sudan\",\"locationTypeIds\":[1,17],"
-				+ "\"start\":\"2010-11-11\", \"end\":\"2012-11-11\"}]";
+				+ " \"end\":\"2012-11-11\"},{\"name\":\"sudan\",\"locationTypeIds\":[1,17],"
+				+ "\"start\": null, \"end\":\"\"},{\"name\":\"sudan\"}]";
 		String url = Server.makeTestUrl(basePath);
 		WSResponse response = requestBatchLocation(url, body);
 		JsonNode jsonResp = response.asJson();
 		List<String> keys = getKeyList(jsonResp.get(0));
-		Object[] propKeys = getKeyList(jsonResp.get(0).get("properties")).toArray();
-		
+		Object[] propKeys = getKeyList(jsonResp.get(0).get("properties"))
+				.toArray();
+
 		assertStatus(response, OK);
-		assertAreEqual(jsonResp.size(), 2);
-		assertContainsAll(keys.toArray(), new String[]{"features","properties"});
-		assertContainsAll(propKeys, new String[]{"name","start","end","locationTypeIds"});
+		assertAreEqual(jsonResp.size(), 3);
+		assertContainsAll(keys.toArray(), new String[] { "features",
+				"properties" });
+		assertContainsAll(propKeys, new String[] { "name", "start", "end",
+				"locationTypeIds" });
+
+		body = "[{\"name\":\"pennsylvania\",\"start\":\"2000-\"}]";
+		response = requestBatchLocation(url, body);
+		assertStatus(response, BAD_REQUEST);
 	}
 
 	private List<String> getKeyList(JsonNode jsonResp) {
 		List<String> keys = new ArrayList<>();
 		Iterator<String> l = jsonResp.fieldNames();
-		while(l.hasNext()){
+		while (l.hasNext()) {
 			keys.add(l.next());
 		}
 		return keys;
