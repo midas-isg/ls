@@ -91,20 +91,20 @@ public class LocationDao {
 		String queryText = toQueryText(name);
 		String qt = "'" + queryText + "'";
 		//@formatter:off
-		String q = "with origin_names as ( "
+		String q = "WITH origin_names AS ( "
 				+ " SELECT gid, name, ts_rank_cd(ti, "+ qt + " ) AS rank "
 				+ " FROM location, " + tsVector + " ti " 
 				+ " WHERE ti @@ "+ qt
 				+ " ORDER BY rank DESC,	name ), "
-				+ " alt_names as ( "
+				+ " alt_names AS ( "
 				+ " SELECT gid, name, ts_rank_cd(ti, "+ qt + " ) AS rank "
 				+ " FROM alt_name , " + tsVector + " ti "
 				+ " WHERE gid not in (select gid from origin_names) and ti @@ "+ qt
 				+ " ORDER BY rank DESC, name ) "
-				+ " SELECT gid, ts_headline('simple', name, "+ qt + " ) headline, rank "
+				+ " SELECT gid, ts_headline('simple', name, "+ qt + " ) headline, rank, name "
 				+ " FROM origin_names "
 				+ " UNION "
-				+ " SELECT gid, ts_headline('simple', name, "+ qt + " ) headline, rank "
+				+ " SELECT gid, ts_headline('simple', name, "+ qt + " ) headline, rank, name "
 				+ " FROM alt_names ";
 		//@formatter:on
 		//Logger.debug("name=" + name + " q=\n" + q);
@@ -121,6 +121,8 @@ public class LocationDao {
 			Object[] objects = (Object[])resultList.get(i++);
 			l.setHeadline(objects[1].toString());
 			l.setRank(objects[2].toString());
+			l.getData().setName(objects[3].toString());
+
 		}
 		
 		return locations;
@@ -129,6 +131,7 @@ public class LocationDao {
 	public List<Location> find(String name, List<Integer> locTypeIds, Date startDate, Date endDate) {
 		EntityManager em = JPA.em();
 		String tsVector = "to_tsvector('simple', name)";
+		//TODO: Move sanitize to a proper place
 		sanitize(name);
 		String queryText = toQueryText(name);
 		String qt = "'" + queryText + "'";
@@ -164,10 +167,10 @@ public class LocationDao {
 		q += (typeCond != null || dateCond != null) ? orderByRankAndName : ""; 
 		q += " ) ";
 		q +=
-			" ( SELECT gid, ts_headline('simple', name, "+ qt + " ) headline, rank " 
+			" ( SELECT gid, ts_headline('simple', name, "+ qt + " ) headline, rank, name " 
 			+ " FROM origin_names "
 			+ " UNION "
-			+ " SELECT gid, ts_headline('simple', name, "+ qt + " ) headline, rank " 
+			+ " SELECT gid, ts_headline('simple', name, "+ qt + " ) headline, rank, name " 
 			+ " FROM alt_names ) "
 			+ " ORDER BY rank DESC ";
 				
@@ -187,6 +190,7 @@ public class LocationDao {
 			Object[] objects = (Object[])resultList.get(i++);
 			l.setHeadline(objects[1].toString());
 			l.setRank(objects[2].toString());
+			l.getData().setName(objects[3].toString());
 		}
 		
 		return locations;

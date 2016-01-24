@@ -15,38 +15,57 @@ import play.libs.ws.WSResponse;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-public class TestFindBulkLocation {
+public class TestFindLocation {
 
-	private String basePath = "api/find-bulk";
+	private String findBulkPath = "api/find-bulk";
 	private long timeout = 100_000;
+	private String basePath = "api/locations";
+	private String gid = "1";
+	private String jsonContentType = "application/json; charset=utf-8";
 
 	public static Runnable test() {
-		return () -> newInstance().testFindBatchLocation();
+		return () -> newInstance().testFindLocation();
 	}
 
-	private static TestFindBulkLocation newInstance() {
-		return new TestFindBulkLocation();
+	private static TestFindLocation newInstance() {
+		return new TestFindLocation();
 	}
 
-	public void testFindBatchLocation() {
-		endToEndTest();
-		unsafeRequestTest();
+	public void testFindLocation() {
+		findByIdTest();
+		findBulkTest();
+		unsafeFindBulkTest();
 	}
 
-	private void unsafeRequestTest() {
+	private void findByIdTest() {
+		String url = Server.makeTestUrl(basePath + "/" + gid );
+		WSResponse response = get(url);
+		JsonNode jsonResp = response.asJson();
+		Object[] featuresKeys = getKeyList(jsonResp.get("features").get(0).get("properties")).toArray();
+		assertContainsAll(featuresKeys, new String[]{"locationTypeName", "lineage", "codes",
+				"gid", "otherNames", "related", "children", "name", "start", "parentGid"});
+	}
+
+	private WSResponse get(String url) {
+		WSRequest req = WS.url(url);
+		WSResponse response = req.get().get(timeout);
+		return response;
+	}
+
+	private void unsafeFindBulkTest() {
 		String body = "[{\"name\":\" ; drop ;\"}]";
-		String url = Server.makeTestUrl(basePath);
-		WSResponse response = requestBatchLocation(url, body);		
+		String url = Server.makeTestUrl(findBulkPath);
+		WSResponse response = post(url, body, jsonContentType);		
 		assertStatus(response, BAD_REQUEST);
 		
 	}
 
-	private void endToEndTest() {
+	private void findBulkTest() {
 		String body = "[{\"name\":\"pennsylvania\",\"locationTypeIds\":[16,104],\"start\":\"1780-12-12\","
 				+ " \"end\":\"2016-11-11\"},{\"name\":\"sudan\",\"locationTypeIds\":[1,17],"
 				+ "\"start\":\"2010-11-11\", \"end\":\"2012-11-11\"}]";
-		String url = Server.makeTestUrl(basePath);
-		WSResponse response = requestBatchLocation(url, body);
+		String url = Server.makeTestUrl(findBulkPath);
+		WSResponse response = post(url, body, jsonContentType);
 		JsonNode jsonResp = response.asJson();
 		List<String> keys = getKeyList(jsonResp.get(0));
 		Object[] propKeys = getKeyList(jsonResp.get(0).get("properties")).toArray();
@@ -66,9 +85,8 @@ public class TestFindBulkLocation {
 		return keys;
 	}
 
-	private WSResponse requestBatchLocation(String url, String body) {
-		WSRequest req = WS.url(url).setContentType(
-				"application/json; charset=utf-8");
+	private WSResponse post(String url, String body, String contentType) {
+		WSRequest req = WS.url(url).setContentType(contentType);
 		WSResponse response = req.post(body).get(timeout);
 		return response;
 	}
