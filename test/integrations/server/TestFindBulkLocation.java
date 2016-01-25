@@ -62,6 +62,10 @@ public class TestFindBulkLocation {
 		body = "[{\"name\":\"pennsylvania\",\"start\":\"2000-\"}]";
 		response = requestBatchLocation(url, body);
 		assertStatus(response, BAD_REQUEST);
+		
+		body = "[{}]";
+		response = requestBatchLocation(url, body);
+		assertStatus(response, BAD_REQUEST);
 	}
 
 	private List<String> getKeyList(JsonNode jsonResp) {

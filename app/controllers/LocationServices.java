@@ -17,6 +17,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
 import models.Response;
+import models.exceptions.BadRequest;
 //import models.filters.LocationFilter;
 import models.geo.FeatureCollection;
 import models.geo.FeatureGeometry;
@@ -224,8 +225,8 @@ public class LocationServices extends Controller {
 		ArrayList<Map<String,Object>> params = new ArrayList<>();
 		for(JsonNode node: array){
 			Map<String,Object> map = new HashMap<>();
-			map.put("name",node.findValue("name").asText());
-			putIfNotNull(node, map, "locationTypeIds");
+			putAsRequired(node, map, "name");
+			putAsNullIfNull(node, map, "locationTypeIds");
 			putAsTextIfNotNull(node, map, "start");
 			putAsTextIfNotNull(node, map, "end");
 			
@@ -234,7 +235,15 @@ public class LocationServices extends Controller {
 		return params;
 	}
 
-	private static void putIfNotNull(JsonNode node, Map<String, Object> map, String key) {
+	private static void putAsRequired(JsonNode node, Map<String, Object> map,
+			String string) {
+		if(getKeyList(node).contains(string))
+			map.put("name",node.findValue(string).asText());
+		else
+			throw new BadRequest("\"" + string + "\" key is requierd!");
+	}
+
+	private static void putAsNullIfNull(JsonNode node, Map<String, Object> map, String key) {
 		if(getKeyList(node).contains(key))
 			map.put(key, node.get(key));
 		else
