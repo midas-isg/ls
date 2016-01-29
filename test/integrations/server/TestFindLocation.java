@@ -38,12 +38,18 @@ public class TestFindLocation {
 	}
 
 	private void findByIdTest() {
-		String url = Server.makeTestUrl(basePath + "/" + gid );
+		String url = Server.makeTestUrl(basePath + "/" + gid);
 		WSResponse response = get(url);
 		JsonNode jsonResp = response.asJson();
-		Object[] featuresKeys = getKeyList(jsonResp.get("features").get(0).get("properties")).toArray();
-		assertContainsAll(featuresKeys, new String[]{"locationTypeName", "lineage", "codes",
-				"gid", "otherNames", "related", "children", "name", "start", "parentGid"});
+		Object[] features = getKeyList(jsonResp.get("features").get(0))
+				.toArray();
+		assertContainsAll(features, new String[] { "type", "geometry",
+				"properties", "id", "bbox", "repPoint" });
+		Object[] properties = getKeyList(
+				jsonResp.get("features").get(0).get("properties")).toArray();
+		assertContainsAll(properties, new String[] { "locationTypeName",
+				"lineage", "codes", "gid", "otherNames", "related", "children",
+				"name", "start", "parentGid" });
 	}
 
 	private WSResponse get(String url) {
@@ -55,9 +61,9 @@ public class TestFindLocation {
 	private void unsafeFindBulkTest() {
 		String body = "[{\"name\":\" ; drop ;\"}]";
 		String url = Server.makeTestUrl(findBulkPath);
-		WSResponse response = post(url, body, jsonContentType);		
+		WSResponse response = post(url, body, jsonContentType);
 		assertStatus(response, BAD_REQUEST);
-		
+
 	}
 
 	private void findBulkTest() {
@@ -68,18 +74,21 @@ public class TestFindLocation {
 		WSResponse response = post(url, body, jsonContentType);
 		JsonNode jsonResp = response.asJson();
 		List<String> keys = getKeyList(jsonResp.get(0));
-		Object[] propKeys = getKeyList(jsonResp.get(0).get("properties")).toArray();
-		
+		Object[] propKeys = getKeyList(jsonResp.get(0).get("properties"))
+				.toArray();
+
 		assertStatus(response, OK);
 		assertAreEqual(jsonResp.size(), 2);
-		assertContainsAll(keys.toArray(), new String[]{"features","properties"});
-		assertContainsAll(propKeys, new String[]{"name","start","end","locationTypeIds"});
+		assertContainsAll(keys.toArray(), new String[] { "features",
+				"properties" });
+		assertContainsAll(propKeys, new String[] { "name", "start", "end",
+				"locationTypeIds" });
 	}
 
 	private List<String> getKeyList(JsonNode jsonResp) {
 		List<String> keys = new ArrayList<>();
 		Iterator<String> l = jsonResp.fieldNames();
-		while(l.hasNext()){
+		while (l.hasNext()) {
 			keys.add(l.next());
 		}
 		return keys;
