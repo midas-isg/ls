@@ -23,6 +23,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
 
+import dao.entities.AltName;
 import dao.entities.Code;
 import dao.entities.Data;
 import dao.entities.Location;
@@ -35,7 +36,7 @@ public class GeoJsonRule {
 	private static final String KEY_BBOX = "bbox";
 	private static final String KEY_REPPOINT = "rep_point";
 	private static final String KEY_GEOMETRY = "geometry";
-	public static final List<String> MINIMUM_KEYS = Arrays.asList(new String[]{
+	public static final List<String> DEFAULT_KEYS = Arrays.asList(new String[]{
 			KEY_PROPERTIES, KEY_CHILDREN
 	});
 
@@ -143,8 +144,33 @@ public class GeoJsonRule {
 		putAsLocationObjectsIfNotNull(properties, "related", 
 				location.getRelatedLocations());
 		putAsCodeObjectsIfNotNull(properties, "codes", location);
+		putAsAltNameObjectsIfNotNull(properties, "otherNames", location);
 		putAsStringIfNotNull(properties, "kml", location.getData().getKml());
 		return properties;
+	}
+
+	private static void putAsAltNameObjectsIfNotNull(
+			Map<String, Object> properties, String string, Location location) {
+		if (location == null)
+			return;
+		
+		List<Map<String, String>> names = new ArrayList<>();
+		final String KEY_NAME = "name";
+		final String KEY_LANG = "language";
+		final String KEY_DESC = "description";
+
+		properties.put(string, names);
+		
+		List<AltName> otherNames = location.getAltNames();
+		if (otherNames == null)
+			return;
+		for (AltName name : otherNames){
+			Map<String, String> anotherName = new HashMap<>();
+			anotherName.put(KEY_NAME, name.getName());
+			anotherName.put(KEY_LANG, name.getLanguage());
+			anotherName.put(KEY_DESC, name.getDescription());
+			names.add(anotherName);
+		}		
 	}
 
 	private static boolean includeField(List<String> fields, String... keys) {
@@ -400,7 +426,7 @@ public class GeoJsonRule {
 			Integer limit, Integer offset){
 		List<Location> result = LocationRule.findByName(q, limit, offset);
 		Response response = new Response();
-		response.setGeoJSON(toFeatureCollection(result, MINIMUM_KEYS));
+		response.setGeoJSON(toFeatureCollection(result, DEFAULT_KEYS));
 		Map<String, Object> properties = new HashMap<>();
 		response.setProperties(properties);
 		properties.put("q", q);
@@ -484,7 +510,7 @@ public class GeoJsonRule {
 	public static Response findByPoint(double latitude, double longitude) {
 		List<Location> result = LocationRule.findByPoint(latitude, longitude);
 		Response response = new Response();
-		response.setGeoJSON(toFeatureCollection(result, MINIMUM_KEYS));
+		response.setGeoJSON(toFeatureCollection(result, DEFAULT_KEYS));
 		Map<String, Object> properties = new HashMap<>();
 		response.setProperties(properties);
 		putAsStringIfNotNull(properties, "latitude", latitude);

@@ -487,7 +487,7 @@ public class LocationServices extends Controller {
 			String geo = Json.toJson(geometry).toString();
 			List<BigInteger> gids = GeometryRule.findGidsByGeometry(geo, superTypeId, typeId);
 			List<Location> locations = LocationProxyRule.getLocations(gids);
-			return ok(Json.toJson(GeoJsonRule.toFeatureCollection(locations, GeoJsonRule.MINIMUM_KEYS)));
+			return ok(Json.toJson(GeoJsonRule.toFeatureCollection(locations, GeoJsonRule.DEFAULT_KEYS)));
 		}
 	}
 }
