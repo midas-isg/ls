@@ -13,7 +13,7 @@ import com.vividsolutions.jts.geom.Polygon;
 
 public class GeoOutputRule {
 	static FeatureGeometry toFeatureGeometry(Geometry geom) {
-		if (geom == null)
+		if (geom == null || geom.isEmpty())
 			return null;
 		List<List<List<double[]>>> list = toMultipolygonCoordinates(geom);
 		if (!list.isEmpty()){
@@ -64,7 +64,7 @@ public class GeoOutputRule {
 		return result;
 	}
 
-	private static double[] toPoint(Coordinate coordinate1) {
+	public static double[] toPoint(Coordinate coordinate1) {
 		double[] coordinate = new double[2];//[3];
 		coordinate[0] = coordinate1.x;
 		coordinate[1] = coordinate1.y;

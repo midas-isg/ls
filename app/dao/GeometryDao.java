@@ -31,7 +31,8 @@ public class GeometryDao {
 		EntityManager em = JPA.em();
 		//@formatter:off
 		String q = "select 0 as clazz_, 0 as gid, area, update_date, "
-				+ "  ST_Simplify(multipolygon,?2) multipolygon"
+				+ "  ST_Simplify(multipolygon,?2) multipolygon, "
+				+ "  rep_point "
 				+ " from location_geometry "
 				+ " where gid=?1";
 		//@formatter:on

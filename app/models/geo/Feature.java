@@ -14,7 +14,8 @@ public class Feature {
 	private Map<String, Object> properties;
 	private String id;
 	private double[] bbox;
-	
+	private double[] repPoint;
+
 	public Feature() {
 		type = Feature.class.getSimpleName();
 		properties = new HashMap<>();
@@ -60,11 +61,20 @@ public class Feature {
 		this.bbox = bbox;
 	}
 
+	public double[] getRepPoint() {
+		return repPoint;
+	}
+
+	public void setRepPoint(double[] repPoint) {
+		this.repPoint = repPoint;
+	}
+
 	@Override
 	public String toString() {
 		return "Feature [type=" + type + ", geometry=" + geometry
 				+ ", properties=" + properties + ", id=" + id + ", bbox="
-				+ Arrays.toString(bbox) + "]";
+				+ Arrays.toString(bbox) + ", rep_point="
+				+ Arrays.toString(repPoint) + "]";
 	}
 
 	@Override

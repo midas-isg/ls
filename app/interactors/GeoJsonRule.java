@@ -21,6 +21,7 @@ import play.Logger;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Point;
 
 import dao.entities.Code;
 import dao.entities.Data;
@@ -32,6 +33,7 @@ public class GeoJsonRule {
 	private static final String KEY_PROPERTIES = "properties";
 	private static final String KEY_CHILDREN = "children";
 	private static final String KEY_BBOX = "bbox";
+	private static final String KEY_REPPOINT = "rep_point";
 	private static final String KEY_GEOMETRY = "geometry";
 	public static final List<String> MINIMUM_KEYS = Arrays.asList(new String[]{
 			KEY_PROPERTIES, KEY_CHILDREN
@@ -111,10 +113,21 @@ public class GeoJsonRule {
 			feature.setGeometry(GeoOutputRule.toFeatureGeometry(multiPolygonGeom));
 			if (includeField(fields, KEY_BBOX)) 
 				feature.setBbox(computeBbox(location));
+			if (includeField(fields, KEY_REPPOINT))
+				feature.setRepPoint(getRepPoint(geometry));
 			feature.setId(location.getGid() + "");
 		}
 		
 		return feature;
+	}
+
+	private static double[] getRepPoint(LocationGeometry geometry) {
+		if(geometry == null)
+			return null;
+		Point repPoint = geometry.getRepPoint();
+		if(repPoint == null)
+			return null;
+		return GeoOutputRule.toPoint(repPoint.getCoordinate());
 	}
 
 	private static Map<String, Object> toPropertiesOfFeature(Location location, boolean includeChildren) {
@@ -178,7 +191,7 @@ public class GeoJsonRule {
 	}
 
 	private static double[] computeBbox(Geometry geometry) {
-		if (geometry == null)
+		if (geometry == null || geometry.isEmpty())
 			return null;
 		Geometry envelope = geometry.getEnvelope();
 		Coordinate[] coordinates = envelope.getCoordinates();
