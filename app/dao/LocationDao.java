@@ -15,10 +15,12 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
 import models.exceptions.BadRequest;
+import models.exceptions.PostgreSQLException;
 
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.transform.Transformers;
+import org.postgresql.util.PSQLException;
 
 import play.Logger;
 import play.db.jpa.JPA;
@@ -32,13 +34,33 @@ public class LocationDao {
 	public Long create(Location location) {
 		EntityManager em = JPA.em();
 		LocationGeometry geometry = prepareGeometry(location);
-		em.persist(geometry);
-		em.persist(location);
+		try {
+			em.persist(geometry);
+			em.persist(location);
+			em.flush();
+		} catch (Exception e){
+			PSQLException pe = getPSQLException(e);
+			if(pe != null){
+				throw new PostgreSQLException(pe, pe.getSQLState());
+			}
+			else
+				throw new RuntimeException(e);
+		}
 		LocationProxyRule.notifyChange();
 		Long gid = location.getGid();
 		Logger.info("persisted " + gid);
 		
 		return gid;
+	}
+
+	private PSQLException getPSQLException(Exception e) {
+		Throwable cause = e.getCause();
+		while (cause != null){
+			if(cause instanceof PSQLException)
+				return (PSQLException) cause;
+			cause = cause.getCause();
+		}
+		return null;
 	}
 
 	public Location read(long gid) {

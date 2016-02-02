@@ -17,6 +17,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
 import models.Response;
+import models.exceptions.PostgreSQLException;
 //import models.filters.LocationFilter;
 import models.geo.FeatureCollection;
 import models.geo.FeatureGeometry;
@@ -48,6 +49,7 @@ public class LocationServices extends Controller {
 	public static final String FORMAT_APOLLOXML = "xml";
 	public static final String FORMAT_KML = "kml";
 	public static final String FORMAT_DEFAULT = "geojson";
+	private static final String UNIQUE_VIOLATION = "23505";
 
 	@Transactional
 	@ApiOperation(
@@ -321,6 +323,12 @@ public class LocationServices extends Controller {
 			setResponseLocation(id);
 
 			return created();
+		} catch(PostgreSQLException e){
+			String message = e.getMessage();
+			if(e.getSQLState()!= null && e.getSQLState().equals(UNIQUE_VIOLATION))
+				return forbidden(message);
+			
+			return badRequest(message);
 		} catch (RuntimeException e) {
 			String message = e.getMessage();
 			Logger.error(message, e);
