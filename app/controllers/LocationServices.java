@@ -48,6 +48,16 @@ public class LocationServices extends Controller {
 	public static final String FORMAT_APOLLOXML = "xml";
 	public static final String FORMAT_KML = "kml";
 	public static final String FORMAT_DEFAULT = "geojson";
+	private static final String findBulkEx = "find-bulk.json";
+	private static final String findBulkExBody = "Only \"name\" is required. See an example of body at "
+			+ "<a href='assets/examples/api/" + findBulkEx + "'>" + findBulkEx + "</a> ";
+	private static final String findbyGeomEx = "AuMaridiTown.geojson";
+	private static final String findbyGeomExBody = "See an example of body at "
+			+ "<a href='assets/examples/api/" + findbyGeomEx + "'>" + findbyGeomEx + "</a> ";
+	private static final String superTypeAPI = "/api/super-types";
+	private static final String locationTypeAPI = "/api/location-types";
+
+	
 
 	@Transactional
 	@ApiOperation(
@@ -195,9 +205,9 @@ public class LocationServices extends Controller {
 	@ApiOperation(
 			httpMethod = "POST", 
 			nickname = "findBulkLocationsByNameAndDate", 
-			value = "Returns locations by name and start and end dates", 
-			notes = "This endpoint returns locations whose name matches the requested search terms (name, start date, end date). "
-			+ "Note: The schema of the 'geoJSON' field in the response is GeoJSON FeatureCollection. ", 
+			value = "Returns bulk locations by name and other optional parameters", 
+			notes = "This endpoint returns locations whose name matches the requested search terms (name[required], start date, end date, location type id). "
+			+ "Note: The schema of the 'geoJSON' field in the response is GeoJSON FeatureCollection without the 'geometry' and 'children' info. ", 
 			response = Response.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = OK, message = "Successful retrieval of location", response = Response.class),
@@ -205,7 +215,14 @@ public class LocationServices extends Controller {
 			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
 			//@ApiResponse(code = 400, message = "Format is not supported") 
 	})
-	
+	 @ApiImplicitParams( { 
+	    	@ApiImplicitParam(
+	    			value = findBulkExBody, 
+	    			required = true, 
+	    			dataType = "List[JsonNode]",
+	    			paramType = "body"
+	    	)
+	} )
 	public Result findBulkLocations() {
 		ArrayList<Map<String, Object>> params = toParams((ArrayNode)request().body().asJson());
 		List<Object> result = GeoJsonRule.findBulkLocations(params);
@@ -258,7 +275,35 @@ public class LocationServices extends Controller {
 	}
 	
 	@Transactional
-	public Result findLocationNames(String q, Integer limit) {
+	@ApiOperation(
+			httpMethod = "GET", 
+			nickname = "findUniqueLocationNames", 
+			value = "Returns unique location-names", 
+			notes = "This endpoint returns uniqure location-names which match the requested search terms (q). "
+			+ "Use 'limit' to set the maximum number to return (default is 10). ",
+			response = String.class,
+			produces = "application/json",
+			responseContainer = "set"
+	)
+	@ApiResponses(value = {
+			@ApiResponse(code = OK, message = "Successful retrieval of location", response = Response.class),
+			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
+	})
+	public Result findLocationNames(
+			@ApiParam(
+					value = "Search terms delimited by a space charactor. "
+					+ "The search terms are combined together with conjunction. ",
+					required = true
+			) 
+			@QueryParam("q") 
+			String q,
+			@ApiParam(
+					value = "Maximum number of names to return. ", 
+					required = true, defaultValue = "10"
+			) 
+			@QueryParam("limit")
+			Integer limit 
+	){
 		Object result = LocationProxyRule.findLocationNames(q, limit);
 		return ok(Json.toJson(result));
 	}
@@ -445,7 +490,42 @@ public class LocationServices extends Controller {
 	}
 
 	@Transactional
-	public Result findByFeatureCollection(Long superTypeId, Long typeId) throws Exception {
+	@ApiOperation(
+			httpMethod = "POST", 
+			nickname = "findLocationByFeatureCollection", 
+			value = "Returns locations by featureCollection", 
+			notes = "This endpoint returns locations which intersect the submitted Geometry in body. ",
+			response = Response.class
+	)
+	@ApiResponses(value = { 
+			@ApiResponse(code = OK, message = "Successful retrieval of location", response = Response.class),
+			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error")
+	})
+    @ApiImplicitParams( { 
+    	@ApiImplicitParam(
+    			value = "GeoJSON FeatureCollection. "
+    					+ "Only geometry is required. "
+    					+ findbyGeomExBody, 
+    			required = true, 
+    			dataType = "models.geo.FeatureCollection", 
+    			paramType = "body"
+    	) 
+    } )
+	public Result findByFeatureCollection(
+			@ApiParam(
+					name = "superTypeId",
+					value = "superTypeId (location-type category). "
+							+ "refer to " + superTypeAPI + " endpoint."
+			)
+			@QueryParam("superTypeId")
+			Long superTypeId,
+			@ApiParam(
+					name = "LocationTypeId",
+					value = "LocationTypeId. "
+							+ "refer to " + locationTypeAPI + " endpoint."
+			)
+			@QueryParam("LocationTypeId")
+			Long typeId) throws Exception {
 		FeatureCollection fc = parseRequestAsFeatureCollection();
 		response().setContentType("application/vnd.geo+json");
 		return Wire.findByFeatureCollection(fc, superTypeId, typeId);

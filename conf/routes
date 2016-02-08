@@ -22,10 +22,10 @@ PUT           /api/locations/:gid                 controllers.LocationServices.u
 DELETE        /api/locations/:gid                 controllers.LocationServices.delete(gid:Long)
 
 GET           /api/locations                      controllers.LocationServices.findLocations(q, limit:Int?=10, offset:Int?=0)
-POST           /api/find-bulk                controllers.LocationServices.findBulkLocations()
+POST           /api/find-bulk                	  controllers.LocationServices.findBulkLocations()
 
 # Deprecated
-GET           /api/locations/byCoordinate        controllers.LocationServices.findLocationsByPoint(lat:Double, long:Double)
+GET           /api/locations/byCoordinate         controllers.LocationServices.findLocationsByPoint(lat:Double, long:Double)
 
 GET           /api/locations-by-coordinate        controllers.LocationServices.findLocationsByPoint(lat:Double, long:Double)
 POST          /api/locations-by-geometry          controllers.LocationServices.findByFeatureCollection(superTypeId:java.lang.Long ?= null, typeId:java.lang.Long ?= null)
@@ -40,9 +40,9 @@ GET           /api/geometry-metadata/:gid         controllers.LocationServices.g
 GET           /assets/*file                       controllers.Assets.at(path="/public", file)
 
 # Swagger API documentation
-GET           /api-docs.json                      @pl.matisoft.swagger.ApiHelpController.getResources
-GET           /api-docs.json/api/locations        @pl.matisoft.swagger.ApiHelpController.getResource(path = "/api/locations")
 GET           /api-docs                           controllers.Application.swagger()
+GET     	  /api-docs.json					  @pl.matisoft.swagger.ApiHelpController.getResources
+GET			  /api-docs.json*path				  @pl.matisoft.swagger.ApiHelpController.getResource(path)
 
 # Test page
 GET     /test/acceptance            controllers.Test.acceptance()
