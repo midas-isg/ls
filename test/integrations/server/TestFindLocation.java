@@ -33,8 +33,22 @@ public class TestFindLocation {
 
 	public void testFindLocation() {
 		findByIdTest();
+		findByNameTest();
 		findBulkTest();
 		unsafeFindBulkTest();
+	}
+
+	private void findByNameTest() {
+		boolean searchAltNames = true;
+		String url = Server.makeTestUrl(basePath + "?q=pennsylvania&limit=2&offset=0&searchAltNames="+ searchAltNames  );
+		WSResponse response = get(url);
+		JsonNode jsonResp = response.asJson();
+		assertAreEqual(jsonResp.get("properties").get("searchAltNames").asText(), "true");
+		searchAltNames = false;
+		url = Server.makeTestUrl(basePath + "?q=pennsylvania&limit=2&offset=0&searchAltNames="+ searchAltNames  );
+		response = get(url);
+		jsonResp = response.asJson();
+		assertAreEqual(jsonResp.get("properties").get("searchAltNames").asText(), "false");
 	}
 
 	private void findByIdTest() {

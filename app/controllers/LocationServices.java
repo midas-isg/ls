@@ -185,9 +185,16 @@ public class LocationServices extends Controller {
 					required = true, defaultValue = "0"
 			) 
 			@QueryParam("offset") 
-			Integer offset
+			Integer offset,
+			
+			@ApiParam(
+					value = "Whether to search in location alternative-names. ", 
+					defaultValue = "true"
+			) 
+			@QueryParam("searchAltNames") 
+			boolean searchAltNames
 	) {
-		Object result = GeoJsonRule.findByName(q, limit, offset);
+		Object result = GeoJsonRule.findByName(q, limit, offset, searchAltNames);
 		return ok(Json.toJson(result));
 	}
 

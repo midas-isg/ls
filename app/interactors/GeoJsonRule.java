@@ -410,8 +410,8 @@ public class GeoJsonRule {
 	}
 
 	public static Response findByName(String q, 
-			Integer limit, Integer offset){
-		List<Location> result = LocationRule.findByName(q, limit, offset);
+			Integer limit, Integer offset, boolean altNames){
+		List<Location> result = LocationRule.findByName(q, limit, offset, altNames);
 		Response response = new Response();
 		response.setGeoJSON(toFeatureCollection(result, DEFAULT_KEYS));
 		Map<String, Object> properties = new HashMap<>();
@@ -419,10 +419,11 @@ public class GeoJsonRule {
 		properties.put("q", q);
 		putAsStringIfNotNull(properties, "limit", limit);
 		putAsStringIfNotNull(properties, "offset", offset);
+		putAsStringIfNotNull(properties, "searchAltNames", altNames);
 		putAsStringIfNotNull(properties, "resultSize", "" + result.size());
 		properties.put("locationTypeName", "Result from a query");
 		String descritpion = "Result from the query for '" + q + "' limit=" 
-		+ limit + " offset=" + offset;
+		+ limit + " offset=" + offset + " searchAltNames=" + altNames;
 		properties.put("locationDescription", descritpion);
 		return response;
 	}
