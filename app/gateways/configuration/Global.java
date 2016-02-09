@@ -7,6 +7,7 @@ import models.exceptions.PostgreSQLException;
 import play.Application;
 import play.GlobalSettings;
 import play.Logger;
+import play.Play;
 import play.libs.F;
 import play.libs.F.Promise;
 import play.libs.Json;
@@ -67,8 +68,10 @@ public class Global extends GlobalSettings {
 			}
 
 			private void verbose(Exception e, ErrorMessage em) {
-				em.stackTrace = e.getStackTrace();
-				em.cause = e.getCause();
+				if (!Play.isProd()){
+					em.stackTrace = e.getStackTrace();
+					em.cause = e.getCause();
+				}
 			}
 		};
 	}
