@@ -36,6 +36,7 @@ public class TestFindLocation {
 		findByNameTest();
 		findBulkTest();
 		unsafeFindBulkTest();
+		unsafeFindByNameTest();
 	}
 
 	private void findByNameTest() {
@@ -78,6 +79,13 @@ public class TestFindLocation {
 		WSResponse response = post(url, body, jsonContentType);
 		assertStatus(response, BAD_REQUEST);
 
+	}
+	
+	private void unsafeFindByNameTest() {
+		boolean searchAltNames = true;
+		String url = Server.makeTestUrl(basePath + "?q=;drop%20a%20;"+ searchAltNames  );
+		WSResponse response = get(url);
+		assertStatus(response, BAD_REQUEST);
 	}
 
 	private void findBulkTest() {

@@ -108,6 +108,8 @@ public class LocationDao {
 	}
 	
 	public List<Location> findByName(String name, Integer limit, Integer offset, boolean altNames) {
+		//TODO: move sanitize() to a proper place
+		sanitize(name);
 		EntityManager em = JPA.em();
 		String tsVector = "to_tsvector('simple', name)";
 		String queryText = toQueryText(name);
