@@ -68,8 +68,8 @@ public class TestFindLocation {
 
 	private void findBulkTest() {
 		String body = "[{\"name\":\"pennsylvania\",\"locationTypeIds\":[16,104],\"start\":\"1780-12-12\","
-				+ " \"end\":\"2016-11-11\"},{\"name\":\"sudan\",\"locationTypeIds\":[1,17],"
-				+ "\"start\":\"2010-11-11\", \"end\":\"2012-11-11\"}]";
+				+ " \"end\":\"2012-11-11\"},{\"name\":\"sudan\",\"locationTypeIds\":[1,17],"
+				+ "\"start\": null, \"end\":\"\"},{\"name\":\"sudan\"}]";
 		String url = Server.makeTestUrl(findBulkPath);
 		WSResponse response = post(url, body, jsonContentType);
 		JsonNode jsonResp = response.asJson();
@@ -78,11 +78,18 @@ public class TestFindLocation {
 				.toArray();
 
 		assertStatus(response, OK);
-		assertAreEqual(jsonResp.size(), 2);
+		assertAreEqual(jsonResp.size(), 3);
 		assertContainsAll(keys.toArray(), new String[] { "features",
 				"properties" });
 		assertContainsAll(propKeys, new String[] { "name", "start", "end",
 				"locationTypeIds" });
+		body = "[{\"name\":\"pennsylvania\",\"start\":\"2000-\"}]";
+		response = post(url, body, jsonContentType);
+		assertStatus(response, BAD_REQUEST);
+		
+		body = "[{}]";
+		response = post(url, body, jsonContentType);
+		assertStatus(response, BAD_REQUEST);
 	}
 
 	private List<String> getKeyList(JsonNode jsonResp) {

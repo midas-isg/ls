@@ -13,6 +13,7 @@ import java.util.StringJoiner;
 import org.joda.time.LocalDate;
 
 import models.Response;
+import models.exceptions.BadRequest;
 import models.geo.Feature;
 import models.geo.FeatureCollection;
 import models.geo.FeatureGeometry;
@@ -280,8 +281,8 @@ public class GeoJsonRule {
 		putAsStringIfNotNull(properties, "locationDescription", data.getDescription());
 		putAsStringIfNotNull(properties, "headline", location.getHeadline());
 		putAsStringIfNotNull(properties, "rank", location.getRank());
-		putAsStringIfNotNull(properties, "start", data.getStartDate());
-		putAsStringIfNotNull(properties, "end", data.getEndDate());
+		putAsStringIfNotNull(properties, "startDate", data.getStartDate());
+		putAsStringIfNotNull(properties, "endDate", data.getEndDate());
 		String locationTypeName = getLocationTypeName(data.getLocationType());
 		putAsStringIfNotNull(properties, "locationTypeName", locationTypeName);
 		Location parent = location.getParent();
@@ -462,9 +463,18 @@ public class GeoJsonRule {
 			return null;
 		}
 		String dateString = (String)param.get(key);
-		LocalDate localDt = new LocalDate(dateString);
-		Date startDate = Date.valueOf(localDt.toString());
-		return startDate;
+		if(dateString.equals("") || dateString.equals("null"))
+			return null;
+		Date date = null;
+		try{
+			LocalDate localDt = new LocalDate(dateString);
+			date = Date.valueOf(localDt.toString());
+		} catch(Exception e){
+			String msg = (e.getMessage() != null) ? e.getMessage() : 
+				"Invalid date: " + dateString;
+			throw new BadRequest(msg);
+		}
+		return date;
 	}
 
 	private static FeatureCollection findLocation(String name,
