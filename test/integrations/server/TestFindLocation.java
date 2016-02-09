@@ -63,7 +63,7 @@ public class TestFindLocation {
 				jsonResp.get("features").get(0).get("properties")).toArray();
 		assertContainsAll(properties, new String[] { "locationTypeName",
 				"lineage", "codes", "gid", "otherNames", "related", "children",
-				"name", "start", "parentGid" });
+				"name", "startDate", "parentGid" });
 	}
 
 	private WSResponse get(String url) {
