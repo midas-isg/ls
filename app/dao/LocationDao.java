@@ -107,7 +107,7 @@ public class LocationDao {
 		return gid;
 	}
 	
-	public List<Location> findByName(String name, Integer limit, Integer offset) {
+	public List<Location> findByName(String name, Integer limit, Integer offset, boolean altNames) {
 		EntityManager em = JPA.em();
 		String tsVector = "to_tsvector('simple', name)";
 		String queryText = toQueryText(name);
@@ -117,17 +117,21 @@ public class LocationDao {
 				+ " SELECT gid, name, ts_rank_cd(ti, "+ qt + " ) AS rank "
 				+ " FROM location, " + tsVector + " ti " 
 				+ " WHERE ti @@ "+ qt
-				+ " ORDER BY rank DESC,	name ), "
+				+ " ORDER BY rank DESC,	name )";
+		if (altNames)
+				q += ", "
 				+ " alt_names AS ( "
 				+ " SELECT gid, name, ts_rank_cd(ti, "+ qt + " ) AS rank "
 				+ " FROM alt_name , " + tsVector + " ti "
 				+ " WHERE gid not in (select gid from origin_names) and ti @@ "+ qt
-				+ " ORDER BY rank DESC, name ) "
-				+ " SELECT gid, ts_headline('simple', name, "+ qt + " ) headline, rank, name "
-				+ " FROM origin_names "
-				+ " UNION "
-				+ " SELECT gid, ts_headline('simple', name, "+ qt + " ) headline, rank, name "
-				+ " FROM alt_names ";
+				+ " ORDER BY rank DESC, name ) ";
+		
+		q += " SELECT gid, ts_headline('simple', name, "+ qt + " ) headline, rank, name "
+			+ " FROM origin_names ";
+		if (altNames)
+			q += " UNION "
+			+ " SELECT gid, ts_headline('simple', name, "+ qt + " ) headline, rank, name "
+			+ " FROM alt_names ";
 		//@formatter:on
 		//Logger.debug("name=" + name + " q=\n" + q);
 		Query query = em.createNativeQuery(q);
