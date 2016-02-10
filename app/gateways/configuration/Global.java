@@ -3,9 +3,11 @@ package gateways.configuration;
 import java.lang.reflect.Method;
 
 import models.exceptions.BadRequest;
+import models.exceptions.PostgreSQLException;
 import play.Application;
 import play.GlobalSettings;
 import play.Logger;
+import play.Play;
 import play.libs.F;
 import play.libs.F.Promise;
 import play.libs.Json;
@@ -43,6 +45,9 @@ public class Global extends GlobalSettings {
 				} catch (BadRequest e) {
 					final Status status = badRequest(toErrorMessageInJson(e));
 					return Promise.<Result>pure(status);
+				} catch (PostgreSQLException e) {
+					final Status status = forbidden(toErrorMessageInJson(e));
+					return Promise.<Result>pure(status);
 				}catch (RuntimeException|Error e) {
 					throw e;
 				} catch (Throwable e) {
@@ -63,8 +68,10 @@ public class Global extends GlobalSettings {
 			}
 
 			private void verbose(Exception e, ErrorMessage em) {
-				em.stackTrace = e.getStackTrace();
-				em.cause = e.getCause();
+				if (!Play.isProd()){
+					em.stackTrace = e.getStackTrace();
+					em.cause = e.getCause();
+				}
 			}
 		};
 	}

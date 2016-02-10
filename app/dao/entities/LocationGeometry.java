@@ -21,6 +21,7 @@ import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Point;
 
 @Entity
 @Table(name = "location_geometry")
@@ -32,6 +33,7 @@ public class LocationGeometry {
 	private Location location;
 	private Double area;
 	private Date updateDate;
+	private Point repPoint;
 
 	@GenericGenerator(name = "generator", strategy = "foreign", 
 			parameters = @Parameter(name = "property", value = "location")
@@ -56,6 +58,17 @@ public class LocationGeometry {
 
 	public void setShapeGeom(Geometry shapeGeom) {
 		this.shapeGeom = shapeGeom;
+	}
+	
+	@Basic(fetch = FetchType.LAZY)
+	@Type(type = "org.hibernate.spatial.GeometryType")
+	@Column(name = "rep_point")
+	public Point getRepPoint() {
+		return repPoint;
+	}
+
+	public void setRepPoint(Point repPoint) {
+		this.repPoint = repPoint;
 	}
 
 	@OneToOne(fetch = FetchType.LAZY)

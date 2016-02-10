@@ -32,6 +32,7 @@ public class Location implements Comparable<Location> {
 	private List<Code> otherCodes;
 	private List<Location> relatedLocations;
 	private LocationGeometry locationGeom;
+	private List<AltName> altNames;
 	
 	private String headline;
 	private String rank;
@@ -100,6 +101,15 @@ public class Location implements Comparable<Location> {
 
 	public void setOtherCodes(List<Code> otherCodes) {
 		this.otherCodes = otherCodes;
+	}
+	
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "location")
+	public List<AltName> getAltNames() {
+		return altNames;
+	}
+
+	public void setAltNames(List<AltName> altNames) {
+		this.altNames = altNames;
 	}
 
 	@ManyToMany(fetch = FetchType.LAZY)
@@ -177,6 +187,8 @@ public class Location implements Comparable<Location> {
 		result = prime
 				* result
 				+ ((relatedLocations == null) ? 0 : relatedLocations.hashCode());
+		result = prime * result
+				+ ((altNames == null) ? 0 : altNames.hashCode());
 		return result;
 	}
 
@@ -228,6 +240,11 @@ public class Location implements Comparable<Location> {
 			if (other.relatedLocations != null)
 				return false;
 		} else if (!relatedLocations.equals(other.relatedLocations))
+			return false;
+		if (altNames == null) {
+			if (other.altNames != null)
+				return false;
+		} else if (!altNames.equals(other.altNames))
 			return false;
 		return true;
 	}
