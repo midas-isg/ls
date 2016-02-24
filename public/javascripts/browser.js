@@ -165,6 +165,8 @@ BrowserMap.prototype.loadFeatureLayer = function() {
 			show,
 			codes,
 			i,
+			delimiter,
+			OtherNames,
 			unsupportedCharactersRegExp = /([^a-zA-Z0-9À-öø-ÿ])/g;
 		
 		thisBrowserMap.map.fitBounds(bounds);
@@ -180,7 +182,7 @@ BrowserMap.prototype.loadFeatureLayer = function() {
 		properties.description = properties.name;
 		
 		$("#au-name").append("<strong>" + properties.name + "</strong>");
-		$("#au-location-type").append("<div class='pull-left pre-spaced'>" + properties.locationTypeName + "</div>");
+		$("#au-location-type").append("<div class=''>" + properties.locationTypeName + "</div>");
 		
 		if(properties.locationDescription) {
 			$("#description").append("<div class='pull-left pre-spaced'>" + properties.locationDescription + "</div>");
@@ -282,14 +284,22 @@ BrowserMap.prototype.loadFeatureLayer = function() {
 		
 		OtherNames = properties.otherNames;
 		if(OtherNames.length > 0) {
+			delimiter = ",";
 			for(i = 0; i < OtherNames.length; i++) {
-				name = "<em class='pull-left pre-spaced'>" + OtherNames[i].name;
+				if(OtherNames[i].name.search(",") !== -1) {
+					delimiter = ";";
+					break;
+				}
+			}
+			
+			for(i = 0; i < OtherNames.length; i++) {
+				name = "<strong class='pull-left pre-spaced'>" + OtherNames[i].name;
+				
 				if(i < OtherNames.length - 1){
-					name = name + ";</em>";
+					name += delimiter;
 				}
-				else{
-					name = name + "</em>";
-				}
+				
+				name += "</strong>"
 				$("#otherNames").append(name);
 				show = true;
 			}
