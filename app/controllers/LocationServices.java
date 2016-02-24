@@ -203,9 +203,16 @@ public class LocationServices extends Controller {
 					defaultValue = "true"
 			) 
 			@QueryParam("searchAltNames") 
-			boolean searchAltNames
+			boolean searchAltNames,
+			
+			@ApiParam(
+					value = "Whether to unaccent search terms. ", 
+					defaultValue = "true"
+			) 
+			@QueryParam("unaccent") 
+			boolean unaccent
 	) {
-		Object result = GeoJsonRule.findByName(q, limit, offset, searchAltNames);
+		Object result = GeoJsonRule.findByName(q, limit, offset, searchAltNames, unaccent);
 		return ok(Json.toJson(result));
 	}
 

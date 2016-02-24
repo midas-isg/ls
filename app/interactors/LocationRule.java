@@ -128,8 +128,8 @@ public class LocationRule {
 	}
 
 	static List<Location> findByName(String q, Integer limit,
-			Integer offset, boolean altNames) {
-		List<Location> result = new LocationDao().findByName(q, limit, offset, altNames);
+			Integer offset, boolean altNames, boolean unaccent) {
+		List<Location> result = new LocationDao().findByName(q, limit, offset, altNames, unaccent);
 		return result;
 	}
 	

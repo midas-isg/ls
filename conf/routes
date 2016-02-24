@@ -21,7 +21,7 @@ GET           /api/locations/:gid                 controllers.LocationServices.l
 PUT           /api/locations/:gid                 controllers.LocationServices.update(gid:Long)
 DELETE        /api/locations/:gid                 controllers.LocationServices.delete(gid:Long)
 
-GET           /api/locations                      controllers.LocationServices.findLocations(q, limit:Int?=10, offset:Int?=0, searchAltNames:Boolean?=true)
+GET           /api/locations                      controllers.LocationServices.findLocations(q, limit:Int?=10, offset:Int?=0, searchAltNames:Boolean?=true, unaccent:Boolean?=true)
 POST           /api/find-bulk                controllers.LocationServices.findBulkLocations()
 
 # Deprecated

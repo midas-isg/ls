@@ -424,8 +424,8 @@ public class GeoJsonRule {
 	}
 
 	public static Response findByName(String q, 
-			Integer limit, Integer offset, boolean altNames){
-		List<Location> result = LocationRule.findByName(q, limit, offset, altNames);
+			Integer limit, Integer offset, boolean altNames, boolean unaccent){
+		List<Location> result = LocationRule.findByName(q, limit, offset, altNames, unaccent);
 		Response response = new Response();
 		response.setGeoJSON(toFeatureCollection(result, DEFAULT_KEYS));
 		Map<String, Object> properties = new HashMap<>();
