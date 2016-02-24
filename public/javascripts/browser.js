@@ -280,6 +280,24 @@ BrowserMap.prototype.loadFeatureLayer = function() {
 			}
 		}
 		
+		OtherNames = properties.otherNames;
+		if(OtherNames.length > 0) {
+			for(i = 0; i < OtherNames.length; i++) {
+				name = "<em class='pull-left pre-spaced'>" + OtherNames[i].name;
+				if(i < OtherNames.length - 1){
+					name = name + ";</em>";
+				}
+				else{
+					name = name + "</em>";
+				}
+				$("#otherNames").append(name);
+				show = true;
+			}
+			if(show) {
+				$("#otherNames").show();
+			}
+		}
+		
 		properties.title = properties.name  + " " + properties.locationTypeName + " from ";
 		properties.title = properties.title + properties.startDate;
 		if(properties.endDate) {
