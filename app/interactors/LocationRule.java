@@ -84,7 +84,8 @@ public class LocationRule {
 	private static Location readWithoutGeometry(long gid) {
 		LocationDao locationDao = new LocationDao();
 		Location location = locationDao.read(gid);
-		location.setGeometry(new LocationGeometry());
+		if(location != null)
+			location.setGeometry(new LocationGeometry());
 		return location;
 	}
 

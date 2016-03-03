@@ -114,6 +114,8 @@ public class LocationServices extends Controller {
 			format = FORMAT_DEFAULT;
 
 		Location location = Wire.simplifyToMaxExteriorRings(gid, maxExteriorRings);
+		if (location == null)
+			return notFound("Location not found");
 		switch (format.toLowerCase()) {
 		case FORMAT_GEOJSON:
 			return asGeoJson(location);
