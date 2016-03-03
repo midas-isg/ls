@@ -344,6 +344,8 @@ BrowserMap.prototype.loadFeatureLayer = function() {
 	});
 	
 	this.featureLayer.on('error', function(err) {
+		$("#loader").fadeOut("slow");
+		$("#error").append("Error: " + err['error']['statusText']);
 		console.log("Error: " + err['error']['statusText']);
 		
 		if((thisBrowserMap.featureLayer.getLayers().length == 0) && thisBrowserMap.mapID) {
