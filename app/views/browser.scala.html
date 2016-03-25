@@ -10,6 +10,7 @@
 	<div>
 		<div id="header-data" hidden>
 			<h2 style="clear: both;">
+				<div id="error" class="data-container" style="color : red; font-weight:bold;"></div>
 				<div id="au-name" class="pull-left"></div>
 				<div id="au-location-type" class="data-container"></div>
 			</h2>
@@ -35,8 +36,10 @@
 					<strong style="color: red;">*Historical data overlayed on current world map*</strong>
 				</div>
 				
-				<div id='map-data' class='map'>Loading...</div>
-				<!--<div id='loader' style="position: absolute; top: 50%; left: 50%;"><img src='@routes.Assets.at("images/loading.gif")'></img></div>-->
+				<div class='map'>
+					<div id='map-data' class='map' style="position: absolute;">Loading...</div>
+					<img id='loader' class='map' src='@routes.Assets.at("images/loading.gif")' style="opacity: 0.7;"></img>
+				</div>
 			</div>
 			
 			<div class="data-container extra-bottom-space">
@@ -50,6 +53,9 @@
 					<em class="pull-left">to</em> <div id="end-date" class="pull-left pre-spaced">present</div>
 				</div>
 			</div>
+			<div id="codes" class="data-container extra-bottom-space" hidden>
+				<em id="codes-toggle">Known codes for this location in other standards:</em>
+			</div>
 			
 			<div id="au-related" class="data-container extra-bottom-space" hidden>
 				<em class="pull-left">Related locations:</em>
@@ -60,10 +66,6 @@
 			</div>
 			
 			<div id="au-children" class="data-container extra-bottom-space" hidden>
-			</div>
-			
-			<div id="codes" class="data-container extra-bottom-space" hidden>
-				<em id="codes-toggle">Known codes for this location in other standards:</em>
 			</div>
 			
 			<div class="data-container extra-bottom-space">
