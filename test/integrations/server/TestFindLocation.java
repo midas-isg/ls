@@ -1,5 +1,6 @@
 package integrations.server;
 
+import static org.fest.assertions.Assertions.assertThat;
 import static play.mvc.Http.Status.BAD_REQUEST;
 import static play.mvc.Http.Status.OK;
 import static suites.Helper.assertAreEqual;
@@ -37,6 +38,17 @@ public class TestFindLocation {
 		findBulkTest();
 		unsafeFindBulkTest();
 		unsafeFindByNameTest();
+		findByTypeId();
+	}
+	
+	private void findByTypeId(){
+		String url = Server.makeTestUrl(basePath + "/by-type-id/1");
+		WSResponse response = get(url);
+		JsonNode jsonResp = response.asJson();
+		assertStatus(response, OK);
+		List<String> keys = getKeyList(jsonResp.get(0));
+		assertThat(keys).contains("gid");
+		assertThat(keys).contains("name");
 	}
 
 	private void findByNameTest() {

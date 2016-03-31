@@ -3,6 +3,7 @@ package interactors;
 
 import java.math.BigInteger;
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -145,6 +146,21 @@ public class LocationRule {
 		return locations;
 	}
 
+	public static List<Object> findByTypeId(long typeId){
+		Map<String, Object> element;
+		List<Object> result = new ArrayList<>();
+		Map<Long, Location> locations = LocationProxyRule.getGid2location();
+		for(Location l : locations.values()){
+			element = new HashMap<>();
+			if(l.getData().getLocationType().getId() == typeId){
+				element.put("gid", l.getGid());
+				element.put("name", l.getData().getName());
+				result.add(element);
+			}
+		}
+		return result;
+	}
+	
 	public static Object getSimplifiedGeometryMetadata(long gid, Double tolerance) {
 		Location location = simplify(gid, tolerance);
 		Geometry shapeGeometry = location.getGeometry().getShapeGeom();
