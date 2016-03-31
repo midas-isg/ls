@@ -20,6 +20,13 @@ public class LocationProxyRule {
 	private static List<Location> roots = null;
 	private static List<String> uniqueSortedLocationNames = null;
 	
+	public static void updateCache(){
+		notifyChange();
+		gid2location = getGid2location();
+		roots = getHierarchy();
+		uniqueSortedLocationNames = getUniqueSortedLocationNames();
+	}
+	
 	public static void notifyChange(){
 		if (gid2location != null){
 			synchronized (gid2location){

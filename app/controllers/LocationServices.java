@@ -593,4 +593,10 @@ public class LocationServices extends Controller {
 			return ok(Json.toJson(GeoJsonRule.toFeatureCollection(locations, GeoJsonRule.DEFAULT_KEYS)));
 		}
 	}
+	
+	@Transactional
+	public Result updateLocationCache(){
+		LocationProxyRule.updateCache();
+		return ok("Location-name cache updated!");
+	}
 }
