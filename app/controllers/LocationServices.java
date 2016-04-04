@@ -593,4 +593,27 @@ public class LocationServices extends Controller {
 			return ok(Json.toJson(GeoJsonRule.toFeatureCollection(locations, GeoJsonRule.DEFAULT_KEYS)));
 		}
 	}
+	
+	@Transactional
+	@ApiOperation(
+		httpMethod = "GET", 
+		nickname = "findByLocationTypeId", 
+		value = "Returns locations gid and name with the specified type", 
+		notes = "This endpoint returns locations whose type matches the requested type id."
+	)
+	@ApiResponses(value = {
+		@ApiResponse(code = OK, message = "Successful retrieval"),
+		@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error")
+	})
+	public Result findByLocationTypeId(
+		@ApiParam(
+			value = "Location-type-id", 
+			required = true, defaultValue = "1"
+		) 
+		@PathParam("id")
+		Long typeId
+		){
+		List<Object> result = LocationRule.findByTypeId(typeId);
+		return ok(Json.toJson(result));
+	}
 }
