@@ -106,6 +106,8 @@ public class IntegrationTest extends WithApplication {
 				tesCrudAu();
 				testApolloLocation();
 				tesCrudEz();
+				tesCreateAuWithInvalidGeom();
+				tesCrudAuWithDuplication();
 				
 				transaction.rollback();
             }
@@ -533,6 +535,45 @@ public class IntegrationTest extends WithApplication {
         String deletePath = path + "/" + gid;
 		assertThat(deleteResult.header(LOCATION)).endsWith(deletePath);
 	}
+	
+	private void tesCreateAuWithInvalidGeom() throws Exception {
+    	String fileName = "test/AuWithInvalidGeom.geojson";		
+		String json = KmlRule.getStringFromFile(fileName);
+        JsonNode node = Json.parse(json);
+
+        Result result = request(routes.LocationServices.create(), node);
+        assertThat(result.status()).isEqualTo(Status.BAD_REQUEST);
+        String location = result.header(LOCATION);
+        if(location != null){
+        	long gid = toGid(location);
+        	if(gid != 0L){
+        		Result deleteResult = request(routes.LocationServices.delete(gid));
+        		assertThat(deleteResult.status()).isEqualTo(Status.NO_CONTENT);
+        	}
+        }
+	}
+	
+	private void tesCrudAuWithDuplication() throws Exception {
+    	String fileName = "test/AuMaridiTown.geojson";
+    	
+		String json = KmlRule.getStringFromFile(fileName);
+        JsonNode node = Json.parse(json);
+        String path = "/api/locations";
+
+        Result result = request(routes.LocationServices.create(), node);
+        assertThat(result.status()).isEqualTo(Status.CREATED);
+        Result duplication = request(routes.LocationServices.create(), node);
+        assertThat(duplication.status()).isEqualTo(Status.FORBIDDEN);
+        String location = result.header(LOCATION);
+        assertThat(location).containsIgnoringCase(path);
+        long gid = toGid(location);
+		testRead(gid, null);
+        Result deleteResult = request(routes.LocationServices.delete(gid));
+        assertThat(deleteResult.status()).isEqualTo(Status.NO_CONTENT);
+        String deletePath = path + "/" + gid;
+		assertThat(deleteResult.header(LOCATION)).endsWith(deletePath);
+	}
+
 
 	private void testRead(long gid, FeatureCollection fc) throws Exception {
 		FeatureCollection readFc = asFeatureCollection(gid);

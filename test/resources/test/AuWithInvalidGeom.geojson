@@ -1,0 +1,32 @@
+{
+  "type": "FeatureCollection",
+  "properties": {
+    "name": "Maridi test AU",
+    "locationTypeName": "Town",
+    "locationDescription": "Maridi Town, Maridi, Western Equatoria State, Sudan",
+    "parentGid": "1563",
+    "startDate": "2015-01-01",
+    "endDate": "2015-01-02"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [-1, -1,0],
+			  [-1, 0, 0],
+			  [1, 0, 0],
+			  [1, 1, 0],
+			  [0, 1, 0],
+			  [0, -1, 0],
+			  [-1, -1, 0]
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

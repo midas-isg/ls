@@ -15,10 +15,12 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
 import models.exceptions.BadRequest;
+import models.exceptions.PostgreSQLException;
 
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.transform.Transformers;
+import org.postgresql.util.PSQLException;
 
 import play.Logger;
 import play.db.jpa.JPA;
@@ -32,13 +34,33 @@ public class LocationDao {
 	public Long create(Location location) {
 		EntityManager em = JPA.em();
 		LocationGeometry geometry = prepareGeometry(location);
-		em.persist(geometry);
-		em.persist(location);
+		try {
+			em.persist(geometry);
+			em.persist(location);
+			em.flush();
+		} catch (Exception e){
+			PSQLException pe = getPSQLException(e);
+			if(pe != null){
+				throw new PostgreSQLException(pe, pe.getSQLState());
+			}
+			else
+				throw new RuntimeException(e);
+		}
 		LocationProxyRule.notifyChange();
 		Long gid = location.getGid();
 		Logger.info("persisted " + gid);
 		
 		return gid;
+	}
+
+	private PSQLException getPSQLException(Exception e) {
+		Throwable cause = e.getCause();
+		while (cause != null){
+			if(cause instanceof PSQLException)
+				return (PSQLException) cause;
+			cause = cause.getCause();
+		}
+		return null;
 	}
 
 	public Location read(long gid) {
@@ -85,19 +107,33 @@ public class LocationDao {
 		return gid;
 	}
 	
-	public List<Location> findByName(String name, Integer limit, Integer offset) {
+	public List<Location> findByName(String name, Integer limit, Integer offset, boolean altNames) {
+		//TODO: move sanitize() to a proper place
+		sanitize(name);
 		EntityManager em = JPA.em();
 		String tsVector = "to_tsvector('simple', name)";
 		String queryText = toQueryText(name);
 		String qt = "'" + queryText + "'";
 		//@formatter:off
-		String q = 
-			"SELECT gid, ts_headline('simple', name, "+ qt + ") headline, rank" 
-			+ " FROM (SELECT gid, name, ts_rank_cd(ti, " + qt + ") AS rank"
-			+ "  FROM location, " + tsVector + " ti"
-			+ "  WHERE ti @@ " + qt 
-			+ "  ORDER BY rank DESC, name"
-			+ " ) AS foo";
+		String q = "WITH origin_names AS ( "
+				+ " SELECT gid, name, ts_rank_cd(ti, "+ qt + " ) AS rank "
+				+ " FROM location, " + tsVector + " ti " 
+				+ " WHERE ti @@ "+ qt
+				+ " ORDER BY rank DESC,	name )";
+		if (altNames)
+				q += ", "
+				+ " alt_names AS ( "
+				+ " SELECT gid, name, ts_rank_cd(ti, "+ qt + " ) AS rank "
+				+ " FROM alt_name , " + tsVector + " ti "
+				+ " WHERE gid not in (select gid from origin_names) and ti @@ "+ qt
+				+ " ORDER BY rank DESC, name ) ";
+		
+		q += " SELECT gid, ts_headline('simple', name, "+ qt + " ) headline, rank, name "
+			+ " FROM origin_names ";
+		if (altNames)
+			q += " UNION "
+			+ " SELECT gid, ts_headline('simple', name, "+ qt + " ) headline, rank, name "
+			+ " FROM alt_names ";
 		//@formatter:on
 		//Logger.debug("name=" + name + " q=\n" + q);
 		Query query = em.createNativeQuery(q);
@@ -113,6 +149,8 @@ public class LocationDao {
 			Object[] objects = (Object[])resultList.get(i++);
 			l.setHeadline(objects[1].toString());
 			l.setRank(objects[2].toString());
+			l.getData().setName(objects[3].toString());
+
 		}
 		
 		return locations;
@@ -121,33 +159,49 @@ public class LocationDao {
 	public List<Location> find(String name, List<Integer> locTypeIds, Date startDate, Date endDate) {
 		EntityManager em = JPA.em();
 		String tsVector = "to_tsvector('simple', name)";
+		//TODO: Move sanitize to a proper place
 		sanitize(name);
 		String queryText = toQueryText(name);
 		String qt = "'" + queryText + "'";
 		String typeIdsList = toList(locTypeIds);
+		String typeCond = locTypeCond(typeIdsList);
+		String dateCond = dateCond(startDate, endDate);
+		String orderByRankAndName = " ORDER BY rank DESC, name ";
 		//@formatter:off
 		String q = 
-			"SELECT gid, ts_headline('simple', name, "+ qt + ") as headline, rank" 
-			+ " FROM (SELECT gid, name, ts_rank_cd(ti, " + qt + ") AS rank"
-			+ " FROM location, " + tsVector + " ti"
-			+ " WHERE ti @@ " + qt;
-		if(typeIdsList != null)
-			q += " AND "
-			+ " location_type_id in " + typeIdsList;
-		if(startDate != null && endDate != null)
-			q += " AND "
-			+ " ( "
-			+ " :start BETWEEN start_date AND LEAST( :start, end_date) "
-			+ " OR "
-			+ " :end BETWEEN start_date AND LEAST( :end ,end_date) "
-			+ " ) ";
-		else if(startDate != null)
-			q += " AND :start BETWEEN start_date AND LEAST( :start, end_date) ";
-		else if(endDate != null)
-			q += " AND :end BETWEEN start_date AND LEAST( :end ,end_date) ";
-			
-		q += " ORDER BY rank DESC, name"
-			+ " ) AS foo";
+			" WITH origin_names AS ( "
+			+ " SELECT gid, name, ts_rank_cd(ti, "+ qt + " ) AS rank "
+			+ " FROM location, " + tsVector + " ti " 
+			+ " WHERE ti @@ "+ qt ;
+		q += (typeCond != null) ? " AND " + typeCond : "";
+		q += (dateCond != null) ? " AND " + dateCond : "";
+		q += orderByRankAndName + " ), ";
+		q += 
+			" alt_names_tmp AS ( "
+			+ " SELECT gid, name, ts_rank_cd(ti, "+ qt + " ) AS rank "
+			+ " FROM alt_name , " + tsVector + " ti "
+			+ " WHERE gid not in (select gid from origin_names) and ti @@ "+ qt
+			+ orderByRankAndName + " ), ";
+		q += 	
+			" alt_names AS( " 
+			+ " SELECT alt.gid, alt.name , alt.rank "
+			+ " FROM alt_names_tmp alt INNER JOIN location loc ON (alt.gid = loc.gid) ";
+		q += (typeCond != null || dateCond != null) ? " WHERE " : "";
+		q += (typeCond != null) ? typeCond : "";
+		if (dateCond != null && typeCond != null)
+			q += " AND " + dateCond;
+		else
+			q += (dateCond != null) ? dateCond : "";
+		q += (typeCond != null || dateCond != null) ? orderByRankAndName : ""; 
+		q += " ) ";
+		q +=
+			" ( SELECT gid, ts_headline('simple', name, "+ qt + " ) headline, rank, name " 
+			+ " FROM origin_names "
+			+ " UNION "
+			+ " SELECT gid, ts_headline('simple', name, "+ qt + " ) headline, rank, name " 
+			+ " FROM alt_names ) "
+			+ " ORDER BY rank DESC ";
+				
 		//@formatter:on
 		//Logger.debug("name=" + name + " q=\n" + q);
 		
@@ -164,9 +218,30 @@ public class LocationDao {
 			Object[] objects = (Object[])resultList.get(i++);
 			l.setHeadline(objects[1].toString());
 			l.setRank(objects[2].toString());
+			l.getData().setName(objects[3].toString());
 		}
 		
 		return locations;
+	}
+
+	private String locTypeCond(String typeIdsList) {
+		if(typeIdsList != null)
+			return " location_type_id in " + typeIdsList;
+		return null;
+	}
+
+	private String dateCond(Date startDate, Date endDate) {
+		String startCond = " :start BETWEEN start_date AND LEAST( :start, end_date) ";
+		String endCond = " :end BETWEEN start_date AND LEAST( :end ,end_date) ";
+		String startEndCond = " ( "	+ startCond	+ " OR " + endCond + " ) ";
+		if(startDate != null && endDate != null){
+			return startEndCond;
+		} else if(startDate != null){
+			return startCond;
+		} else if(endDate != null){
+			return endCond;
+		}
+		return null;
 	}
 
 	private void sanitize(String value) {
@@ -369,5 +444,14 @@ public class LocationDao {
 		//else {
 			return Long.parseLong(object.toString());
 		//}
+	}
+
+	public static List<String> readAllAltNames() {
+		EntityManager em = JPA.em();
+		String q = "SELECT name FROM alt_name";
+		Query query = em.createNativeQuery(q);
+		@SuppressWarnings("unchecked")
+		List<String> result = query.getResultList();
+		return result;
 	}
 }

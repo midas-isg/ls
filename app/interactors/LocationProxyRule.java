@@ -20,6 +20,13 @@ public class LocationProxyRule {
 	private static List<Location> roots = null;
 	private static List<String> uniqueSortedLocationNames = null;
 	
+	public static void updateCache(){
+		notifyChange();
+		gid2location = getGid2location();
+		roots = getHierarchy();
+		uniqueSortedLocationNames = getUniqueSortedLocationNames();
+	}
+	
 	public static void notifyChange(){
 		if (gid2location != null){
 			synchronized (gid2location){
@@ -107,6 +114,8 @@ public class LocationProxyRule {
 			for (Location l : locations){
 				set.add(l.getData().getName());
 			}
+			List<String> otherNames = LocationDao.readAllAltNames();
+			set.addAll(otherNames);
 			uniqueSortedLocationNames = new ArrayList<>();
 			synchronized (uniqueSortedLocationNames) 
 			{

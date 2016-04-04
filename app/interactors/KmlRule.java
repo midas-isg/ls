@@ -17,7 +17,7 @@ public class KmlRule {
 			return kml;
 		Long gid = location.getGid();
 		String kmlGeo = GeometryRule.readAsKml(gid);
-		String fileName = "template.kml";
+		String fileName = "public/templates/template.kml";
 		String formatText = getStringFromFile(fileName);
 		String text = String.format(formatText, gid, 
 				data.getName(), data.getDescription(), kmlGeo);

@@ -84,7 +84,8 @@ public class LocationRule {
 	private static Location readWithoutGeometry(long gid) {
 		LocationDao locationDao = new LocationDao();
 		Location location = locationDao.read(gid);
-		location.setGeometry(new LocationGeometry());
+		if(location != null)
+			location.setGeometry(new LocationGeometry());
 		return location;
 	}
 
@@ -128,8 +129,8 @@ public class LocationRule {
 	}
 
 	static List<Location> findByName(String q, Integer limit,
-			Integer offset) {
-		List<Location> result = new LocationDao().findByName(q, limit, offset);
+			Integer offset, boolean altNames) {
+		List<Location> result = new LocationDao().findByName(q, limit, offset, altNames);
 		return result;
 	}
 	

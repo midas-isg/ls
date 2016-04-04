@@ -17,6 +17,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
 import models.Response;
+import models.exceptions.PostgreSQLException;
+import models.exceptions.BadRequest;
 //import models.filters.LocationFilter;
 import models.geo.FeatureCollection;
 import models.geo.FeatureGeometry;
@@ -48,6 +50,15 @@ public class LocationServices extends Controller {
 	public static final String FORMAT_APOLLOXML = "xml";
 	public static final String FORMAT_KML = "kml";
 	public static final String FORMAT_DEFAULT = "geojson";
+	private static final String UNIQUE_VIOLATION = "23505";
+	private static final String findBulkEx = "find-bulk.json";
+	private static final String findBulkExBody = "Only \"name\" is required. See an example of body at "
+			+ "<a href='assets/examples/api/" + findBulkEx + "'>" + findBulkEx + "</a> ";
+	private static final String findbyGeomEx = "AuMaridiTown.geojson";
+	private static final String findbyGeomExBody = "See an example of body at "
+			+ "<a href='assets/examples/api/" + findbyGeomEx + "'>" + findbyGeomEx + "</a> ";
+	private static final String superTypeAPI = "/api/super-types";
+	private static final String locationTypeAPI = "/api/location-types";
 
 	@Transactional
 	@ApiOperation(
@@ -103,6 +114,8 @@ public class LocationServices extends Controller {
 			format = FORMAT_DEFAULT;
 
 		Location location = Wire.simplifyToMaxExteriorRings(gid, maxExteriorRings);
+		if (location == null)
+			return notFound("Location not found");
 		switch (format.toLowerCase()) {
 		case FORMAT_GEOJSON:
 			return asGeoJson(location);
@@ -185,27 +198,40 @@ public class LocationServices extends Controller {
 					required = true, defaultValue = "0"
 			) 
 			@QueryParam("offset") 
-			Integer offset
+			Integer offset,
+			
+			@ApiParam(
+					value = "Whether to search in location alternative-names. ", 
+					defaultValue = "true"
+			) 
+			@QueryParam("searchAltNames") 
+			boolean searchAltNames
 	) {
-		Object result = GeoJsonRule.findByName(q, limit, offset);
+		Object result = GeoJsonRule.findByName(q, limit, offset, searchAltNames);
 		return ok(Json.toJson(result));
 	}
 
 	@Transactional
 	@ApiOperation(
 			httpMethod = "POST", 
-			nickname = "findBulkLocationsByNameAndDate", 
-			value = "Returns locations by name and start and end dates", 
-			notes = "This endpoint returns locations whose name matches the requested search terms (name, start date, end date). "
-			+ "Note: The schema of the 'geoJSON' field in the response is GeoJSON FeatureCollection. ", 
+			nickname = "findBulkLocations", 
+			value = "Returns bulk locations by name and other optional parameters", 
+			notes = "This endpoint returns locations whose name matches the requested search terms (name[required], start date, end date, location type id). "
+			+ "Note: The schema of the 'geoJSON' field in the response is GeoJSON FeatureCollection without the 'geometry' and 'children' info. ", 
 			response = Response.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = OK, message = "Successful retrieval of location", response = Response.class),
-			//@ApiResponse(code = 404, message = "Location not found"),
 			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
-			//@ApiResponse(code = 400, message = "Format is not supported") 
+			@ApiResponse(code = BAD_REQUEST, message = "Invalid input")
 	})
-	
+	 @ApiImplicitParams( { 
+	    	@ApiImplicitParam(
+	    			value = findBulkExBody, 
+	    			required = true, 
+	    			dataType = "List[JsonNode]",
+	    			paramType = "body"
+	    	)
+	} )
 	public Result findBulkLocations() {
 		ArrayList<Map<String, Object>> params = toParams((ArrayNode)request().body().asJson());
 		List<Object> result = GeoJsonRule.findBulkLocations(params);
@@ -224,8 +250,8 @@ public class LocationServices extends Controller {
 		ArrayList<Map<String,Object>> params = new ArrayList<>();
 		for(JsonNode node: array){
 			Map<String,Object> map = new HashMap<>();
-			map.put("name",node.findValue("name").asText());
-			putIfNotNull(node, map, "locationTypeIds");
+			putAsRequired(node, map, "name");
+			putAsNullIfNull(node, map, "locationTypeIds");
 			putAsTextIfNotNull(node, map, "start");
 			putAsTextIfNotNull(node, map, "end");
 			
@@ -234,7 +260,15 @@ public class LocationServices extends Controller {
 		return params;
 	}
 
-	private static void putIfNotNull(JsonNode node, Map<String, Object> map, String key) {
+	private static void putAsRequired(JsonNode node, Map<String, Object> map,
+			String string) {
+		if(getKeyList(node).contains(string))
+			map.put("name",node.findValue(string).asText());
+		else
+			throw new BadRequest("\"" + string + "\" key is requierd!");
+	}
+
+	private static void putAsNullIfNull(JsonNode node, Map<String, Object> map, String key) {
 		if(getKeyList(node).contains(key))
 			map.put(key, node.get(key));
 		else
@@ -258,7 +292,35 @@ public class LocationServices extends Controller {
 	}
 	
 	@Transactional
-	public Result findLocationNames(String q, Integer limit) {
+	@ApiOperation(
+			httpMethod = "GET", 
+			nickname = "findUniqueLocationNames", 
+			value = "Returns unique location-names", 
+			notes = "This endpoint returns uniqure location-names which match the requested search terms (q). "
+			+ "Use 'limit' to set the maximum number to return (default is 10). ",
+			response = String.class,
+			produces = "application/json",
+			responseContainer = "set"
+	)
+	@ApiResponses(value = {
+			@ApiResponse(code = OK, message = "Successful retrieval of location", response = Response.class),
+			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
+	})
+	public Result findLocationNames(
+			@ApiParam(
+					value = "Search terms delimited by a space charactor. "
+					+ "The search terms are combined together with conjunction. ",
+					required = true
+			) 
+			@QueryParam("q") 
+			String q,
+			@ApiParam(
+					value = "Maximum number of names to return. ", 
+					required = true, defaultValue = "10"
+			) 
+			@QueryParam("limit")
+			Integer limit 
+	){
 		Object result = LocationProxyRule.findLocationNames(q, limit);
 		return ok(Json.toJson(result));
 	}
@@ -321,6 +383,12 @@ public class LocationServices extends Controller {
 			setResponseLocation(id);
 
 			return created();
+		} catch(PostgreSQLException e){
+			String message = e.getMessage();
+			if(e.getSQLState()!= null && e.getSQLState().equals(UNIQUE_VIOLATION))
+				return forbidden(message);
+			
+			return badRequest(message);
 		} catch (RuntimeException e) {
 			String message = e.getMessage();
 			Logger.error(message, e);
@@ -445,7 +513,42 @@ public class LocationServices extends Controller {
 	}
 
 	@Transactional
-	public Result findByFeatureCollection(Long superTypeId, Long typeId) throws Exception {
+	@ApiOperation(
+			httpMethod = "POST", 
+			nickname = "findLocationByFeatureCollection", 
+			value = "Returns locations by featureCollection", 
+			notes = "This endpoint returns locations which intersect the submitted Geometry in body. ",
+			response = Response.class
+	)
+	@ApiResponses(value = { 
+			@ApiResponse(code = OK, message = "Successful retrieval of location", response = Response.class),
+			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error")
+	})
+    @ApiImplicitParams( { 
+    	@ApiImplicitParam(
+    			value = "GeoJSON FeatureCollection. "
+    					+ "Only geometry is required. "
+    					+ findbyGeomExBody, 
+    			required = true, 
+    			dataType = "models.geo.FeatureCollection", 
+    			paramType = "body"
+    	) 
+    } )
+	public Result findByFeatureCollection(
+			@ApiParam(
+					name = "superTypeId",
+					value = "superTypeId (location-type category). "
+							+ "refer to " + superTypeAPI + " endpoint."
+			)
+			@QueryParam("superTypeId")
+			Long superTypeId,
+			@ApiParam(
+					name = "LocationTypeId",
+					value = "LocationTypeId. "
+							+ "refer to " + locationTypeAPI + " endpoint."
+			)
+			@QueryParam("LocationTypeId")
+			Long typeId) throws Exception {
 		FeatureCollection fc = parseRequestAsFeatureCollection();
 		response().setContentType("application/vnd.geo+json");
 		return Wire.findByFeatureCollection(fc, superTypeId, typeId);
@@ -487,7 +590,13 @@ public class LocationServices extends Controller {
 			String geo = Json.toJson(geometry).toString();
 			List<BigInteger> gids = GeometryRule.findGidsByGeometry(geo, superTypeId, typeId);
 			List<Location> locations = LocationProxyRule.getLocations(gids);
-			return ok(Json.toJson(GeoJsonRule.toFeatureCollection(locations, GeoJsonRule.MINIMUM_KEYS)));
+			return ok(Json.toJson(GeoJsonRule.toFeatureCollection(locations, GeoJsonRule.DEFAULT_KEYS)));
 		}
+	}
+	
+	@Transactional
+	public Result updateLocationCache(){
+		LocationProxyRule.updateCache();
+		return ok("Location-name cache updated!");
 	}
 }
