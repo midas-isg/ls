@@ -114,6 +114,8 @@ public class LocationProxyRule {
 			for (Location l : locations){
 				set.add(l.getData().getName());
 			}
+			List<String> otherNames = LocationDao.readAllAltNames();
+			set.addAll(otherNames);
 			uniqueSortedLocationNames = new ArrayList<>();
 			synchronized (uniqueSortedLocationNames) 
 			{

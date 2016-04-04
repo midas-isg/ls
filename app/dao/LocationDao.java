@@ -445,4 +445,13 @@ public class LocationDao {
 			return Long.parseLong(object.toString());
 		//}
 	}
+
+	public static List<String> readAllAltNames() {
+		EntityManager em = JPA.em();
+		String q = "SELECT name FROM alt_name";
+		Query query = em.createNativeQuery(q);
+		@SuppressWarnings("unchecked")
+		List<String> result = query.getResultList();
+		return result;
+	}
 }
