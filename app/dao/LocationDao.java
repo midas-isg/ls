@@ -454,4 +454,13 @@ public class LocationDao {
 		List<String> result = query.getResultList();
 		return result;
 	}
+
+	public static List<Location> findByType(long typeId){
+		EntityManager em = JPA.em();
+		Query query = em.createQuery("from Location where location_type_id = :typeId");
+		query.setParameter("typeId", typeId);
+		@SuppressWarnings("unchecked")
+		List<Location> result = query.getResultList();
+		return result;
+	}
 }
