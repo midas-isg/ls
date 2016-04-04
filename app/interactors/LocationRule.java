@@ -149,14 +149,12 @@ public class LocationRule {
 	public static List<Object> findByTypeId(long typeId){
 		Map<String, Object> element;
 		List<Object> result = new ArrayList<>();
-		Map<Long, Location> locations = LocationProxyRule.getGid2location();
-		for(Location l : locations.values()){
+		List<Location> locations = LocationDao.findByType(typeId);
+		for(Location l : locations){
 			element = new HashMap<>();
-			if(l.getData().getLocationType().getId() == typeId){
-				element.put("gid", l.getGid());
-				element.put("name", l.getData().getName());
-				result.add(element);
-			}
+			element.put("gid", l.getGid());
+			element.put("name", l.getData().getName());
+			result.add(element);
 		}
 		return result;
 	}
