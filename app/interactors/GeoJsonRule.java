@@ -1,17 +1,26 @@
 package interactors;
 
+import static interactors.Util.containsKey;
+import static interactors.Util.getNowDate;
+import static interactors.Util.includeField;
+import static interactors.Util.listToString;
+import static interactors.Util.newDate;
+import static interactors.Util.putAsStringIfNotNull;
+import static interactors.Util.toDate;
+import static interactors.Util.toDate2;
+import static interactors.Util.toListOfInt;
+import static interactors.Util.toListOfString;
+import static interactors.Util.toStringValue;
+
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.StringJoiner;
 
-import org.joda.time.LocalDate;
-
+import models.Request;
 import models.Response;
 import models.exceptions.BadRequest;
 import models.geo.Feature;
@@ -20,6 +29,7 @@ import models.geo.FeatureGeometry;
 import play.Logger;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
@@ -151,7 +161,7 @@ public class GeoJsonRule {
 	}
 
 	private static void putAsAltNameObjectsIfNotNull(
-			Map<String, Object> properties, String string, Location location) {
+			Map<String, Object> properties, String key, Location location) {
 		if (location == null)
 			return;
 		
@@ -160,25 +170,19 @@ public class GeoJsonRule {
 		final String KEY_LANG = "language";
 		final String KEY_DESC = "description";
 
-		properties.put(string, names);
+		properties.put(key, names);
 		
 		List<AltName> otherNames = location.getAltNames();
+		Map<String, String> anotherName;
 		if (otherNames == null)
 			return;
 		for (AltName name : otherNames){
-			Map<String, String> anotherName = new HashMap<>();
+			anotherName = new HashMap<>();
 			anotherName.put(KEY_NAME, name.getName());
 			anotherName.put(KEY_LANG, name.getLanguage());
 			anotherName.put(KEY_DESC, name.getDescription());
 			names.add(anotherName);
 		}		
-	}
-
-	private static boolean includeField(List<String> fields, String... keys) {
-		if (fields == null || fields.isEmpty())
-			return true;
-		
-		return fields.containsAll(Arrays.asList(keys));
 	}
 	
 	private static double[] computeBbox(Location l) {
@@ -261,9 +265,13 @@ public class GeoJsonRule {
 			List<Location> locations) {
 		if (locations == null)
 			return;
+		Map<String, Object> locationProperties;
 		List<Map<String, Object>> list = new ArrayList<>();
 		for (Location l : locations){
-			list.add(toProperties(l));
+			locationProperties = toProperties(l);
+			locationProperties.remove("headline");
+			locationProperties.remove("rank");
+			list.add(locationProperties);
 		}
 		properties.put(key, list);
 	}
@@ -294,23 +302,10 @@ public class GeoJsonRule {
 		return (locationType == null) ? null : locationType.getName();
 	}
 
-	private static String toString(Object object) {
-		if (object == null)
-			return null;
-		return String.valueOf(object);
-	}
-
 	private static String getGid(Location location) {
 		if (location == null)
 			return null;
 		return String.valueOf(location.getGid());
-	}
-
-	private static void putAsStringIfNotNull(Map<String, Object> properties,
-			String key, Object value) {
-		if (value == null)
-			return;
-		properties.put(key, toString(value));
 	}
 
 	public static Location asLocation(FeatureCollection fc){
@@ -405,17 +400,6 @@ public class GeoJsonRule {
 		return lg;
 	}
 
-	private static Date getNowDate() {
-		java.util.Date now = new java.util.Date();
-		return new Date(now.getTime());
-	}
-
-	private static Date newDate(String date) {
-		if (date == null)
-			return null;
-		return java.sql.Date.valueOf(date);
-	}
-
 	private static String getString(FeatureCollection fc, String key) {
 		Object object = fc.getProperties().get(key);
 		if (object == null)
@@ -424,8 +408,8 @@ public class GeoJsonRule {
 	}
 
 	public static Response findByName(String q, 
-			Integer limit, Integer offset, boolean altNames, boolean unaccent){
-		List<Location> result = LocationRule.findByName(q, limit, offset, altNames, unaccent);
+			Integer limit, Integer offset, boolean altNames){
+		List<Location> result = LocationRule.findByName(q, limit, offset, altNames);
 		Response response = new Response();
 		response.setGeoJSON(toFeatureCollection(result, DEFAULT_KEYS));
 		Map<String, Object> properties = new HashMap<>();
@@ -458,24 +442,39 @@ public class GeoJsonRule {
 		}
 		return result;
 	}
+	
+	public static List<Object> findLocations2(ArrayNode arrayNode){
+		List<Object> result = new ArrayList<>();
+		FeatureCollection fc;
+		for (JsonNode node : arrayNode) {
+			Request req = toRequest(node);
+			fc = findLocation2(req);
+			result.add(fc);
+		}
+		return result;
+	}
 
-	private static Date toDate(Map<String, Object> param, String key) {
-		if(param.get(key) == null){
-			return null;
-		}
-		String dateString = (String)param.get(key);
-		if(dateString.equals("") || dateString.equals("null"))
-			return null;
-		Date date = null;
-		try{
-			LocalDate localDt = new LocalDate(dateString);
-			date = Date.valueOf(localDt.toString());
-		} catch(Exception e){
-			String msg = (e.getMessage() != null) ? e.getMessage() : 
-				"Invalid date: " + dateString;
-			throw new BadRequest(msg);
-		}
-		return date;
+	private static Request toRequest(JsonNode node) {
+		Request req = new Request();
+		if(containsKey(node, "queryTerm"))
+			req.setQueryTerm(node.get("queryTerm").asText());
+		else
+			throw new BadRequest("\"" + "queryTerm" + "\" key is requierd!");
+		if(containsKey(node, "locationTypeIds"))
+			req.setTypeId(toListOfInt((JsonNode) node.get("locationTypeIds")));
+		if(containsKey(node, "start"))
+			req.setStart(toDate2(node.get("start").asText()));
+		if(containsKey(node, "end"))
+			req.setEnd(toDate2(node.get("end").asText()));
+		if(containsKey(node, "limit"))
+			req.setLimit(node.get("limit").asInt());
+		if(containsKey(node, "offset"))
+			req.setOffset(node.get("offset").asInt());
+		if(containsKey(node, "unaccent"))
+			req.setUnaccent(node.get("unaccent").asBoolean());
+		if(containsKey(node, "alsoSearch"))
+			req.setAlsoSearch(toListOfString((JsonNode) node.get("alsoSearch")));
+		return req;
 	}
 
 	private static FeatureCollection findLocation(String name,
@@ -491,31 +490,23 @@ public class GeoJsonRule {
 		putAsStringIfNotNull(properties, "end", toStringValue(endDate));
 		return geoJSON;
 	}
-
-	private static String toStringValue(Date date) {
-		if(date == null)
-			return null;
-		return date.toString();
-	}
-
-	private static String listToString(List<Integer> locTypeIds) {
-		if (locTypeIds == null)
-			return null;
-		StringJoiner joiner = new StringJoiner(",", "[", "]");
-		for(int id: locTypeIds)
-			joiner.add(Integer.toString(id));
-		return joiner.toString();
-	}
-
-	private static List<Integer> toListOfInt(JsonNode jsonNode) {
-		if(jsonNode == null)
-			return null;
-		List<Integer> intList = new ArrayList<>();
-		Iterator<JsonNode> elements = jsonNode.elements();
-		while(elements.hasNext()){
-			intList.add(elements.next().asInt());
-		}
-		return intList;
+	
+	private static FeatureCollection findLocation2(Request req) {
+		List<Location> result = LocationRule.find2(req);
+		List<String> fields = Arrays.asList(new String[] {KEY_PROPERTIES});
+		FeatureCollection geoJSON = toFeatureCollection(result, fields);
+		Map<String, Object> properties = new HashMap<>();
+		geoJSON.setProperties(properties);
+		properties.put("queryTerm", req.getQueryTerm());
+		putAsStringIfNotNull(properties, "locationTypeIds", listToString(req.getTypeId()));
+		putAsStringIfNotNull(properties, "startDate", toStringValue(req.getStart()));
+		putAsStringIfNotNull(properties, "endDate", toStringValue(req.getEnd()));
+		putAsStringIfNotNull(properties, "limit", "" + req.getLimit());
+		putAsStringIfNotNull(properties, "offset", "" + req.getOffset());
+		putAsStringIfNotNull(properties, "unaccent", req.getUnaccent());
+		putAsStringIfNotNull(properties, "alsoSearch", listToString(req.getAlsoSearch()));
+		putAsStringIfNotNull(properties, "resultSize", "" + result.size());
+		return geoJSON;
 	}
 	
 	public static Response findByPoint(double latitude, double longitude) {

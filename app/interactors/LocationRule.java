@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import models.Request;
 import play.Logger;
 import play.Play;
 
@@ -129,8 +130,8 @@ public class LocationRule {
 	}
 
 	static List<Location> findByName(String q, Integer limit,
-			Integer offset, boolean altNames, boolean unaccent) {
-		List<Location> result = new LocationDao().findByName(q, limit, offset, altNames, unaccent);
+			Integer offset, boolean altNames) {
+		List<Location> result = new LocationDao().findByName(q, limit, offset, altNames);
 		return result;
 	}
 	
@@ -192,5 +193,10 @@ public class LocationRule {
 		if (nPoints != numCoordinates)
 			map.put("MISMATCH_numHolePoints+numShellPoints", nPoints);
 		return map;
+	}
+
+	public static List<Location> find2(Request req) {
+		List<Location> result = new LocationDao().find2(req);
+		return result;
 	}
 }

@@ -1,5 +1,8 @@
 package dao;
 
+import static interactors.Util.getDate;
+import static interactors.Util.getLong;
+import static interactors.Util.getString;
 import gateways.database.sql.SQLSanitizer;
 import interactors.LocationProxyRule;
 
@@ -14,6 +17,7 @@ import java.util.StringJoiner;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
+import models.Request;
 import models.exceptions.BadRequest;
 import models.exceptions.PostgreSQLException;
 
@@ -24,6 +28,8 @@ import org.postgresql.util.PSQLException;
 
 import play.Logger;
 import play.db.jpa.JPA;
+import dao.entities.AltName;
+import dao.entities.Code;
 import dao.entities.Data;
 import dao.entities.Location;
 import dao.entities.LocationGeometry;
@@ -107,39 +113,35 @@ public class LocationDao {
 		return gid;
 	}
 	
-	public List<Location> findByName(String name, Integer limit, Integer offset, boolean altNames, boolean unaccent) {
+	public List<Location> findByName(String name, Integer limit, Integer offset, boolean altNames) {
 		//TODO: move sanitize() to a proper place
 		sanitize(name);
 		EntityManager em = JPA.em();
-		String nameCol = (unaccent) ? "unaccent_immutable(name)" : "name";
-		String tsVector = "to_tsvector('simple', " + nameCol + ")";
+		String tsVector = "to_tsvector('simple', name)";
 		String queryText = toQueryText(name);
-		String qt = (unaccent) ? "unaccent_immutable(" + "'" + queryText + "'" + ")\\:\\:tsquery" : "'" + queryText + "'";
+		String qt = "'" + queryText + "'";
 		//@formatter:off
 		String q = "WITH origin_names AS ( "
 				+ " SELECT gid, name, ts_rank_cd(ti, "+ qt + " ) AS rank "
 				+ " FROM location, " + tsVector + " ti " 
 				+ " WHERE ti @@ "+ qt
-				//+ " ORDER BY rank DESC,	name
-				+ " ) ";
+				+ " ORDER BY rank DESC,	name )";
 		if (altNames)
 				q += ", "
 				+ " alt_names AS ( "
-				+ " SELECT DISTINCT ON(gid) gid, name, ts_rank_cd(ti, "+ qt + " ) AS rank "
+				+ " SELECT gid, name, ts_rank_cd(ti, "+ qt + " ) AS rank "
 				+ " FROM alt_name , " + tsVector + " ti "
 				+ " WHERE gid not in (select gid from origin_names) and ti @@ "+ qt
-				//+ " ORDER BY rank DESC, name
-				+ " ) ";
+				+ " ORDER BY rank DESC, name ) ";
 		
-		q += " SELECT gid, ts_headline('simple', " + nameCol + ", "+ qt + " ) headline, rank, name "
+		q += " SELECT gid, ts_headline('simple', name, "+ qt + " ) headline, rank, name "
 			+ " FROM origin_names ";
 		if (altNames)
 			q += " UNION "
-			+ " SELECT gid, ts_headline('simple', " + nameCol + ", "+ qt + " ) headline, rank, name "
+			+ " SELECT gid, ts_headline('simple', name, "+ qt + " ) headline, rank, name "
 			+ " FROM alt_names ";
-		q += " ORDER BY rank DESC, name ";
 		//@formatter:on
-		Logger.debug("name=" + name + " q=\n" + q);
+		//Logger.debug("name=" + name + " q=\n" + q);
 		Query query = em.createNativeQuery(q);
 		if (limit != null)
 			query.setMaxResults(limit);
@@ -160,6 +162,135 @@ public class LocationDao {
 		return locations;
 	}
 	
+	public List<Location> find2(Request req) {
+		//TODO: move sanitize() to a proper place
+		sanitize(req.getQueryTerm());
+		EntityManager em = JPA.em();
+		String nameCol = (req.getUnaccent()) ? "unaccent_immutable(name)" : "name";
+		String nameTsVector = "to_tsvector('simple', " + nameCol + ")";
+		String codeCol = (req.getUnaccent()) ? "unaccent_immutable(code)" : "code";
+		String codeTsVector = "to_tsvector('simple', " + codeCol + ")";
+		String locTempTable = "origin_names";
+		String otherNamesTempTable = "alt_names";
+		String codesTempTable = "codes";
+		String queryText = toQueryText(req.getQueryTerm());
+		String qt = (req.getUnaccent()) ? 
+				"unaccent_immutable(" + "'" + queryText + "'" + ")\\:\\:tsquery" 
+				: "'" + queryText + "'";
+		//@formatter:off
+		String q = "WITH origin_names AS ( "
+				+ " SELECT gid, name, ts_rank_cd(ti, "+ qt + ", 8) AS rank "
+				+ " FROM location, " + nameTsVector + " ti " 
+				+ " WHERE ti @@ "+ qt;
+		if(hasConditions(req))
+			q += " AND " + buildQueryConds(req);
+		q += " ) ";
+		if (contains(req.getAlsoSearch(), "otherNames")){
+			q += " , " + otherNamesTempTable + " AS ( "
+				+ searchOtherNames(nameTsVector, qt, locTempTable);
+			if(hasConditions(req))
+				q += " AND gid IN ( SELECT gid FROM location WHERE " 
+					+ buildQueryConds(req) + " ) ";
+			q += " ) ";
+		}
+		if (contains(req.getAlsoSearch(), "codes")){
+			q += " , " + codesTempTable + " AS ( " 
+				+ searchCodes(req, codeTsVector, qt, locTempTable);
+			if(contains(req.getAlsoSearch(),"otherNames"))
+				q += " AND gid NOT IN (SELECT gid FROM " + otherNamesTempTable + " ) ";
+			if(hasConditions(req))
+				q += " AND gid IN ( SELECT gid FROM location WHERE " 
+					+ buildQueryConds(req) + " ) ";
+			q += " ) ";
+		}
+		q += " SELECT * FROM ( ";
+		q += " SELECT gid, ts_headline('simple', " + nameCol + ", "+ qt + " ) headline, rank, name "
+			+ " FROM " + locTempTable;
+		if (contains(req.getAlsoSearch(), "otherNames"))
+			q += union(nameCol, qt, otherNamesTempTable);
+		if (contains(req.getAlsoSearch(), "codes"))
+			q += union(nameCol, qt, codesTempTable);
+		q += " ) AS foo ";
+		//q += buildQueryConds(req);
+		q += " ORDER BY rank DESC, name ";
+		//@formatter:on
+		Logger.debug("name=" + req.getQueryTerm() + " q=\n" + q);
+		Query query = em.createNativeQuery(q);
+		if(req.getStart() != null)
+			query = query.setParameter("start", req.getStart());
+		if(req.getEnd() != null)
+			query = query.setParameter("end", req.getEnd());
+		if (req.getLimit() != 0)
+			query.setMaxResults(req.getLimit());
+		if (req.getOffset() != 0)
+			query.setFirstResult(req.getOffset());
+		List<?> resultList = query.getResultList();
+		List<BigInteger> result = getGids(resultList);
+		List<Location> locations = LocationProxyRule.getLocations(result);
+		int i = 0;
+		for (Location l : locations){
+			Object[] objects = (Object[])resultList.get(i++);
+			l.setHeadline(objects[1].toString());
+			l.setRank(objects[2].toString());
+			//l.getData().setName(objects[3].toString());
+		}
+		return locations;
+	}
+
+	private boolean hasConditions(Request req) {
+		List<Integer> typeIds = req.getTypeId();
+		Date start = req.getStart();
+		Date end = req.getEnd();
+		if (typeIds != null && !typeIds.isEmpty())
+			return true;
+		if (start != null || end != null)
+			return true; 
+		return false;
+	}
+
+	private String buildQueryConds(Request req) {
+		String typeCond = locTypesToSqlCond(req.getTypeId());
+		String dateCond = dateCond(req.getStart(), req.getEnd());
+		String qc = "";
+		if (dateCond != null && typeCond != null)
+			qc += typeCond + " AND " + dateCond;
+		else if (typeCond != null)
+			qc += typeCond;
+		else if (dateCond != null)
+			qc += dateCond;
+		return qc;
+	}
+
+	private String union(String column, String qt, String tempTable) {
+		String q = " UNION "
+				+ " SELECT gid, ts_headline('simple', " + column + ", " + qt + " ) headline, rank, name "
+				+ " FROM " + tempTable + " ";
+		return q;
+	}
+
+	private String searchOtherNames(String nameTsVector, String qt, String tempTableName) {
+		String q = " SELECT DISTINCT ON(gid) gid, name, ts_rank_cd(ti, "+ qt + ", 8) AS rank "
+					+ " FROM alt_name , " + nameTsVector + " ti "
+					+ " WHERE gid NOT IN (SELECT gid FROM " + tempTableName + " ) AND ti @@ "+ qt;
+		return q;
+	}
+
+	private String searchCodes(Request req, String codeTsVector, String qt, String tempTableName) {
+		String q = " SELECT DISTINCT ON(gid) gid, code AS name, ts_rank_cd(ti, "+ qt + ", 8) AS rank "
+				+ " FROM ("
+				+ " SELECT gid, code FROM location WHERE code_type_id != 2 ";
+		if(hasConditions(req))
+			q += " AND " + buildQueryConds(req);
+		q += " UNION select gid, code FROM alt_code) AS foo"
+			+ " , " + codeTsVector + " ti "
+			+ " WHERE gid NOT IN (SELECT gid FROM " + tempTableName + " ) AND ti @@ " + qt;
+		return q;
+	}
+	
+	private boolean contains(List<String> searchWithin, String string) {
+		return searchWithin != null && searchWithin.contains(string);
+	}
+
 	public List<Location> find(String name, List<Integer> locTypeIds, Date startDate, Date endDate) {
 		EntityManager em = JPA.em();
 		String tsVector = "to_tsvector('simple', name)";
@@ -238,13 +369,12 @@ public class LocationDao {
 		String startCond = " :start BETWEEN start_date AND LEAST( :start, end_date) ";
 		String endCond = " :end BETWEEN start_date AND LEAST( :end ,end_date) ";
 		String startEndCond = " ( "	+ startCond	+ " OR " + endCond + " ) ";
-		if(startDate != null && endDate != null){
+		if(startDate != null && endDate != null)
 			return startEndCond;
-		} else if(startDate != null){
+		else if(startDate != null)
 			return startCond;
-		} else if(endDate != null){
+		else if(endDate != null)
 			return endCond;
-		}
 		return null;
 	}
 
@@ -255,7 +385,19 @@ public class LocationDao {
 		}
 		
 	}
-
+	
+	private String locTypesToSqlCond(@SuppressWarnings("rawtypes") List list) {
+		if (list == null)
+			return null;
+		if(list.isEmpty())
+			return null;
+		StringJoiner joiner = new StringJoiner(",", "(", ")");
+		for(Object o: list){
+			joiner.add(o.toString());
+		}
+		return " location_type_id in " + joiner.toString();
+	}
+	
 	private String toList(List<Integer> locTypeIds) {
 		if (locTypeIds == null){
 			return null;
@@ -377,6 +519,8 @@ public class LocationDao {
 		CodeTypeDao codeTypeDao = new CodeTypeDao();
 		@SuppressWarnings("unchecked")
 		List<Map<String, Object>> l = (List<Map<String, Object>>)q.list();
+		Map<Long, List<AltName>> otherNames = new AltNameDao().getGid2OtherNames();
+		Map<Long, List<Code>> otherCodes = new CodeDao().getGid2OtherCodes();
 		for (Map<String, Object> m : l){
 			Long gid = getLong(m, "gid");
 			Long parentGid = getLong(m, "parent_gid");
@@ -405,6 +549,10 @@ public class LocationDao {
 			}
 			loc.setData(data);
 			loc.setChildren(new ArrayList<Location>());
+			if(otherNames.containsKey(gid))
+				loc.setAltNames(otherNames.get(gid));
+			if(otherCodes.containsKey(gid))
+				loc.setOtherCodes(otherCodes.get(gid));
 			result.put(gid, loc);
 		}
 		for(Map.Entry<Long, Long> pair : orphants.entrySet()) {
@@ -421,32 +569,5 @@ public class LocationDao {
 		}
 		
 		return result;
-	}
-
-	private Date getDate(Map<String, Object> m, String key) {
-		return (Date)m.get(key);
-	}
-
-	private String getString(Map<String, Object> m, String key) {
-		Object obj = m.get(key);
-		if (obj == null) {
-			return null;
-		}
-		
-		return String.valueOf(obj);
-	}
-
-	private Long getLong(Map<String, Object> m, String key) {
-		Object object = m.get(key);
-		if (object == null) {
-			return null;
-		}
-		
-		if (object instanceof BigInteger) {
-			return ((BigInteger)object).longValue();
-		}
-		//else {
-			return Long.parseLong(object.toString());
-		//}
 	}
 }

@@ -1,0 +1,12 @@
+[ 
+{
+"queryTerm":"sudan", 
+"unaccent":true, 
+"locationTypeIds":[1,6], 
+"start":2010,
+"end": "2015-01-01",
+"alsoSearch":["otherNames","codes"],
+"limit":10,
+"offset":0
+}, 
+...]

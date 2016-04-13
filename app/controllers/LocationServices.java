@@ -54,6 +54,9 @@ public class LocationServices extends Controller {
 	private static final String findBulkEx = "find-bulk.json";
 	private static final String findBulkExBody = "Only \"name\" is required. See an example of body at "
 			+ "<a href='assets/examples/api/" + findBulkEx + "'>" + findBulkEx + "</a> ";
+	private static final String findEx = "find.json";
+	private static final String findExBody = "Only \"queryTerm\" is required. See an example of body at "
+			+ "<a href='assets/examples/api/" + findEx + "'>" + findEx + "</a> ";
 	private static final String findbyGeomEx = "AuMaridiTown.geojson";
 	private static final String findbyGeomExBody = "See an example of body at "
 			+ "<a href='assets/examples/api/" + findbyGeomEx + "'>" + findbyGeomEx + "</a> ";
@@ -205,17 +208,35 @@ public class LocationServices extends Controller {
 					defaultValue = "true"
 			) 
 			@QueryParam("searchAltNames") 
-			boolean searchAltNames,
-			
-			@ApiParam(
-					value = "Whether to unaccent search terms. ", 
-					defaultValue = "true"
-			) 
-			@QueryParam("unaccent") 
-			boolean unaccent
+			boolean searchAltNames
 	) {
-		Object result = GeoJsonRule.findByName(q, limit, offset, searchAltNames, unaccent);
+		Object result = GeoJsonRule.findByName(q, limit, offset, searchAltNames);
 		return ok(Json.toJson(result));
+	}
+	
+	@Transactional
+	@ApiOperation(
+			httpMethod = "POST", 
+			nickname = "Find", 
+			value = "Finds location by name, code, ...", 
+			notes = "", 
+			response = Response.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = OK, message = "Successful retrieval of location", response = Response.class),
+			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
+			@ApiResponse(code = BAD_REQUEST, message = "Invalid input")
+	})
+	@ApiImplicitParams({ 
+	    	@ApiImplicitParam(
+	    			value = findExBody, 
+	    			required = true, 
+	    			dataType = "[model.Request]",
+	    			paramType = "body"
+	    	)
+	})
+	public Result findLocations2() {
+		List<Object> result = GeoJsonRule.findLocations2((ArrayNode)request().body().asJson());
+		return ok(toJson(result));
 	}
 
 	@Transactional
