@@ -155,7 +155,7 @@ public class LocationDao {
 			Object[] objects = (Object[])resultList.get(i++);
 			l.setHeadline(objects[1].toString());
 			l.setRank(objects[2].toString());
-			l.getData().setName(objects[3].toString());
+			//l.getData().setName(objects[3].toString());
 
 		}
 		
@@ -211,10 +211,9 @@ public class LocationDao {
 		if (contains(req.getAlsoSearch(), "codes"))
 			q += union(nameCol, qt, codesTempTable);
 		q += " ) AS foo ";
-		//q += buildQueryConds(req);
 		q += " ORDER BY rank DESC, name ";
 		//@formatter:on
-		Logger.debug("name=" + req.getQueryTerm() + " q=\n" + q);
+		//Logger.debug("name=" + req.getQueryTerm() + " q=\n" + q);
 		Query query = em.createNativeQuery(q);
 		if(req.getStart() != null)
 			query = query.setParameter("start", req.getStart());
@@ -232,7 +231,6 @@ public class LocationDao {
 			Object[] objects = (Object[])resultList.get(i++);
 			l.setHeadline(objects[1].toString());
 			l.setRank(objects[2].toString());
-			//l.getData().setName(objects[3].toString());
 		}
 		return locations;
 	}

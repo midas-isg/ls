@@ -5,10 +5,14 @@ import static play.mvc.Http.Status.OK;
 import static suites.Helper.assertAreEqual;
 import static suites.Helper.assertContainsAll;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import play.Logger;
 import play.libs.ws.WS;
 import play.libs.ws.WSRequest;
 import play.libs.ws.WSResponse;
@@ -18,10 +22,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 public class TestFindLocation {
 
 	private String findBulkPath = "api/find-bulk";
+	private String find2Path = "api/locations2";
 	private long timeout = 100_000;
 	private String basePath = "api/locations";
 	private String gid = "1";
 	private String jsonContentType = "application/json; charset=utf-8";
+	private final String find2ExampleFilePath = "public\\examples\\api\\find.json";
 
 	public static Runnable test() {
 		return () -> newInstance().testFindLocation();
@@ -32,6 +38,7 @@ public class TestFindLocation {
 	}
 
 	public void testFindLocation() {
+		findLocationTest2();
 		findByIdTest();
 		findByNameTest();
 		findBulkTest();
@@ -39,17 +46,45 @@ public class TestFindLocation {
 		unsafeFindByNameTest();
 	}
 
+	private void findLocationTest2() {
+		String body = readFile(find2ExampleFilePath);
+		Logger.debug(body);
+		String url = Server.makeTestUrl(find2Path);
+		WSResponse response = post(url, body, jsonContentType);
+		JsonNode jsonResp = response.asJson();
+		List<String> keys = getKeyList(jsonResp.get(0));
+		Object[] propKeys = getKeyList(jsonResp.get(0).get("properties"))
+				.toArray();
+
+		assertStatus(response, OK);
+		assertAreEqual(jsonResp.size(), 1);
+		assertContainsAll(keys.toArray(), new String[] { "features",
+				"properties" });
+		assertContainsAll(propKeys, new String[] { "queryTerm", "startDate",
+				"endDate", "locationTypeIds", "unaccent", "alsoSearch",
+				"limit", "offset", "resultSize" });
+		body = "[{}]";
+		response = post(url, body, jsonContentType);
+		assertStatus(response, BAD_REQUEST);
+	}
+
 	private void findByNameTest() {
 		boolean searchAltNames = true;
-		String url = Server.makeTestUrl(basePath + "?q=pennsylvania&limit=2&offset=0&searchAltNames="+ searchAltNames  );
+		String url = Server.makeTestUrl(basePath
+				+ "?q=pennsylvania&limit=2&offset=0&searchAltNames="
+				+ searchAltNames);
 		WSResponse response = get(url);
 		JsonNode jsonResp = response.asJson();
-		assertAreEqual(jsonResp.get("properties").get("searchAltNames").asText(), "true");
+		assertAreEqual(jsonResp.get("properties").get("searchAltNames")
+				.asText(), "true");
 		searchAltNames = false;
-		url = Server.makeTestUrl(basePath + "?q=pennsylvania&limit=2&offset=0&searchAltNames="+ searchAltNames  );
+		url = Server.makeTestUrl(basePath
+				+ "?q=pennsylvania&limit=2&offset=0&searchAltNames="
+				+ searchAltNames);
 		response = get(url);
 		jsonResp = response.asJson();
-		assertAreEqual(jsonResp.get("properties").get("searchAltNames").asText(), "false");
+		assertAreEqual(jsonResp.get("properties").get("searchAltNames")
+				.asText(), "false");
 	}
 
 	private void findByIdTest() {
@@ -80,10 +115,11 @@ public class TestFindLocation {
 		assertStatus(response, BAD_REQUEST);
 
 	}
-	
+
 	private void unsafeFindByNameTest() {
 		boolean searchAltNames = true;
-		String url = Server.makeTestUrl(basePath + "?q=;drop%20a%20;"+ searchAltNames  );
+		String url = Server.makeTestUrl(basePath + "?q=;drop%20a%20;"
+				+ searchAltNames);
 		WSResponse response = get(url);
 		assertStatus(response, BAD_REQUEST);
 	}
@@ -108,7 +144,7 @@ public class TestFindLocation {
 		body = "[{\"name\":\"pennsylvania\",\"start\":\"2000-\"}]";
 		response = post(url, body, jsonContentType);
 		assertStatus(response, BAD_REQUEST);
-		
+
 		body = "[{}]";
 		response = post(url, body, jsonContentType);
 		assertStatus(response, BAD_REQUEST);
@@ -131,5 +167,26 @@ public class TestFindLocation {
 
 	private void assertStatus(WSResponse wsResponse, int expected) {
 		assertAreEqual(wsResponse.getStatus(), expected);
+	}
+
+	private String readFile(String path) {
+		File file = new File(path);
+		String content = "";
+		BufferedReader bf = null;
+		try {
+			bf = new BufferedReader(new FileReader(file));
+
+			String line;
+			line = bf.readLine();
+			while (line != null) {
+				content += line;
+				line = bf.readLine();
+			}
+			bf.close();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return content;
 	}
 }
