@@ -2,7 +2,6 @@ package interactors;
 
 
 import java.math.BigInteger;
-import java.sql.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -129,17 +128,11 @@ public class LocationRule {
 		return deletedGid;
 	}
 
-	static List<Location> findByName(String q, Integer limit,
-			Integer offset, boolean altNames) {
-		List<Location> result = new LocationDao().findByName(q, limit, offset, altNames);
+	public static List<Location> findLocations(Request req) {
+		List<Location> result = new LocationDao().findLocations(req);
 		return result;
 	}
-	
-	static List<Location> find(String name, List<Integer> locTypeIds, Date startDate, Date endDate) {
-		List<Location> result = new LocationDao().find(name, locTypeIds, startDate, endDate);
-		return result;
-	}
-	
+		
 	static public List<Location> findByPoint(double latitude, double longitude) {
 		List<BigInteger> result = GeometryRule.findByPoint(latitude, longitude);
 		List<Location> locations = LocationProxyRule.getLocations(result);
@@ -193,10 +186,5 @@ public class LocationRule {
 		if (nPoints != numCoordinates)
 			map.put("MISMATCH_numHolePoints+numShellPoints", nPoints);
 		return map;
-	}
-
-	public static List<Location> find2(Request req) {
-		List<Location> result = new LocationDao().find2(req);
-		return result;
 	}
 }

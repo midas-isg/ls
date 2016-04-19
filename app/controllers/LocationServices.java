@@ -7,18 +7,13 @@ import interactors.LocationProxyRule;
 import interactors.LocationRule;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
 import models.Response;
 import models.exceptions.PostgreSQLException;
-import models.exceptions.BadRequest;
 //import models.filters.LocationFilter;
 import models.geo.FeatureCollection;
 import models.geo.FeatureGeometry;
@@ -52,10 +47,10 @@ public class LocationServices extends Controller {
 	public static final String FORMAT_DEFAULT = "geojson";
 	private static final String UNIQUE_VIOLATION = "23505";
 	private static final String findBulkEx = "find-bulk.json";
-	private static final String findBulkExBody = "Only \"name\" is required. See an example of body at "
+	private static final String findBulkExBody = "Only \"q\" is required. See an example of body at "
 			+ "<a href='assets/examples/api/" + findBulkEx + "'>" + findBulkEx + "</a> ";
 	private static final String findEx = "find.json";
-	private static final String findExBody = "Only \"queryTerm\" is required. See an example of body at "
+	private static final String findExBody = "Only \"q\" is required. See an example of body at "
 			+ "<a href='assets/examples/api/" + findEx + "'>" + findEx + "</a> ";
 	private static final String findbyGeomEx = "AuMaridiTown.geojson";
 	private static final String findbyGeomExBody = "See an example of body at "
@@ -207,10 +202,10 @@ public class LocationServices extends Controller {
 					value = "Whether to search in location alternative-names. ", 
 					defaultValue = "true"
 			) 
-			@QueryParam("searchAltNames") 
-			boolean searchAltNames
+			@QueryParam("searchOtherNames") 
+			Boolean searchOtherNames
 	) {
-		Object result = GeoJsonRule.findByName(q, limit, offset, searchAltNames);
+		Object result = GeoJsonRule.findByName(q, limit, offset, searchOtherNames);
 		return ok(Json.toJson(result));
 	}
 	
@@ -218,7 +213,7 @@ public class LocationServices extends Controller {
 	@ApiOperation(
 			httpMethod = "POST", 
 			nickname = "Find", 
-			value = "Finds location by name, code, ...", 
+			value = "Finds locations by name, other-names, or code", 
 			notes = "", 
 			response = Response.class)
 	@ApiResponses(value = {
@@ -234,9 +229,13 @@ public class LocationServices extends Controller {
 	    			paramType = "body"
 	    	)
 	})
-	public Result findLocations2() {
-		List<Object> result = GeoJsonRule.findLocations2((ArrayNode)request().body().asJson());
-		return ok(toJson(result));
+	public Result find() {
+		ArrayNode arrayNode = Json.newArray();
+		arrayNode.add((JsonNode)request().body().asJson());
+		List<Object> result = GeoJsonRule.findLocations(arrayNode);
+		if(result != null && !result.isEmpty())
+			return ok(Json.toJson(result.get(0)));
+		return ok(Json.newObject());
 	}
 
 	@Transactional
@@ -261,8 +260,7 @@ public class LocationServices extends Controller {
 	    	)
 	} )
 	public Result findBulkLocations() {
-		ArrayList<Map<String, Object>> params = toParams((ArrayNode)request().body().asJson());
-		List<Object> result = GeoJsonRule.findBulkLocations(params);
+		List<Object> result = GeoJsonRule.findLocations((ArrayNode)request().body().asJson());
 		return ok(toJson(result));
 	}
 	
@@ -274,51 +272,6 @@ public class LocationServices extends Controller {
 	    return result;
 	}
 
-	private static ArrayList<Map<String, Object>> toParams(ArrayNode array) {
-		ArrayList<Map<String,Object>> params = new ArrayList<>();
-		for(JsonNode node: array){
-			Map<String,Object> map = new HashMap<>();
-			putAsRequired(node, map, "name");
-			putAsNullIfNull(node, map, "locationTypeIds");
-			putAsTextIfNotNull(node, map, "start");
-			putAsTextIfNotNull(node, map, "end");
-			
-			params.add(map);
-		}
-		return params;
-	}
-
-	private static void putAsRequired(JsonNode node, Map<String, Object> map,
-			String string) {
-		if(getKeyList(node).contains(string))
-			map.put("name",node.findValue(string).asText());
-		else
-			throw new BadRequest("\"" + string + "\" key is requierd!");
-	}
-
-	private static void putAsNullIfNull(JsonNode node, Map<String, Object> map, String key) {
-		if(getKeyList(node).contains(key))
-			map.put(key, node.get(key));
-		else
-			map.put(key, null);
-	}
-	
-	private static void putAsTextIfNotNull(JsonNode node, Map<String, Object> map, String key) {
-		if(getKeyList(node).contains(key))
-			map.put(key, node.findValue(key).asText());
-		else
-			map.put(key, null);
-	}
-	
-	private static List<String> getKeyList(JsonNode node) {
-		List<String> keys = new ArrayList<>();
-		Iterator<String> l = node.fieldNames();
-		while(l.hasNext()){
-			keys.add(l.next());
-		}
-		return keys;
-	}
-	
 	@Transactional
 	@ApiOperation(
 			httpMethod = "GET", 

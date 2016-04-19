@@ -6,10 +6,12 @@ import java.util.List;
 public class Request {
 
 	String queryTerm;
-	int limit;
-	int offset;
-	boolean unaccent;
-	List<String> alsoSearch;
+	Integer limit;
+	Integer offset;
+	Boolean ignoreAccent = true;
+	Boolean searchNames = true;
+	Boolean searchOtherNames = true;
+	Boolean searchCodes = true;
 	Date start;
 	Date end;
 	List<Integer> typeId;
@@ -22,36 +24,52 @@ public class Request {
 		this.queryTerm = queryTerm;
 	}
 
-	public int getLimit() {
+	public Integer getLimit() {
 		return limit;
 	}
 
-	public void setLimit(int limit) {
+	public void setLimit(Integer limit) {
 		this.limit = limit;
 	}
 
-	public int getOffset() {
+	public Integer getOffset() {
 		return offset;
 	}
 
-	public void setOffset(int offset) {
+	public void setOffset(Integer offset) {
 		this.offset = offset;
 	}
 
-	public boolean getUnaccent() {
-		return unaccent;
+	public Boolean isIgnoreAccent() {
+		return ignoreAccent;
 	}
 
-	public void setUnaccent(boolean unaccent) {
-		this.unaccent = unaccent;
+	public void setIgnoreAccent(Boolean ignoreAccent) {
+		this.ignoreAccent = ignoreAccent;
 	}
 
-	public List<String> getAlsoSearch() {
-		return alsoSearch;
+	public Boolean isSearchNames() {
+		return searchNames;
 	}
 
-	public void setAlsoSearch(List<String> searchWithin) {
-		this.alsoSearch = searchWithin;
+	public void setSearchNames(Boolean searchNames) {
+		this.searchNames = searchNames;
+	}
+
+	public Boolean isSearchOtherNames() {
+		return searchOtherNames;
+	}
+
+	public void setSearchOtherNames(Boolean searchOtherNames) {
+		this.searchOtherNames = searchOtherNames;
+	}
+
+	public Boolean isSearchCodes() {
+		return searchCodes;
+	}
+
+	public void setSearchCodes(Boolean searchCodes) {
+		this.searchCodes = searchCodes;
 	}
 
 	public Date getStart() {

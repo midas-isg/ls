@@ -21,13 +21,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 public class TestFindLocation {
 
-	private String findBulkPath = "api/find-bulk";
-	private String find2Path = "api/locations2";
 	private long timeout = 100_000;
 	private String basePath = "api/locations";
+	private String findBulkPath = basePath + "/find-bulk";
+	private String findPath = basePath + "/find";
 	private String gid = "1";
 	private String jsonContentType = "application/json; charset=utf-8";
-	private final String find2ExampleFilePath = "public\\examples\\api\\find.json";
+	private final String exampleFilePath = "public\\examples\\api\\find.json";
 
 	public static Runnable test() {
 		return () -> newInstance().testFindLocation();
@@ -38,7 +38,7 @@ public class TestFindLocation {
 	}
 
 	public void testFindLocation() {
-		findLocationTest2();
+		findLocationsTest();
 		findByIdTest();
 		findByNameTest();
 		findBulkTest();
@@ -46,44 +46,44 @@ public class TestFindLocation {
 		unsafeFindByNameTest();
 	}
 
-	private void findLocationTest2() {
-		String body = readFile(find2ExampleFilePath);
+	private void findLocationsTest() {
+		String body = readFile(exampleFilePath);
 		Logger.debug(body);
-		String url = Server.makeTestUrl(find2Path);
+		String url = Server.makeTestUrl(findPath);
 		WSResponse response = post(url, body, jsonContentType);
 		JsonNode jsonResp = response.asJson();
-		List<String> keys = getKeyList(jsonResp.get(0));
-		Object[] propKeys = getKeyList(jsonResp.get(0).get("properties"))
+		List<String> keys = getKeyList(jsonResp);
+		Object[] propKeys = getKeyList(jsonResp.get("properties"))
 				.toArray();
 
 		assertStatus(response, OK);
-		assertAreEqual(jsonResp.size(), 1);
-		assertContainsAll(keys.toArray(), new String[] { "features",
+		assertAreEqual(jsonResp.size(), 3);
+		assertContainsAll(keys.toArray(), new String[] { "type", "features",
 				"properties" });
-		assertContainsAll(propKeys, new String[] { "queryTerm", "startDate",
-				"endDate", "locationTypeIds", "unaccent", "alsoSearch",
-				"limit", "offset", "resultSize" });
+		assertContainsAll(propKeys, new String[] { "q", "start",
+				"end", "locationTypeIds", "ignoreAccent", "searchNames",
+				"searchOtherNames", "searchCodes", "limit", "offset", "resultSize" });
 		body = "[{}]";
 		response = post(url, body, jsonContentType);
 		assertStatus(response, BAD_REQUEST);
 	}
 
 	private void findByNameTest() {
-		boolean searchAltNames = true;
+		boolean searchOtherNames = true;
 		String url = Server.makeTestUrl(basePath
-				+ "?q=pennsylvania&limit=2&offset=0&searchAltNames="
-				+ searchAltNames);
+				+ "?q=pennsylvania&limit=2&offset=0&searchOtherNames="
+				+ searchOtherNames);
 		WSResponse response = get(url);
 		JsonNode jsonResp = response.asJson();
-		assertAreEqual(jsonResp.get("properties").get("searchAltNames")
+		assertAreEqual(jsonResp.get("properties").get("searchOtherNames")
 				.asText(), "true");
-		searchAltNames = false;
+		searchOtherNames = false;
 		url = Server.makeTestUrl(basePath
-				+ "?q=pennsylvania&limit=2&offset=0&searchAltNames="
-				+ searchAltNames);
+				+ "?q=pennsylvania&limit=2&offset=0&searchOtherNames="
+				+ searchOtherNames);
 		response = get(url);
 		jsonResp = response.asJson();
-		assertAreEqual(jsonResp.get("properties").get("searchAltNames")
+		assertAreEqual(jsonResp.get("properties").get("searchOtherNames")
 				.asText(), "false");
 	}
 
@@ -125,9 +125,9 @@ public class TestFindLocation {
 	}
 
 	private void findBulkTest() {
-		String body = "[{\"name\":\"pennsylvania\",\"locationTypeIds\":[16,104],\"start\":\"1780-12-12\","
-				+ " \"end\":\"2012-11-11\"},{\"name\":\"sudan\",\"locationTypeIds\":[1,17],"
-				+ "\"start\": null, \"end\":\"\"},{\"name\":\"sudan\"}]";
+		String body = "[{\"q\":\"pennsylvania\",\"locationTypeIds\":[16,104],\"start\":\"1780-12-12\","
+				+ " \"end\":\"2012-11-11\"},{\"q\":\"sudan\",\"locationTypeIds\":[1,17],"
+				+ "\"start\": null, \"end\":\"\"},{\"q\":\"sudan\"}]";
 		String url = Server.makeTestUrl(findBulkPath);
 		WSResponse response = post(url, body, jsonContentType);
 		JsonNode jsonResp = response.asJson();
@@ -139,9 +139,9 @@ public class TestFindLocation {
 		assertAreEqual(jsonResp.size(), 3);
 		assertContainsAll(keys.toArray(), new String[] { "features",
 				"properties" });
-		assertContainsAll(propKeys, new String[] { "name", "start", "end",
+		assertContainsAll(propKeys, new String[] { "q", "start", "end",
 				"locationTypeIds" });
-		body = "[{\"name\":\"pennsylvania\",\"start\":\"2000-\"}]";
+		body = "[{\"q\":\"pennsylvania\",\"start\":\"2000-\"}]";
 		response = post(url, body, jsonContentType);
 		assertStatus(response, BAD_REQUEST);
 

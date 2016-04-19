@@ -6,10 +6,8 @@ import static interactors.Util.includeField;
 import static interactors.Util.listToString;
 import static interactors.Util.newDate;
 import static interactors.Util.putAsStringIfNotNull;
-import static interactors.Util.toDate;
 import static interactors.Util.toDate2;
 import static interactors.Util.toListOfInt;
-import static interactors.Util.toListOfString;
 import static interactors.Util.toStringValue;
 
 import java.sql.Date;
@@ -406,10 +404,20 @@ public class GeoJsonRule {
 			return null;
 		return object.toString();
 	}
+	
+	private static Request toRequest(String name, Boolean searchOtherNames, Integer limit, Integer offset) {
+		Request req = new Request();
+		req.setQueryTerm(name);
+		req.setSearchOtherNames(searchOtherNames);
+		req.setLimit(limit);
+		req.setOffset(offset);
+		return req;
+	}
 
 	public static Response findByName(String q, 
-			Integer limit, Integer offset, boolean altNames){
-		List<Location> result = LocationRule.findByName(q, limit, offset, altNames);
+			Integer limit, Integer offset, Boolean searchOtherNames){
+		Request req = toRequest(q, searchOtherNames, limit, offset);
+		List<Location> result = LocationRule.findLocations(req);
 		Response response = new Response();
 		response.setGeoJSON(toFeatureCollection(result, DEFAULT_KEYS));
 		Map<String, Object> properties = new HashMap<>();
@@ -417,38 +425,21 @@ public class GeoJsonRule {
 		properties.put("q", q);
 		putAsStringIfNotNull(properties, "limit", limit);
 		putAsStringIfNotNull(properties, "offset", offset);
-		putAsStringIfNotNull(properties, "searchAltNames", altNames);
+		putAsStringIfNotNull(properties, "searchOtherNames", searchOtherNames);
 		putAsStringIfNotNull(properties, "resultSize", "" + result.size());
-		properties.put("locationTypeName", "Result from a query");
+		//properties.put("locationTypeName", "Result from a query");
 		String descritpion = "Result from the query for '" + q + "' limit=" 
-		+ limit + " offset=" + offset + " searchAltNames=" + altNames;
+		+ limit + " offset=" + offset + " searchOtherNames=" + searchOtherNames;
 		properties.put("locationDescription", descritpion);
 		return response;
 	}
 	
-	public static List<Object> findBulkLocations(ArrayList<Map<String,Object>> params){
-		List<Object> result = new ArrayList<>();
-		//String geoJSONKey = "";
-		FeatureCollection fc;
-		for (Map<String, Object> param : params) {
-			//geoJSONKey = makeGeoJSONKey(param);
-			String name = (String) param.get("name");
-			List<Integer> locTypeIds = toListOfInt((JsonNode) param.get("locationTypeIds"));
-			Date startDate = toDate(param, "start");
-			Date endDate = toDate(param, "end");
-
-			fc = findLocation(name, locTypeIds, startDate, endDate);
-			result.add(fc);
-		}
-		return result;
-	}
-	
-	public static List<Object> findLocations2(ArrayNode arrayNode){
+	public static List<Object> findLocations(ArrayNode arrayNode){
 		List<Object> result = new ArrayList<>();
 		FeatureCollection fc;
 		for (JsonNode node : arrayNode) {
 			Request req = toRequest(node);
-			fc = findLocation2(req);
+			fc = findLocations(req);
 			result.add(fc);
 		}
 		return result;
@@ -456,10 +447,10 @@ public class GeoJsonRule {
 
 	private static Request toRequest(JsonNode node) {
 		Request req = new Request();
-		if(containsKey(node, "queryTerm"))
-			req.setQueryTerm(node.get("queryTerm").asText());
+		if(containsKey(node, "q"))
+			req.setQueryTerm(node.get("q").asText());
 		else
-			throw new BadRequest("\"" + "queryTerm" + "\" key is requierd!");
+			throw new BadRequest("\"" + "q" + "\" key is requierd!");
 		if(containsKey(node, "locationTypeIds"))
 			req.setTypeId(toListOfInt((JsonNode) node.get("locationTypeIds")));
 		if(containsKey(node, "start"))
@@ -470,41 +461,38 @@ public class GeoJsonRule {
 			req.setLimit(node.get("limit").asInt());
 		if(containsKey(node, "offset"))
 			req.setOffset(node.get("offset").asInt());
-		if(containsKey(node, "unaccent"))
-			req.setUnaccent(node.get("unaccent").asBoolean());
-		if(containsKey(node, "alsoSearch"))
-			req.setAlsoSearch(toListOfString((JsonNode) node.get("alsoSearch")));
+		if(containsKey(node, "ignoreAccent"))
+			req.setIgnoreAccent(node.get("ignoreAccent").asBoolean());
+		if(containsKey(node, "searchNames"))
+			req.setSearchNames(node.get("searchNames").asBoolean());
+		if(containsKey(node, "searchOtherNames"))
+			req.setSearchOtherNames(node.get("searchOtherNames").asBoolean());
+		if(containsKey(node, "searchCodes"))
+			req.setSearchCodes(node.get("searchCodes").asBoolean());
 		return req;
 	}
-
-	private static FeatureCollection findLocation(String name,
-			List<Integer> locTypeIds, Date startDate, Date endDate) {
-		List<Location> result = LocationRule.find(name, locTypeIds, startDate, endDate);
-		List<String> fields = Arrays.asList(new String[] {KEY_PROPERTIES});
-		FeatureCollection geoJSON = toFeatureCollection(result, fields);
-		Map<String, Object> properties = new HashMap<>();
-		geoJSON.setProperties(properties);
-		properties.put("name", name);
-		putAsStringIfNotNull(properties, "locationTypeIds", listToString(locTypeIds));
-		putAsStringIfNotNull(properties, "start", toStringValue(startDate));
-		putAsStringIfNotNull(properties, "end", toStringValue(endDate));
-		return geoJSON;
-	}
 	
-	private static FeatureCollection findLocation2(Request req) {
-		List<Location> result = LocationRule.find2(req);
+	public static FeatureCollection findLocations(Request req) {
+		List<Location> result = LocationRule.findLocations(req);
+		return toGeoJSON(req, result);
+	}
+
+	private static FeatureCollection toGeoJSON(Request req,
+			List<Location> result) {
 		List<String> fields = Arrays.asList(new String[] {KEY_PROPERTIES});
 		FeatureCollection geoJSON = toFeatureCollection(result, fields);
 		Map<String, Object> properties = new HashMap<>();
 		geoJSON.setProperties(properties);
-		properties.put("queryTerm", req.getQueryTerm());
+		properties.put("q", req.getQueryTerm());
 		putAsStringIfNotNull(properties, "locationTypeIds", listToString(req.getTypeId()));
-		putAsStringIfNotNull(properties, "startDate", toStringValue(req.getStart()));
-		putAsStringIfNotNull(properties, "endDate", toStringValue(req.getEnd()));
+		putAsStringIfNotNull(properties, "start", toStringValue(req.getStart()));
+		putAsStringIfNotNull(properties, "end", toStringValue(req.getEnd()));
 		putAsStringIfNotNull(properties, "limit", "" + req.getLimit());
 		putAsStringIfNotNull(properties, "offset", "" + req.getOffset());
-		putAsStringIfNotNull(properties, "unaccent", req.getUnaccent());
-		putAsStringIfNotNull(properties, "alsoSearch", listToString(req.getAlsoSearch()));
+		putAsStringIfNotNull(properties, "ignoreAccent", req.isIgnoreAccent());
+		putAsStringIfNotNull(properties, "searchNames", req.isSearchNames());
+		putAsStringIfNotNull(properties, "searchOtherNames", req.isSearchOtherNames());
+		putAsStringIfNotNull(properties, "searchCodes", req.isSearchCodes());
 		putAsStringIfNotNull(properties, "resultSize", "" + result.size());
 		return geoJSON;
 	}
