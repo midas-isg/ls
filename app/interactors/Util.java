@@ -17,11 +17,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 public class Util {
 
-	public static boolean containsKey(JsonNode node, String key) {
+	static boolean containsKey(JsonNode node, String key) {
 		return getKeyList(node).contains(key);
 	}
 
-	public static List<String> getKeyList(JsonNode node) {
+	static List<String> getKeyList(JsonNode node) {
 		List<String> keys = new ArrayList<>();
 		Iterator<String> l = node.fieldNames();
 		while (l.hasNext()) {
@@ -57,7 +57,7 @@ public class Util {
 		// }
 	}
 
-	public static Date toDate(Map<String, Object> param, String key) {
+	static Date toDate(Map<String, Object> param, String key) {
 		if (param.get(key) == null) {
 			return null;
 		}
@@ -76,7 +76,7 @@ public class Util {
 		return date;
 	}
 
-	public static Date toDate2(String dateString) {
+	static Date toDate(String dateString) {
 		if (dateString.equals("") || dateString.equals("null"))
 			return null;
 		Date date = null;
@@ -91,22 +91,26 @@ public class Util {
 		return date;
 	}
 
-	public static String toStringValue(Date date) {
+	static String toStringValue(Date date) {
 		if (date == null)
 			return null;
 		return date.toString();
 	}
 
-	public static String listToString(@SuppressWarnings("rawtypes") List list) {
+	static <T> String listToString(List<T> list) {
 		if (list == null || list.isEmpty())
 			return null;
 		StringJoiner joiner = new StringJoiner(",", "[", "]");
-		for (Object o : list)
-			joiner.add(o.toString());
+		for (Object o : list) {
+			if (o == null)
+				joiner.add("null");
+			else
+				joiner.add(o.toString());
+		}
 		return joiner.toString();
 	}
 
-	public static List<Integer> toListOfInt(JsonNode jsonNode) {
+	static List<Integer> toListOfInt(JsonNode jsonNode) {
 		if (jsonNode == null)
 			return null;
 		List<Integer> intList = new ArrayList<>();
@@ -117,7 +121,7 @@ public class Util {
 		return intList;
 	}
 
-	public static List<String> toListOfString(JsonNode jsonNode) {
+	static List<String> toListOfString(JsonNode jsonNode) {
 		if (jsonNode == null)
 			return null;
 		List<String> list = new ArrayList<>();
@@ -128,7 +132,7 @@ public class Util {
 		return list;
 	}
 
-	public static boolean includeField(List<String> fields, String... keys) {
+	static boolean includeField(List<String> fields, String... keys) {
 		if (fields == null || fields.isEmpty())
 			return true;
 
@@ -141,19 +145,19 @@ public class Util {
 		return String.valueOf(object);
 	}
 
-	public static void putAsStringIfNotNull(Map<String, Object> properties,
+	static void putAsStringIfNotNull(Map<String, Object> properties,
 			String key, Object value) {
 		if (value == null)
 			return;
 		properties.put(key, toString(value));
 	}
 
-	public static Date getNowDate() {
+	static Date getNowDate() {
 		java.util.Date now = new java.util.Date();
 		return new Date(now.getTime());
 	}
 
-	public static Date newDate(String date) {
+	static Date newDate(String date) {
 		if (date == null)
 			return null;
 		return java.sql.Date.valueOf(date);

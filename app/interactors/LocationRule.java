@@ -128,8 +128,8 @@ public class LocationRule {
 		return deletedGid;
 	}
 
-	public static List<Location> findLocations(Request req) {
-		List<Location> result = new LocationDao().findLocations(req);
+	public static List<Location> findByTerm(Request req) {
+		List<Location> result = new LocationDao().findByTerm(req);
 		return result;
 	}
 		

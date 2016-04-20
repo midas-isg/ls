@@ -22,12 +22,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 public class TestFindLocation {
 
 	private long timeout = 100_000;
-	private String basePath = "api/locations";
-	private String findBulkPath = basePath + "/find-bulk";
-	private String findPath = basePath + "/find";
+	private String findByNamePath = "api/locations-by-name";
+	private String findBulkPath = "api/locations/find-bulk";
+	private String findPath = "api/locations-by-term";
 	private String gid = "1";
 	private String jsonContentType = "application/json; charset=utf-8";
 	private final String exampleFilePath = "public\\examples\\api\\find.json";
+	private String basePath = "api/locations";
 
 	public static Runnable test() {
 		return () -> newInstance().testFindLocation();
@@ -60,7 +61,7 @@ public class TestFindLocation {
 		assertAreEqual(jsonResp.size(), 3);
 		assertContainsAll(keys.toArray(), new String[] { "type", "features",
 				"properties" });
-		assertContainsAll(propKeys, new String[] { "q", "start",
+		assertContainsAll(propKeys, new String[] { "queryTerm", "start",
 				"end", "locationTypeIds", "ignoreAccent", "searchNames",
 				"searchOtherNames", "searchCodes", "limit", "offset", "resultSize" });
 		body = "[{}]";
@@ -70,16 +71,16 @@ public class TestFindLocation {
 
 	private void findByNameTest() {
 		boolean searchOtherNames = true;
-		String url = Server.makeTestUrl(basePath
-				+ "?q=pennsylvania&limit=2&offset=0&searchOtherNames="
+		String url = Server.makeTestUrl(findByNamePath
+				+ "?queryTerm=pennsylvania&limit=2&offset=0&searchOtherNames="
 				+ searchOtherNames);
 		WSResponse response = get(url);
 		JsonNode jsonResp = response.asJson();
 		assertAreEqual(jsonResp.get("properties").get("searchOtherNames")
 				.asText(), "true");
 		searchOtherNames = false;
-		url = Server.makeTestUrl(basePath
-				+ "?q=pennsylvania&limit=2&offset=0&searchOtherNames="
+		url = Server.makeTestUrl(findByNamePath
+				+ "?queryTerm=pennsylvania&limit=2&offset=0&searchOtherNames="
 				+ searchOtherNames);
 		response = get(url);
 		jsonResp = response.asJson();
@@ -88,7 +89,7 @@ public class TestFindLocation {
 	}
 
 	private void findByIdTest() {
-		String url = Server.makeTestUrl(basePath + "/" + gid);
+		String url = Server.makeTestUrl(basePath  + "/" + gid);
 		WSResponse response = get(url);
 		JsonNode jsonResp = response.asJson();
 		Object[] features = getKeyList(jsonResp.get("features").get(0))
@@ -109,7 +110,7 @@ public class TestFindLocation {
 	}
 
 	private void unsafeFindBulkTest() {
-		String body = "[{\"name\":\" ; drop ;\"}]";
+		String body = "[{\"queryTerm\":\" ; drop ;\"}]";
 		String url = Server.makeTestUrl(findBulkPath);
 		WSResponse response = post(url, body, jsonContentType);
 		assertStatus(response, BAD_REQUEST);
@@ -118,16 +119,16 @@ public class TestFindLocation {
 
 	private void unsafeFindByNameTest() {
 		boolean searchAltNames = true;
-		String url = Server.makeTestUrl(basePath + "?q=;drop%20a%20;"
+		String url = Server.makeTestUrl(findByNamePath + "?queryTerm=;drop%20a%20;"
 				+ searchAltNames);
 		WSResponse response = get(url);
 		assertStatus(response, BAD_REQUEST);
 	}
 
 	private void findBulkTest() {
-		String body = "[{\"q\":\"pennsylvania\",\"locationTypeIds\":[16,104],\"start\":\"1780-12-12\","
-				+ " \"end\":\"2012-11-11\"},{\"q\":\"sudan\",\"locationTypeIds\":[1,17],"
-				+ "\"start\": null, \"end\":\"\"},{\"q\":\"sudan\"}]";
+		String body = "[{\"queryTerm\":\"pennsylvania\",\"locationTypeIds\":[16,104],\"start\":\"1780-12-12\","
+				+ " \"end\":\"2012-11-11\"},{\"queryTerm\":\"sudan\",\"locationTypeIds\":[1,17],"
+				+ "\"start\": null, \"end\":\"\"},{\"queryTerm\":\"sudan\"}]";
 		String url = Server.makeTestUrl(findBulkPath);
 		WSResponse response = post(url, body, jsonContentType);
 		JsonNode jsonResp = response.asJson();
@@ -139,9 +140,9 @@ public class TestFindLocation {
 		assertAreEqual(jsonResp.size(), 3);
 		assertContainsAll(keys.toArray(), new String[] { "features",
 				"properties" });
-		assertContainsAll(propKeys, new String[] { "q", "start", "end",
+		assertContainsAll(propKeys, new String[] { "queryTerm", "start", "end",
 				"locationTypeIds" });
-		body = "[{\"q\":\"pennsylvania\",\"start\":\"2000-\"}]";
+		body = "[{\"queryTerm\":\"pennsylvania\",\"start\":\"2000-\"}]";
 		response = post(url, body, jsonContentType);
 		assertStatus(response, BAD_REQUEST);
 

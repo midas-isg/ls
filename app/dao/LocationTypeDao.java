@@ -1,5 +1,6 @@
 package dao;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -32,5 +33,23 @@ public class LocationTypeDao {
 		@SuppressWarnings("unchecked")
 		List<LocationType> result = (List<LocationType>)query.getResultList();
 		return result;
+	}
+	
+	public List<String> getLocationTypeNames(
+			List<Integer> locationTypeIds) {
+		if (locationTypeIds == null)
+			return null;
+		List<String> locationTypeNames = new ArrayList<>();
+		LocationType locationType;
+		for (Integer id : locationTypeIds) {
+			locationType = read(id);
+			if(locationType != null)
+				locationTypeNames.add(locationType.getName());
+		}
+		return locationTypeNames;
+	}
+	
+	public String getLocationTypeName(LocationType locationType) {
+		return (locationType == null) ? null : locationType.getName();
 	}
 }

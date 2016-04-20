@@ -8,10 +8,10 @@ public class Request {
 	String queryTerm;
 	Integer limit;
 	Integer offset;
-	Boolean ignoreAccent = true;
-	Boolean searchNames = true;
-	Boolean searchOtherNames = true;
-	Boolean searchCodes = true;
+	Boolean ignoreAccent;
+	Boolean searchNames;
+	Boolean searchOtherNames;
+	Boolean searchCodes;
 	Date start;
 	Date end;
 	List<Integer> typeId;

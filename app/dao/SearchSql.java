@@ -13,37 +13,42 @@ public class SearchSql {
 	public String toQuerySqlString(Request req){
 		//TODO: move sanitize() to a proper place
 		sanitize(req.getQueryTerm());
-		String nameCol = (req.isIgnoreAccent()) ? "unaccent_immutable(name)" : "name";
+		String nameCol = isTrue(req.isIgnoreAccent()) ? "unaccent_immutable(name)" : "name";
+		String codeCol = isTrue(req.isIgnoreAccent()) ? "unaccent_immutable(code)" : "code";
+		String locTempTable = isTrue(req.isSearchNames()) ? "origin_names" : null;
+		String otherNamesTempTable = isTrue(req.isSearchOtherNames()) ? "alt_names" : null;
+		String codesTempTable = isTrue(req.isSearchCodes()) ? "codes" : null;
 		String nameTsVector = "to_tsvector('simple', " + nameCol + ")";
-		String codeCol = (req.isIgnoreAccent()) ? "unaccent_immutable(code)" : "code";
 		String codeTsVector = "to_tsvector('simple', " + codeCol + ")";
-		String locTempTable = "origin_names";
-		String otherNamesTempTable = "alt_names";
-		String codesTempTable = "codes";
 		String queryText = toQueryText(req.getQueryTerm());
-		String qt = (req.isIgnoreAccent()) ? 
+		String qt = (isTrue(req.isIgnoreAccent())) ? 
 				"unaccent_immutable(" + "'" + queryText + "'" + ")\\:\\:tsquery" 
 				: "'" + queryText + "'";
 		//@formatter:off
-		String q = "WITH origin_names AS ( "
-				+ " SELECT gid, name, ts_rank_cd(ti, "+ qt + ", 8) AS rank "
-				+ " FROM location, " + nameTsVector + " ti " 
-				+ " WHERE ti @@ "+ qt;
-		if(hasConditions(req))
-			q += " AND " + buildQueryConds(req);
-		q += " ) ";
-		if (req.isSearchOtherNames()){
-			q += " , " + otherNamesTempTable + " AS ( "
+		String q = "WITH ";
+		if(isTrue(req.isSearchNames())){
+				q += locTempTable + " AS ( ";
+				q += searchLocationNames(nameTsVector, qt);
+				if(hasConditions(req))
+					q += " AND " + buildQueryConds(req);
+			q += " ) ";
+		}
+		if (isTrue(req.isSearchOtherNames())){
+			if(isTrue(req.isSearchNames()))
+				q += " , ";
+			q += otherNamesTempTable + " AS ( "
 				+ searchOtherNames(nameTsVector, qt, locTempTable);
 			if(hasConditions(req))
 				q += " AND gid IN ( SELECT gid FROM location WHERE " 
 					+ buildQueryConds(req) + " ) ";
 			q += " ) ";
 		}
-		if (req.isSearchCodes()){
-			q += " , " + codesTempTable + " AS ( " 
+		if (isTrue(req.isSearchCodes())){
+			if(isTrue(req.isSearchNames()) || isTrue(req.isSearchOtherNames()))
+				q += " , ";	
+			q += codesTempTable + " AS ( " 
 				+ searchCodes(req, codeTsVector, qt, locTempTable);
-			if(req.isSearchOtherNames())
+			if(isTrue(req.isSearchOtherNames()))
 				q += " AND gid NOT IN (SELECT gid FROM " + otherNamesTempTable + " ) ";
 			if(hasConditions(req))
 				q += " AND gid IN ( SELECT gid FROM location WHERE " 
@@ -51,27 +56,42 @@ public class SearchSql {
 			q += " ) ";
 		}
 		q += " SELECT * FROM ( ";
-		q += " SELECT gid, ts_headline('simple', " + nameCol + ", "+ qt + " ) headline, rank, name "
-			+ " FROM " + locTempTable;
-		if (req.isSearchOtherNames())
-			q += union(nameCol, qt, otherNamesTempTable);
-		if (req.isSearchCodes())
-			q += union(nameCol, qt, codesTempTable);
+		if(isTrue(req.isSearchNames()))
+			q += selectFromTempTable(nameCol, qt, locTempTable);
+		if (isTrue(req.isSearchOtherNames())){
+			if(isTrue(req.isSearchNames()))
+				q += " UNION ";
+			q += selectFromTempTable(nameCol, qt, otherNamesTempTable);
+		}
+		if (isTrue(req.isSearchCodes())){
+			if(isTrue(req.isSearchNames()) || isTrue(req.isSearchOtherNames()))
+				q += " UNION ";
+			q += selectFromTempTable(nameCol, qt, codesTempTable);
+		}
 		q += " ) AS foo ";
 		q += " ORDER BY rank DESC, name ";
 		//@formatter:on
 		//Logger.debug("name=" + req.getQueryTerm() + " q=\n" + q);
 		return q;
 	}
+
+	private String searchLocationNames(String nameTsVector, String qt) {
+		String q = " SELECT gid, name, ts_rank_cd(ti, "+ qt + ", 8) AS rank "
+				+ " FROM location, " + nameTsVector + " ti " 
+				+ " WHERE ti @@ "+ qt;
+		return q;
+	}
 	
-	private String searchOtherNames(String nameTsVector, String qt, String tempTableName) {
+	private String searchOtherNames(String nameTsVector, String qt, String originalNames) {
 		String q = " SELECT DISTINCT ON(gid) gid, name, ts_rank_cd(ti, "+ qt + ", 8) AS rank "
 					+ " FROM alt_name , " + nameTsVector + " ti "
-					+ " WHERE gid NOT IN (SELECT gid FROM " + tempTableName + " ) AND ti @@ "+ qt;
+					+ " WHERE ti @@ " + qt;
+		if(originalNames != null)
+			q += " AND gid NOT IN (SELECT gid FROM " + originalNames + " ) ";
 		return q;
 	}
 
-	private String searchCodes(Request req, String codeTsVector, String qt, String tempTableName) {
+	private String searchCodes(Request req, String codeTsVector, String qt, String originalNames) {
 		String q = " SELECT DISTINCT ON(gid) gid, code AS name, ts_rank_cd(ti, "+ qt + ", 8) AS rank "
 				+ " FROM ("
 				+ " SELECT gid, code FROM location WHERE code_type_id != 2 ";
@@ -79,7 +99,9 @@ public class SearchSql {
 			q += " AND " + buildQueryConds(req);
 		q += " UNION select gid, code FROM alt_code) AS foo"
 			+ " , " + codeTsVector + " ti "
-			+ " WHERE gid NOT IN (SELECT gid FROM " + tempTableName + " ) AND ti @@ " + qt;
+			+ " WHERE ti @@ " + qt;
+		if(originalNames != null)
+			q += " AND gid NOT IN (SELECT gid FROM " + originalNames + " ) "; 
 		return q;
 	}
 		
@@ -107,9 +129,8 @@ public class SearchSql {
 		return qc;
 	}
 
-	private String union(String column, String qt, String tempTable) {
-		String q = " UNION "
-				+ " SELECT gid, ts_headline('simple', " + column + ", " + qt + " ) headline, rank, name "
+	private String selectFromTempTable(String column, String qt, String tempTable) {
+		String q = " SELECT gid, ts_headline('simple', " + column + ", " + qt + " ) headline, rank, name "
 				+ " FROM " + tempTable + " ";
 		return q;
 	}
@@ -162,5 +183,11 @@ public class SearchSql {
 		if(SQLSanitizer.isUnsafe(tokenized)){
 			throw new BadRequest("value [ " + value + " ] contains unsafe character(s)!");
 		}
+	}
+	
+	private Boolean isTrue(Boolean param){
+		if(param == null || param == false)
+			return false;
+		return true;
 	}
 }

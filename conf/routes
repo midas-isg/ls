@@ -21,10 +21,17 @@ GET           /api/locations/:gid                 controllers.LocationServices.l
 PUT           /api/locations/:gid                 controllers.LocationServices.update(gid:Long)
 DELETE        /api/locations/:gid                 controllers.LocationServices.delete(gid:Long)
 
+# Deprecated. Use /api/locations-by-name
 GET           /api/locations                      controllers.LocationServices.findLocations(q, limit:Int?=10, offset:Int?=0, searchOtherNames:Boolean?=true)
-POST           /api/locations/find-bulk                controllers.LocationServices.findBulkLocations()
 
-POST           /api/locations/find                      controllers.LocationServices.find()
+GET           /api/locations-by-name              controllers.LocationServices.findByName(queryTerm, limit:Int?=10, offset:Int?=0, searchOtherNames:Boolean?=true)
+
+# Deprecated. Use /api/locations/find-bulk
+POST           /api/find-bulk                	  controllers.LocationServices.findBulk()
+
+POST           /api/locations/find-bulk           controllers.LocationServices.findBulkLocations()
+
+POST           /api/locations-by-term               controllers.LocationServices.findByTerm()
 
 # Deprecated
 GET           /api/locations/byCoordinate         controllers.LocationServices.findLocationsByPoint(lat:Double, long:Double)

@@ -109,7 +109,7 @@ public class LocationDao {
 		return gid;
 	}
 	
-	public List<Location> findLocations(Request req) {
+	public List<Location> findByTerm(Request req) {
 		EntityManager em = JPA.em();
 		String q = new SearchSql().toQuerySqlString(req);
 		Query query = em.createNativeQuery(q);

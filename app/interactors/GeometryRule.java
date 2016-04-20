@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
+
 import play.Logger;
 import dao.GeometryDao;
 import dao.entities.LocationGeometry;
@@ -108,5 +111,18 @@ public class GeometryRule {
 
 	public static List<BigInteger> findGidsByGeometry(String geojsonGeometry, Long superTypeId, Long typeId) {
 		return new GeometryDao().findGidsByGeometry(geojsonGeometry, superTypeId, typeId);
+	}
+	
+	public static double[] computeBbox(Geometry geometry) {
+		if (geometry == null || geometry.isEmpty())
+			return null;
+		Geometry envelope = geometry.getEnvelope();
+		Coordinate[] coordinates = envelope.getCoordinates();
+		Coordinate westSouth = coordinates[0];
+		Coordinate eastNorth = coordinates.length >= 2 ? coordinates[2]
+				: westSouth;
+		double[] bbox = new double[] { westSouth.x, westSouth.y, eastNorth.x,
+				eastNorth.y };
+		return bbox;
 	}
 }

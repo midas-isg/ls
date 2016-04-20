@@ -47,10 +47,10 @@ public class LocationServices extends Controller {
 	public static final String FORMAT_DEFAULT = "geojson";
 	private static final String UNIQUE_VIOLATION = "23505";
 	private static final String findBulkEx = "find-bulk.json";
-	private static final String findBulkExBody = "Only \"q\" is required. See an example of body at "
+	private static final String findBulkExBody = "Only \"queryTerm\" is required. See an example of body at "
 			+ "<a href='assets/examples/api/" + findBulkEx + "'>" + findBulkEx + "</a> ";
 	private static final String findEx = "find.json";
-	private static final String findExBody = "Only \"q\" is required. See an example of body at "
+	private static final String findExBody = "Only \"queryTerm\" is required. See an example of body at "
 			+ "<a href='assets/examples/api/" + findEx + "'>" + findEx + "</a> ";
 	private static final String findbyGeomEx = "AuMaridiTown.geojson";
 	private static final String findbyGeomExBody = "See an example of body at "
@@ -175,14 +175,14 @@ public class LocationServices extends Controller {
 			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
 			//@ApiResponse(code = 400, message = "Format is not supported") 
 	})
-	public Result findLocations(
+	public Result findByName(
 			@ApiParam(
 					value = "Search terms delimited by a space charactor. "
 					+ "The search terms are combined together with conjunction. ",
 					required = true
 			) 
-			@QueryParam("q") 
-			String q,
+			@QueryParam("queryTerm") 
+			String queryTerm,
 			
 			@ApiParam(
 					value = "Maximum number of locations to return. ", 
@@ -205,6 +205,17 @@ public class LocationServices extends Controller {
 			@QueryParam("searchOtherNames") 
 			Boolean searchOtherNames
 	) {
+		Object result = GeoJsonRule.findByName(queryTerm, limit, offset, searchOtherNames);
+		return ok(Json.toJson(result));
+	}
+	
+	/**
+	 * @deprecated replaced by {@link #findByName(String queryTerm, Integer limit,
+			Integer offset, Boolean searchOtherNames)}
+	 */
+	@Deprecated
+	@Transactional
+	public Result findLocations(String q, Integer limit, Integer offset, Boolean searchOtherNames) {
 		Object result = GeoJsonRule.findByName(q, limit, offset, searchOtherNames);
 		return ok(Json.toJson(result));
 	}
@@ -224,18 +235,27 @@ public class LocationServices extends Controller {
 	@ApiImplicitParams({ 
 	    	@ApiImplicitParam(
 	    			value = findExBody, 
-	    			required = true, 
+	    			//required = true, 
 	    			dataType = "[model.Request]",
 	    			paramType = "body"
 	    	)
 	})
-	public Result find() {
-		ArrayNode arrayNode = Json.newArray();
-		arrayNode.add((JsonNode)request().body().asJson());
-		List<Object> result = GeoJsonRule.findLocations(arrayNode);
+	public Result findByTerm() {
+		if (!(request().body().asJson() instanceof JsonNode) ||
+				request().body().asJson() instanceof ArrayNode)
+			return badRequest("Invalid input");
+
+		ArrayNode arrayNode = toArrayNode((JsonNode)request().body().asJson());
+		List<Object> result = GeoJsonRule.findByTerm(arrayNode);
 		if(result != null && !result.isEmpty())
 			return ok(Json.toJson(result.get(0)));
 		return ok(Json.newObject());
+	}
+
+	private ArrayNode toArrayNode(JsonNode asJson) {
+		ArrayNode arrayNode = Json.newArray();
+		arrayNode.add(asJson);
+		return arrayNode;
 	}
 
 	@Transactional
@@ -254,13 +274,25 @@ public class LocationServices extends Controller {
 	 @ApiImplicitParams( { 
 	    	@ApiImplicitParam(
 	    			value = findBulkExBody, 
-	    			required = true, 
+	    			//required = true, 
 	    			dataType = "List[JsonNode]",
 	    			paramType = "body"
 	    	)
 	} )
 	public Result findBulkLocations() {
-		List<Object> result = GeoJsonRule.findLocations((ArrayNode)request().body().asJson());
+		if (!(request().body().asJson() instanceof ArrayNode))
+			return badRequest("Invalid input");
+		List<Object> result = GeoJsonRule.findByTerm((ArrayNode)request().body().asJson());
+		return ok(toJson(result));
+	}
+	
+	/**
+	 * @deprecated replaced by {@link #findBulkLocations()}
+	 */
+	@Deprecated
+	@Transactional
+	public Result findBulk() {
+		List<Object> result = GeoJsonRule.findBulk((ArrayNode)request().body().asJson());
 		return ok(toJson(result));
 	}
 	
