@@ -1,12 +1,7 @@
 package _imperfactcoverage;
 
-import static org.fest.assertions.Assertions.assertThat;
-//import integrations.app.controllers.TestCoordinate;
-
-import org.junit.Assert;
-
-import play.libs.F.Callback0;
 import play.libs.F.Function0;
+//import integrations.app.controllers.TestCoordinate;
 
 public class Detour {
 	private Detour(){

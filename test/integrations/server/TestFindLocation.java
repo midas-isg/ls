@@ -22,9 +22,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 public class TestFindLocation {
 
 	private long timeout = 100_000;
-	private String findByNamePath = "api/locations-by-name";
 	private String findBulkPath = "api/locations/find-bulk";
-	private String findPath = "api/locations-by-term";
+	private String findPath = "api/locations/find-by-term";
 	private String gid = "1";
 	private String jsonContentType = "application/json; charset=utf-8";
 	private final String exampleFilePath = "public\\examples\\api\\find.json";
@@ -71,16 +70,16 @@ public class TestFindLocation {
 
 	private void findByNameTest() {
 		boolean searchOtherNames = true;
-		String url = Server.makeTestUrl(findByNamePath
-				+ "?queryTerm=pennsylvania&limit=2&offset=0&searchOtherNames="
+		String url = Server.makeTestUrl(basePath
+				+ "?q=pennsylvania&limit=2&offset=0&searchOtherNames="
 				+ searchOtherNames);
 		WSResponse response = get(url);
 		JsonNode jsonResp = response.asJson();
 		assertAreEqual(jsonResp.get("properties").get("searchOtherNames")
 				.asText(), "true");
 		searchOtherNames = false;
-		url = Server.makeTestUrl(findByNamePath
-				+ "?queryTerm=pennsylvania&limit=2&offset=0&searchOtherNames="
+		url = Server.makeTestUrl(basePath
+				+ "?q=pennsylvania&limit=2&offset=0&searchOtherNames="
 				+ searchOtherNames);
 		response = get(url);
 		jsonResp = response.asJson();
@@ -119,7 +118,7 @@ public class TestFindLocation {
 
 	private void unsafeFindByNameTest() {
 		boolean searchAltNames = true;
-		String url = Server.makeTestUrl(findByNamePath + "?queryTerm=;drop%20a%20;"
+		String url = Server.makeTestUrl(basePath + "?q=;drop%20a%20;"
 				+ searchAltNames);
 		WSResponse response = get(url);
 		assertStatus(response, BAD_REQUEST);

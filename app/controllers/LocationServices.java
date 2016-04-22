@@ -165,7 +165,7 @@ public class LocationServices extends Controller {
 			httpMethod = "GET", 
 			nickname = "findLocationsByName", 
 			value = "Returns locations by name search", 
-			notes = "This endpoint returns locations whose name matches the requested search terms (q). "
+			notes = "This endpoint returns locations whose name matches the requested search terms (queryTerm). "
 			+ "To do pagination, use 'limit' and 'offset'. "
 			+ "Note: The schema of the 'geoJSON' field in the response is GeoJSON FeatureCollection. ", 
 			response = Response.class)
@@ -262,9 +262,9 @@ public class LocationServices extends Controller {
 	@ApiOperation(
 			httpMethod = "POST", 
 			nickname = "findBulkLocations", 
-			value = "Returns bulk locations by name and other optional parameters", 
-			notes = "This endpoint returns locations whose name matches the requested search terms (name[required], start date, end date, location type id). "
-			+ "Note: The schema of the 'geoJSON' field in the response is GeoJSON FeatureCollection without the 'geometry' and 'children' info. ", 
+			value = "Returns locations requested in bulk", 
+			notes = "This endpoint returns locations match with the requested search terms (queryTerm[required], start, end, locationTypeIds, etc. (see example file)). "
+			+ "Note: The schema of the 'geoJSON' field in the response is a GeoJSON, but 'geometry' and 'children' properties are excluded. ", 
 			response = Response.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = OK, message = "Successful retrieval of location", response = Response.class),
@@ -479,7 +479,7 @@ public class LocationServices extends Controller {
 	}
 
 	@Transactional
-	@ApiOperation(
+/*	@ApiOperation(
 			httpMethod = "DELETE",
 			nickname = "deleteLocation", 
 			value = "Deletes a location", 
@@ -496,7 +496,7 @@ public class LocationServices extends Controller {
 			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
 			//@ApiResponse(code = 400, message = "Format is not supported")
 			@ApiResponse(code = NOT_FOUND, message = "Location not found")
-	})
+	})*/
 	public Result delete(
 			@ApiParam(value = "ID of the location (Apollo Location Code)", required = true) 
 			@PathParam("gid") 
