@@ -48,6 +48,8 @@ public class LocationDao {
 			else
 				throw new RuntimeException(e);
 		}
+		AltNameDao.create(location.getAltNames());
+		CodeDao.create(location.getOtherCodes());
 		LocationProxyRule.notifyChange();
 		Long gid = location.getGid();
 		Logger.info("persisted " + gid);
@@ -102,6 +104,8 @@ public class LocationDao {
 		Long gid = null;
 		if (location != null){
 			gid = location.getGid();
+			deleteOtherNames(location);
+			deleteOtherCodes(location);			
 			em.remove(location);
 			Logger.info("removed Location with gid=" + gid);
 		}
@@ -109,6 +113,20 @@ public class LocationDao {
 		return gid;
 	}
 	
+	private List<Long> deleteOtherNames(Location location) {
+		AltNameDao altNameDao = new AltNameDao();
+		if(location == null || location.getAltNames() == null)
+			return null;
+		return altNameDao.delete(location.getAltNames());
+	}
+	
+	private List<Long> deleteOtherCodes(Location location) {
+		CodeDao codeDao = new CodeDao();
+		if(location == null || location.getOtherCodes() == null)
+			return null;
+		return codeDao.delete(location.getOtherCodes());
+	}
+
 	public List<Location> findByTerm(Request req) {
 		EntityManager em = JPA.em();
 		String q = new SearchSql().toQuerySqlString(req);

@@ -49,7 +49,7 @@ public class LocationServices extends Controller {
 	private static final String findBulkEx = "find-bulk.json";
 	private static final String findBulkExBody = "Only \"queryTerm\" is required. See an example of body at "
 			+ "<a href='assets/examples/api/" + findBulkEx + "'>" + findBulkEx + "</a> ";
-	private static final String findEx = "find.json";
+	private static final String findEx = "find-by-term.json";
 	private static final String findExBody = "Only \"queryTerm\" is required. See an example of body at "
 			+ "<a href='assets/examples/api/" + findEx + "'>" + findEx + "</a> ";
 	private static final String findbyGeomEx = "AuMaridiTown.geojson";
@@ -161,20 +161,20 @@ public class LocationServices extends Controller {
 	}
 
 	@Transactional
-	@ApiOperation(
-			httpMethod = "GET", 
-			nickname = "findLocationsByName", 
-			value = "Returns locations by name search", 
-			notes = "This endpoint returns locations whose name matches the requested search terms (queryTerm). "
-			+ "To do pagination, use 'limit' and 'offset'. "
-			+ "Note: The schema of the 'geoJSON' field in the response is GeoJSON FeatureCollection. ", 
-			response = Response.class)
-	@ApiResponses(value = {
-			@ApiResponse(code = OK, message = "Successful retrieval of location", response = Response.class),
-			//@ApiResponse(code = 404, message = "Location not found"),
-			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
-			//@ApiResponse(code = 400, message = "Format is not supported") 
-	})
+//	@ApiOperation(
+//			httpMethod = "GET", 
+//			nickname = "findLocationsByName", 
+//			value = "Returns locations by name search", 
+//			notes = "This endpoint returns locations whose name matches the requested search terms (queryTerm). "
+//			+ "To do pagination, use 'limit' and 'offset'. "
+//			+ "Note: The schema of the 'geoJSON' field in the response is GeoJSON FeatureCollection. ", 
+//			response = Response.class)
+//	@ApiResponses(value = {
+//			@ApiResponse(code = OK, message = "Successful retrieval of location", response = Response.class),
+//			//@ApiResponse(code = 404, message = "Location not found"),
+//			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
+//			//@ApiResponse(code = 400, message = "Format is not supported") 
+//	})
 	public Result findByName(
 			@ApiParam(
 					value = "Search terms delimited by a space charactor. "
@@ -215,7 +215,50 @@ public class LocationServices extends Controller {
 	 */
 	@Deprecated
 	@Transactional
-	public Result findLocations(String q, Integer limit, Integer offset, Boolean searchOtherNames) {
+	@ApiOperation(
+			httpMethod = "GET", 
+			nickname = "findLocationsByName", 
+			value = "Returns locations by name search", 
+			notes = "This endpoint returns locations whose name matches the requested search terms (q). "
+			+ "To do pagination, use 'limit' and 'offset'. "
+			+ "Note: The schema of the 'geoJSON' field in the response is GeoJSON FeatureCollection. ", 
+			response = Response.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = OK, message = "Successful retrieval of location", response = Response.class),
+			//@ApiResponse(code = 404, message = "Location not found"),
+			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
+			//@ApiResponse(code = 400, message = "Format is not supported") 
+	})
+	public Result findLocations(
+	@ApiParam(
+			value = "Search terms delimited by a space charactor. "
+			+ "The search terms are combined together with conjunction. ",
+			required = true
+	) 
+	@QueryParam("q") 
+	String q,
+	
+	@ApiParam(
+			value = "Maximum number of locations to return. ", 
+			required = true, defaultValue = "10"
+	) 
+	@QueryParam("limit") 
+	Integer limit,
+	
+	@ApiParam(
+			value = "Page offset if number of locations exceeds limit. ", 
+			required = true, defaultValue = "0"
+	) 
+	@QueryParam("offset") 
+	Integer offset,
+	
+	@ApiParam(
+			value = "Whether to search in location alternative-names. ", 
+			defaultValue = "true"
+	) 
+	@QueryParam("searchOtherNames") 
+	Boolean searchOtherNames
+			) {
 		Object result = GeoJsonRule.findByName(q, limit, offset, searchOtherNames);
 		return ok(Json.toJson(result));
 	}
@@ -605,5 +648,34 @@ public class LocationServices extends Controller {
 			List<Location> locations = LocationProxyRule.getLocations(gids);
 			return ok(Json.toJson(GeoJsonRule.toFeatureCollection(locations, GeoJsonRule.DEFAULT_KEYS)));
 		}
+	}
+
+	@Transactional
+	@ApiOperation(
+		httpMethod = "GET",
+		nickname = "findByLocationTypeId",
+		value = "Returns locations gid and name with the specified type",
+		notes = "This endpoint returns locations whose type matches the requested type id."
+	)
+	@ApiResponses(value = {
+		@ApiResponse(code = OK, message = "Successful retrieval"),
+		@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error")
+	})
+	public Result findByLocationTypeId(
+		@ApiParam(
+			value = "Location-type-id",
+			required = true, defaultValue = "1"
+		)
+		@PathParam("id")
+		Long typeId
+		){
+		List<Object> result = LocationRule.findByTypeId(typeId);
+		return ok(Json.toJson(result));
+	}
+
+	@Transactional
+	public Result updateLocationCache(){
+		LocationProxyRule.updateCache();
+		return ok("Location-name cache updated!");
 	}
 }

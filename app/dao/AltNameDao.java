@@ -52,4 +52,49 @@ public class AltNameDao {
 		}
 		return result;
 	}
+
+	public static List<AltName> toListOfAltName(List<String> otherNames) {
+		List<AltName> altNames = new ArrayList<>();
+		if (otherNames == null)
+			return null;
+		AltName alt;
+		for (String n : otherNames) {
+			alt = new AltName();
+			alt.setName(n);
+			altNames.add(alt);
+		}
+		return altNames;
+	}
+
+	public static void create(List<AltName> altNames) {
+		if (altNames == null)
+			return;
+		for (AltName altName : altNames)
+			create(altName);
+	}
+
+	private static void create(AltName altName) {
+		EntityManager em = JPA.em();
+		em.persist(altName);
+	}
+
+	public List<Long> delete(List<AltName> altNames) {
+		if (altNames == null)
+			return null;
+		List<Long> ids = new ArrayList<>();
+		for (AltName n : altNames) {
+			Long id = delete(n);
+			ids.add(id);
+		}
+		return ids;
+	}
+
+	private Long delete(AltName altName) {
+		if (altName == null)
+			return null;
+		EntityManager em = JPA.em();
+		Long id = altName.getId();
+		em.remove(altName);
+		return id;
+	}
 }

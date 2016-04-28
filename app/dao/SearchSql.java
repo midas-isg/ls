@@ -146,16 +146,12 @@ public class SearchSql {
 		}
 		return " location_type_id in " + joiner.toString();
 	}
+	
 	private String dateCond(Date startDate, Date endDate) {
-		String startCond = " :start BETWEEN start_date AND LEAST( :start, end_date) ";
-		String endCond = " :end BETWEEN start_date AND LEAST( :end ,end_date) ";
-		String startEndCond = " ( "	+ startCond	+ " OR " + endCond + " ) ";
-		if(startDate != null && endDate != null)
-			return startEndCond;
-		else if(startDate != null)
-			return startCond;
-		else if(endDate != null)
-			return endCond;
+		if(startDate != null && endDate != null){
+			return " ( (start_date, COALESCE(end_date, CURRENT_DATE)) "
+					+ "OVERLAPS (:start, :end) ) ";
+		}
 		return null;
 	}
 	
@@ -165,8 +161,9 @@ public class SearchSql {
 		q = q.replaceAll(":*\\*", ":*");
 		q = q.replaceAll(" *\\| *", "|");
 		q = q.replaceAll(" *& *", "&");
+		q = q.replaceAll(" *& *", "&");
 
-		q = q.replaceAll("[',.-]", " ");
+		q = q.replaceAll("[\\(\\)',.-]", " ");
 		String[] tokens = q.trim().split(" +");
 		String del = "";
 		String result = "";

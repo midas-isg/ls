@@ -16,7 +16,7 @@ public class AltName {
 	
 	private Long id;
 	private String name;
-	private String  Language;
+	private String  language;
 	private GisSource gisSource;
 	private String description;
 	private Location location;
@@ -52,11 +52,11 @@ public class AltName {
 	@Column(name = "lang", length = 3)
 	@Size(max = 3)
 	public String getLanguage() {
-		return Language;
+		return language;
 	}
 
 	public void setLanguage(String language) {
-		Language = language;
+		this.language = language;
 	}
 	
 	@Column(length = 4000)

@@ -2,6 +2,7 @@ package interactors;
 
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,7 @@ import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Polygon;
 
 import dao.LocationDao;
+import dao.LocationTypeDao;
 import dao.entities.CodeType;
 import dao.entities.GisSource;
 import dao.entities.Location;
@@ -139,6 +141,19 @@ public class LocationRule {
 		return locations;
 	}
 
+	public static List<Object> findByTypeId(long typeId){
+		Map<String, Object> element;
+		List<Object> result = new ArrayList<>();
+		List<Location> locations = LocationTypeDao.findByType(typeId);
+		for(Location l : locations){
+			element = new HashMap<>();
+			element.put("gid", l.getGid());
+			element.put("name", l.getData().getName());
+			result.add(element);
+		}
+		return result;
+	}
+	
 	public static Object getSimplifiedGeometryMetadata(long gid, Double tolerance) {
 		Location location = simplify(gid, tolerance);
 		Geometry shapeGeometry = location.getGeometry().getShapeGeom();

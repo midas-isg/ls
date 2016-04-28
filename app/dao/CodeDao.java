@@ -49,4 +49,49 @@ public class CodeDao {
 		}
 		return result;
 	}
+
+	public static List<Code> toListOfCodes(List<String> otherCodes) {
+		List<Code> codes = new ArrayList<>();
+		if (otherCodes == null)
+			return null;
+		Code code;
+		for (String c : otherCodes) {
+			code = new Code();
+			code.setCode(c);
+			codes.add(code);
+		}
+		return codes;
+	}
+
+	public static void create(List<Code> codes) {
+		if (codes == null)
+			return;
+		for (Code c : codes)
+			create(c);
+	}
+
+	private static void create(Code c) {
+		EntityManager em = JPA.em();
+		em.persist(c);
+	}
+
+	public List<Long> delete(List<Code> codes) {
+		if (codes == null)
+			return null;
+		List<Long> ids = new ArrayList<>();
+		for (Code c : codes) {
+			Long id = delete(c);
+			ids.add(id);
+		}
+		return ids;
+	}
+
+	private Long delete(Code code) {
+		if (code == null)
+			return null;
+		EntityManager em = JPA.em();
+		Long id = code.getId();
+		em.remove(code);
+		return id;
+	}
 }

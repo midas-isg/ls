@@ -137,7 +137,8 @@ public class GeoJsonHelperRule {
 		for (Code c : otherCodes) {
 			Map<String, String> anotherCode = new HashMap<>();
 			anotherCode.put(KEY_CODE, c.getCode());
-			anotherCode.put(KEY_TYPE, c.getCodeType().getName());
+			if(c.getCodeType() != null)
+				anotherCode.put(KEY_TYPE, c.getCodeType().getName());
 			codes.add(anotherCode);
 		}
 	}

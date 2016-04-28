@@ -41,6 +41,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.vividsolutions.jts.geom.Geometry;
 
 import dao.LocationTypeDao;
+import dao.entities.AltName;
+import dao.entities.Code;
 import dao.entities.Data;
 import dao.entities.Location;
 import dao.entities.LocationGeometry;
@@ -154,14 +156,14 @@ public class GeoJsonRule {
 						.getTypeId())));
 		putAsStringIfNotNull(properties, "start", toStringValue(req.getStart()));
 		putAsStringIfNotNull(properties, "end", toStringValue(req.getEnd()));
-		putAsStringIfNotNull(properties, "limit", "" + req.getLimit());
-		putAsStringIfNotNull(properties, "offset", "" + req.getOffset());
+		putAsStringIfNotNull(properties, "limit", req.getLimit());
+		putAsStringIfNotNull(properties, "offset", req.getOffset());
 		putAsStringIfNotNull(properties, "ignoreAccent", req.isIgnoreAccent());
 		putAsStringIfNotNull(properties, "searchNames", req.isSearchNames());
 		putAsStringIfNotNull(properties, "searchOtherNames",
 				req.isSearchOtherNames());
 		putAsStringIfNotNull(properties, "searchCodes", req.isSearchCodes());
-		putAsStringIfNotNull(properties, "resultSize", "" + result.size());
+		putAsStringIfNotNull(properties, "resultSize", result.size());
 		return geoJSON;
 	}
 
@@ -204,18 +206,48 @@ public class GeoJsonRule {
 		String code = getString(fc, "code");
 		data.setCode(code);
 		location.setData(data);
+		setOtherNames(fc, location);
+		setOtherCodes(fc, location);
 		String parentGid = getString(fc, "parentGid");
-		Location parent = LocationRule.read(Long.parseLong(parentGid));
-		if (parent == null) {
-			throw new RuntimeException("Cannot find parent gid=" + parentGid);
+		if (parentGid != null){
+			Location parent = LocationRule.read(Long.parseLong(parentGid));
+			if (parent == null) {
+				throw new RuntimeException("Cannot find parent gid=" + parentGid);
+			}
+			location.setParent(parent);
 		}
-		location.setParent(parent);
 		if (type.getSuperType().getId().equals(2L)) {
 			List<Location> locations = wireLocationsIncluded(fc, type);
 			location.setLocationsIncluded(locations);
 		}
 		location.setGeometry(createLocationGeometry(fc, location));
 		return location;
+	}
+
+	private static void setOtherCodes(FeatureCollection fc, Location location) {
+		@SuppressWarnings("unchecked")
+		List<Code> codes = (List<Code>) fc.getProperties().get("otherCodes");
+		if (codes == null)
+			return;
+		for(Code c : codes){
+			c.setLocation(location);
+			if(c.getCodeType() == null)
+				c.setCodeType(LocationRule.getIsgCodeType());
+		}
+		location.setOtherCodes(codes);
+	}
+
+	private static void setOtherNames(FeatureCollection fc, Location location) {
+		@SuppressWarnings("unchecked")
+		List<AltName> altNames = (List<AltName>) fc.getProperties().get("otherNames");
+		if(altNames == null)
+			return;
+		for(AltName n : altNames){
+			n.setLocation(location);
+			if(n.getGisSource() == null)
+				n.setGisSource(LocationRule.getAlsGisSource());
+		}
+		location.setAltNames(altNames);
 	}
 
 	public static FeatureGeometry asFetureGeometry(FeatureCollection fc) {
@@ -288,38 +320,12 @@ public class GeoJsonRule {
 
 	private static Request toFindByTermRequest(JsonNode node) {
 		Request req = new Request();
-		Boolean value;
 		if (containsKey(node, "queryTerm"))
 			req.setQueryTerm(node.get("queryTerm").asText());
 		else
 			throw new BadRequest("\"" + "queryTerm" + "\" key is requierd!");
-		if (containsKey(node, "locationTypeIds"))
-			req.setTypeId(toListOfInt((JsonNode) node.get("locationTypeIds")));
-		if (containsKey(node, "start"))
-			req.setStart(toDate(node.get("start").asText()));
-		if (containsKey(node, "end"))
-			req.setEnd(toDate(node.get("end").asText()));
-		if (containsKey(node, "limit"))
-			req.setLimit(node.get("limit").asInt());
-		if (containsKey(node, "offset"))
-			req.setOffset(node.get("offset").asInt());
-		value = returnDefaultIfKeyNotExists(node, "ignoreAccent", true);
-		req.setIgnoreAccent(value);
-		value = returnDefaultIfKeyNotExists(node, "searchNames", true);
-		req.setSearchNames(value);
-		value = returnDefaultIfKeyNotExists(node, "searchOtherNames", true);
-		req.setSearchOtherNames(value);
-		value = returnDefaultIfKeyNotExists(node, "searchCodes", true);
-		req.setSearchCodes(value);
+		setOtherParams(node, req);
 		return req;
-	}
-
-	private static Boolean returnDefaultIfKeyNotExists(JsonNode node,
-			String key, Boolean defaultValue) {
-		if (containsKey(node, key))
-			return node.get(key).asBoolean();
-		else
-			return defaultValue;
 	}
 
 	/**
@@ -345,24 +351,49 @@ public class GeoJsonRule {
 			req.setQueryTerm(node.get("name").asText());
 		else
 			throw new BadRequest("\"" + "name" + "\" key is requierd!");
+		setOtherParams(node, req);
+		return req;
+	}
+	
+	private static void setOtherParams(JsonNode node, Request req) {
+		Boolean value;
 		if (containsKey(node, "locationTypeIds"))
 			req.setTypeId(toListOfInt((JsonNode) node.get("locationTypeIds")));
-		if (containsKey(node, "start"))
-			req.setStart(toDate(node.get("start").asText()));
-		if (containsKey(node, "end"))
-			req.setEnd(toDate(node.get("end").asText()));
+		setStartDate(node, req);
+		setEndDate(node, req);
 		if (containsKey(node, "limit"))
 			req.setLimit(node.get("limit").asInt());
 		if (containsKey(node, "offset"))
 			req.setOffset(node.get("offset").asInt());
-		if (containsKey(node, "ignoreAccent"))
-			req.setIgnoreAccent(node.get("ignoreAccent").asBoolean());
-		if (containsKey(node, "searchNames"))
-			req.setSearchNames(node.get("searchNames").asBoolean());
-		if (containsKey(node, "searchOtherNames"))
-			req.setSearchOtherNames(node.get("searchOtherNames").asBoolean());
-		if (containsKey(node, "searchCodes"))
-			req.setSearchCodes(node.get("searchCodes").asBoolean());
-		return req;
+		value = returnDefaultIfKeyNotExists(node, "ignoreAccent", true);
+		req.setIgnoreAccent(value);
+		value = returnDefaultIfKeyNotExists(node, "searchNames", true);
+		req.setSearchNames(value);
+		value = returnDefaultIfKeyNotExists(node, "searchOtherNames", true);
+		req.setSearchOtherNames(value);
+		value = returnDefaultIfKeyNotExists(node, "searchCodes", true);
+		req.setSearchCodes(value);
+	}
+
+	private static void setEndDate(JsonNode node, Request req) {
+		if (containsKey(node, "end"))
+			req.setEnd(toDate(node.get("end").asText()));
+		if (req.getEnd() == null)
+			req.setEnd(getNowDate());
+	}
+
+	private static void setStartDate(JsonNode node, Request req) {
+		if (containsKey(node, "start"))
+			req.setStart(toDate(node.get("start").asText()));
+		if (req.getStart() == null)
+			req.setStart(toDate("0001-01-01"));
+	}
+
+	private static Boolean returnDefaultIfKeyNotExists(JsonNode node,
+			String key, Boolean defaultValue) {
+		if (containsKey(node, key))
+			return node.get(key).asBoolean();
+		else
+			return defaultValue;
 	}
 }

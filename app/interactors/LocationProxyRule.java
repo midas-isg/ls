@@ -13,12 +13,20 @@ import java.util.Set;
 
 import play.Logger;
 import dao.LocationDao;
+import dao.entities.AltName;
 import dao.entities.Location;
 
 public class LocationProxyRule {
 	private static Map<Long, Location> gid2location = null;
 	private static List<Location> roots = null;
 	private static List<String> uniqueSortedLocationNames = null;
+	
+	public static void updateCache(){
+		notifyChange();
+		gid2location = getGid2location();
+		roots = getHierarchy();
+		uniqueSortedLocationNames = getUniqueSortedLocationNames();
+	}
 	
 	public static void notifyChange(){
 		if (gid2location != null){
@@ -106,6 +114,7 @@ public class LocationProxyRule {
 			Collection<Location> locations = map.values();
 			for (Location l : locations){
 				set.add(l.getData().getName());
+				set.addAll(getAsStringList(l.getAltNames()));
 			}
 			uniqueSortedLocationNames = new ArrayList<>();
 			synchronized (uniqueSortedLocationNames) 
@@ -117,7 +126,7 @@ public class LocationProxyRule {
 		}
 		return uniqueSortedLocationNames;
 	}
-	
+
 	public static List<Map<String, String>> findLocationNames(
 			String prefixNames, int limit){
 		List<Map<String, String>> result = new ArrayList<>();
@@ -161,5 +170,14 @@ public class LocationProxyRule {
 		}
 		return result;
 	}
-
+	
+	private static List<String> getAsStringList(
+			List<AltName> altNames) {
+		List<String> names = new ArrayList<>();
+		if(altNames == null)
+			return names;
+		for(AltName n : altNames)
+			names.add(n.getName());
+		return names;
+	}
 }

@@ -77,6 +77,8 @@ public class Util {
 	}
 
 	static Date toDate(String dateString) {
+		if(dateString == null)
+			return null;
 		if (dateString.equals("") || dateString.equals("null"))
 			return null;
 		Date date = null;
