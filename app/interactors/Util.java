@@ -52,9 +52,7 @@ public class Util {
 		if (object instanceof BigInteger) {
 			return ((BigInteger) object).longValue();
 		}
-		// else {
 		return Long.parseLong(object.toString());
-		// }
 	}
 
 	static Date toDate(Map<String, Object> param, String key) {
@@ -77,7 +75,7 @@ public class Util {
 	}
 
 	static Date toDate(String dateString) {
-		if(dateString == null)
+		if (dateString == null)
 			return null;
 		if (dateString.equals("") || dateString.equals("null"))
 			return null;

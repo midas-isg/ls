@@ -27,6 +27,7 @@ import play.db.jpa.JPA;
 import dao.entities.AltName;
 import dao.entities.Code;
 import dao.entities.Data;
+import dao.entities.Entity;
 import dao.entities.Location;
 import dao.entities.LocationGeometry;
 
@@ -48,8 +49,10 @@ public class LocationDao {
 			else
 				throw new RuntimeException(e);
 		}
-		AltNameDao.create(location.getAltNames());
-		CodeDao.create(location.getOtherCodes());
+		AltNameDao altNameDao = new AltNameDao(em);
+		CodeDao codeDao = new CodeDao(em);
+		altNameDao.createAll(location.getAltNames());
+		codeDao.createAll(location.getOtherCodes());
 		LocationProxyRule.notifyChange();
 		Long gid = location.getGid();
 		Logger.info("persisted " + gid);
@@ -101,30 +104,18 @@ public class LocationDao {
 
 	public Long delete(Location location) {
 		EntityManager em = JPA.em();
+		AltNameDao altNameDao = new AltNameDao(em);
+		CodeDao codeDao = new CodeDao(em);
 		Long gid = null;
 		if (location != null){
 			gid = location.getGid();
-			deleteOtherNames(location);
-			deleteOtherCodes(location);			
+			altNameDao.deleteAll(location.getAltNames());
+			codeDao.deleteAll(location.getOtherCodes());
 			em.remove(location);
 			Logger.info("removed Location with gid=" + gid);
 		}
 		
 		return gid;
-	}
-	
-	private List<Long> deleteOtherNames(Location location) {
-		AltNameDao altNameDao = new AltNameDao();
-		if(location == null || location.getAltNames() == null)
-			return null;
-		return altNameDao.delete(location.getAltNames());
-	}
-	
-	private List<Long> deleteOtherCodes(Location location) {
-		CodeDao codeDao = new CodeDao();
-		if(location == null || location.getOtherCodes() == null)
-			return null;
-		return codeDao.delete(location.getOtherCodes());
 	}
 
 	public List<Location> findByTerm(Request req) {
@@ -249,8 +240,10 @@ public class LocationDao {
 		CodeTypeDao codeTypeDao = new CodeTypeDao();
 		@SuppressWarnings("unchecked")
 		List<Map<String, Object>> l = (List<Map<String, Object>>)q.list();
-		Map<Long, List<AltName>> otherNames = new AltNameDao().getGid2OtherNames();
-		Map<Long, List<Code>> otherCodes = new CodeDao().getGid2OtherCodes();
+		AltNameDao altNameDao = new AltNameDao(em);
+		Map<Long, List<AltName>> otherNames = getGid2Entity(altNameDao);
+		CodeDao codeDao = new CodeDao(em);
+		Map<Long, List<Code>> otherCodes = getGid2Entity(codeDao);
 		for (Map<String, Object> m : l){
 			Long gid = getLong(m, "gid");
 			Long parentGid = getLong(m, "parent_gid");
@@ -298,6 +291,20 @@ public class LocationDao {
 			}
 		}
 		
+		return result;
+	}
+
+	private <T extends Entity> Map<Long, List<T>> getGid2Entity(
+			DataAccessObject<T> daoClass) {
+		List<T> all = daoClass.findAll();
+		Map<Long, List<T>> result = new HashMap<>();
+		Long gid;
+		for(T entity: all){
+			gid = entity.getLocation().getGid();
+			if(!result.containsKey(gid))
+				result.put(gid, new ArrayList<T>());
+			result.get(gid).add(entity);
+		}	
 		return result;
 	}
 }

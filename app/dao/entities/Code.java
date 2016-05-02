@@ -10,37 +10,37 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "alt_code")
-public class Code {
-	
+public class Code implements dao.entities.Entity {
+
 	private Long id;
 	private String code;
 	private CodeType codeType;
 	private Location location;
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	public Long getId() {
 		return id;
 	}
-	
+
 	public void setId(Long id) {
 		this.id = id;
 	}
-	
+
 	public String getCode() {
 		return code;
 	}
-	
+
 	public void setCode(String code) {
 		this.code = code;
 	}
-	
+
 	@ManyToOne
 	@JoinColumn(name = "code_type_id", nullable = true)
 	public CodeType getCodeType() {
 		return codeType;
 	}
-	
+
 	public void setCodeType(CodeType codeType) {
 		this.codeType = codeType;
 	}

@@ -12,7 +12,7 @@ import javax.validation.constraints.Size;
 
 @Entity
 @Table(name = "alt_name")
-public class AltName {
+public class AltName implements dao.entities.Entity {
 	
 	private Long id;
 	private String name;
