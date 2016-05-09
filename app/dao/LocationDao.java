@@ -129,10 +129,10 @@ public class LocationDao {
 	}
 
 	private Query setQueryParameters(Request req, Query query) {
-		if(req.getStart() != null)
-			query = query.setParameter("start", req.getStart());
-		if(req.getEnd() != null)
-			query = query.setParameter("end", req.getEnd());
+		if(req.getStartDate() != null)
+			query = query.setParameter("start", req.getStartDate());
+		if(req.getEndDate() != null)
+			query = query.setParameter("end", req.getEndDate());
 		if (req.getLimit() != null)
 			query.setMaxResults(req.getLimit());
 		if (req.getOffset() != null)

@@ -4,6 +4,10 @@ import java.util.Map;
 
 import models.geo.FeatureCollection;
 
+/**
+ * @deprecated Use {@link #FeatureCollection}
+ */
+@Deprecated
 public class Response {
 	private FeatureCollection geoJSON;
 	private Map<String, Object> properties;

@@ -14,7 +14,6 @@ import javax.ws.rs.QueryParam;
 
 import models.Response;
 import models.exceptions.PostgreSQLException;
-//import models.filters.LocationFilter;
 import models.geo.FeatureCollection;
 import models.geo.FeatureGeometry;
 import play.Logger;
@@ -74,7 +73,7 @@ public class LocationServices extends Controller {
 			response = FeatureCollection.class
 	)
 	@ApiResponses(value = {
-			@ApiResponse(code = OK, message = "Successful retrieval of location", 
+			@ApiResponse(code = OK, message = "Successfully returned", 
 					response = FeatureCollection.class),
 			@ApiResponse(code = NOT_FOUND, message = "Location not found"),
 			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
@@ -149,7 +148,6 @@ public class LocationServices extends Controller {
 		return ok(Jsonp.jsonp(callback, Json.toJson(Wire.asFeatureCollection(location))));
 	}
 
-
 	@Transactional
 	public Result getGeometryMetadata(long gid, Double tolerance) {
 		Object object = LocationRule.getSimplifiedGeometryMetadata(gid, tolerance);
@@ -161,25 +159,24 @@ public class LocationServices extends Controller {
 	}
 
 	@Transactional
-//	@ApiOperation(
-//			httpMethod = "GET", 
-//			nickname = "findLocationsByName", 
-//			value = "Returns locations by name search", 
-//			notes = "This endpoint returns locations whose name matches the requested search terms (queryTerm). "
-//			+ "To do pagination, use 'limit' and 'offset'. "
-//			+ "Note: The schema of the 'geoJSON' field in the response is GeoJSON FeatureCollection. ", 
-//			response = Response.class)
-//	@ApiResponses(value = {
-//			@ApiResponse(code = OK, message = "Successful retrieval of location", response = Response.class),
-//			//@ApiResponse(code = 404, message = "Location not found"),
-//			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
-//			//@ApiResponse(code = 400, message = "Format is not supported") 
-//	})
-	public Result findByName(
+	@ApiOperation(
+			httpMethod = "GET", 
+			nickname = "findLocationsByTerm", 
+			value = "Returns locations by term search", 
+			notes = "This endpoint returns locations whose name matches the requested search term (queryTerm or q). "
+			+ "To do pagination, use 'limit' and 'offset'. "
+			+ "Note: The schema of the 'geoJSON' field in the response is GeoJSON FeatureCollection. ", 
+			response = Response.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = OK, message = "Successfully returned", response = Response.class),
+			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
+			@ApiResponse(code = BAD_REQUEST, message = "Bad request") 
+	})
+	public Result filterByTerm(
 			@ApiParam(
 					value = "Search terms delimited by a space charactor. "
 					+ "The search terms are combined together with conjunction. ",
-					required = true
+					required = true, defaultValue = ""
 			) 
 			@QueryParam("queryTerm") 
 			String queryTerm,
@@ -203,32 +200,27 @@ public class LocationServices extends Controller {
 					defaultValue = "true"
 			) 
 			@QueryParam("searchOtherNames") 
-			Boolean searchOtherNames
+			Boolean searchOtherNames,
+			@ApiParam(
+					value = "Optional. Maintained for backward compatibility. Will be ignored if \"queryTerm\" provided.", 
+					defaultValue = "",
+					required = false
+			)
+			@QueryParam("q")
+			String q
 	) {
-		Object result = GeoJsonRule.findByName(queryTerm, limit, offset, searchOtherNames);
+		if (queryTerm == null)
+			queryTerm = q;
+		Object result = GeoJsonRule.filterByTerm(queryTerm, limit, offset, searchOtherNames);
 		return ok(Json.toJson(result));
 	}
 	
 	/**
-	 * @deprecated replaced by {@link #findByName(String queryTerm, Integer limit,
+	 * @deprecated replaced by {@link #filterByTerm(String queryTerm, Integer limit,
 			Integer offset, Boolean searchOtherNames)}
 	 */
 	@Deprecated
 	@Transactional
-	@ApiOperation(
-			httpMethod = "GET", 
-			nickname = "findLocationsByName", 
-			value = "Returns locations by name search", 
-			notes = "This endpoint returns locations whose name matches the requested search terms (q). "
-			+ "To do pagination, use 'limit' and 'offset'. "
-			+ "Note: The schema of the 'geoJSON' field in the response is GeoJSON FeatureCollection. ", 
-			response = Response.class)
-	@ApiResponses(value = {
-			@ApiResponse(code = OK, message = "Successful retrieval of location", response = Response.class),
-			//@ApiResponse(code = 404, message = "Location not found"),
-			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
-			//@ApiResponse(code = 400, message = "Format is not supported") 
-	})
 	public Result findLocations(
 	@ApiParam(
 			value = "Search terms delimited by a space charactor. "
@@ -259,7 +251,7 @@ public class LocationServices extends Controller {
 	@QueryParam("searchOtherNames") 
 	Boolean searchOtherNames
 			) {
-		Object result = GeoJsonRule.findByName(q, limit, offset, searchOtherNames);
+		Object result = GeoJsonRule.filterByTerm(q, limit, offset, searchOtherNames);
 		return ok(Json.toJson(result));
 	}
 	
@@ -271,7 +263,7 @@ public class LocationServices extends Controller {
 			notes = "", 
 			response = Response.class)
 	@ApiResponses(value = {
-			@ApiResponse(code = OK, message = "Successful retrieval of location", response = Response.class),
+			@ApiResponse(code = OK, message = "Successfully returned", response = Response.class),
 			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
 			@ApiResponse(code = BAD_REQUEST, message = "Invalid input")
 	})
@@ -290,9 +282,10 @@ public class LocationServices extends Controller {
 
 		ArrayNode arrayNode = toArrayNode((JsonNode)request().body().asJson());
 		List<Object> result = GeoJsonRule.findByTerm(arrayNode);
-		if(result != null && !result.isEmpty())
-			return ok(Json.toJson(result.get(0)));
-		return ok(Json.newObject());
+		if(result == null || result.isEmpty())
+			return ok(Json.newObject());
+		return ok(Json.toJson(result.get(0)));
+		
 	}
 
 	private ArrayNode toArrayNode(JsonNode asJson) {
@@ -310,7 +303,7 @@ public class LocationServices extends Controller {
 			+ "Note: The schema of the 'geoJSON' field in the response is a GeoJSON, but 'geometry' and 'children' properties are excluded. ", 
 			response = Response.class)
 	@ApiResponses(value = {
-			@ApiResponse(code = OK, message = "Successful retrieval of location", response = Response.class),
+			@ApiResponse(code = OK, message = "Successfully returned", response = Response.class),
 			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
 			@ApiResponse(code = BAD_REQUEST, message = "Invalid input")
 	})
@@ -352,17 +345,17 @@ public class LocationServices extends Controller {
 			httpMethod = "GET", 
 			nickname = "findUniqueLocationNames", 
 			value = "Returns unique location-names", 
-			notes = "This endpoint returns uniqure location-names which match the requested search terms (q). "
+			notes = "This endpoint returns uniqure location-names which match the requested search terms (queryTerm or q). "
 			+ "Use 'limit' to set the maximum number to return (default is 10). ",
 			response = String.class,
 			produces = "application/json",
 			responseContainer = "set"
 	)
 	@ApiResponses(value = {
-			@ApiResponse(code = OK, message = "Successful retrieval of location", response = Response.class),
+			@ApiResponse(code = OK, message = "Successfully returned", response = Response.class),
 			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
 	})
-	public Result findLocationNames(
+	public Result listUniqueNames(
 			@ApiParam(
 					value = "Search terms delimited by a space charactor. "
 					+ "The search terms are combined together with conjunction. ",
@@ -375,9 +368,9 @@ public class LocationServices extends Controller {
 					required = true, defaultValue = "10"
 			) 
 			@QueryParam("limit")
-			Integer limit 
+			Integer limit
 	){
-		Object result = LocationProxyRule.findLocationNames(q, limit);
+		Object result = LocationProxyRule.listUniqueNames(q, limit);
 		return ok(Json.toJson(result));
 	}
 
@@ -392,12 +385,10 @@ public class LocationServices extends Controller {
 			response = Response.class
 	)
 	@ApiResponses(value = {
-			@ApiResponse(code = OK, message = "Successful retrieval of location", response = Response.class),
-			//@ApiResponse(code = NOT_FOUND, message = "Location not found"),
+			@ApiResponse(code = OK, message = "Successfully returned", response = Response.class),
 			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
-			//@ApiResponse(code = BAD_REQUEST, message = "Format is not supported") 
 	})
-	public Result findLocationsByPoint(
+	public Result findByPoint(
 			@ApiParam(value = "Latitude in degree", required = true) @QueryParam("lat") 
 			double lat,
 			@ApiParam(value = "Longitude in degree", required = true) @QueryParam("long") 
@@ -488,7 +479,6 @@ public class LocationServices extends Controller {
 			@ApiResponse(code = OK, message = "(Not used yet)"),
 			@ApiResponse(code = NO_CONTENT, message = "Location updated", response = Void.class),
 			@ApiResponse(code = FORBIDDEN, message = "Failed location update due to duplication"),
-			//@ApiResponse(code = NOT_FOUND, message = "Location not found"),
 			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
 			@ApiResponse(code = BAD_REQUEST, message = "Format is not supported") 
 	})
@@ -522,24 +512,6 @@ public class LocationServices extends Controller {
 	}
 
 	@Transactional
-/*	@ApiOperation(
-			httpMethod = "DELETE",
-			nickname = "deleteLocation", 
-			value = "Deletes a location", 
-			notes = "This endpoint deletes the given location idientified by 'gid' "
-					+ "and returns the URI via the 'Location' Header in the response. "
-					+ "Currently, no content in the body. "
-					+ "Note: This enpoint is restricted based on application configuration. ", 
-			response = Void.class
-	)
-	@ApiResponses(value = { 
-			@ApiResponse(code = OK, message = "(Not used yet)"),
-            @ApiResponse(code = UNAUTHORIZED , message = "Unauthorized"),
-			@ApiResponse(code = NO_CONTENT , message = "Location deleted", response = Void.class),
-			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
-			//@ApiResponse(code = 400, message = "Format is not supported")
-			@ApiResponse(code = NOT_FOUND, message = "Location not found")
-	})*/
 	public Result delete(
 			@ApiParam(value = "ID of the location (Apollo Location Code)", required = true) 
 			@PathParam("gid") 
@@ -577,7 +549,7 @@ public class LocationServices extends Controller {
 			response = Response.class
 	)
 	@ApiResponses(value = { 
-			@ApiResponse(code = OK, message = "Successful retrieval of location", response = Response.class),
+			@ApiResponse(code = OK, message = "Successfully returned", response = Response.class),
 			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error")
 	})
     @ApiImplicitParams( { 
@@ -658,10 +630,10 @@ public class LocationServices extends Controller {
 		notes = "This endpoint returns locations whose type matches the requested type id."
 	)
 	@ApiResponses(value = {
-		@ApiResponse(code = OK, message = "Successful retrieval"),
+		@ApiResponse(code = OK, message = "Successfully returned"),
 		@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error")
 	})
-	public Result findByLocationTypeId(
+	public Result findByTypeId(
 		@ApiParam(
 			value = "Location-type-id",
 			required = true, defaultValue = "1"
@@ -674,7 +646,7 @@ public class LocationServices extends Controller {
 	}
 
 	@Transactional
-	public Result updateLocationCache(){
+	public Result updateCache(){
 		LocationProxyRule.updateCache();
 		return ok("Location-name cache updated!");
 	}

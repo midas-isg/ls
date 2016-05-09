@@ -1,8 +1,8 @@
 [
 {"queryTerm":"ñámé wíth áccéñt", 
 "locationTypeIds":[1,16],
-"start":"2010",
-"end":"2016-01-01",
+"startDate":"2010",
+"endDate":"2016-01-01",
 "searchNames":false,
 "searchOtherNames":true,
 "searchCodes":true,

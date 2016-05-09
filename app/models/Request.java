@@ -5,16 +5,16 @@ import java.util.List;
 
 public class Request {
 
-	String queryTerm;
-	Integer limit;
-	Integer offset;
-	Boolean ignoreAccent;
-	Boolean searchNames;
-	Boolean searchOtherNames;
-	Boolean searchCodes;
-	Date start;
-	Date end;
-	List<Integer> typeId;
+	private String queryTerm;
+	private Integer limit;
+	private Integer offset;
+	private Boolean ignoreAccent;
+	private Boolean searchNames;
+	private Boolean searchOtherNames;
+	private Boolean searchCodes;
+	private Date startDate;
+	private Date endDate;
+	private List<Integer> locationTypeIds;
 
 	public String getQueryTerm() {
 		return queryTerm;
@@ -72,27 +72,27 @@ public class Request {
 		this.searchCodes = searchCodes;
 	}
 
-	public Date getStart() {
-		return start;
+	public Date getStartDate() {
+		return startDate;
 	}
 
-	public void setStart(Date start) {
-		this.start = start;
+	public void setStartDate(Date startDate) {
+		this.startDate = startDate;
 	}
 
-	public Date getEnd() {
-		return end;
+	public Date getEndDate() {
+		return endDate;
 	}
 
-	public void setEnd(Date end) {
-		this.end = end;
+	public void setEndDate(Date endDate) {
+		this.endDate = endDate;
 	}
 
-	public List<Integer> getTypeId() {
-		return typeId;
+	public List<Integer> getLocationTypeIds() {
+		return locationTypeIds;
 	}
 
-	public void setTypeId(List<Integer> typeId) {
-		this.typeId = typeId;
+	public void setLocationTypeIds(List<Integer> locationTypeIds) {
+		this.locationTypeIds = locationTypeIds;
 	}
 }

@@ -1,4 +1,4 @@
 [
-{"queryTerm": "UPSTATE NEW YORK", "start": 1975, "end": 1985, "locationTypeIds":[16, 6]},
-{"queryTerm": "NEW JERSEY", "start": 1975, "end": 1985, "locationTypeIds":[16, 6]}
+{"queryTerm": "UPSTATE NEW YORK", "startDate": 1975, "endDate": 1985, "locationTypeIds":[16, 6]},
+{"queryTerm": "NEW JERSEY", "startDate": 1975, "startDate": 1985, "locationTypeIds":[16, 6]}
 ]

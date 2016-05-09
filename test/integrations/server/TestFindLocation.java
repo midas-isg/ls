@@ -66,7 +66,7 @@ public class TestFindLocation {
 	}
 
 	private void findByTypeId() {
-		String url = Server.makeTestUrl(basePath + "/by-type/1");
+		String url = Server.makeTestUrl(basePath + "/find-by-type/1");
 		WSResponse response = get(url);
 		JsonNode jsonResp = response.asJson();
 		assertStatus(response, OK);
@@ -86,8 +86,8 @@ public class TestFindLocation {
 		assertContainsAll(fieldNames, new String[] { "type", "features",
 				"properties" });
 		fieldNames = toArray(jsonResp.get("properties").fieldNames());
-		assertContainsAll(fieldNames, new String[] { "queryTerm", "start",
-				"end", "locationTypeIds", "locationTypeNames", "ignoreAccent",
+		assertContainsAll(fieldNames, new String[] { "queryTerm", "startDate",
+				"endDate", "locationTypeIds", "locationTypeNames", "ignoreAccent",
 				"searchNames", "searchOtherNames", "searchCodes", "limit",
 				"offset", "resultSize" });
 		assertAreEqual(jsonResp.get("features").size(), 1);
@@ -172,8 +172,8 @@ public class TestFindLocation {
 		Object[] fieldNames = toArray(firstFeature.fieldNames());
 		assertContainsAll(fieldNames, new String[] { "features", "properties" });
 		fieldNames = toArray(firstFeature.get("properties").fieldNames());
-		assertContainsAll(fieldNames, new String[] { "queryTerm", "start",
-				"end", "locationTypeIds" });
+		assertContainsAll(fieldNames, new String[] { "queryTerm", "startDate",
+				"endDate", "locationTypeIds" });
 
 		assertAreEqual(jsonResp.size(), 3);
 		fieldNames = toArray(firstFeature.get("features").get(0)
@@ -185,7 +185,7 @@ public class TestFindLocation {
 				firstFeature.get("properties").get("resultSize").asInt(),
 				firstFeature.get("features").size());
 
-		body = "[{\"queryTerm\":\"pennsylvania\",\"start\":\"2000-\"}]";
+		body = "[{\"queryTerm\":\"pennsylvania\",\"startDate\":\"2000-\"}]";
 		response = post(url, body, jsonContentType);
 		assertStatus(response, BAD_REQUEST);
 

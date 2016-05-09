@@ -127,7 +127,7 @@ public class LocationProxyRule {
 		return uniqueSortedLocationNames;
 	}
 
-	public static List<Map<String, String>> findLocationNames(
+	public static List<Map<String, String>> listUniqueNames(
 			String prefixNames, int limit){
 		List<Map<String, String>> result = new ArrayList<>();
 		if (prefixNames == null || prefixNames.trim().isEmpty())

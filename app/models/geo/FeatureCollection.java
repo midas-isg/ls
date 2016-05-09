@@ -14,7 +14,7 @@ public class FeatureCollection {
 	private List<Feature> features;
 	private String id;
 	private double[] bbox;
-	private Map<String, Object> properties; //TODO: to move out
+	private Map<String, Object> properties;
 	
 	public String getType() {
 		return type;

@@ -124,7 +124,7 @@ public class GeoJSONParser {
 					codes.add(c);
 				}
 			} catch (JsonProcessingException e) {
-				throw new RuntimeException();
+				throw new RuntimeException(e);
 			}
 		}
 		if(mapping.getKey().equals("otherNames"))
@@ -166,28 +166,16 @@ public class GeoJSONParser {
 				for(int k = 0; k < coordinateValues.size(); k++){
 					pointToFill[k] = coordinateValues.get(k).asDouble();
 				}
-				
-//if((j < 2) || (j == polygonComponentNode.size() - 1)) {
-//	Logger.debug("[" + String.valueOf(pointToFill[0]) + ", " + String.valueOf(pointToFill[1]) + "]");
-//}
 			}
 			
 			double [] firstPoint = componentToFill.get(0).clone();
 			double [] lastPoint = componentToFill.get(componentToFill.size() - 1);
 			for(int l = 0; l < firstPoint.length; l++) {
 				if(firstPoint[l] != lastPoint[l]) {
-					//componentToFill.add(firstPoint);
-//Logger.debug("~Appended first point~");
-//					break;
 					throw new Exception("Last point != first point for this polygon");
 				}
 			}
 		}
-		
-//Logger.debug("coordinates size: " + coordinates.size());
-//Logger.debug("coordinates[0] size: " + coordinates.get(0).size());
-//Logger.debug("coordinates[0][0] length: " + coordinates.get(0).get(0).length);
-		
 		return coordinates;
 	}
 	
@@ -240,13 +228,6 @@ public class GeoJSONParser {
 			geometryCollection = new GeometryCollection();
 			List<FeatureGeometry> geometries = new ArrayList<FeatureGeometry>();
 			JsonNode geometriesNode = geometryNode.get("geometries");
-/*
-Logger.debug("GeometryCollection fields: ");
-Iterator<String> fields = geometryNode.fieldNames();
-while(fields.hasNext()) {
-	Logger.debug("\t" + fields.next());
-}
-*/
 			int geometryCount = geometriesNode.size();
 			for(int i = 0; i < geometryCount; i++) {
 				JsonNode geometryToAdd = geometriesNode.get(i);

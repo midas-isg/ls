@@ -150,12 +150,14 @@ public class GeoJsonRule {
 		geoJSON.setProperties(properties);
 		properties.put("queryTerm", req.getQueryTerm());
 		putAsStringIfNotNull(properties, "locationTypeIds",
-				listToString(req.getTypeId()));
+				listToString(req.getLocationTypeIds()));
 		putAsStringIfNotNull(properties, "locationTypeNames",
 				listToString(locationTypeDao.getLocationTypeNames(req
-						.getTypeId())));
-		putAsStringIfNotNull(properties, "start", toStringValue(req.getStart()));
-		putAsStringIfNotNull(properties, "end", toStringValue(req.getEnd()));
+						.getLocationTypeIds())));
+		putAsStringIfNotNull(properties, "startDate",
+				toStringValue(req.getStartDate()));
+		putAsStringIfNotNull(properties, "endDate",
+				toStringValue(req.getEndDate()));
 		putAsStringIfNotNull(properties, "limit", req.getLimit());
 		putAsStringIfNotNull(properties, "offset", req.getOffset());
 		putAsStringIfNotNull(properties, "ignoreAccent", req.isIgnoreAccent());
@@ -209,10 +211,11 @@ public class GeoJsonRule {
 		setOtherNames(fc, location);
 		setOtherCodes(fc, location);
 		String parentGid = getString(fc, "parentGid");
-		if (parentGid != null){
+		if (parentGid != null) {
 			Location parent = LocationRule.read(Long.parseLong(parentGid));
 			if (parent == null) {
-				throw new RuntimeException("Cannot find parent gid=" + parentGid);
+				throw new RuntimeException("Cannot find parent gid="
+						+ parentGid);
 			}
 			location.setParent(parent);
 		}
@@ -229,9 +232,9 @@ public class GeoJsonRule {
 		List<Code> codes = (List<Code>) fc.getProperties().get("otherCodes");
 		if (codes == null)
 			return;
-		for(Code c : codes){
+		for (Code c : codes) {
 			c.setLocation(location);
-			if(c.getCodeType() == null)
+			if (c.getCodeType() == null)
 				c.setCodeType(LocationRule.getIsgCodeType());
 		}
 		location.setOtherCodes(codes);
@@ -239,12 +242,13 @@ public class GeoJsonRule {
 
 	private static void setOtherNames(FeatureCollection fc, Location location) {
 		@SuppressWarnings("unchecked")
-		List<AltName> altNames = (List<AltName>) fc.getProperties().get("otherNames");
-		if(altNames == null)
+		List<AltName> altNames = (List<AltName>) fc.getProperties().get(
+				"otherNames");
+		if (altNames == null)
 			return;
-		for(AltName n : altNames){
+		for (AltName n : altNames) {
 			n.setLocation(location);
-			if(n.getGisSource() == null)
+			if (n.getGisSource() == null)
 				n.setGisSource(LocationRule.getAlsGisSource());
 		}
 		location.setAltNames(altNames);
@@ -254,10 +258,11 @@ public class GeoJsonRule {
 		Geometry geometry = GeoInputRule.toGeometry(fc);
 		return GeoOutputRule.toFeatureGeometry(geometry);
 	}
-	
-	public static Response findByName(String queryTerm, Integer limit,
+
+	public static Response filterByTerm(String queryTerm, Integer limit,
 			Integer offset, Boolean searchOtherNames) {
-		Request req = toFindByNameRequest(queryTerm, searchOtherNames, limit, offset);
+		Request req = toFindByNameRequest(queryTerm, searchOtherNames, limit,
+				offset);
 		List<Location> result = LocationRule.findByTerm(req);
 		Response response = new Response();
 		response.setGeoJSON(toFeatureCollection(result, DEFAULT_KEYS));
@@ -268,7 +273,6 @@ public class GeoJsonRule {
 		putAsStringIfNotNull(properties, "offset", offset);
 		putAsStringIfNotNull(properties, "searchOtherNames", searchOtherNames);
 		putAsStringIfNotNull(properties, "resultSize", "" + result.size());
-		// properties.put("locationTypeName", "Result from a query");
 		String descritpion = "Result from the query for '" + queryTerm
 				+ "' limit=" + limit + " offset=" + offset
 				+ " searchOtherNames=" + searchOtherNames;
@@ -286,6 +290,7 @@ public class GeoJsonRule {
 		}
 		return result;
 	}
+
 	public static FeatureCollection findByTerm(Request req) {
 		List<Location> result = LocationRule.findByTerm(req);
 		return toGeoJSON(req, result);
@@ -307,10 +312,12 @@ public class GeoJsonRule {
 		return response;
 	}
 
-	private static Request toFindByNameRequest(String name, Boolean searchOtherNames,
-			Integer limit, Integer offset) {
+	private static Request toFindByNameRequest(String queryTerm,
+			Boolean searchOtherNames, Integer limit, Integer offset) {
 		Request req = new Request();
-		req.setQueryTerm(name);
+		if (queryTerm == null)
+			throw new BadRequest("\"" + "queryTerm" + "\" key is requierd!");
+		req.setQueryTerm(queryTerm);
 		req.setSearchNames(true);
 		req.setSearchOtherNames(searchOtherNames);
 		req.setLimit(limit);
@@ -324,14 +331,17 @@ public class GeoJsonRule {
 			req.setQueryTerm(node.get("queryTerm").asText());
 		else
 			throw new BadRequest("\"" + "queryTerm" + "\" key is requierd!");
+		setStartDate(node, req, "startDate");
+		setEndDate(node, req, "endDate");
 		setOtherParams(node, req);
 		return req;
 	}
 
 	/**
-	 * @deprecated  replaced by {@link #findByTerm(ArrayNode arrayNode)}
+	 * @deprecated replaced by {@link #findByTerm(ArrayNode arrayNode)}
 	 */
-	@Deprecated	public static List<Object> findBulk(ArrayNode arrayNode) {
+	@Deprecated
+	public static List<Object> findBulk(ArrayNode arrayNode) {
 		List<Object> result = new ArrayList<>();
 		FeatureCollection fc;
 		for (JsonNode node : arrayNode) {
@@ -343,24 +353,26 @@ public class GeoJsonRule {
 	}
 
 	/**
-	 * @deprecated  replaced by {@link #toFindByTermRequest(JsonNode node)}
+	 * @deprecated replaced by {@link #toFindByTermRequest(JsonNode node)}
 	 */
-	@Deprecated	private static Request toFindBulkRequest(JsonNode node) {
+	@Deprecated
+	private static Request toFindBulkRequest(JsonNode node) {
 		Request req = new Request();
 		if (containsKey(node, "name"))
 			req.setQueryTerm(node.get("name").asText());
 		else
 			throw new BadRequest("\"" + "name" + "\" key is requierd!");
+		setStartDate(node, req, "start");
+		setEndDate(node, req, "end");
 		setOtherParams(node, req);
 		return req;
 	}
-	
+
 	private static void setOtherParams(JsonNode node, Request req) {
 		Boolean value;
 		if (containsKey(node, "locationTypeIds"))
-			req.setTypeId(toListOfInt((JsonNode) node.get("locationTypeIds")));
-		setStartDate(node, req);
-		setEndDate(node, req);
+			req.setLocationTypeIds(toListOfInt((JsonNode) node
+					.get("locationTypeIds")));
 		if (containsKey(node, "limit"))
 			req.setLimit(node.get("limit").asInt());
 		if (containsKey(node, "offset"))
@@ -375,18 +387,19 @@ public class GeoJsonRule {
 		req.setSearchCodes(value);
 	}
 
-	private static void setEndDate(JsonNode node, Request req) {
-		if (containsKey(node, "end"))
-			req.setEnd(toDate(node.get("end").asText()));
-		if (req.getEnd() == null)
-			req.setEnd(getNowDate());
+	private static void setEndDate(JsonNode node, Request req, String endDate) {
+		if (containsKey(node, endDate))
+			req.setEndDate(toDate(node.get(endDate).asText()));
+		if (req.getEndDate() == null)
+			req.setEndDate(getNowDate());
 	}
 
-	private static void setStartDate(JsonNode node, Request req) {
-		if (containsKey(node, "start"))
-			req.setStart(toDate(node.get("start").asText()));
-		if (req.getStart() == null)
-			req.setStart(toDate("0001-01-01"));
+	private static void setStartDate(JsonNode node, Request req,
+			String startDate) {
+		if (containsKey(node, startDate))
+			req.setStartDate(toDate(node.get(startDate).asText()));
+		if (req.getStartDate() == null)
+			req.setStartDate(toDate("0001-01-01"));
 	}
 
 	private static Boolean returnDefaultIfKeyNotExists(JsonNode node,
