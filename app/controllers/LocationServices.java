@@ -26,6 +26,7 @@ import play.mvc.Result;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.sun.javafx.collections.ListListenerHelper;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiImplicitParam;
 import com.wordnik.swagger.annotations.ApiImplicitParams;
@@ -323,7 +324,7 @@ public class LocationServices extends Controller {
 	}
 	
 	/**
-	 * @deprecated replaced by {@link #findBulkLocations()}
+	 * @Deprecated replaced by {@link #findBulkLocations()}
 	 */
 	@Deprecated
 	@Transactional
@@ -345,7 +346,7 @@ public class LocationServices extends Controller {
 			httpMethod = "GET", 
 			nickname = "findUniqueLocationNames", 
 			value = "Returns unique location-names", 
-			notes = "This endpoint returns uniqure location-names which match the requested search terms (queryTerm or q). "
+			notes = "This endpoint returns uniqure location-names which match the requested search terms (queryTerm). "
 			+ "Use 'limit' to set the maximum number to return (default is 10). ",
 			response = String.class,
 			produces = "application/json",
@@ -361,8 +362,8 @@ public class LocationServices extends Controller {
 					+ "The search terms are combined together with conjunction. ",
 					required = true
 			) 
-			@QueryParam("q") 
-			String q,
+			@QueryParam("queryTerm") 
+			String queryTerm,
 			@ApiParam(
 					value = "Maximum number of names to return. ", 
 					required = true, defaultValue = "10"
@@ -370,8 +371,17 @@ public class LocationServices extends Controller {
 			@QueryParam("limit")
 			Integer limit
 	){
-		Object result = LocationProxyRule.listUniqueNames(q, limit);
+		Object result = LocationProxyRule.listUniqueNames(queryTerm, limit);
 		return ok(Json.toJson(result));
+	}
+	
+	/**
+	 * @Deprecated Replaced by {@link #listUniqueNames}
+	 */
+	@Deprecated
+	@Transactional
+	public Result findLocationNames(String q, Integer limit){
+		return listUniqueNames(q, limit);
 	}
 
 	@Transactional
@@ -396,6 +406,16 @@ public class LocationServices extends Controller {
 	) {
 		Object result = GeoJsonRule.findByPoint(lat, lon);
 		return ok(Json.toJson(result));
+	}
+
+	
+	/**
+	 * @Deprecated replaced by {@link #findByPoint}
+	 */
+	@Deprecated
+	@Transactional
+	public Result findByLocationPoint(double lat, double lon) {
+		return findByPoint(lat,lon);
 	}
 
 	@Transactional
@@ -580,6 +600,15 @@ public class LocationServices extends Controller {
 		FeatureCollection fc = parseRequestAsFeatureCollection();
 		response().setContentType("application/vnd.geo+json");
 		return Wire.findByFeatureCollection(fc, superTypeId, typeId);
+	}
+	
+	/**
+	 * @Deprecated replaced by {@link #findByFeatureCollection}
+	 */
+	@Deprecated
+	@Transactional
+	public Result findByLocationFeatureCollection(Long superTypeId,	Long typeId) throws Exception {
+		return findByFeatureCollection(superTypeId, typeId);
 	}
 
 	public static class Wire {

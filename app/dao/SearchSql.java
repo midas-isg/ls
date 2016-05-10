@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
 
-import play.Logger;
 import models.Request;
 import models.exceptions.BadRequest;
 
@@ -31,7 +30,7 @@ public class SearchSql {
 				codeTempTable);
 		q += unionTempTablesSql(req, qt, nameTempTable, otherNameTempTable,
 				codeTempTable);
-		Logger.debug("\n q= " + q + "\n");
+		//Logger.debug("\n q= " + q + "\n");
 		return q;
 	}
 
