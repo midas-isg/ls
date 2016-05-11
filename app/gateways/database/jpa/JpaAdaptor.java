@@ -9,7 +9,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
 import models.exceptions.NotFound;
-import dao.entities.Entity;
+import dao.entities.DeficientInterface;
 
 public class JpaAdaptor {
 	private EntityManager em;
@@ -27,7 +27,7 @@ public class JpaAdaptor {
 		return query.getResultList();
 	}
 
-	public <T extends Entity> Long create(T data) {
+	public <T extends DeficientInterface> Long create(T data) {
 		em.persist(data);
 		return data.getId();
 	}
@@ -36,7 +36,7 @@ public class JpaAdaptor {
 		return find(clazz, id);
 	}
 
-	public <T extends Entity> T update(Class<T> clazz, long id, T data) {
+	public <T extends DeficientInterface> T update(Class<T> clazz, long id, T data) {
 		T original = find(clazz, id);
 		data.setId(original.getId());
 		em.merge(data);

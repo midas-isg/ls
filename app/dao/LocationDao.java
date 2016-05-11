@@ -27,7 +27,7 @@ import play.db.jpa.JPA;
 import dao.entities.AltName;
 import dao.entities.Code;
 import dao.entities.Data;
-import dao.entities.Entity;
+import dao.entities.DeficientInterface;
 import dao.entities.Location;
 import dao.entities.LocationGeometry;
 
@@ -226,6 +226,10 @@ public class LocationDao {
 	}
 
 	public Map<Long, Location> getGid2location() {
+		/*List<Location> all = findAll();
+		Map<Long, Location> result = new HashMap<>();
+		all.forEach(l -> result.put(l.getGid(), l));
+		*/
 		Map<Long, Location> result = new HashMap<>();
 		EntityManager em = JPA.em();
 		Session s = em.unwrap(Session.class);
@@ -241,9 +245,9 @@ public class LocationDao {
 		@SuppressWarnings("unchecked")
 		List<Map<String, Object>> l = (List<Map<String, Object>>)q.list();
 		AltNameDao altNameDao = new AltNameDao(em);
-		Map<Long, List<AltName>> otherNames = getGid2Entity(altNameDao);
+		Map<Long, List<AltName>> otherNames = getGid2OtherInfo(altNameDao);
 		CodeDao codeDao = new CodeDao(em);
-		Map<Long, List<Code>> otherCodes = getGid2Entity(codeDao);
+		Map<Long, List<Code>> otherCodes = getGid2OtherInfo(codeDao);
 		for (Map<String, Object> m : l){
 			Long gid = getLong(m, "gid");
 			Long parentGid = getLong(m, "parent_gid");
@@ -294,7 +298,7 @@ public class LocationDao {
 		return result;
 	}
 
-	private <T extends Entity> Map<Long, List<T>> getGid2Entity(
+	private <T extends DeficientInterface> Map<Long, List<T>> getGid2OtherInfo(
 			DataAccessObject<T> daoClass) {
 		List<T> all = daoClass.findAll();
 		Map<Long, List<T>> result = new HashMap<>();

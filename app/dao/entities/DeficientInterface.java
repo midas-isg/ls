@@ -1,6 +1,6 @@
 package dao.entities;
 
-public interface Entity {
+public interface DeficientInterface {
 	Long getId();
 
 	void setId(Long id);

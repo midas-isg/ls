@@ -5,9 +5,9 @@ import gateways.database.jpa.JpaAdaptor;
 import java.util.ArrayList;
 import java.util.List;
 
-import dao.entities.Entity;
+import dao.entities.DeficientInterface;
 
-public class DataAccessObject<T extends Entity> {
+public class DataAccessObject<T extends DeficientInterface> {
 	private Class<T> clazz;
 	private JpaAdaptor adaptor;
 
