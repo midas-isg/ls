@@ -15,9 +15,14 @@ import models.geo.MultiPolygon;
 import models.geo.Point;
 import models.geo.Polygon;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import dao.entities.AltName;
+import dao.entities.Code;
 
 public class GeoJSONParser {
 	private GeoJSONParser() {
@@ -92,10 +97,40 @@ public class GeoJSONParser {
 		Iterator<Entry<String, JsonNode>> propertiesIterator = properties.fields();
 		while(propertiesIterator.hasNext()) {
 			Entry<String, JsonNode> mapping = propertiesIterator.next();
-			map.put(mapping.getKey(), mapping.getValue().textValue());
+			if(mapping.getValue().isArray())
+				toArrayProperties(map, mapping);
+			else
+				map.put(mapping.getKey(), mapping.getValue().textValue());
 		}
 		
 		return;
+	}
+
+	private static void toArrayProperties(Map<String, Object> map,
+			Entry<String, JsonNode> mapping) {
+		JsonNode arrayNode = mapping.getValue();
+		List<AltName> altNames = new ArrayList<>();
+		List<Code> codes = new ArrayList<>();
+		ObjectMapper om = new ObjectMapper();
+		for (int i = 0; i < arrayNode.size(); i++) {
+			JsonNode jsonNode = arrayNode.get(i);
+			try {
+				if(mapping.getKey().equals("otherNames")){
+					AltName n = om.treeToValue(jsonNode, AltName.class);
+					altNames.add(n);
+				}
+				else if(mapping.getKey().equals("otherCodes")){
+					Code c = om.treeToValue(jsonNode, Code.class);
+					codes.add(c);
+				}
+			} catch (JsonProcessingException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		if(mapping.getKey().equals("otherNames"))
+			map.put("otherNames", altNames);
+		else if(mapping.getKey().equals("otherCodes"))
+			map.put("otherCodes", codes);
 	}
 	
 	private static Point parsePoint(JsonNode geometryNode) {
@@ -131,28 +166,16 @@ public class GeoJSONParser {
 				for(int k = 0; k < coordinateValues.size(); k++){
 					pointToFill[k] = coordinateValues.get(k).asDouble();
 				}
-				
-//if((j < 2) || (j == polygonComponentNode.size() - 1)) {
-//	Logger.debug("[" + String.valueOf(pointToFill[0]) + ", " + String.valueOf(pointToFill[1]) + "]");
-//}
 			}
 			
 			double [] firstPoint = componentToFill.get(0).clone();
 			double [] lastPoint = componentToFill.get(componentToFill.size() - 1);
 			for(int l = 0; l < firstPoint.length; l++) {
 				if(firstPoint[l] != lastPoint[l]) {
-					//componentToFill.add(firstPoint);
-//Logger.debug("~Appended first point~");
-//					break;
 					throw new Exception("Last point != first point for this polygon");
 				}
 			}
 		}
-		
-//Logger.debug("coordinates size: " + coordinates.size());
-//Logger.debug("coordinates[0] size: " + coordinates.get(0).size());
-//Logger.debug("coordinates[0][0] length: " + coordinates.get(0).get(0).length);
-		
 		return coordinates;
 	}
 	
@@ -205,13 +228,6 @@ public class GeoJSONParser {
 			geometryCollection = new GeometryCollection();
 			List<FeatureGeometry> geometries = new ArrayList<FeatureGeometry>();
 			JsonNode geometriesNode = geometryNode.get("geometries");
-/*
-Logger.debug("GeometryCollection fields: ");
-Iterator<String> fields = geometryNode.fieldNames();
-while(fields.hasNext()) {
-	Logger.debug("\t" + fields.next());
-}
-*/
 			int geometryCount = geometriesNode.size();
 			for(int i = 0; i < geometryCount; i++) {
 				JsonNode geometryToAdd = geometriesNode.get(i);

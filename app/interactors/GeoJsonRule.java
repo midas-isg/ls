@@ -1,17 +1,34 @@
 package interactors;
 
+import static interactors.GeoJsonHelperRule.computeBbox;
+import static interactors.GeoJsonHelperRule.createLocationGeometry;
+import static interactors.GeoJsonHelperRule.findLocationType;
+import static interactors.GeoJsonHelperRule.getRepPoint;
+import static interactors.GeoJsonHelperRule.getString;
+import static interactors.GeoJsonHelperRule.putAsAltNameObjectsIfNotNull;
+import static interactors.GeoJsonHelperRule.putAsCodeObjectsIfNotNull;
+import static interactors.GeoJsonHelperRule.putAsLocationObjectsIfNotNull;
+import static interactors.GeoJsonHelperRule.toProperties;
+import static interactors.GeoJsonHelperRule.wireLocationsIncluded;
+import static interactors.Util.containsKey;
+import static interactors.Util.getNowDate;
+import static interactors.Util.includeField;
+import static interactors.Util.listToString;
+import static interactors.Util.newDate;
+import static interactors.Util.putAsStringIfNotNull;
+import static interactors.Util.toDate;
+import static interactors.Util.toListOfInt;
+import static interactors.Util.toStringValue;
+
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.StringJoiner;
 
-import org.joda.time.LocalDate;
-
+import models.Request;
 import models.Response;
 import models.exceptions.BadRequest;
 import models.geo.Feature;
@@ -20,10 +37,10 @@ import models.geo.FeatureGeometry;
 import play.Logger;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.vividsolutions.jts.geom.Coordinate;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Point;
 
+import dao.LocationTypeDao;
 import dao.entities.AltName;
 import dao.entities.Code;
 import dao.entities.Data;
@@ -37,14 +54,13 @@ public class GeoJsonRule {
 	private static final String KEY_BBOX = "bbox";
 	private static final String KEY_REPPOINT = "rep_point";
 	private static final String KEY_GEOMETRY = "geometry";
-	public static final List<String> DEFAULT_KEYS = Arrays.asList(new String[]{
-			KEY_PROPERTIES, KEY_CHILDREN
-	});
+	public static final List<String> DEFAULT_KEYS = Arrays.asList(new String[] {
+			KEY_PROPERTIES, KEY_CHILDREN });
 
 	public static FeatureCollection asFeatureCollection(Location location) {
 		long locationTypeId = location.getData().getLocationType().getId();
-		if (locationTypeId == LocationRule.PUMA_TYPE_ID 
-				|| locationTypeId == LocationRule.COMPOSITE_LOCATION_ID){
+		if (locationTypeId == LocationRule.PUMA_TYPE_ID
+				|| locationTypeId == LocationRule.COMPOSITE_LOCATION_ID) {
 			return toFeatureCollection(location);
 		}
 		List<Location> list = new ArrayList<>();
@@ -52,8 +68,8 @@ public class GeoJsonRule {
 		return toFeatureCollection(list, null);
 	}
 
-	public static FeatureCollection toFeatureCollection(List<Location> locations,
-			List<String> fields) {
+	public static FeatureCollection toFeatureCollection(
+			List<Location> locations, List<String> fields) {
 		FeatureCollection fc = new FeatureCollection();
 		List<Feature> features = toFeatures(locations, fields);
 		fc.setFeatures(features);
@@ -71,78 +87,100 @@ public class GeoJsonRule {
 		fc.setProperties(toPropertiesOfFeature(composite, false));
 		double[] computeBbox = computeBbox(composite);
 		if (computeBbox == null)
-			computeBbox =  computeBbox(features);
+			computeBbox = computeBbox(features);
 		fc.setBbox(computeBbox);
 		fc.setId(composite.getGid() + "");
 		return fc;
 	}
 
-	private static List<Feature> toFeatures(List<Location> locations, 
+	private static List<Feature> toFeatures(List<Location> locations,
 			List<String> fields) {
 		List<Feature> features = new ArrayList<>();
 		for (Location location : locations) {
-			if (location == null){
+			if (location == null) {
 				Logger.warn("toFeatures got an element in the list as null.");
 				continue;
 			}
 			features.add(toFeature(location, fields));
 		}
-		
+
 		return features;
 	}
 
 	private static Feature toFeature(Location location, List<String> fields) {
 		Feature feature = new Feature();
-		if (includeField(fields, KEY_PROPERTIES, KEY_CHILDREN)){
-			Map<String, Object> properties = toPropertiesOfFeature(location, true);
+		if (includeField(fields, KEY_PROPERTIES, KEY_CHILDREN)) {
+			Map<String, Object> properties = toPropertiesOfFeature(location,
+					true);
 			feature.setProperties(properties);
-		}
-		else if (includeField(fields, KEY_PROPERTIES)){
-			Map<String, Object> properties = toPropertiesOfFeature(location, false);
+		} else if (includeField(fields, KEY_PROPERTIES)) {
+			Map<String, Object> properties = toPropertiesOfFeature(location,
+					false);
 			feature.setProperties(properties);
 		}
 		LocationGeometry geometry = null;
-		if (includeField(fields, KEY_GEOMETRY)){
+		if (includeField(fields, KEY_GEOMETRY)) {
 			final LocationGeometry locationGeometry = location.getGeometry();
 			if (locationGeometry == null)
 				geometry = GeometryRule.read(location.getGid());
 			else
 				geometry = locationGeometry;
 		}
-		
-		if (geometry != null){
+
+		if (geometry != null) {
 			Geometry multiPolygonGeom = geometry.getShapeGeom();
-			feature.setGeometry(GeoOutputRule.toFeatureGeometry(multiPolygonGeom));
-			if (includeField(fields, KEY_BBOX)) 
+			feature.setGeometry(GeoOutputRule
+					.toFeatureGeometry(multiPolygonGeom));
+			if (includeField(fields, KEY_BBOX))
 				feature.setBbox(computeBbox(location));
 			if (includeField(fields, KEY_REPPOINT))
 				feature.setRepPoint(getRepPoint(geometry));
 			feature.setId(location.getGid() + "");
 		}
-		
+
 		return feature;
 	}
 
-	private static double[] getRepPoint(LocationGeometry geometry) {
-		if(geometry == null)
-			return null;
-		Point repPoint = geometry.getRepPoint();
-		if(repPoint == null)
-			return null;
-		return GeoOutputRule.toPoint(repPoint.getCoordinate());
+	private static FeatureCollection toGeoJSON(Request req,
+			List<Location> result) {
+		List<String> fields = Arrays.asList(new String[] { KEY_PROPERTIES });
+		FeatureCollection geoJSON = toFeatureCollection(result, fields);
+		Map<String, Object> properties = new HashMap<>();
+		LocationTypeDao locationTypeDao = new LocationTypeDao();
+		geoJSON.setProperties(properties);
+		properties.put("queryTerm", req.getQueryTerm());
+		putAsStringIfNotNull(properties, "locationTypeIds",
+				listToString(req.getLocationTypeIds()));
+		putAsStringIfNotNull(properties, "locationTypeNames",
+				listToString(locationTypeDao.getLocationTypeNames(req
+						.getLocationTypeIds())));
+		putAsStringIfNotNull(properties, "startDate",
+				toStringValue(req.getStartDate()));
+		putAsStringIfNotNull(properties, "endDate",
+				toStringValue(req.getEndDate()));
+		putAsStringIfNotNull(properties, "limit", req.getLimit());
+		putAsStringIfNotNull(properties, "offset", req.getOffset());
+		putAsStringIfNotNull(properties, "ignoreAccent", req.isIgnoreAccent());
+		putAsStringIfNotNull(properties, "searchNames", req.isSearchNames());
+		putAsStringIfNotNull(properties, "searchOtherNames",
+				req.isSearchOtherNames());
+		putAsStringIfNotNull(properties, "searchCodes", req.isSearchCodes());
+		putAsStringIfNotNull(properties, "resultSize", result.size());
+		return geoJSON;
 	}
 
-	private static Map<String, Object> toPropertiesOfFeature(Location location, boolean includeChildren) {
+	private static Map<String, Object> toPropertiesOfFeature(Location location,
+			boolean includeChildren) {
 		Map<String, Object> properties = toProperties(location);
-		if (includeChildren){
+		if (includeChildren) {
 			List<Location> children = location.getChildren();
 			if (children != null)
 				Collections.sort(children);
 			putAsLocationObjectsIfNotNull(properties, "children", children);
 		}
-		putAsLocationObjectsIfNotNull(properties, "lineage", 
+		putAsLocationObjectsIfNotNull(properties, "lineage",
 				LocationProxyRule.getLineage(location.getGid()));
-		putAsLocationObjectsIfNotNull(properties, "related", 
+		putAsLocationObjectsIfNotNull(properties, "related",
 				location.getRelatedLocations());
 		putAsCodeObjectsIfNotNull(properties, "codes", location);
 		putAsAltNameObjectsIfNotNull(properties, "otherNames", location);
@@ -150,170 +188,7 @@ public class GeoJsonRule {
 		return properties;
 	}
 
-	private static void putAsAltNameObjectsIfNotNull(
-			Map<String, Object> properties, String string, Location location) {
-		if (location == null)
-			return;
-		
-		List<Map<String, String>> names = new ArrayList<>();
-		final String KEY_NAME = "name";
-		final String KEY_LANG = "language";
-		final String KEY_DESC = "description";
-
-		properties.put(string, names);
-		
-		List<AltName> otherNames = location.getAltNames();
-		if (otherNames == null)
-			return;
-		for (AltName name : otherNames){
-			Map<String, String> anotherName = new HashMap<>();
-			anotherName.put(KEY_NAME, name.getName());
-			anotherName.put(KEY_LANG, name.getLanguage());
-			anotherName.put(KEY_DESC, name.getDescription());
-			names.add(anotherName);
-		}		
-	}
-
-	private static boolean includeField(List<String> fields, String... keys) {
-		if (fields == null || fields.isEmpty())
-			return true;
-		
-		return fields.containsAll(Arrays.asList(keys));
-	}
-	
-	private static double[] computeBbox(Location l) {
-		if (l == null)
-			return null;
-		LocationGeometry geometry = l.getGeometry();
-		if (geometry == null)
-			return null;
-		return computeBbox(geometry.getShapeGeom());
-	}
-	
-	private static double[] computeBbox(List<Feature> features) {
-		if (features == null || features.isEmpty())
-			return null;
-		double[] result = new double[]{ 
-				Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY,
-				Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY 
-				};
-		for(Feature f : features){
-			double[] bbox = f.getBbox();
-			if (bbox == null || bbox.length < 3)
-				continue;
-			if (result[0] > bbox[0])
-				 result[0] = bbox[0];
-			if (result[1] > bbox[1])
-				 result[1] = bbox[1];
-			if (result[2] < bbox[2])
-				 result[2] = bbox[2];
-			if (result[3] < bbox[3])
-				 result[3] = bbox[3];
-		}
-		for (double d : result){
-			if (Double.isInfinite(d))
-				return null;
-		}
-		return result;
-	}
-
-	private static double[] computeBbox(Geometry geometry) {
-		if (geometry == null || geometry.isEmpty())
-			return null;
-		Geometry envelope = geometry.getEnvelope();
-		Coordinate[] coordinates = envelope.getCoordinates();
-		Coordinate westSouth = coordinates[0];
-		Coordinate eastNorth = coordinates.length >=2 
-				? coordinates[2] 
-				: westSouth;
-		double[] bbox = new double[]{westSouth.x, westSouth.y, 
-				eastNorth.x, eastNorth.y};
-		return bbox;
-	}
-
-	private static void putAsCodeObjectsIfNotNull(Map<String, Object> properties,
-			String string, Location location) {
-		if (location == null)
-			return;
-		
-		List<Map<String, String>> codes = new ArrayList<>();
-		Map<String, String> code = new HashMap<>();
-		final String KEY_CODE = "code";
-		final String KEY_TYPE = "codeTypeName";
-		code.put(KEY_CODE, location.getData().getCode());
-		code.put(KEY_TYPE, location.getData().getCodeType().getName());
-		codes.add(code);
-		properties.put(string, codes);
-		
-		List<Code> otherCodes = location.getOtherCodes();
-		if (otherCodes == null)
-			return;
-		for (Code c : otherCodes){
-			Map<String, String> anotherCode = new HashMap<>();
-			anotherCode.put(KEY_CODE, c.getCode());
-			anotherCode.put(KEY_TYPE, c.getCodeType().getName());
-			codes.add(anotherCode);
-		}
-	}
-
-	private static void putAsLocationObjectsIfNotNull(
-			Map<String, Object> properties, String key, 
-			List<Location> locations) {
-		if (locations == null)
-			return;
-		List<Map<String, Object>> list = new ArrayList<>();
-		for (Location l : locations){
-			list.add(toProperties(l));
-		}
-		properties.put(key, list);
-	}
-
-	private static Map<String, Object> toProperties(Location location) {
-		Map<String, Object> properties = new HashMap<>();
-		String gid = getGid(location);
-		putAsStringIfNotNull(properties, "gid", gid);
-		Data data = location.getData();
-		if (data == null){
-			Logger.warn(gid + " has null data!");
-			return properties;
-		}
-		putAsStringIfNotNull(properties, "name", data.getName());
-		putAsStringIfNotNull(properties, "locationDescription", data.getDescription());
-		putAsStringIfNotNull(properties, "headline", location.getHeadline());
-		putAsStringIfNotNull(properties, "rank", location.getRank());
-		putAsStringIfNotNull(properties, "startDate", data.getStartDate());
-		putAsStringIfNotNull(properties, "endDate", data.getEndDate());
-		String locationTypeName = getLocationTypeName(data.getLocationType());
-		putAsStringIfNotNull(properties, "locationTypeName", locationTypeName);
-		Location parent = location.getParent();
-		putAsStringIfNotNull(properties, "parentGid", getGid(parent));
-		return properties;
-	}
-
-	private static String getLocationTypeName(LocationType locationType) {
-		return (locationType == null) ? null : locationType.getName();
-	}
-
-	private static String toString(Object object) {
-		if (object == null)
-			return null;
-		return String.valueOf(object);
-	}
-
-	private static String getGid(Location location) {
-		if (location == null)
-			return null;
-		return String.valueOf(location.getGid());
-	}
-
-	private static void putAsStringIfNotNull(Map<String, Object> properties,
-			String key, Object value) {
-		if (value == null)
-			return;
-		properties.put(key, toString(value));
-	}
-
-	public static Location asLocation(FeatureCollection fc){
+	public static Location asLocation(FeatureCollection fc) {
 		Location location = new Location();
 		Data data = new Data();
 		LocationType type = findLocationType(fc);
@@ -333,191 +208,94 @@ public class GeoJsonRule {
 		String code = getString(fc, "code");
 		data.setCode(code);
 		location.setData(data);
+		setOtherNames(fc, location);
+		setOtherCodes(fc, location);
 		String parentGid = getString(fc, "parentGid");
-		Location parent = LocationRule.read(Long.parseLong(parentGid));
-		if (parent == null){
-			throw new RuntimeException("Cannot find parent gid=" + parentGid);
+		if (parentGid != null) {
+			Location parent = LocationRule.read(Long.parseLong(parentGid));
+			if (parent == null) {
+				throw new RuntimeException("Cannot find parent gid="
+						+ parentGid);
+			}
+			location.setParent(parent);
 		}
-		location.setParent(parent);
-		if (type.getSuperType().getId().equals(2L)){
+		if (type.getSuperType().getId().equals(2L)) {
 			List<Location> locations = wireLocationsIncluded(fc, type);
 			location.setLocationsIncluded(locations);
-		}		
+		}
 		location.setGeometry(createLocationGeometry(fc, location));
 		return location;
 	}
 
-	private static List<Location> wireLocationsIncluded(FeatureCollection fc, LocationType type) {
-		LocationType allowType = type.getComposedOf();
-		List<Location> locations = new ArrayList<>();
-		for (Feature f : fc.getFeatures()){
-			String gid = f.getId();
-			if (gid != null){
-				Location location = LocationRule.read(Long.parseLong(gid));
-				if (location == null){
-					throw new RuntimeException("Cannot find LocationIncluded gid=" + gid);
-				}
-				LocationType foundType = location.getData().getLocationType();
-				if (allowType != null &&! foundType.equals(allowType))
-					throw new RuntimeException(foundType.getName() 
-							+ " type of gid=" + gid 
-							+ " is not allowed  to compose type " 
-							+ type.getName());
-						
-				locations.add(location);
-			}
+	private static void setOtherCodes(FeatureCollection fc, Location location) {
+		@SuppressWarnings("unchecked")
+		List<Code> codes = (List<Code>) fc.getProperties().get("otherCodes");
+		if (codes == null)
+			return;
+		for (Code c : codes) {
+			c.setLocation(location);
+			if (c.getCodeType() == null)
+				c.setCodeType(LocationRule.getIsgCodeType());
 		}
-		return locations;
+		location.setOtherCodes(codes);
 	}
 
-	private static LocationType findLocationType(FeatureCollection fc) {
-		String idKey = "locationTypeId";
-		String id = getString(fc, idKey);
-		String nameKey = "locationTypeName";
-		String name = getString(fc, nameKey);
-		if (id == null && name == null)
-			throw new RuntimeException("undefined location type by id or name");
-		LocationType type = null;
-		
-		try {
-			if (id != null)
-				type = LocationTypeRule.findById(Long.parseLong(id));
-		} catch (Exception e){
-			Logger.info(e.getMessage(), e);
+	private static void setOtherNames(FeatureCollection fc, Location location) {
+		@SuppressWarnings("unchecked")
+		List<AltName> altNames = (List<AltName>) fc.getProperties().get(
+				"otherNames");
+		if (altNames == null)
+			return;
+		for (AltName n : altNames) {
+			n.setLocation(location);
+			if (n.getGisSource() == null)
+				n.setGisSource(LocationRule.getAlsGisSource());
 		}
-		try {
-			if (type == null)
-				type = LocationTypeRule.findByName(name);
-		} catch (Exception e2){
-			throw new RuntimeException("Requested location type not found: "
-					+ idKey + "=" + id + ", " + nameKey +"=" + name);
-		}
-		return type;
+		location.setAltNames(altNames);
 	}
 
-	private static LocationGeometry createLocationGeometry(
-			FeatureCollection fc, Location l) {
-		LocationGeometry lg = new LocationGeometry();
-		lg.setShapeGeom(GeoInputRule.toGeometry(fc));
-		lg.setLocation(l);
-		Date now = l.getData().getUpdateDate();
-		lg.setUpdateDate(now);
-		return lg;
+	public static FeatureGeometry asFetureGeometry(FeatureCollection fc) {
+		Geometry geometry = GeoInputRule.toGeometry(fc);
+		return GeoOutputRule.toFeatureGeometry(geometry);
 	}
 
-	private static Date getNowDate() {
-		java.util.Date now = new java.util.Date();
-		return new Date(now.getTime());
-	}
-
-	private static Date newDate(String date) {
-		if (date == null)
-			return null;
-		return java.sql.Date.valueOf(date);
-	}
-
-	private static String getString(FeatureCollection fc, String key) {
-		Object object = fc.getProperties().get(key);
-		if (object == null)
-			return null;
-		return object.toString();
-	}
-
-	public static Response findByName(String q, 
-			Integer limit, Integer offset, boolean altNames){
-		List<Location> result = LocationRule.findByName(q, limit, offset, altNames);
+	public static Response filterByTerm(String queryTerm, Integer limit,
+			Integer offset, Boolean searchOtherNames) {
+		Request req = toFindByNameRequest(queryTerm, searchOtherNames, limit,
+				offset);
+		List<Location> result = LocationRule.findByTerm(req);
 		Response response = new Response();
 		response.setGeoJSON(toFeatureCollection(result, DEFAULT_KEYS));
 		Map<String, Object> properties = new HashMap<>();
 		response.setProperties(properties);
-		properties.put("q", q);
+		properties.put("queryTerm", queryTerm);
 		putAsStringIfNotNull(properties, "limit", limit);
 		putAsStringIfNotNull(properties, "offset", offset);
-		putAsStringIfNotNull(properties, "searchAltNames", altNames);
+		putAsStringIfNotNull(properties, "searchOtherNames", searchOtherNames);
 		putAsStringIfNotNull(properties, "resultSize", "" + result.size());
-		properties.put("locationTypeName", "Result from a query");
-		String descritpion = "Result from the query for '" + q + "' limit=" 
-		+ limit + " offset=" + offset + " searchAltNames=" + altNames;
+		String descritpion = "Result from the query for '" + queryTerm
+				+ "' limit=" + limit + " offset=" + offset
+				+ " searchOtherNames=" + searchOtherNames;
 		properties.put("locationDescription", descritpion);
 		return response;
 	}
-	
-	public static List<Object> findBulkLocations(ArrayList<Map<String,Object>> params){
-		List<Object> result = new ArrayList<>();
-		//String geoJSONKey = "";
-		FeatureCollection fc;
-		for (Map<String, Object> param : params) {
-			//geoJSONKey = makeGeoJSONKey(param);
-			String name = (String) param.get("name");
-			List<Integer> locTypeIds = toListOfInt((JsonNode) param.get("locationTypeIds"));
-			Date startDate = toDate(param, "start");
-			Date endDate = toDate(param, "end");
 
-			fc = findLocation(name, locTypeIds, startDate, endDate);
+	public static List<Object> findByTerm(ArrayNode queryArray) {
+		List<Object> result = new ArrayList<>();
+		FeatureCollection fc;
+		for (JsonNode query : queryArray) {
+			Request req = toFindByTermRequest(query);
+			fc = findByTerm(req);
 			result.add(fc);
 		}
 		return result;
 	}
 
-	private static Date toDate(Map<String, Object> param, String key) {
-		if(param.get(key) == null){
-			return null;
-		}
-		String dateString = (String)param.get(key);
-		if(dateString.equals("") || dateString.equals("null"))
-			return null;
-		Date date = null;
-		try{
-			LocalDate localDt = new LocalDate(dateString);
-			date = Date.valueOf(localDt.toString());
-		} catch(Exception e){
-			String msg = (e.getMessage() != null) ? e.getMessage() : 
-				"Invalid date: " + dateString;
-			throw new BadRequest(msg);
-		}
-		return date;
+	public static FeatureCollection findByTerm(Request req) {
+		List<Location> result = LocationRule.findByTerm(req);
+		return toGeoJSON(req, result);
 	}
 
-	private static FeatureCollection findLocation(String name,
-			List<Integer> locTypeIds, Date startDate, Date endDate) {
-		List<Location> result = LocationRule.find(name, locTypeIds, startDate, endDate);
-		List<String> fields = Arrays.asList(new String[] {KEY_PROPERTIES});
-		FeatureCollection geoJSON = toFeatureCollection(result, fields);
-		Map<String, Object> properties = new HashMap<>();
-		geoJSON.setProperties(properties);
-		properties.put("name", name);
-		putAsStringIfNotNull(properties, "locationTypeIds", listToString(locTypeIds));
-		putAsStringIfNotNull(properties, "start", toStringValue(startDate));
-		putAsStringIfNotNull(properties, "end", toStringValue(endDate));
-		return geoJSON;
-	}
-
-	private static String toStringValue(Date date) {
-		if(date == null)
-			return null;
-		return date.toString();
-	}
-
-	private static String listToString(List<Integer> locTypeIds) {
-		if (locTypeIds == null)
-			return null;
-		StringJoiner joiner = new StringJoiner(",", "[", "]");
-		for(int id: locTypeIds)
-			joiner.add(Integer.toString(id));
-		return joiner.toString();
-	}
-
-	private static List<Integer> toListOfInt(JsonNode jsonNode) {
-		if(jsonNode == null)
-			return null;
-		List<Integer> intList = new ArrayList<>();
-		Iterator<JsonNode> elements = jsonNode.elements();
-		while(elements.hasNext()){
-			intList.add(elements.next().asInt());
-		}
-		return intList;
-	}
-	
 	public static Response findByPoint(double latitude, double longitude) {
 		List<Location> result = LocationRule.findByPoint(latitude, longitude);
 		Response response = new Response();
@@ -528,14 +306,107 @@ public class GeoJsonRule {
 		putAsStringIfNotNull(properties, "longitude", longitude);
 		putAsStringIfNotNull(properties, "resultSize", "" + result.size());
 		properties.put("locationTypeName", "Result from a query");
-		String descritpion = "Result from the query for latitude=" + latitude 
+		String descritpion = "Result from the query for latitude=" + latitude
 				+ " longitude=" + longitude;
 		properties.put("locationDescription", descritpion);
 		return response;
 	}
 
-	public static FeatureGeometry asFetureGeometry(FeatureCollection fc) {
-		Geometry geometry = GeoInputRule.toGeometry(fc);
-		return GeoOutputRule.toFeatureGeometry(geometry);
+	private static Request toFindByNameRequest(String queryTerm,
+			Boolean searchOtherNames, Integer limit, Integer offset) {
+		Request req = new Request();
+		if (queryTerm == null)
+			throw new BadRequest("\"" + "queryTerm" + "\" key is requierd!");
+		req.setQueryTerm(queryTerm);
+		req.setSearchNames(true);
+		req.setSearchOtherNames(searchOtherNames);
+		req.setLimit(limit);
+		req.setOffset(offset);
+		return req;
+	}
+
+	private static Request toFindByTermRequest(JsonNode node) {
+		Request req = new Request();
+		if (containsKey(node, "queryTerm"))
+			req.setQueryTerm(node.get("queryTerm").asText());
+		else
+			throw new BadRequest("\"" + "queryTerm" + "\" key is requierd!");
+		setStartDate(node, req, "startDate");
+		setEndDate(node, req, "endDate");
+		setOtherParams(node, req);
+		return req;
+	}
+
+	/**
+	 * @deprecated replaced by {@link #findByTerm(ArrayNode arrayNode)}
+	 */
+	@Deprecated
+	public static List<Object> findBulk(ArrayNode arrayNode) {
+		List<Object> result = new ArrayList<>();
+		FeatureCollection fc;
+		for (JsonNode node : arrayNode) {
+			Request req = toFindBulkRequest(node);
+			fc = findByTerm(req);
+			result.add(fc);
+		}
+		return result;
+	}
+
+	/**
+	 * @deprecated replaced by {@link #toFindByTermRequest(JsonNode node)}
+	 */
+	@Deprecated
+	private static Request toFindBulkRequest(JsonNode node) {
+		Request req = new Request();
+		if (containsKey(node, "name"))
+			req.setQueryTerm(node.get("name").asText());
+		else
+			throw new BadRequest("\"" + "name" + "\" key is requierd!");
+		setStartDate(node, req, "start");
+		setEndDate(node, req, "end");
+		setOtherParams(node, req);
+		return req;
+	}
+
+	private static void setOtherParams(JsonNode node, Request req) {
+		Boolean value;
+		if (containsKey(node, "locationTypeIds"))
+			req.setLocationTypeIds(toListOfInt((JsonNode) node
+					.get("locationTypeIds")));
+		if (containsKey(node, "limit"))
+			req.setLimit(node.get("limit").asInt());
+		if (containsKey(node, "offset"))
+			req.setOffset(node.get("offset").asInt());
+		value = returnDefaultIfKeyNotExists(node, "ignoreAccent", true);
+		req.setIgnoreAccent(value);
+		value = returnDefaultIfKeyNotExists(node, "searchNames", true);
+		req.setSearchNames(value);
+		value = returnDefaultIfKeyNotExists(node, "searchOtherNames", true);
+		req.setSearchOtherNames(value);
+		value = returnDefaultIfKeyNotExists(node, "searchCodes", true);
+		req.setSearchCodes(value);
+	}
+
+	private static void setEndDate(JsonNode node, Request req, String endDate) {
+		if (containsKey(node, endDate))
+			req.setEndDate(toDate(node.get(endDate).asText()));
+		if (req.getEndDate() == null)
+			req.setEndDate(getNowDate());
+	}
+
+	private static void setStartDate(JsonNode node, Request req,
+			String startDate) {
+		if (containsKey(node, startDate))
+			req.setStartDate(toDate(node.get(startDate).asText()));
+		if (req.getStartDate() == null)
+			req.setStartDate(toDate("0001-01-01"));
+	}
+
+	private static Boolean returnDefaultIfKeyNotExists(JsonNode node,
+			String key, Boolean defaultValue) {
+		if (containsKey(node, key))
+			return node.get(key).asBoolean();
+		else
+			return defaultValue;
 	}
 }

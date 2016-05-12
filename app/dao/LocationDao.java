@@ -1,20 +1,20 @@
 package dao;
 
-import gateways.database.sql.SQLSanitizer;
+import static interactors.Util.getDate;
+import static interactors.Util.getLong;
+import static interactors.Util.getString;
 import interactors.LocationProxyRule;
 
 import java.math.BigInteger;
-import java.sql.Date;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.StringJoiner;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
-import models.exceptions.BadRequest;
+import models.Request;
 import models.exceptions.PostgreSQLException;
 
 import org.hibernate.SQLQuery;
@@ -24,7 +24,10 @@ import org.postgresql.util.PSQLException;
 
 import play.Logger;
 import play.db.jpa.JPA;
+import dao.entities.AltName;
+import dao.entities.Code;
 import dao.entities.Data;
+import dao.entities.DeficientInterface;
 import dao.entities.Location;
 import dao.entities.LocationGeometry;
 
@@ -46,6 +49,10 @@ public class LocationDao {
 			else
 				throw new RuntimeException(e);
 		}
+		AltNameDao altNameDao = new AltNameDao(em);
+		CodeDao codeDao = new CodeDao(em);
+		altNameDao.createAll(location.getAltNames());
+		codeDao.createAll(location.getOtherCodes());
 		LocationProxyRule.notifyChange();
 		Long gid = location.getGid();
 		Logger.info("persisted " + gid);
@@ -97,51 +104,43 @@ public class LocationDao {
 
 	public Long delete(Location location) {
 		EntityManager em = JPA.em();
+		AltNameDao altNameDao = new AltNameDao(em);
+		CodeDao codeDao = new CodeDao(em);
 		Long gid = null;
 		if (location != null){
 			gid = location.getGid();
+			altNameDao.deleteAll(location.getAltNames());
+			codeDao.deleteAll(location.getOtherCodes());
 			em.remove(location);
 			Logger.info("removed Location with gid=" + gid);
 		}
 		
 		return gid;
 	}
-	
-	public List<Location> findByName(String name, Integer limit, Integer offset, boolean altNames) {
-		//TODO: move sanitize() to a proper place
-		sanitize(name);
+
+	public List<Location> findByTerm(Request req) {
 		EntityManager em = JPA.em();
-		String tsVector = "to_tsvector('simple', name)";
-		String queryText = toQueryText(name);
-		String qt = "'" + queryText + "'";
-		//@formatter:off
-		String q = "WITH origin_names AS ( "
-				+ " SELECT gid, name, ts_rank_cd(ti, "+ qt + " ) AS rank "
-				+ " FROM location, " + tsVector + " ti " 
-				+ " WHERE ti @@ "+ qt
-				+ " ORDER BY rank DESC,	name )";
-		if (altNames)
-				q += ", "
-				+ " alt_names AS ( "
-				+ " SELECT gid, name, ts_rank_cd(ti, "+ qt + " ) AS rank "
-				+ " FROM alt_name , " + tsVector + " ti "
-				+ " WHERE gid not in (select gid from origin_names) and ti @@ "+ qt
-				+ " ORDER BY rank DESC, name ) ";
-		
-		q += " SELECT gid, ts_headline('simple', name, "+ qt + " ) headline, rank, name "
-			+ " FROM origin_names ";
-		if (altNames)
-			q += " UNION "
-			+ " SELECT gid, ts_headline('simple', name, "+ qt + " ) headline, rank, name "
-			+ " FROM alt_names ";
-		//@formatter:on
-		//Logger.debug("name=" + name + " q=\n" + q);
+		String q = new SearchSql().toQuerySqlString(req);
 		Query query = em.createNativeQuery(q);
-		if (limit != null)
-			query.setMaxResults(limit);
-		if (offset != null)
-			query.setFirstResult(offset);
+		query = setQueryParameters(req, query);
 		List<?> resultList = query.getResultList();
+		List<Location> locations = queryResult2LocationList(resultList);
+		return locations;
+	}
+
+	private Query setQueryParameters(Request req, Query query) {
+		if(req.getStartDate() != null)
+			query = query.setParameter("start", req.getStartDate());
+		if(req.getEndDate() != null)
+			query = query.setParameter("end", req.getEndDate());
+		if (req.getLimit() != null)
+			query.setMaxResults(req.getLimit());
+		if (req.getOffset() != null)
+			query.setFirstResult(req.getOffset());
+		return query;
+	}
+	
+	private List<Location> queryResult2LocationList(List<?> resultList) {
 		List<BigInteger> result = getGids(resultList);
 		List<Location> locations = LocationProxyRule.getLocations(result);
 		int i = 0;
@@ -149,121 +148,8 @@ public class LocationDao {
 			Object[] objects = (Object[])resultList.get(i++);
 			l.setHeadline(objects[1].toString());
 			l.setRank(objects[2].toString());
-			l.getData().setName(objects[3].toString());
-
 		}
-		
 		return locations;
-	}
-	
-	public List<Location> find(String name, List<Integer> locTypeIds, Date startDate, Date endDate) {
-		EntityManager em = JPA.em();
-		String tsVector = "to_tsvector('simple', name)";
-		//TODO: Move sanitize to a proper place
-		sanitize(name);
-		String queryText = toQueryText(name);
-		String qt = "'" + queryText + "'";
-		String typeIdsList = toList(locTypeIds);
-		String typeCond = locTypeCond(typeIdsList);
-		String dateCond = dateCond(startDate, endDate);
-		String orderByRankAndName = " ORDER BY rank DESC, name ";
-		//@formatter:off
-		String q = 
-			" WITH origin_names AS ( "
-			+ " SELECT gid, name, ts_rank_cd(ti, "+ qt + " ) AS rank "
-			+ " FROM location, " + tsVector + " ti " 
-			+ " WHERE ti @@ "+ qt ;
-		q += (typeCond != null) ? " AND " + typeCond : "";
-		q += (dateCond != null) ? " AND " + dateCond : "";
-		q += orderByRankAndName + " ), ";
-		q += 
-			" alt_names_tmp AS ( "
-			+ " SELECT gid, name, ts_rank_cd(ti, "+ qt + " ) AS rank "
-			+ " FROM alt_name , " + tsVector + " ti "
-			+ " WHERE gid not in (select gid from origin_names) and ti @@ "+ qt
-			+ orderByRankAndName + " ), ";
-		q += 	
-			" alt_names AS( " 
-			+ " SELECT alt.gid, alt.name , alt.rank "
-			+ " FROM alt_names_tmp alt INNER JOIN location loc ON (alt.gid = loc.gid) ";
-		q += (typeCond != null || dateCond != null) ? " WHERE " : "";
-		q += (typeCond != null) ? typeCond : "";
-		if (dateCond != null && typeCond != null)
-			q += " AND " + dateCond;
-		else
-			q += (dateCond != null) ? dateCond : "";
-		q += (typeCond != null || dateCond != null) ? orderByRankAndName : ""; 
-		q += " ) ";
-		q +=
-			" ( SELECT gid, ts_headline('simple', name, "+ qt + " ) headline, rank, name " 
-			+ " FROM origin_names "
-			+ " UNION "
-			+ " SELECT gid, ts_headline('simple', name, "+ qt + " ) headline, rank, name " 
-			+ " FROM alt_names ) "
-			+ " ORDER BY rank DESC ";
-				
-		//@formatter:on
-		//Logger.debug("name=" + name + " q=\n" + q);
-		
-		Query query = em.createNativeQuery(q);
-		if(startDate != null)
-			query = query.setParameter("start", startDate);
-		if(endDate != null)
-			query = query.setParameter("end", endDate);
-		List<?> resultList = query.getResultList();
-		List<BigInteger> result = getGids(resultList);
-		List<Location> locations = LocationProxyRule.getLocations(result);
-		int i = 0;
-		for (Location l : locations){
-			Object[] objects = (Object[])resultList.get(i++);
-			l.setHeadline(objects[1].toString());
-			l.setRank(objects[2].toString());
-			l.getData().setName(objects[3].toString());
-		}
-		
-		return locations;
-	}
-
-	private String locTypeCond(String typeIdsList) {
-		if(typeIdsList != null)
-			return " location_type_id in " + typeIdsList;
-		return null;
-	}
-
-	private String dateCond(Date startDate, Date endDate) {
-		String startCond = " :start BETWEEN start_date AND LEAST( :start, end_date) ";
-		String endCond = " :end BETWEEN start_date AND LEAST( :end ,end_date) ";
-		String startEndCond = " ( "	+ startCond	+ " OR " + endCond + " ) ";
-		if(startDate != null && endDate != null){
-			return startEndCond;
-		} else if(startDate != null){
-			return startCond;
-		} else if(endDate != null){
-			return endCond;
-		}
-		return null;
-	}
-
-	private void sanitize(String value) {
-		String tokenized = SQLSanitizer.tokenize(value);
-		if(SQLSanitizer.isUnsafe(tokenized)){
-			throw new BadRequest("value [ " + value + " ] contains unsafe character(s)!");
-		}
-		
-	}
-
-	private String toList(List<Integer> locTypeIds) {
-		if (locTypeIds == null){
-			return null;
-		}
-		if(locTypeIds.isEmpty())
-			return null;
-		StringJoiner joiner = new StringJoiner(",", "(", ")");
-		for(int i: locTypeIds){
-			joiner.add(Integer.toString(i));
-		}
-		String list = joiner.toString();
-		return list;
 	}
 
 	private List<BigInteger> getGids(List<?> resultList) {
@@ -276,25 +162,6 @@ public class LocationDao {
 		return list;
 	}
 
-	private String toQueryText(String q) {
-		if (q == null)
-			return null;
-		q = q.replaceAll(":*\\*", ":*");
-		q = q.replaceAll(" *\\| *", "|");
-		q = q.replaceAll(" *& *", "&");
-
-		q = q.replaceAll("[',.-]", " ");
-		String[] tokens = q.trim().split(" +");
-		String del = "";
-		String result = "";
-		for (String t : tokens){
-			result += del + t.toLowerCase();
-			del = "&";
-		}
-		
-		return result;
-	}
-	
 	public List<Location> findRoots() {
 		return putIntoHierarchy(findAll());
 	}
@@ -359,6 +226,10 @@ public class LocationDao {
 	}
 
 	public Map<Long, Location> getGid2location() {
+		/*List<Location> all = findAll();
+		Map<Long, Location> result = new HashMap<>();
+		all.forEach(l -> result.put(l.getGid(), l));
+		*/
 		Map<Long, Location> result = new HashMap<>();
 		EntityManager em = JPA.em();
 		Session s = em.unwrap(Session.class);
@@ -373,6 +244,10 @@ public class LocationDao {
 		CodeTypeDao codeTypeDao = new CodeTypeDao();
 		@SuppressWarnings("unchecked")
 		List<Map<String, Object>> l = (List<Map<String, Object>>)q.list();
+		AltNameDao altNameDao = new AltNameDao(em);
+		Map<Long, List<AltName>> otherNames = getGid2OtherInfo(altNameDao);
+		CodeDao codeDao = new CodeDao(em);
+		Map<Long, List<Code>> otherCodes = getGid2OtherInfo(codeDao);
 		for (Map<String, Object> m : l){
 			Long gid = getLong(m, "gid");
 			Long parentGid = getLong(m, "parent_gid");
@@ -401,6 +276,10 @@ public class LocationDao {
 			}
 			loc.setData(data);
 			loc.setChildren(new ArrayList<Location>());
+			if(otherNames.containsKey(gid))
+				loc.setAltNames(otherNames.get(gid));
+			if(otherCodes.containsKey(gid))
+				loc.setOtherCodes(otherCodes.get(gid));
 			result.put(gid, loc);
 		}
 		for(Map.Entry<Long, Long> pair : orphants.entrySet()) {
@@ -419,48 +298,17 @@ public class LocationDao {
 		return result;
 	}
 
-	private Date getDate(Map<String, Object> m, String key) {
-		return (Date)m.get(key);
-	}
-
-	private String getString(Map<String, Object> m, String key) {
-		Object obj = m.get(key);
-		if (obj == null) {
-			return null;
-		}
-		
-		return String.valueOf(obj);
-	}
-
-	private Long getLong(Map<String, Object> m, String key) {
-		Object object = m.get(key);
-		if (object == null) {
-			return null;
-		}
-		
-		if (object instanceof BigInteger) {
-			return ((BigInteger)object).longValue();
-		}
-		//else {
-			return Long.parseLong(object.toString());
-		//}
-	}
-
-	public static List<String> readAllAltNames() {
-		EntityManager em = JPA.em();
-		String q = "SELECT name FROM alt_name";
-		Query query = em.createNativeQuery(q);
-		@SuppressWarnings("unchecked")
-		List<String> result = query.getResultList();
-		return result;
-	}
-
-	public static List<Location> findByType(long typeId){
-		EntityManager em = JPA.em();
-		Query query = em.createQuery("from Location where location_type_id = :typeId");
-		query.setParameter("typeId", typeId);
-		@SuppressWarnings("unchecked")
-		List<Location> result = query.getResultList();
+	private <T extends DeficientInterface> Map<Long, List<T>> getGid2OtherInfo(
+			DataAccessObject<T> daoClass) {
+		List<T> all = daoClass.findAll();
+		Map<Long, List<T>> result = new HashMap<>();
+		Long gid;
+		for(T entity: all){
+			gid = entity.getLocation().getGid();
+			if(!result.containsKey(gid))
+				result.put(gid, new ArrayList<T>());
+			result.get(gid).add(entity);
+		}	
 		return result;
 	}
 }

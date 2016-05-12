@@ -2,12 +2,12 @@ package interactors;
 
 
 import java.math.BigInteger;
-import java.sql.Date;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import models.Request;
 import play.Logger;
 import play.Play;
 
@@ -16,6 +16,7 @@ import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Polygon;
 
 import dao.LocationDao;
+import dao.LocationTypeDao;
 import dao.entities.CodeType;
 import dao.entities.GisSource;
 import dao.entities.Location;
@@ -129,17 +130,11 @@ public class LocationRule {
 		return deletedGid;
 	}
 
-	static List<Location> findByName(String q, Integer limit,
-			Integer offset, boolean altNames) {
-		List<Location> result = new LocationDao().findByName(q, limit, offset, altNames);
+	public static List<Location> findByTerm(Request req) {
+		List<Location> result = new LocationDao().findByTerm(req);
 		return result;
 	}
-	
-	static List<Location> find(String name, List<Integer> locTypeIds, Date startDate, Date endDate) {
-		List<Location> result = new LocationDao().find(name, locTypeIds, startDate, endDate);
-		return result;
-	}
-	
+		
 	static public List<Location> findByPoint(double latitude, double longitude) {
 		List<BigInteger> result = GeometryRule.findByPoint(latitude, longitude);
 		List<Location> locations = LocationProxyRule.getLocations(result);
@@ -149,7 +144,7 @@ public class LocationRule {
 	public static List<Object> findByTypeId(long typeId){
 		Map<String, Object> element;
 		List<Object> result = new ArrayList<>();
-		List<Location> locations = LocationDao.findByType(typeId);
+		List<Location> locations = LocationTypeDao.findByType(typeId);
 		for(Location l : locations){
 			element = new HashMap<>();
 			element.put("gid", l.getGid());

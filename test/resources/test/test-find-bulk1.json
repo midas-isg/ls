@@ -1,0 +1,19 @@
+[
+{"queryTerm":"ñámé wíth áccéñt", 
+"locationTypeIds":[1,16],
+"startDate":"2010",
+"endDate":"2016-01-01",
+"searchNames":false,
+"searchOtherNames":true,
+"searchCodes":true,
+"ignoreAccent":false,
+"limit":10,
+"offset":0},
+
+{"queryTerm":"code1", 
+"searchNames":false,
+"searchOtherNames":false,
+"searchCodes":true},
+
+{"queryTerm": "location test 1"}
+]

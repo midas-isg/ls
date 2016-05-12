@@ -1,14 +1,26 @@
 package dao;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
 import play.db.jpa.JPA;
+import dao.entities.Location;
 import dao.entities.LocationType;
 
 public class LocationTypeDao {
+	
+	public static List<Location> findByType(long typeId){
+		EntityManager em = JPA.em();
+		Query query = em.createQuery("from Location where location_type_id = :typeId");
+		query.setParameter("typeId", typeId);
+		@SuppressWarnings("unchecked")
+		List<Location> result = query.getResultList();
+		return result;
+	}
+	
 	public LocationType read(long id){
 		EntityManager em = JPA.em();
 		LocationType result = em.find(LocationType.class, id);
@@ -32,5 +44,23 @@ public class LocationTypeDao {
 		@SuppressWarnings("unchecked")
 		List<LocationType> result = (List<LocationType>)query.getResultList();
 		return result;
+	}
+	
+	public List<String> getLocationTypeNames(
+			List<Integer> locationTypeIds) {
+		if (locationTypeIds == null)
+			return null;
+		List<String> locationTypeNames = new ArrayList<>();
+		LocationType locationType;
+		for (Integer id : locationTypeIds) {
+			locationType = read(id);
+			if(locationType != null)
+				locationTypeNames.add(locationType.getName());
+		}
+		return locationTypeNames;
+	}
+	
+	public String getLocationTypeName(LocationType locationType) {
+		return (locationType == null) ? null : locationType.getName();
 	}
 }
