@@ -1,1 +1,3 @@
-/application_overrides.conf
+application_overrides.conf
+*.iml
+.idea/*
