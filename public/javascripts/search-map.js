@@ -92,12 +92,11 @@ $(document).ready(function() {
 				var geoJSON = e.layer.toGeoJSON();
 				
 				if(geoJSON.geometry.type === "Point") {
-					searchPoint(e.layer._latlng.lat, e.layer._latlng.lng);
+					SEARCH_RESULTS.searchPoint(e.layer._latlng.lat, e.layer._latlng.lng);
 				}
 				else {
 					geoJSON = { features:[geoJSON], type: "FeatureCollection" };
-					
-					searchByGeoJSON(geoJSON);
+					SEARCH_RESULTS.searchByGeoJSON(geoJSON);
 				}
 				
 				console.log(e);
