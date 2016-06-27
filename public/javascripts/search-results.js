@@ -5,7 +5,7 @@ search-results.js
 var SEARCH_RESULTS = new searchResults();
 
 function searchResults() {
-	this.searchURL = context + "/api/locations",
+	this.searchURL = context + "/api/locations/find-by-term",
 	this.pointURL = context + "/api/locations-by-coordinate",
 	this.browserURL = context + "/browser",
 	this.typeList = {},
@@ -50,7 +50,6 @@ searchResults.prototype.searchByGeoJSON = function(geoJSON) {
 			console.log(status);
 			console.log(response);
 
-			data = {geoJSON: data, properties: {resultSize: data.features.length}};
 			thisSearch.processResults(data);
 
 			return;
@@ -87,7 +86,7 @@ searchResults.prototype.searchPoint = function(latitude, longitude) {
 		url: url,
 		type: 'GET',
 		success: function(data, status) {
-			thisSearch.processResults(data);
+			thisSearch.processResults(data.geoJSON);
 
 			return;
 		},
@@ -148,42 +147,6 @@ searchResults.prototype.updateOutput = function(locationList, totalCount) {
 			}
 		}
 
-		function getScore(inputFeature, target, points) {
-			var scoredPoints = 0,
-				inputName = inputFeature.properties.name.toLowerCase(),
-				searchIndex = inputName.search(target),
-				lineage = inputFeature.properties.lineage,
-				j;
-
-			if(searchIndex >= 0) {
-				scoredPoints += points;
-
-				if(inputName === target) {
-					scoredPoints += (points >> 1);
-				}
-				else if(searchIndex === 0) {
-					scoredPoints += (points >> 2);
-				}
-			}
-			else {
-				for(j = 0; j < lineage.length; j++) {
-					searchIndex = lineage[j].name.toLowerCase().search(target);
-					if(searchIndex >= 0) {
-						scoredPoints += (points >> 1);
-
-						if(inputName === target) {
-							scoredPoints += (points >> 1);
-						}
-						else if(searchIndex === 0) {
-							scoredPoints += (points >> 2);
-						}
-					}
-				}
-			}
-
-			return scoredPoints;
-		}
-
 		$("#location-types").change(function() {
 			var type;
 			features = [];
@@ -219,8 +182,8 @@ searchResults.prototype.updateOutput = function(locationList, totalCount) {
 					points = ((SEARCH_RESULTS.inputComponent.length - i) << 2);
 					target = SEARCH_RESULTS.inputComponent[i].toLowerCase();
 
-					currentScore += getScore(currentFeature, target, points);
-					oldScore += getScore(oldFeature, target, points);
+					currentScore += SEARCH_RANK.getScore(currentFeature, target, points);
+					oldScore += SEARCH_RANK.getScore(oldFeature, target, points);
 				}
 
 				/*
@@ -267,13 +230,9 @@ searchResults.prototype.updateTable = function(features) {
 			to = " to " + properties.endDate;
 		}
 
-		aliasesString = "";
+		aliasesString = "Aliases: " + properties.name;
 		for(j = 0; j < properties.otherNames.length; j++) {
-			aliasesString += properties.otherNames[j].name;
-
-			if(j < (properties.otherNames.length - 1)) {
-				aliasesString += ", ";
-			}
+			aliasesString += ", " + properties.otherNames[j].name;
 		}
 
 		appendString = "<tr><td class='location-col'><a href='"+ url +"' title='" + aliasesString + "'>"+ properties.headline  + "</a> from " + properties.startDate + to + "</td>";
@@ -297,7 +256,7 @@ searchResults.prototype.updateTable = function(features) {
 
 searchResults.prototype.processResults = function(data) {
 	var properties,
-		features = data.geoJSON.features,
+		features = data.features,
 		i;
 
 	for(i = 0, length = features.length; i < length; i++) {
@@ -329,11 +288,21 @@ searchResults.prototype.runQuery = function() {
 		SEARCH_MAP.featureLayer.clearLayers();
 
 		function getQueryResults(input) {
-			var url = SEARCH_RESULTS.searchURL + "?limit=0&q=" + encodeURIComponent(input);
+			var url = SEARCH_RESULTS.searchURL,
+				data = {
+					"queryTerm": encodeURIComponent(input),
+					"searchNames":true,
+					"searchOtherNames":true,
+					"searchCodes":true,
+					"ignoreAccent":true,
+					"limit":0
+				};
 
 			$.ajax({
 				url: url,
-				type: 'GET',
+				type: 'POST',
+				contentType: 'application/json',
+				data: JSON.stringify(data),
 				success: function(data, status) {
 					SEARCH_RESULTS.processResults(data);
 
