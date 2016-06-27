@@ -1,9 +1,9 @@
 var SEARCH_RANK = (function() {
-	function searchRank() {
+	function SearchRank() {
 		return;
 	}
 
-	searchRank.prototype.getScore = function(inputFeature, target, points) {
+	SearchRank.prototype.getScore = function(inputFeature, target, points) {
 			var scoredPoints = 0,
 				inputName = inputFeature.properties.name.toLowerCase(),
 				searchIndex = inputName.search(target),
@@ -39,5 +39,5 @@ var SEARCH_RANK = (function() {
 			return scoredPoints;
 		}
 
-	return new searchRank();
+	return new SearchRank();
 })();
