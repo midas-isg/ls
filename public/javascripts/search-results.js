@@ -5,9 +5,9 @@ search-results.js
 var SEARCH_RESULTS =
 (function(){
 	function SearchResults() {
-		this.searchURL = context + "/api/locations/find-by-term",
-		this.pointURL = context + "/api/locations-by-coordinate",
-		this.browserURL = context + "/browser",
+		this.searchURL = CONTEXT + "/api/locations/find-by-term",
+		this.pointURL = CONTEXT + "/api/locations-by-coordinate",
+		this.browserURL = CONTEXT + "/browser",
 		this.typeList = {},
 		this.totalCount = 0;
 
@@ -17,7 +17,7 @@ var SEARCH_RESULTS =
 	SearchResults.prototype.searchByGeoJSON = function(geoJSON) {
 		//POST /api/locations-by-geometry
 		var httpType = "POST",
-			URL = context + "/api/locations-by-geometry?superTypeId=3",
+			URL = CONTEXT + "/api/locations-by-geometry?superTypeId=3",
 			data = geoJSON,
 			result = $("#result"),
 			thisSearch = this;

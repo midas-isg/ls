@@ -1,0 +1,30 @@
+@(title: String)
+
+@import play.api.Play.current
+@import play.api.Play
+
+@imports = {
+	<!--
+	<script src='@routes.Assets.at("external_packages/fancytree/jquery.fancytree.js")'></script>
+	<link href='@routes.Assets.at("stylesheets/fancytree-ext.css")' rel='stylesheet'>
+	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'>
+	
+	@script_asset("javascripts/map-driver.js")
+	@script_asset("javascripts/search-map.js")
+	-->
+	@script_asset("javascripts/common.js")
+	@script_asset("javascripts/search-results.js")
+	@script_asset("javascripts/search-rank.js")
+	
+	<script>
+		QUnit.test("@title", function(assert) {
+			assert.equal(true, true);
+			
+			return;
+		});
+	</script>
+}
+
+@qunit_test(title, imports){
+	
+}
