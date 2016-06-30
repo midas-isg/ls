@@ -33,9 +33,11 @@ public class LocationProxyRule {
 	
 	public static void updateCache(){
 		notifyChange();
-		gid2location = getGid2location();
-		roots = getHierarchy();
+		//gid2location = getGid2location();
 		uniqueSortedLocationNames = getUniqueSortedLocationNames();
+		Logger.info("uniqueSortedLocationNames updated");
+		roots = getHierarchy();
+		Logger.info("roots updated");
 	}
 	
 	public static void notifyChange(){

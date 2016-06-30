@@ -1,6 +1,7 @@
 package gateways.configuration;
 
 import java.lang.reflect.Method;
+import java.util.concurrent.TimeUnit;
 
 import models.exceptions.BadRequest;
 import models.exceptions.PostgreSQLException;
@@ -8,6 +9,9 @@ import play.Application;
 import play.GlobalSettings;
 import play.Logger;
 import play.Play;
+import play.db.jpa.JPA;
+import play.db.jpa.Transactional;
+import play.libs.Akka;
 import play.libs.F;
 import play.libs.F.Promise;
 import play.libs.Json;
@@ -15,10 +19,15 @@ import play.mvc.Action;
 import play.mvc.Http.Context;
 import play.mvc.Http.Request;
 import play.mvc.Result;
+import scala.concurrent.duration.Duration;
+import akka.util.*;
+import interactors.LocationProxyRule;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.JsonNode;
+
+import akka.actor.ActorSystem;
 
 public class Global extends GlobalSettings {
 	private static final String appName = "ls";
@@ -26,6 +35,20 @@ public class Global extends GlobalSettings {
 	@Override
 	public void onStart(Application app) {
 		Logger.info(appName + " has started");
+		
+		Akka.system().scheduler().scheduleOnce(
+			    Duration.create(0, TimeUnit.MILLISECONDS),
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        Logger.info("ON START ---    " + System.currentTimeMillis());
+                        JPA.withTransaction(() -> {
+                        	LocationProxyRule.updateCache();
+                        });
+                    }
+                },
+                Akka.system().dispatcher()
+        );
 	}
 
 	@Override

@@ -225,11 +225,11 @@ public class LocationDao {
 		return result;
 	}
 
-	public Map<Long, Location> getGid2location() {
-		/*List<Location> all = findAll();
-		Map<Long, Location> result = new HashMap<>();
-		all.forEach(l -> result.put(l.getGid(), l));
-		*/
+/*	public Map<Long, Location> getGid2location() {
+//		List<Location> all = findAll();
+//		Map<Long, Location> result = new HashMap<>();
+//		all.forEach(l -> result.put(l.getGid(), l));
+		
 		Map<Long, Location> result = new HashMap<>();
 		EntityManager em = JPA.em();
 		Session s = em.unwrap(Session.class);
@@ -297,7 +297,7 @@ public class LocationDao {
 		
 		return result;
 	}
-
+*/
 	private <T extends DeficientInterface> Map<Long, List<T>> getGid2OtherInfo(
 			DataAccessObject<T> daoClass) {
 		List<T> all = daoClass.findAll();
