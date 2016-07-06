@@ -12,6 +12,7 @@
 	@script_asset("javascripts/map-driver.js")
 	@script_asset("javascripts/search-map.js")
 	-->
+	
 	@script_asset("javascripts/common.js")
 	@script_asset("javascripts/search-results.js")
 	@script_asset("javascripts/search-rank.js")
@@ -19,6 +20,11 @@
 	<script>
 		QUnit.test("@title", function(assert) {
 			assert.equal(true, true);
+			SEARCH_RESULTS.runQuery("waikiki");
+			
+			
+			
+			//SEARCH_RESULTS.runQuery("pittsburgh pa");
 			
 			return;
 		});

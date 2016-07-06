@@ -37,7 +37,7 @@ var SEARCH_RESULTS =
 				console.log(status);
 				console.log(response);
 
-				thisSearch.processResults(data);
+				thisSearch.processTypes(data);
 
 				return;
 			},
@@ -73,7 +73,7 @@ var SEARCH_RESULTS =
 			url: url,
 			type: 'GET',
 			success: function(data, status) {
-				thisSearch.processResults(data.geoJSON);
+				thisSearch.processTypes(data.geoJSON);
 
 				return;
 			},
@@ -99,9 +99,13 @@ var SEARCH_RESULTS =
 
 	SearchResults.prototype.updateOutput = function(locationList, totalCount) {
 		var i,
+			feature,
+			featureType,
 			appendString = "",
 			result = $("#result"),
-			features;
+			features = [],
+			points,
+			target;
 
 		if(totalCount > 0) {
 			if(!document.getElementById("results-tbody")) {
@@ -118,18 +122,36 @@ var SEARCH_RESULTS =
 				result.append(appendString);
 			}
 
-			for(i in locationList) {
-				if(locationList.hasOwnProperty(i)) {
-					$("#location-types").append("<option>" + i + "</option>");
+			for(featureType in locationList) {
+				if(locationList.hasOwnProperty(featureType)) {
+					$("#location-types").append("<option>" + featureType + "</option>");
+					
+					for(feature in locationList[featureType]) {
+						if(locationList[featureType].hasOwnProperty(feature)) {
+							locationList[featureType][feature].relevance = 0;
+							
+							for(i = 0; i < SEARCH_RESULTS.inputComponent.length; i++) {
+								points = ((SEARCH_RESULTS.inputComponent.length - i) << 2);
+								target = SEARCH_RESULTS.inputComponent[i].toLowerCase();
+								
+								locationList[featureType][feature].relevance += SEARCH_RANK.getScore(locationList[featureType][feature], target, points);
+							}
+							
+							/**/
+							console.log(locationList[featureType][feature]);
+							console.log(locationList[featureType][feature].properties.name + ": " + locationList[featureType][feature].relevance);
+							/**/
+						}
+					}
 				}
 			}
-
-			function getFeatures(locationList) {
+			
+			function getFeatures(featureList) {
 				var feature;
 
-				for(feature in locationList) {
-					if(locationList.hasOwnProperty(feature)) {
-						features.push(locationList[feature]);
+				for(feature in featureList) {
+					if(featureList.hasOwnProperty(feature)) {
+						features.push(featureList[feature]);
 					}
 				}
 			}
@@ -150,13 +172,10 @@ var SEARCH_RESULTS =
 				}
 
 				features.sort(function determineRelevance(currentFeature, oldFeature) {
-					var currentScore = 0,
-						oldScore = 0,
-						points,
-						target,
+					var currentScore = currentFeature.relevance,
+						oldScore = oldFeature.relevance,
 						currentName = currentFeature.properties.name.toLowerCase(),
-						oldName = oldFeature.properties.name.toLowerCase(),
-						i;
+						oldName = oldFeature.properties.name.toLowerCase();
 
 					if(currentName < oldName) {
 						currentScore++;
@@ -164,22 +183,7 @@ var SEARCH_RESULTS =
 					else {
 						oldScore++;
 					}
-
-					for(i = 0; i < SEARCH_RESULTS.inputComponent.length; i++) {
-						points = ((SEARCH_RESULTS.inputComponent.length - i) << 2);
-						target = SEARCH_RESULTS.inputComponent[i].toLowerCase();
-
-						currentScore += SEARCH_RANK.getScore(currentFeature, target, points);
-						oldScore += SEARCH_RANK.getScore(oldFeature, target, points);
-					}
-
-					/*
-					 console.log(currentFeature);
-					 console.log(currentName + ": " + currentScore);
-					 console.log(oldName + ": " + oldScore);
-					 console.log("===");
-					 */
-
+					
 					return oldScore - currentScore;
 				});
 
@@ -241,7 +245,7 @@ var SEARCH_RESULTS =
 		return;
 	}
 
-	SearchResults.prototype.processResults = function(data) {
+	SearchResults.prototype.processTypes = function(data) {
 		var properties,
 			features = data.features,
 			i;
@@ -262,9 +266,9 @@ var SEARCH_RESULTS =
 		return;
 	}
 
-	SearchResults.prototype.runQuery = function() {
+	SearchResults.prototype.runQuery = function(queryInput) {
 		var thisQuery = this;
-		this.originalInput = $("#input").val(),
+		this.originalInput = queryInput,
 		this.inputComponent = this.originalInput.replace(',', '').split(' ');
 
 		function searchQuery() {
@@ -291,7 +295,7 @@ var SEARCH_RESULTS =
 					contentType: 'application/json',
 					data: JSON.stringify(data),
 					success: function(data, status) {
-						SEARCH_RESULTS.processResults(data);
+						SEARCH_RESULTS.processTypes(data);
 
 						return;
 					},
@@ -340,7 +344,7 @@ $(document).ready(function() {
 
 	if(query) {
 		$("#input").val(query);
-		SEARCH_RESULTS.runQuery();
+		SEARCH_RESULTS.runQuery(query);
 	}
 
 	return;
