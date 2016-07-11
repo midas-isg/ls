@@ -126,6 +126,7 @@ var SEARCH_RESULTS =
 				if(locationList.hasOwnProperty(featureType)) {
 					$("#location-types").append("<option>" + featureType + "</option>");
 					
+					/*
 					for(feature in locationList[featureType]) {
 						if(locationList[featureType].hasOwnProperty(feature)) {
 							locationList[featureType][feature].relevance = 0;
@@ -137,12 +138,11 @@ var SEARCH_RESULTS =
 								locationList[featureType][feature].relevance += SEARCH_RANK.getScore(locationList[featureType][feature], target, points);
 							}
 							
-							/**/
-							console.log(locationList[featureType][feature]);
-							console.log(locationList[featureType][feature].properties.name + ": " + locationList[featureType][feature].relevance);
-							/**/
+							//console.log(locationList[featureType][feature]);
+							//console.log(locationList[featureType][feature].properties.name + ": " + locationList[featureType][feature].relevance);
 						}
 					}
+					*/
 				}
 			}
 			
@@ -172,17 +172,19 @@ var SEARCH_RESULTS =
 				}
 
 				features.sort(function determineRelevance(currentFeature, oldFeature) {
-					var currentScore = currentFeature.relevance,
-						oldScore = oldFeature.relevance,
+					var currentScore = parseFloat(currentFeature.properties.rank),
+						oldScore = parseFloat(oldFeature.properties.rank),
 						currentName = currentFeature.properties.name.toLowerCase(),
 						oldName = oldFeature.properties.name.toLowerCase();
 
+					/*
 					if(currentName < oldName) {
 						currentScore++;
 					}
 					else {
 						oldScore++;
 					}
+					*/
 					
 					return oldScore - currentScore;
 				});

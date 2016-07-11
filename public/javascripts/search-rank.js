@@ -1,9 +1,13 @@
+/*
+Front-end based search ranking
+*/
+
 var SEARCH_RANK = (function() {
 	function SearchRank() {
 		return;
 	}
 
-	SearchRank.prototype.getScore = function(inputFeature, inputTarget, points) {
+	SearchRank.prototype.getScore = function(inputFeature, inputTarget, basePoints) {
 			var scoredPoints = 0,
 				target = inputTarget.toLowerCase(),
 				inputName = inputFeature.properties.name.toLowerCase(),
@@ -14,13 +18,13 @@ var SEARCH_RANK = (function() {
 				j;
 
 			if(searchIndex >= 0) {
-				scoredPoints += points;
+				scoredPoints += basePoints;
 
 				if(inputName === target) {
-					scoredPoints += (points >> 1);
+					scoredPoints += (basePoints >> 1);
 				}
 				else if(searchIndex === 0) {
-					scoredPoints += (points >> 2);
+					scoredPoints += (basePoints >> 2);
 				}
 			}
 			else {
@@ -30,10 +34,10 @@ var SEARCH_RANK = (function() {
 					
 					if(searchIndex >= 0) {
 						if(aliasName === target) {
-							scoredPoints += (points >> 1);
+							scoredPoints += (basePoints >> 1);
 						}
 						else if(searchIndex === 0) {
-							scoredPoints += (points >> 2);
+							scoredPoints += (basePoints >> 2);
 						}
 					}
 				}
@@ -42,13 +46,13 @@ var SEARCH_RANK = (function() {
 				for(j = 0; j < lineage.length; j++) {
 					searchIndex = lineage[j].name.toLowerCase().search(target);
 					if(searchIndex >= 0) {
-						scoredPoints += (points >> 1);
+						scoredPoints += (basePoints >> 1);
 
 						if(inputName === target) {
-							scoredPoints += (points >> 1);
+							scoredPoints += (basePoints >> 1);
 						}
 						else if(searchIndex === 0) {
-							scoredPoints += (points >> 2);
+							scoredPoints += (basePoints >> 2);
 						}
 					}
 				}
