@@ -26,7 +26,6 @@ import play.mvc.Result;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.sun.javafx.collections.ListListenerHelper;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiImplicitParam;
 import com.wordnik.swagger.annotations.ApiImplicitParams;
@@ -646,7 +645,7 @@ public class LocationServices extends Controller {
 			FeatureGeometry geometry = GeoJsonRule.asFetureGeometry(fc);
 			String geo = Json.toJson(geometry).toString();
 			List<BigInteger> gids = GeometryRule.findGidsByGeometry(geo, superTypeId, typeId);
-			List<Location> locations = LocationProxyRule.getLocations(gids);
+			List<Location> locations = LocationRule.getLocations(gids);//LocationProxyRule.getLocations(gids);
 			return ok(Json.toJson(GeoJsonRule.toFeatureCollection(locations, GeoJsonRule.DEFAULT_KEYS)));
 		}
 	}

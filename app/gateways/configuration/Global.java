@@ -41,7 +41,7 @@ public class Global extends GlobalSettings {
                 new Runnable() {
                     @Override
                     public void run() {
-                        Logger.info("ON START ---    " + System.currentTimeMillis());
+                        Logger.info("updating cache ...");
                         JPA.withTransaction(() -> {
                         	LocationProxyRule.updateCache();
                         });
