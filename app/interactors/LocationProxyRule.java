@@ -31,7 +31,7 @@ public class LocationProxyRule {
 		Logger.info("roots updated in " + (end-start)*1e-6 + " milliseconds");
 		
 		start = System.nanoTime();
-		//auTree = getAuTree();
+		auTree = getAuTree();
 		end = System.nanoTime();
 		Logger.info("auTree updated in " + (end-start)*1e-6 + " milliseconds");
 		
