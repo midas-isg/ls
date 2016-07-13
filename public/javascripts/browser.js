@@ -3,26 +3,6 @@ var crudPath = context + "/api/locations";
 var apolloJSONDataPath = context + "/api/locations/";
 var BROWSER_MAP = null;
 
-$(document).ready(function() {
-	BROWSER_MAP = new BrowserMap();
-	
-	$("#input").keyup(function(event) {
-		switch(event.which)
-		{
-			case 13:
-				$("#search-button").click();
-			break;
-			
-			default:
-			break;
-		}
-		
-		return;
-	});
-	
-	return;
-});
-
 function BrowserMap() {
 	var thisBrowserMap = this;
 	var id = getURLParameterByName("id");
@@ -387,3 +367,23 @@ BrowserMap.prototype.getKMLData = function() {
 	
 	return;
 }
+
+$(document).ready(function() {
+	BROWSER_MAP = new BrowserMap();
+
+	$("#input").keyup(function(event) {
+		switch(event.which)
+		{
+			case 13:
+				$("#search-button").click();
+				break;
+
+			default:
+				break;
+		}
+
+		return;
+	});
+
+	return;
+});
