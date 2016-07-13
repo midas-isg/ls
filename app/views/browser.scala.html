@@ -1,7 +1,7 @@
 @(message: String, version:String)
 
 @imports = {
-	<script src='@routes.Assets.at("javascripts/browser.js")'></script>
+	<script src='@routes.Assets.at("javascripts/browser.js")' defer></script>
 	
 	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'>
 }
@@ -36,7 +36,7 @@
 					<strong style="color: red;">*Historical data overlayed on current world map*</strong>
 				</div>
 				
-				<div class='map'>
+				<div class='map' style="position: relative;">
 					<div id='map-data' class='map' style="position: absolute;">Loading...</div>
 					<img id='loader' class='map' src='@routes.Assets.at("images/loading.gif")' style="opacity: 0.7;"></img>
 				</div>
@@ -70,7 +70,7 @@
 			
 			<div class="data-container extra-bottom-space">
 				<em class="pull-left">View location in alternative data format:</em>
-				<div class="pull-left pre-spaced">[<a id="au-geojson">GeoJSON</a>], [<a id="au-kml">KML</a>], [<a id="au-apollojson">ApolloJSON</a>]</div>
+				<div class="pull-left pre-spaced">[<a id="au-geojson">GeoJSON</a>], [<a id="au-kml">KML</a>] <!--, [<a id="au-apollojson">ApolloJSON</a>]--></div>
 			</div>
 		</div>
 		

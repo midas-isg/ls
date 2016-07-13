@@ -20,7 +20,7 @@ em {
 }
 
 .map {
-	width: 600px;
+	width: 100%; //600px;
 	height: 450px;
 }
 
