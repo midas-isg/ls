@@ -4,10 +4,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
-@JsonInclude(Include.NON_NULL)
+//@JsonInclude(Include.NON_NULL)
 public class Feature {
 	private String type;
 	private FeatureGeometry geometry;

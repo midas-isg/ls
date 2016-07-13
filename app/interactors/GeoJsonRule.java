@@ -135,8 +135,9 @@ public class GeoJsonRule {
 				feature.setBbox(computeBbox(location));
 			if (includeField(fields, KEY_REPPOINT))
 				feature.setRepPoint(getRepPoint(geometry));
-			feature.setId(location.getGid() + "");
 		}
+		
+		feature.setId(location.getGid() + "");
 
 		return feature;
 	}
