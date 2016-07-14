@@ -142,9 +142,8 @@ public class GeoJsonRule {
 		return feature;
 	}
 
-	private static FeatureCollection toGeoJSON(Request req,
-			List<Location> result) {
-		List<String> fields = Arrays.asList(new String[] { KEY_PROPERTIES });
+	private static FeatureCollection toFeatureCollection(Request req,
+			List<Location> result, List<String> fields) {
 		FeatureCollection geoJSON = toFeatureCollection(result, fields);
 		Map<String, Object> properties = new HashMap<>();
 		LocationTypeDao locationTypeDao = new LocationTypeDao();
@@ -260,25 +259,12 @@ public class GeoJsonRule {
 		return GeoOutputRule.toFeatureGeometry(geometry);
 	}
 
-	public static Response filterByTerm(String queryTerm, Integer limit,
+	public static /*Response*/ FeatureCollection filterByTerm(String queryTerm, Integer limit,
 			Integer offset, Boolean searchOtherNames) {
 		Request req = toFindByNameRequest(queryTerm, searchOtherNames, limit,
 				offset);
 		List<Location> result = LocationRule.findByTerm(req);
-		Response response = new Response();
-		response.setGeoJSON(toFeatureCollection(result, DEFAULT_KEYS));
-		Map<String, Object> properties = new HashMap<>();
-		response.setProperties(properties);
-		properties.put("queryTerm", queryTerm);
-		putAsStringIfNotNull(properties, "limit", limit);
-		putAsStringIfNotNull(properties, "offset", offset);
-		putAsStringIfNotNull(properties, "searchOtherNames", searchOtherNames);
-		putAsStringIfNotNull(properties, "resultSize", "" + result.size());
-		String descritpion = "Result from the query for '" + queryTerm
-				+ "' limit=" + limit + " offset=" + offset
-				+ " searchOtherNames=" + searchOtherNames;
-		properties.put("locationDescription", descritpion);
-		return response;
+		return toFeatureCollection(req, result, DEFAULT_KEYS);
 	}
 
 	public static List<Object> findByTerm(ArrayNode queryArray) {
@@ -294,7 +280,8 @@ public class GeoJsonRule {
 
 	public static FeatureCollection findByTerm(Request req) {
 		List<Location> result = LocationRule.findByTerm(req);
-		return toGeoJSON(req, result);
+		List<String> fields = Arrays.asList(new String[] { KEY_PROPERTIES });
+		return toFeatureCollection(req, result, fields);
 	}
 
 	public static Response findByPoint(double latitude, double longitude) {
