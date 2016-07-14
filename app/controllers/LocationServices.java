@@ -22,7 +22,6 @@ import interactors.GeometryRule;
 import interactors.KmlRule;
 import interactors.LocationProxyRule;
 import interactors.LocationRule;
-import models.Response;
 import models.exceptions.PostgreSQLException;
 import models.geo.FeatureCollection;
 import models.geo.FeatureGeometry;
@@ -305,12 +304,12 @@ public class LocationServices extends Controller {
 			value = "Returns unique location-names", 
 			notes = "This endpoint returns uniqure location-names which match the requested search terms (queryTerm). "
 			+ "Use 'limit' to set the maximum number to return (default is 10). ",
-			response = String.class,
+			response = List.class,
 			produces = "application/json",
 			responseContainer = "set"
 	)
 	@ApiResponses(value = {
-			@ApiResponse(code = OK, message = "Successfully returned", response = Response.class),
+			@ApiResponse(code = OK, message = "Successfully returned", response = List.class),
 			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
 	})
 	public Result listUniqueNames(
@@ -348,11 +347,11 @@ public class LocationServices extends Controller {
 			value = "Returns locations by coordinate search", 
 			notes = "This endpoint returns locations whose geometry encompasses the submitting coordinate. "
 			+ "The coordinate is defined by latitude (lat) and longtitude (long). "
-			+ "Note: The schema of the 'geoJSON' field in the response is GeoJSON FeatureCollection. ", 
-			response = Response.class
+			+ "Note: response schema is FeatureCollection ", 
+			response = FeatureCollection.class
 	)
 	@ApiResponses(value = {
-			@ApiResponse(code = OK, message = "Successfully returned", response = Response.class),
+			@ApiResponse(code = OK, message = "Successfully returned", response = FeatureCollection.class),
 			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
 	})
 	public Result findByPoint(
@@ -523,10 +522,10 @@ public class LocationServices extends Controller {
 			nickname = "findLocationByFeatureCollection", 
 			value = "Returns locations by featureCollection", 
 			notes = "This endpoint returns locations which intersect the submitted Geometry in body. ",
-			response = Response.class
+			response = FeatureCollection.class
 	)
 	@ApiResponses(value = { 
-			@ApiResponse(code = OK, message = "Successfully returned", response = Response.class),
+			@ApiResponse(code = OK, message = "Successfully returned", response = FeatureCollection.class),
 			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error")
 	})
     @ApiImplicitParams( { 

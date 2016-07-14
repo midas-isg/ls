@@ -28,14 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import models.Request;
-import models.Response;
-import models.exceptions.BadRequest;
-import models.geo.Feature;
-import models.geo.FeatureCollection;
-import models.geo.FeatureGeometry;
-import play.Logger;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.vividsolutions.jts.geom.Geometry;
@@ -47,6 +39,12 @@ import dao.entities.Data;
 import dao.entities.Location;
 import dao.entities.LocationGeometry;
 import dao.entities.LocationType;
+import models.Request;
+import models.exceptions.BadRequest;
+import models.geo.Feature;
+import models.geo.FeatureCollection;
+import models.geo.FeatureGeometry;
+import play.Logger;
 
 public class GeoJsonRule {
 	private static final String KEY_PROPERTIES = "properties";
@@ -284,19 +282,11 @@ public class GeoJsonRule {
 		return toFeatureCollection(req, result, fields);
 	}
 
-	public static Response findByPoint(double latitude, double longitude) {
+	public static FeatureCollection findByPoint(double latitude, double longitude) {
 		List<Location> result = LocationRule.findByPoint(latitude, longitude);
-		Response response = new Response();
-		response.setGeoJSON(toFeatureCollection(result, DEFAULT_KEYS));
-		Map<String, Object> properties = new HashMap<>();
-		response.setProperties(properties);
-		putAsStringIfNotNull(properties, "latitude", latitude);
-		putAsStringIfNotNull(properties, "longitude", longitude);
-		putAsStringIfNotNull(properties, "resultSize", "" + result.size());
-		properties.put("locationTypeName", "Result from a query");
-		String descritpion = "Result from the query for latitude=" + latitude
-				+ " longitude=" + longitude;
-		properties.put("locationDescription", descritpion);
+		FeatureCollection response = toFeatureCollection(new Request(), result, DEFAULT_KEYS);
+		putAsStringIfNotNull(response.getProperties(), "latitude", latitude);
+		putAsStringIfNotNull(response.getProperties(), "longitude", longitude);
 		return response;
 	}
 
