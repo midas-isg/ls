@@ -28,22 +28,22 @@ public class Application extends Controller {
    	
 	@Transactional
 	public Result index() {
-		return ok(views.html.search.render("apollo location search", info()));
+		return ok(views.html.search.render("location search", info()));
 	}
 
 	@Transactional
 	public Result concept() {
-		return ok(views.html.concept.render("apollo location services", info()));
+		return ok(views.html.concept.render("location services", info()));
 	}
 	
 	@Transactional
 	public Result browser() {
-		return ok(views.html.browser.render("apollo location browser", info()));
+		return ok(views.html.browser.render("location browser", info()));
 	}
 	
 	@Transactional
 	public Result create() {
-		return ok(views.html.create.render("apollo location creator", info()));
+		return ok(views.html.create.render("location creator", info()));
 	}
 
 	public Result swagger() {
