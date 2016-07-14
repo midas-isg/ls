@@ -139,7 +139,7 @@ public class LocationProxyRule {
 		
 		String prefixName = prefixNames.trim().toLowerCase();
 		
-		String delim = " \\+";
+		String delim = " +";
 		while (!names.isEmpty()){
 			List<String> remainingNames = new ArrayList<>();
 			for (String originalName : names){
