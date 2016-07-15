@@ -43,25 +43,42 @@
 	</head>
 	
 	<body>
-		<nav class="navbar navbar-inverse" style="margin-bottom: 10px;">
-			<div class="container-fluid navbar-inner">
-				<div class="navbar-header">
-					<span class="navbar-brand">
-						<a href="@routes.Application.index" style="color:#00ffff;">apollo location services</a> @title
-					</span>
+		<div class="header">
+			<nav class="navbar navbar-inverse" style="margin-bottom: 10px;">
+				<div class="container-fluid">
+					<div class="navbar-header">
+						<span class="navbar-brand">
+							<a href="@routes.Application.index" style="color:#00ffff;">apollo location services</a> @title
+						</span>
+
+						<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navigator">
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>
+						</button>
+					</div>
+
+					<ul class="nav navbar-nav" style="padding: 15px;">
+						<li style="width: 100%;">
+							@searchbar()
+						</li>
+					</ul>
+
+					<div id="navigator" class="collapse navbar-collapse">
+						<ul class="nav navbar-nav navbar-right">
+							<li><a href="/ls">Search</a></li>
+							<li><a href="/ls/create">Create</a></li>
+						</ul>
+					</div>
 				</div>
-			</div>
-			
-			<div class="container">
-			@searchbar()
-			</div>
-		</nav>
+			</nav>
+		</div>
 		
 		<div id="main-container" class="container-fluid">
 			@content
 		</div>
 		
-		<footer id="footer" style="clear: both; margin-left: auto; margin-right: auto; text-align: center;">
+		<footer id="footer" class="container-fluid" style="clear: both; margin-left: auto; margin-right: auto; text-align: center;">
 			@version
 			
 			<div style="margin-left: auto; margin-right: auto;">
