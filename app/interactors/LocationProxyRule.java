@@ -127,47 +127,55 @@ public class LocationProxyRule {
 		return uniqueSortedLocationNames;
 	}
 
-	public static List<Map<String, String>> listUniqueNames(
-			String prefixNames, int limit){
+	public static List<Map<String, String>> listUniqueNames(String prefixNames, int limit) {
 		List<Map<String, String>> result = new ArrayList<>();
-		if (prefixNames == null || prefixNames.trim().isEmpty())
+		
+		if(prefixNames == null || prefixNames.trim().isEmpty())
 			return result;
 		
 		int numWord = 0;
-
 		List<String> names = getUniqueSortedLocationNames();
-		
 		String prefixName = prefixNames.trim().toLowerCase();
+		String delim = " +";//" +";
+		String name;
+		String[] tokens;
+		String toBeRemoved;
+		String usedName;
+		List<String> remainingNames;
 		
-		String delim = " +";
-		while (!names.isEmpty()){
-			List<String> remainingNames = new ArrayList<>();
-			for (String originalName : names){
-				String name = originalName.replaceAll("[()]", "");
-				String[] tokens = name.split(delim);
-				String toBeRemoved = "";
-				for (int i = 0; i < numWord; i++){
+		while (!names.isEmpty()) {
+			remainingNames = new ArrayList<>();
+			
+			for (String originalName : names) {
+				name = originalName.replaceAll("[\\[\\]()]", "");//replaceAll("[^A-Za-z0-9\\.]", "");
+				tokens = name.split(delim);
+				toBeRemoved = "";
+				
+				for(int i = 0; i < numWord; i++) {
 					toBeRemoved += tokens[i] + delim;
 				}
-				String usedName = name.replaceFirst(toBeRemoved, "");
+				
+				usedName = name.replaceFirst(toBeRemoved, "");
 
-				if (usedName.toLowerCase().startsWith(prefixName)){
+				if(usedName.toLowerCase().startsWith(prefixName)) {
 					Map<String, String> map = new HashMap<>();
 					map.put("name", originalName);
 					result.add(map);
-					if (result.size() == limit){
+					
+					if (result.size() == limit) {
 						remainingNames = Collections.emptyList();
 						break;
 					}
-				} else if (tokens.length > numWord + 1){
+				}
+				else if(tokens.length > numWord + 1) {
 					remainingNames.add(originalName);
 				}
-
-				
 			}
+			
 			numWord++;
 			names = remainingNames;
 		}
+		
 		return result;
 	}
 	

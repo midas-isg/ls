@@ -73,7 +73,7 @@ var SEARCH_RESULTS =
 			url: url,
 			type: 'GET',
 			success: function(data, status) {
-				thisSearch.processTypes(data.geoJSON);
+				thisSearch.processTypes(data);
 
 				return;
 			},
