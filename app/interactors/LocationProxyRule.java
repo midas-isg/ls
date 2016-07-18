@@ -6,11 +6,18 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import dao.LocationDao;
 import dao.entities.Location;
 import models.FancyTreeNode;
 import play.Logger;
+import play.db.jpa.JPA;
+import play.libs.Akka;
+import scala.concurrent.duration.Duration;
+import akka.util.*;
+import akka.actor.ActorSystem;
+
 
 public class LocationProxyRule {
 	private static Map<Long, Location> gid2location = null;
@@ -18,7 +25,7 @@ public class LocationProxyRule {
 	private static List<String> uniqueSortedLocationNames = null;
 	private static List<FancyTreeNode> auTree = null;
 	
-	public static synchronized void updateCache(){
+	private static synchronized void updateCache(){
 		notifyChange();
 		long start = System.nanoTime();
 		uniqueSortedLocationNames = getUniqueSortedLocationNames();
@@ -38,7 +45,7 @@ public class LocationProxyRule {
 		Logger.info("done! cache updated");
 	}
 	
-	public static void notifyChange(){
+	private static void notifyChange(){
 		if (gid2location != null){
 			synchronized (gid2location){
 				gid2location = null;
@@ -147,5 +154,25 @@ public class LocationProxyRule {
 			names = remainingNames;
 		}
 		return result;
+	}
+	
+	public static void scheduleCacheUpdate() {
+		if (play.Play.isTest()){
+			Logger.warn("scheduleCacheUpdate does not run in TEST mode.");
+			return;
+		}
+		Akka.system().scheduler().scheduleOnce(
+			    Duration.create(0, TimeUnit.MILLISECONDS),
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        Logger.info("updating cache ...");
+                        JPA.withTransaction(() -> {
+                        	LocationProxyRule.updateCache();
+                        });
+                    }
+                },
+                Akka.system().dispatcher()
+        );
 	}
 }

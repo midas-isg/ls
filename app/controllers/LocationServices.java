@@ -675,7 +675,7 @@ public class LocationServices extends Controller {
 
 	@Transactional
 	public Result updateCache(){
-		LocationProxyRule.updateCache();
-		return ok("Location-name cache updated!");
+		LocationProxyRule.scheduleCacheUpdate();
+		return ok("An update-cache request was scheduled.");
 	}
 }

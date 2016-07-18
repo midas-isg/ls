@@ -51,7 +51,7 @@ public class LocationDao {
 		CodeDao codeDao = new CodeDao(em);
 		altNameDao.createAll(location.getAltNames());
 		codeDao.createAll(location.getOtherCodes());
-		LocationProxyRule.notifyChange();
+		LocationProxyRule.scheduleCacheUpdate();;
 		Long gid = location.getGid();
 		Logger.info("persisted " + gid);
 		
@@ -80,7 +80,7 @@ public class LocationDao {
 		LocationGeometry geometry = prepareGeometry(location);
 		em.merge(geometry);
 		em.merge(location);
-		LocationProxyRule.notifyChange();
+		LocationProxyRule.scheduleCacheUpdate();;
 		Long gid = location.getGid();
 		Logger.info("merged " + gid);
 		
