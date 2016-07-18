@@ -17,21 +17,21 @@
 }
 
 @main(message, imports, version) {
-	<div style="padding-left: 1%;">
-		<div class="pull-left">
+	<div style="">
+		<div class="pull-left container-fluid no-padding" style="min-width: 49.75%; margin-right: 0.5%;">
 			<div style="padding: 2px;">
-				<div class="extra-bottom-space" style="border-width: 1px; border-style: groove; padding-left: 5px;">
-					<input id="file-input" class="pull-left" accept=".json, .geojson, .kml" type="file" style="padding-top: 1px; padding-bottom: 1px;">
-					
-					<div class="pre-spaced">
+				<div class="extra-bottom-space" style="border-width: 1px; padding-left: 5px; padding-right: 5px;">
+					<input id="file-input" class="pull-left" accept=".json, .geojson, .kml" type="file" style="background-color: #ffffff;">
+
+					<div class="input-group pre-spaced" style="clear:both;">
 						<em>ID:</em><input type="text" id="gid" class="pre-spaced" placeholder="New entry" disabled>
 						<button id="new-button" hidden>New entry</button>
 					</div>
 				</div>
 				
-				<div style="border-width: 1px; border-style: groove; padding-left: 5px;">
+				<div style="border-width: 1px; padding-left: 5px;  padding-right: 5px;">
 					<div class="vertical-spaced">
-						<div class="dropdown pull-left">
+						<div class="dropdown">
 							<button class="btn btn-default btn-sm dropdown-toggle" type="button" id="dropdown-menu" data-toggle="dropdown" aria-expanded="true">
 								Location type <span class="caret"></span>
 							</button>
@@ -41,8 +41,10 @@
 							</ul>
 							<input type="text" id="au-type" placeholder="Location type" disabled>
 						</div>
-						
-						<div><em class="pre-spaced">Name:</em><input type="text" id="au-name" class="pre-spaced" placeholder="Name"></div>
+					</div>
+
+					<div class="vertical-spaced">
+						<em>Name:</em><input type="text" id="au-name" class="pre-spaced" placeholder="Name">
 					</div>
 					
 					<div class="vertical-spaced" hidden>
@@ -50,7 +52,13 @@
 					</div>
 					
 					<div class="vertical-spaced">
-						<em>Date:</em> <input type="text" id="start-date" class="pre-spaced" placeholder="Start date"> <em>to</em> <input type="text" id="end-date" class="pre-spaced" placeholder="End date">
+						<div class="input-group pull-left">
+							<em>Date:</em> <input type="text" id="start-date" class="pre-spaced" placeholder="Start date">
+						</div>
+
+						<div class="input-group">
+							<em>to</em> <input type="text" id="end-date" class="pre-spaced" placeholder="End date">
+						</div>
 					</div>
 					
 					<div class="vertical-spaced">
@@ -59,42 +67,44 @@
 					</div>
 					
 					<div class="vertical-spaced">
-						<button id="save-button">Save new entry to database</button>
+						<button id="save-button" class="btn btn-sm btn-default">Save new entry to database</button>
 						<button id="update-button" hidden>Update entry in database</button>
 						<span id="server-result"></span>
 					</div>
 				</div>
 			</div>
-			
+
 			<div>
 				<div id="map-one" class="map"></div>
 				<button id="download-button" hidden>Download as GeoJSON</button>
 			</div>
 		</div>
 		
-		<div class="pull-left pre-spaced" style="border-width: 1px; border-style: groove; padding-left: 5px;">
+		<div class="pull-left container-fluid no-padding" style="min-width: 49.75%; border-width: 1px;">
 			<div id="parent-list">
 					<div>
-						<legend><em>Encompassing location</em></legend>
-						<label>Filter:</label>
-						<input id="parent" type="text" name="search" placeholder="Filter...">
-						<button id="resetParentSearchButton">Show all</button>
-						<button id="suggestion-button">Get suggestions</button>
-						<span id="parent-matches"></span>
+						<legend style="text-indent: 5px;"><em>Encompassing location</em></legend>
+						<div style="padding-left: 5px; padding-right: 5px;">
+							<label>Filter:</label>
+							<input id="parent" type="text" name="search" placeholder="Filter...">
+							<button id="resetParentSearchButton" class="btn btn-sm btn-default">Show all</button>
+							<button id="suggestion-button" class="btn btn-sm btn-default">Get suggestions</button>
+							<span id="parent-matches"></span>
+						</div>
 					</div>
 					<div id="parent-tree" style="padding-top: 5px; max-height: 500px; overflow: auto;"></div>
 			</div>
 			
-			<div id="au-list" class="pull-left" hidden>
+			<div id="au-list" hidden>
 					<div>
 						<legend><em>AU Component IDs:</em></legend>
 						<label>Filter:</label>
 						<input name="au-search" placeholder="Filter...">
-						<button id="resetCompositeSearchButton">&times;</button>
+						<button id="resetCompositeSearchButton" class="btn btn-sm btn-default">&times;</button>
 						<span id="composite-matches"></span>
 					</div>
 					<div id="au-composite-tree" style="padding-top: 5px"></div>
-					<button id="composite-button">Build Composite</button>
+					<button id="composite-button" class="btn btn-sm btn-default">Build Composite</button>
 			</div>
 		</div>
 	</div>

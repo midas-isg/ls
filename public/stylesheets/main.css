@@ -11,6 +11,18 @@ a:hover {
 	color: #FF6633;
 }
 
+div {
+	border: 0px;
+	border-style: groove;
+	border-color: #00FFFF;
+	border-radius: 5px;
+}
+
+legend {
+	color: #00FFFF;
+	background-color: #000000;
+}
+
 .pre-spaced {
 	margin-left: 5px;
 }
