@@ -133,10 +133,9 @@ public class GeoJsonRule {
 				feature.setBbox(computeBbox(location));
 			if (includeField(fields, KEY_REPPOINT))
 				feature.setRepPoint(getRepPoint(geometry));
+			feature.setId(location.getGid() + "");
 		}
 		
-		feature.setId(location.getGid() + "");
-
 		return feature;
 	}
 
@@ -257,7 +256,7 @@ public class GeoJsonRule {
 		return GeoOutputRule.toFeatureGeometry(geometry);
 	}
 
-	public static /*Response*/ FeatureCollection filterByTerm(String queryTerm, Integer limit,
+	public static FeatureCollection filterByTerm(String queryTerm, Integer limit,
 			Integer offset, Boolean searchOtherNames) {
 		Request req = toFindByNameRequest(queryTerm, searchOtherNames, limit,
 				offset);
