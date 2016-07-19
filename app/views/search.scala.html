@@ -16,14 +16,20 @@
 }
 
 @main(message, imports, version) {
-	<div>
-		<em>Place <div id="leaflet-draw-marker" class="leaflet-draw-toolbar leaflet-bar leaflet-draw-toolbar-top" style="display: inline-block;"><a class="leaflet-draw-draw-marker"></a></div> on map to search by coordinates</em>
+	<div id="map-container" class="container-fluid pull-left no-padding" style="">
+		<div class="no-padding">
+			<em>Place
+				<div id="leaflet-draw-marker" class="leaflet-draw-toolbar leaflet-bar leaflet-draw-toolbar-top" style="display: inline-block;">
+					<a class="leaflet-draw-draw-marker"></a>
+				</div> on map to search by coordinates
+			</em>
+		</div>
+
+		<div id="map-one" class="map"></div>
 	</div>
 	
-	<div id="map-one" class="map pull-left" style="max-width: 50%;"></div>
-	
-	<div class="pull-left" style="width: 49%;">
-		<div id="result" class="pre-spaced" style="clear: both;"></div>
+	<div id="results-output" class="container-fluid pull-left no-padding" style="">
+		<div id="result" class="no-padding" style="clear: both;"></div>
 		
 		<div id="parent-list" class="pull-left" hidden>
 			<div>

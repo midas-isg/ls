@@ -37,7 +37,12 @@ var SEARCH_RESULTS =
 				console.log(status);
 				console.log(response);
 
-				thisSearch.processTypes(data);
+				if(data.features.length < 1) {
+					$("#result").text("No results found");
+				}
+				else {
+					thisSearch.processTypes(data);
+				}
 
 				return;
 			},
@@ -73,7 +78,12 @@ var SEARCH_RESULTS =
 			url: url,
 			type: 'GET',
 			success: function(data, status) {
-				thisSearch.processTypes(data);
+				if(data.features.length < 1) {
+					$("#result").text("No results found");
+				}
+				else {
+					thisSearch.processTypes(data);
+				}
 
 				return;
 			},
@@ -110,7 +120,7 @@ var SEARCH_RESULTS =
 		if(totalCount > 0) {
 			if(!document.getElementById("results-tbody")) {
 				result.text("");
-				appendString = "<table class='table table-condensed pre-spaced' style='margin-bottom: 0px;'>";
+				appendString = "<table class='table table-condensed' style='margin-bottom: 0px;'>";
 				appendString += "<caption id='result-count'><span id='result-total'><strong>" + totalCount + "</strong></span> result(s) from searching </caption>";
 				appendString += "<thead>";
 				appendString += "<th class='location-col'>Location</th>";
@@ -229,7 +239,7 @@ var SEARCH_RESULTS =
 			}
 
 			appendString = "<tr><td class='location-col'><a href='"+ url +"' title='" + aliasesString + "'>"+ properties.headline  + "</a> from " + properties.startDate + to + "</td>";
-			appendString = appendString + "<td class='type-col'>" + properties.locationTypeName + "</td>";
+			appendString += "<td class='type-col'>" + properties.locationTypeName + "</td>";
 
 			root = properties.lineage[0];
 			if(root) {
@@ -297,7 +307,12 @@ var SEARCH_RESULTS =
 					contentType: 'application/json',
 					data: JSON.stringify(data),
 					success: function(data, status) {
-						SEARCH_RESULTS.processTypes(data);
+						if(data.features.length < 1) {
+							$("#result").text("No results found");
+						}
+						else{
+							SEARCH_RESULTS.processTypes(data);
+						}
 
 						return;
 					},

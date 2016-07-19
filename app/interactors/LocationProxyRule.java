@@ -136,18 +136,18 @@ public class LocationProxyRule {
 		int numWord = 0;
 		List<String> names = getUniqueSortedLocationNames();
 		String prefixName = prefixNames.trim().toLowerCase();
-		String delim = " +";//" +";
+		String delim = " +";
 		String name;
 		String[] tokens;
 		String toBeRemoved;
-		String usedName;
+		String usedName = "";
 		List<String> remainingNames;
 		
 		while (!names.isEmpty()) {
 			remainingNames = new ArrayList<>();
 			
-			for (String originalName : names) {
-				name = originalName.replaceAll("[\\[\\]()]", "");//replaceAll("[^A-Za-z0-9\\.]", "");
+			for(String originalName : names) {
+				name = originalName;
 				tokens = name.split(delim);
 				toBeRemoved = "";
 				
@@ -155,14 +155,20 @@ public class LocationProxyRule {
 					toBeRemoved += tokens[i] + delim;
 				}
 				
-				usedName = name.replaceFirst(toBeRemoved, "");
-
+				try {
+					usedName = name.replaceFirst("\\Q" + toBeRemoved + "\\E", "");
+				}
+				catch(Exception exception) {
+					Logger.debug("Yes, the regex didn't work right!");
+					Logger.debug(exception.toString());
+				}
+				
 				if(usedName.toLowerCase().startsWith(prefixName)) {
 					Map<String, String> map = new HashMap<>();
 					map.put("name", originalName);
 					result.add(map);
 					
-					if (result.size() == limit) {
+					if(result.size() == limit) {
 						remainingNames = Collections.emptyList();
 						break;
 					}

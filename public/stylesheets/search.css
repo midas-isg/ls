@@ -10,8 +10,35 @@
 	border-bottom-color: rgba(0, 0, 0, 0.1);
 }
 
+@media only screen and (min-width: 768px) {
+	#map-container {
+		width: 49.75%;
+		margin-right: 0.5%;
+	}
+
+	#results-output {
+		width: 49.75%;
+	}
+}
+@media only screen and (max-width: 767px) {
+	#map-container {
+		width: 100%;
+	}
+
+	#results-output {
+		width: 100%;
+		margin-bottom: 5px;
+	}
+}
+
+#result-count {
+	background-color: #000000;
+	color: #00FFFF;
+}
+
 #result table {
 	display: table;
+	background-color: white;
 	width: 100%;
 }
 
@@ -29,6 +56,9 @@
 #result table tr {
 	width: 100%;
 	display: table;
+}
+#result table tr:nth-child(even) {
+	background-color: #E0FFFF;
 }
 
 #result table thead tr {

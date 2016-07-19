@@ -13,17 +13,18 @@
 	<link href='@routes.Assets.at("external_packages/fancytree/ui.fancytree.css")' rel='stylesheet'/>
 	
 	<link href='@routes.Assets.at("stylesheets/fancytree-ext.css")' rel='stylesheet'/>
+	<link href='@routes.Assets.at("stylesheets/create.css")' rel='stylesheet'/>
 	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'/>
 }
 
 @main(message, imports, version) {
 	<div style="">
-		<div class="pull-left container-fluid no-padding" style="min-width: 49.75%; margin-right: 0.5%;">
+		<div id="creation-dialog" class="pull-left container-fluid no-padding" style="">
 			<div style="padding: 2px;">
 				<div class="extra-bottom-space" style="border-width: 1px; padding-left: 5px; padding-right: 5px;">
-					<input id="file-input" class="pull-left" accept=".json, .geojson, .kml" type="file" style="background-color: #ffffff;">
+					<!--<input id="file-input" class="pull-left vertical-spaced" accept=".json, .geojson, .kml" type="file" style="background-color: #ffffff;">-->
 
-					<div class="input-group pre-spaced" style="clear:both;">
+					<div class="input-group vertical-spaced" style="clear:both;">
 						<em>ID:</em><input type="text" id="gid" class="pre-spaced" placeholder="New entry" disabled>
 						<button id="new-button" hidden>New entry</button>
 					</div>
@@ -63,7 +64,7 @@
 					
 					<div class="vertical-spaced">
 						<div><em>Description: </em></div>
-						<div><textarea id="description" placeholder="Description" rows="1" style="width: 99%;"></textarea></div>
+						<div><textarea id="description" placeholder="Description" rows="1" style="width: 100%;"></textarea></div>
 					</div>
 					
 					<div class="vertical-spaced">
@@ -80,7 +81,7 @@
 			</div>
 		</div>
 		
-		<div class="pull-left container-fluid no-padding" style="min-width: 49.75%; border-width: 1px;">
+		<div id="parent-wizard" class="pull-left container-fluid no-padding" style="border-width: 1px;">
 			<div id="parent-list">
 					<div>
 						<legend style="text-indent: 5px;"><em>Encompassing location</em></legend>
