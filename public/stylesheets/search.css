@@ -32,13 +32,13 @@
 }
 
 #result-count {
+	border-radius: 5px 5px 0px 0px;
 	background-color: #000000;
 	color: #00FFFF;
 }
 
 #result table {
 	display: table;
-	background-color: white;
 	width: 100%;
 }
 
@@ -49,6 +49,7 @@
 }
 
 #result table tbody {
+	border-radius: 5px;
 	overflow: auto;
 	max-height: 500px;
 }
@@ -58,10 +59,11 @@
 	display: table;
 }
 #result table tr:nth-child(even) {
-	background-color: #E0FFFF;
+	background-color: #FFFFFF;
 }
 
 #result table thead tr {
+	background-color: #FFFFFF;
 	border-bottom-color: rgb(221, 221, 221);
 	border-bottom-width: 1px;
 	border-bottom-style: solid;
