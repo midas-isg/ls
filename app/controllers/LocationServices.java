@@ -162,7 +162,7 @@ public class LocationServices extends Controller {
 			value = "Returns locations by term search", 
 			notes = "This endpoint returns locations whose name matches the requested search term (queryTerm or q). "
 			+ "To do pagination, use 'limit' and 'offset'. "
-			+ "Note: The schema of the 'geoJSON' field in the response is GeoJSON FeatureCollection. ", 
+			+ "Note: response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response). ", 
 			response = FeatureCollection.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = OK, message = "Successfully returned", response = FeatureCollection.class),
@@ -217,7 +217,8 @@ public class LocationServices extends Controller {
 			httpMethod = "POST", 
 			nickname = "Find", 
 			value = "Finds locations by name, other-names, or code", 
-			notes = "Receives a single query and returns a FeatureCollection as response", 
+			notes = "Receives a single query as shown in the example."
+			+ "Note: response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response). ", 
 			response = FeatureCollection.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = OK, message = "Successfully returned", response = FeatureCollection.class),
@@ -256,8 +257,9 @@ public class LocationServices extends Controller {
 			httpMethod = "POST", 
 			nickname = "findBulkLocations", 
 			value = "Returns locations requested in bulk", 
-			notes = "This endpoint returns locations match with the requested search terms (queryTerm[required], start, end, locationTypeIds, etc. (see example file)). "
-			+ "Note: The response is a FeatureCollection, 'geometry' and 'children' property values are set to null. ", 
+			notes = "This endpoint returns locations match with the requested search terms "
+			+ "(queryTerm[required], start, end, locationTypeIds, etc. (see example file)). "
+			+ "Note: response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response). ", 
 			response = FeatureCollection.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = OK, message = "Successfully returned", response = FeatureCollection.class),
@@ -347,7 +349,7 @@ public class LocationServices extends Controller {
 			value = "Returns locations by coordinate search", 
 			notes = "This endpoint returns locations whose geometry encompasses the submitting coordinate. "
 			+ "The coordinate is defined by latitude (lat) and longtitude (long). "
-			+ "Note: response schema is FeatureCollection ", 
+			+ "Note: response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response). ", 
 			response = FeatureCollection.class
 	)
 	@ApiResponses(value = {
@@ -521,7 +523,8 @@ public class LocationServices extends Controller {
 			httpMethod = "POST", 
 			nickname = "findLocationByFeatureCollection", 
 			value = "Returns locations by featureCollection", 
-			notes = "This endpoint returns locations which intersect the submitted Geometry in body. ",
+			notes = "This endpoint returns locations which intersect the submitted Geometry in body. "
+			+ "Note: response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response). ",
 			response = FeatureCollection.class
 	)
 	@ApiResponses(value = { 
