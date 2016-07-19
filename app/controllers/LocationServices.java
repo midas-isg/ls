@@ -204,11 +204,17 @@ public class LocationServices extends Controller {
 					required = false
 			)
 			@QueryParam("q")
-			String q
+			String q,
+			@ApiParam(
+					value = "If false, only returns gids", 
+					defaultValue = "false"
+			) 
+			@QueryParam("verbose") 
+			Boolean verbose
 	) {
 		if (queryTerm == null)
 			queryTerm = q;
-		Object result = GeoJsonRule.filterByTerm(queryTerm, limit, offset, searchOtherNames);
+		Object result = GeoJsonRule.filterByTerm(queryTerm, limit, offset, searchOtherNames, verbose);
 		return ok(Json.toJson(result));
 	}
 

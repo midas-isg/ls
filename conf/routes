@@ -21,7 +21,7 @@ GET           /api/locations/$gid<[0-9]+>         controllers.LocationServices.l
 PUT           /api/locations/$gid<[0-9]+>         controllers.LocationServices.update(gid:Long)
 DELETE        /api/locations/$gid<[0-9]+>         controllers.LocationServices.delete(gid:Long)
 
-GET           /api/locations              		  controllers.LocationServices.filterByTerm(queryTerm?=null, limit:Int?=10, offset:Int?=0, searchOtherNames:Boolean?=true, q?=null)
+GET           /api/locations              		  controllers.LocationServices.filterByTerm(queryTerm?=null, limit:Int?=10, offset:Int?=0, searchOtherNames:Boolean?=true, q?=null, verbose:Boolean?=false)
 POST          /api/locations/find-bulk            controllers.LocationServices.findBulkLocations()
 POST          /api/locations/find-by-term         controllers.LocationServices.findByTerm()
 GET           /api/locations/find-by-coordinate   controllers.LocationServices.findByPoint(lat:Double, long:Double)

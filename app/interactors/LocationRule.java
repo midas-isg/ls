@@ -131,8 +131,16 @@ public class LocationRule {
 	}
 
 	public static List<Location> findByTerm(Request req) {
-		List<Location> result = new LocationDao().findByTerm(req);
+		LocationDao locationDao = new LocationDao();
+		List<?> resultList = locationDao.findByTerm(req);
+		List<Location> result = locationDao.queryResult2LocationList(resultList);
 		return result;
+	}
+	
+	public static List<BigInteger> findGids(Request req){
+		LocationDao locationDao = new LocationDao();
+		List<?> resultList = locationDao.findByTerm(req);
+		return locationDao.getGids(resultList);
 	}
 		
 	static public List<Location> findByPoint(double latitude, double longitude) {

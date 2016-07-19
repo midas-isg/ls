@@ -118,14 +118,13 @@ public class LocationDao {
 		return gid;
 	}
 
-	public List<Location> findByTerm(Request req) {
+	public List<?> findByTerm(Request req) {
 		EntityManager em = JPA.em();
 		String q = new SearchSql().toQuerySqlString(req);
 		Query query = em.createNativeQuery(q);
 		query = setQueryParameters(req, query);
 		List<?> resultList = query.getResultList();
-		List<Location> locations = queryResult2LocationList(resultList);
-		return locations;
+		return resultList;
 	}
 
 	private Query setQueryParameters(Request req, Query query) {
@@ -140,7 +139,7 @@ public class LocationDao {
 		return query;
 	}
 	
-	private List<Location> queryResult2LocationList(List<?> resultList) {
+	public List<Location> queryResult2LocationList(List<?> resultList) {
 		List<BigInteger> result = getGids(resultList);
 		List<Location> locations = LocationProxyRule.getLocations(result);
 		int i = 0;
@@ -152,7 +151,7 @@ public class LocationDao {
 		return locations;
 	}
 
-	private List<BigInteger> getGids(List<?> resultList) {
+	public List<BigInteger> getGids(List<?> resultList) {
 		List<BigInteger> list = new ArrayList<>();
 		for (Object o : resultList){
 			Object[] l = (Object[])o;
