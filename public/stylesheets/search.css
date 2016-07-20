@@ -58,12 +58,17 @@
 	width: 100%;
 	display: table;
 }
-#result table tr:nth-child(even) {
+
+#result tbody tr:nth-child(even) {
+	background-color: #F0FFFF;
+}
+
+#result tbody tr:nth-child(odd) {
 	background-color: #FFFFFF;
 }
 
 #result table thead tr {
-	background-color: #FFFFFF;
+	background-color: #F0FFFF;
 	border-bottom-color: rgb(221, 221, 221);
 	border-bottom-width: 1px;
 	border-bottom-style: solid;

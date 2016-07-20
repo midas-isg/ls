@@ -20,54 +20,69 @@
 @main(message, imports, version) {
 	<div style="">
 		<div id="creation-dialog" class="pull-left container-fluid no-padding" style="">
-			<div style="padding: 2px;">
-				<div class="extra-bottom-space" style="border-width: 1px; padding-left: 5px; padding-right: 5px;">
-					<!--<input id="file-input" class="pull-left vertical-spaced" accept=".json, .geojson, .kml" type="file" style="background-color: #ffffff;">-->
+			<div class="azure extra-bottom-space" style="padding: 2px;">
+				<div class="extra-bottom-space" style="">
+					<input id="file-input" class="pull-left vertical-spaced" accept=".json, .geojson, .kml" type="file">
 
-					<div class="input-group vertical-spaced" style="clear:both;">
-						<em>ID:</em><input type="text" id="gid" class="pre-spaced" placeholder="New entry" disabled>
+					<div class="vertical-spaced" style="clear:both;">
+						<div class="input-group">
+							<span class="input-group-addon" id="id-label">ID:</span>
+							<input type="text" id="gid" class="form-control" placeholder="New entry" aria-describedby="id-label" disabled>
+						</div>
 						<button id="new-button" hidden>New entry</button>
 					</div>
 				</div>
 				
-				<div style="border-width: 1px; padding-left: 5px;  padding-right: 5px;">
-					<div class="vertical-spaced">
-						<div class="dropdown">
-							<button class="btn btn-default btn-sm dropdown-toggle" type="button" id="dropdown-menu" data-toggle="dropdown" aria-expanded="true">
-								Location type <span class="caret"></span>
-							</button>
-							<ul class="dropdown-menu" role="menu" aria-labelledby="dropdown-menu" data-toggle="dropdown" aria-expanded="true">
-								<li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick='$("#au-type").val("Epidemic Zone"); $("#au-type").prop("disabled", true);'>Epidemic Zone</a></li>
-								<li id="au-create" role="presentation" hidden><a role="menuitem" tabindex="-1" href="#" onclick='$("#au-type").prop("disabled", false); $("#au-type").val("");'>Administrative Unit</a></li>
-							</ul>
-							<input type="text" id="au-type" placeholder="Location type" disabled>
+				<div class="azure">
+					<div class="input-group extra-bottom-space">
+						<span id="dropdown-label" class="input-group-addon no-padding">
+							<div class="dropdown">
+								<button class="btn btn-default btn-sm dropdown-toggle" type="button" id="dropdown-menu" data-toggle="dropdown" aria-expanded="true">
+									Location type <span class="caret"></span>
+								</button>
+								<ul class="dropdown-menu" role="menu" aria-labelledby="dropdown-menu" data-toggle="dropdown" aria-expanded="true">
+									<li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick='$("#au-type").val("Epidemic Zone"); $("#au-type").prop("disabled", true);'>Epidemic Zone</a></li>
+									<li id="au-create" role="presentation" hidden><a role="menuitem" tabindex="-1" href="#" onclick='$("#au-type").prop("disabled", false); $("#au-type").val("");'>Administrative Unit</a></li>
+								</ul>
+							</div>
+						</span>
+						<input type="text" id="au-type" class="form-control" placeholder="Location type" aria-describedby="dropdown-label" disabled>
+					</div>
+
+					<div class="extra-bottom-space input-group">
+						<span id="name-label" class="input-group-addon">Name:</span>
+						<input type="text" id="au-name" class="form-control" placeholder="Name" aria-describedby="name-label">
+					</div>
+					
+					<div class="extra-bottom-space" hidden>
+						<div class="input-group pull-left" style="width: 50%;">
+							<span id="code-label" class="input-group-addon">Code:</span>
+							<input type="text" id="au-code" class="form-control" placeholder="Code" aria-describedby="code-label">
+						</div>
+						<div class="input-group" style="width: 50%;">
+							<span id="ctype-label" class="input-group-addon">Code type:</span>
+							<input type="text" id="au-codetype" class="form-control" placeholder="Code type" aria-describedby="ctype-label">
 						</div>
 					</div>
 
-					<div class="vertical-spaced">
-						<em>Name:</em><input type="text" id="au-name" class="pre-spaced" placeholder="Name">
-					</div>
-					
-					<div class="vertical-spaced" hidden>
-						<em>Code:</em> <input type="text" id="au-code" class="pre-spaced" placeholder="Code"> <em>Code type:</em> <input type="text" id="au-codetype" class="pre-spaced" placeholder="Code type">
-					</div>
-					
-					<div class="vertical-spaced">
-						<div class="input-group pull-left">
-							<em>Date:</em> <input type="text" id="start-date" class="pre-spaced" placeholder="Start date">
+					<div class="extra-bottom-space">
+						<div class="input-group pull-left" style="width: 50%;">
+							<span id="start-label" class="input-group-addon">Date:</span>
+							<input type="text" id="start-date" class="form-control" placeholder="Start date" aria-describedby="start-label">
 						</div>
 
-						<div class="input-group">
-							<em>to</em> <input type="text" id="end-date" class="pre-spaced" placeholder="End date">
+						<div class="input-group" style="width: 50%;">
+							<span id="to-label" class="input-group-addon">to</span>
+							<input type="text" id="end-date" class="form-control" placeholder="End date" aria-describedby="to-label">
 						</div>
 					</div>
 					
-					<div class="vertical-spaced">
-						<div><em>Description: </em></div>
-						<div><textarea id="description" placeholder="Description" rows="1" style="width: 100%;"></textarea></div>
+					<div class="extra-bottom-space">
+						<div><span id="description-label">Description: </span></div>
+						<div><textarea id="description" placeholder="Description" rows="1" style=""></textarea></div>
 					</div>
 					
-					<div class="vertical-spaced">
+					<div class="extra-bottom-space">
 						<button id="save-button" class="btn btn-sm btn-default">Save new entry to database</button>
 						<button id="update-button" hidden>Update entry in database</button>
 						<span id="server-result"></span>
@@ -81,7 +96,7 @@
 			</div>
 		</div>
 		
-		<div id="parent-wizard" class="pull-left container-fluid no-padding" style="border-width: 1px;">
+		<div id="parent-wizard" class="pull-left container-fluid no-padding azure" style="border-width: 1px;">
 			<div id="parent-list">
 					<div>
 						<legend style="text-indent: 5px;"><em>Encompassing location</em></legend>

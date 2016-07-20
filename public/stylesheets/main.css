@@ -13,14 +13,26 @@ a:hover {
 
 div {
 	border: 0px;
-	border-style: groove;
-	border-color: #00FFFF;
 	border-radius: 5px;
+}
+
+footer {
+	border-radius: 5px;
+	background-color: #F0FFFF;
 }
 
 legend {
 	color: #00FFFF;
 	background-color: #000000;
+	border-radius: 5px 5px 0px 0px;
+}
+
+.azure {
+	background-color: #F0FFFF;
+}
+
+.white {
+	background-color: #FFFFFF;
 }
 
 .pre-spaced {
