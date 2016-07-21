@@ -142,7 +142,9 @@ public class LocationProxyRule {
 		String toBeRemoved;
 		String usedName = "";
 		List<String> remainingNames;
-		boolean matchesToken;
+		List<String> tokenMatches = new ArrayList();
+		boolean matches;
+		Map<String, String> map;
 		
 		while (!names.isEmpty()) {
 			remainingNames = new ArrayList<>();
@@ -164,16 +166,15 @@ public class LocationProxyRule {
 					Logger.debug(exception.toString());
 				}
 				
-				matchesToken = false;
 				for(int i = 0; i < tokens.length; i++) {
 					if(tokens[i].equalsIgnoreCase(prefixName)) {
-						matchesToken = true;
+						tokenMatches.add(originalName);
 						break;
 					}
 				}
 				
-				if(usedName.toLowerCase().startsWith(prefixName) || matchesToken) {
-					Map<String, String> map = new HashMap<>();
+				if(usedName.toLowerCase().startsWith(prefixName)) {
+					map = new HashMap<>();
 					map.put("name", originalName);
 					result.add(map);
 					
@@ -189,6 +190,25 @@ public class LocationProxyRule {
 			
 			numWord++;
 			names = remainingNames;
+		}
+		
+		numWord = limit - result.size();
+		numWord = numWord < tokenMatches.size() ? numWord : tokenMatches.size();
+		for(int i = 0; i < numWord; i++) {
+			map = new HashMap<>();
+			map.put("name", tokenMatches.get(i));
+			
+			matches = false;
+			for(int j = 0; j < result.size(); j++) {
+				if(result.get(j).get("name").equals(tokenMatches.get(i))) {
+					matches = true;
+					break;
+				}
+			}
+			
+			if(!matches) {
+				result.add(map);
+			}
 		}
 		
 		return result;
