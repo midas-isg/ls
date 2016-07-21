@@ -142,6 +142,7 @@ public class LocationProxyRule {
 		String toBeRemoved;
 		String usedName = "";
 		List<String> remainingNames;
+		boolean matchesToken;
 		
 		while (!names.isEmpty()) {
 			remainingNames = new ArrayList<>();
@@ -163,7 +164,15 @@ public class LocationProxyRule {
 					Logger.debug(exception.toString());
 				}
 				
-				if(usedName.toLowerCase().startsWith(prefixName)) {
+				matchesToken = false;
+				for(int i = 0; i < tokens.length; i++) {
+					if(tokens[i].equalsIgnoreCase(prefixName)) {
+						matchesToken = true;
+						break;
+					}
+				}
+				
+				if(usedName.toLowerCase().startsWith(prefixName) || matchesToken) {
 					Map<String, String> map = new HashMap<>();
 					map.put("name", originalName);
 					result.add(map);
