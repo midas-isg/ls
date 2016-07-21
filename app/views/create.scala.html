@@ -25,11 +25,10 @@
 					<input id="file-input" class="pull-left vertical-spaced" accept=".json, .geojson, .kml" type="file">
 
 					<div class="vertical-spaced" style="clear:both;">
-						<div class="input-group">
+						<div class="input-group extra-bottom-space">
 							<span class="input-group-addon" id="id-label">ID:</span>
 							<input type="text" id="gid" class="form-control" placeholder="New entry" aria-describedby="id-label" disabled>
 						</div>
-						<button id="new-button" hidden>New entry</button>
 					</div>
 				</div>
 				
@@ -77,7 +76,7 @@
 						</div>
 					</div>
 					
-					<div class="extra-bottom-space">
+					<div class="extra-bottom-space" style="margin-top: 10px;">
 						<div><span id="description-label">Description: </span></div>
 						<div><textarea id="description" placeholder="Description" rows="1" style=""></textarea></div>
 					</div>
@@ -85,6 +84,7 @@
 					<div class="extra-bottom-space">
 						<button id="save-button" class="btn btn-sm btn-default">Save new entry to database</button>
 						<button id="update-button" hidden>Update entry in database</button>
+						<button id="new-button" class="btn btn-sm btn-default pull-right">Reset page</button>
 						<span id="server-result"></span>
 					</div>
 				</div>
