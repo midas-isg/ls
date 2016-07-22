@@ -146,7 +146,7 @@ public class LocationProxyRule {
 		List<String> tokenMatches = new ArrayList();
 		boolean matches;
 		Map<String, String> map;
-		Pattern nonUnicodePattern = Pattern.compile("[^\\w]+", Pattern.UNICODE_CHARACTER_CLASS);
+		Pattern nonUnicodePattern = Pattern.compile("[^\\p{L}]+", Pattern.UNICODE_CHARACTER_CLASS);
 		String cleanedInputString = prefixName.replaceAll(nonUnicodePattern.toString(), "");
 		String cleanedCompareString;
 		
