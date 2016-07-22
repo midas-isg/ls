@@ -6,7 +6,7 @@ public class TestRoutes {
     @Test // @Ignore("to run test faster")
     public void allRoutes() {
     	Runnable[] tests = {
-    			//TestFindLocation.test()
+    			TestFindLocation.test()
     	};
 		Server.run(tests);
     }
