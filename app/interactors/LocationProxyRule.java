@@ -208,7 +208,7 @@ public class LocationProxyRule {
 			if(!matches) {
 				result.add(map);
 				
-				if(result.size() == limit) {
+				if(result.size() >= limit) {
 					break;
 				}
 			}
