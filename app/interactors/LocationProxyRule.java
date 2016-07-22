@@ -192,8 +192,7 @@ public class LocationProxyRule {
 			names = remainingNames;
 		}
 		
-		numWord = limit - result.size();
-		numWord = numWord < tokenMatches.size() ? numWord : tokenMatches.size();
+		numWord = tokenMatches.size();
 		for(int i = 0; i < numWord; i++) {
 			map = new HashMap<>();
 			map.put("name", tokenMatches.get(i));
@@ -208,6 +207,10 @@ public class LocationProxyRule {
 			
 			if(!matches) {
 				result.add(map);
+				
+				if(result.size() == limit) {
+					break;
+				}
 			}
 		}
 		
