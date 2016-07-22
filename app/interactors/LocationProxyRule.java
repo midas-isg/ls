@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import play.Logger;
 import dao.LocationDao;
@@ -145,6 +146,9 @@ public class LocationProxyRule {
 		List<String> tokenMatches = new ArrayList();
 		boolean matches;
 		Map<String, String> map;
+		Pattern nonUnicodePattern = Pattern.compile("[^\\w]+", Pattern.UNICODE_CHARACTER_CLASS);
+		String cleanedInputString = prefixName.replaceAll(nonUnicodePattern.toString(), "");
+		String cleanedCompareString;
 		
 		while (!names.isEmpty()) {
 			remainingNames = new ArrayList<>();
@@ -167,7 +171,8 @@ public class LocationProxyRule {
 				}
 				
 				for(int i = 0; i < tokens.length; i++) {
-					if(tokens[i].equalsIgnoreCase(prefixName)) {
+					cleanedCompareString = tokens[i].replaceAll(nonUnicodePattern.toString(), "");
+					if(cleanedCompareString.equalsIgnoreCase(cleanedInputString)) {
 						tokenMatches.add(originalName);
 						break;
 					}
