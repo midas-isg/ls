@@ -11,6 +11,30 @@ a:hover {
 	color: #FF6633;
 }
 
+div {
+	border: 0px;
+	border-radius: 5px;
+}
+
+footer {
+	border-radius: 5px;
+	background-color: #F0FFFF;
+}
+
+legend {
+	color: #00FFFF;
+	background-color: #000000;
+	border-radius: 5px 5px 0px 0px;
+}
+
+.azure {
+	background-color: #F0FFFF;
+}
+
+.white {
+	background-color: #FFFFFF;
+}
+
 .pre-spaced {
 	margin-left: 5px;
 }

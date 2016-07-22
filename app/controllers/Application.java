@@ -21,29 +21,29 @@ public class Application extends Controller {
 	   	    final Configuration cfg = Play.application().configuration();
 			String version = "Version: " + cfg.getString("app.version");
 	   	    String dbName = "Database: " + cfg.getString("db.default.url");
-	   	   	INFO = "Copyright 2014-2015 - University of Pittsburgh, " 
+	   	   	INFO = "Copyright 2014-2016 - University of Pittsburgh, " 
 	   	    + version + ", " + dbName;
    		}
    	}
    	
 	@Transactional
 	public Result index() {
-		return ok(views.html.search.render("apollo location search", info()));
+		return ok(views.html.search.render("location search", info()));
 	}
 
 	@Transactional
 	public Result concept() {
-		return ok(views.html.concept.render("apollo location services", info()));
+		return ok(views.html.concept.render("location services", info()));
 	}
 	
 	@Transactional
 	public Result browser() {
-		return ok(views.html.browser.render("apollo location browser", info()));
+		return ok(views.html.browser.render("location browser", info()));
 	}
 	
 	@Transactional
 	public Result create() {
-		return ok(views.html.create.render("apollo location creator", info()));
+		return ok(views.html.create.render("location creator", info()));
 	}
 
 	public Result swagger() {

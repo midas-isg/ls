@@ -28,14 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import models.Request;
-import models.Response;
-import models.exceptions.BadRequest;
-import models.geo.Feature;
-import models.geo.FeatureCollection;
-import models.geo.FeatureGeometry;
-import play.Logger;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.vividsolutions.jts.geom.Geometry;
@@ -47,6 +39,12 @@ import dao.entities.Data;
 import dao.entities.Location;
 import dao.entities.LocationGeometry;
 import dao.entities.LocationType;
+import models.Request;
+import models.exceptions.BadRequest;
+import models.geo.Feature;
+import models.geo.FeatureCollection;
+import models.geo.FeatureGeometry;
+import play.Logger;
 
 public class GeoJsonRule {
 	private static final String KEY_PROPERTIES = "properties";
@@ -137,13 +135,12 @@ public class GeoJsonRule {
 				feature.setRepPoint(getRepPoint(geometry));
 			feature.setId(location.getGid() + "");
 		}
-
+		
 		return feature;
 	}
 
-	private static FeatureCollection toGeoJSON(Request req,
-			List<Location> result) {
-		List<String> fields = Arrays.asList(new String[] { KEY_PROPERTIES });
+	private static FeatureCollection toFeatureCollection(Request req,
+			List<Location> result, List<String> fields) {
 		FeatureCollection geoJSON = toFeatureCollection(result, fields);
 		Map<String, Object> properties = new HashMap<>();
 		LocationTypeDao locationTypeDao = new LocationTypeDao();
@@ -259,25 +256,12 @@ public class GeoJsonRule {
 		return GeoOutputRule.toFeatureGeometry(geometry);
 	}
 
-	public static Response filterByTerm(String queryTerm, Integer limit,
+	public static FeatureCollection filterByTerm(String queryTerm, Integer limit,
 			Integer offset, Boolean searchOtherNames) {
 		Request req = toFindByNameRequest(queryTerm, searchOtherNames, limit,
 				offset);
 		List<Location> result = LocationRule.findByTerm(req);
-		Response response = new Response();
-		response.setGeoJSON(toFeatureCollection(result, DEFAULT_KEYS));
-		Map<String, Object> properties = new HashMap<>();
-		response.setProperties(properties);
-		properties.put("queryTerm", queryTerm);
-		putAsStringIfNotNull(properties, "limit", limit);
-		putAsStringIfNotNull(properties, "offset", offset);
-		putAsStringIfNotNull(properties, "searchOtherNames", searchOtherNames);
-		putAsStringIfNotNull(properties, "resultSize", "" + result.size());
-		String descritpion = "Result from the query for '" + queryTerm
-				+ "' limit=" + limit + " offset=" + offset
-				+ " searchOtherNames=" + searchOtherNames;
-		properties.put("locationDescription", descritpion);
-		return response;
+		return toFeatureCollection(req, result, DEFAULT_KEYS);
 	}
 
 	public static List<Object> findByTerm(ArrayNode queryArray) {
@@ -293,22 +277,15 @@ public class GeoJsonRule {
 
 	public static FeatureCollection findByTerm(Request req) {
 		List<Location> result = LocationRule.findByTerm(req);
-		return toGeoJSON(req, result);
+		List<String> fields = Arrays.asList(new String[] { KEY_PROPERTIES });
+		return toFeatureCollection(req, result, fields);
 	}
 
-	public static Response findByPoint(double latitude, double longitude) {
+	public static FeatureCollection findByPoint(double latitude, double longitude) {
 		List<Location> result = LocationRule.findByPoint(latitude, longitude);
-		Response response = new Response();
-		response.setGeoJSON(toFeatureCollection(result, DEFAULT_KEYS));
-		Map<String, Object> properties = new HashMap<>();
-		response.setProperties(properties);
-		putAsStringIfNotNull(properties, "latitude", latitude);
-		putAsStringIfNotNull(properties, "longitude", longitude);
-		putAsStringIfNotNull(properties, "resultSize", "" + result.size());
-		properties.put("locationTypeName", "Result from a query");
-		String descritpion = "Result from the query for latitude=" + latitude
-				+ " longitude=" + longitude;
-		properties.put("locationDescription", descritpion);
+		FeatureCollection response = toFeatureCollection(new Request(), result, DEFAULT_KEYS);
+		putAsStringIfNotNull(response.getProperties(), "latitude", latitude);
+		putAsStringIfNotNull(response.getProperties(), "longitude", longitude);
 		return response;
 	}
 

@@ -23,7 +23,7 @@ $(document).ready(function() {
 	});
 	
 	var limit = 5;
-	bindSuggestionBox("#input", context + "/api/unique-location-names?limit=" + limit + "&q=");
+	bindSuggestionBox("#input", context + "/api/locations/unique-names?limit=" + limit + "&queryTerm=");
 	
 	return;
 });
