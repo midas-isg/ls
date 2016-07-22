@@ -7,4 +7,5 @@
 "searchCodes":true,
 "ignoreAccent":true,
 "limit":10,
-"offset":0}
+"offset":0,
+"verbose":true}
