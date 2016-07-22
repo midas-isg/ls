@@ -33,7 +33,7 @@ public class LocationProxyRule {
 		Akka.system().scheduler().scheduleOnce(Duration.create(0, TimeUnit.MILLISECONDS), new Runnable() {
 			@Override
 			public void run() {
-				Logger.info("updating cache ...");
+				Logger.info("building cache ...");
 				JPA.withTransaction(() -> {
 					LocationProxyRule.updateCache(location);
 				});
@@ -56,7 +56,7 @@ public class LocationProxyRule {
 		// (end-start)*1e-6 + " milliseconds");
 		roots = getHierarchy();
 		auTree = getAuTree();
-		Logger.info("cache updated");
+		Logger.info("cache built finished.");
 	}
 
 	private static void notifyChange() {
@@ -183,7 +183,7 @@ public class LocationProxyRule {
 			insertPoint = Collections.binarySearch(uniqueSortedLocationNames, name, String.CASE_INSENSITIVE_ORDER);
 			if (insertPoint < 0){
 				uniqueSortedLocationNames.add(-insertPoint - 1, name);
-				Logger.debug(name + " inserted into uniqueNames at position: " + (-insertPoint - 1));
+				//Logger.debug(name + " inserted into uniqueNames at position: " + (-insertPoint - 1));
 			}
 		}
 	}
