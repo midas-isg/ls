@@ -146,8 +146,7 @@ public class LocationProxyRule {
 		List<String> tokenMatches = new ArrayList();
 		boolean matches;
 		Map<String, String> map;
-		Pattern nonUnicodePattern = Pattern.compile("[^\\p{L}]+", Pattern.UNICODE_CHARACTER_CLASS);
-		String cleanedInputString = prefixName.replaceAll(nonUnicodePattern.toString(), "");
+		String cleanedInputString = removeNonWordCharacters(prefixName);
 		String cleanedCompareString;
 		
 		while (!names.isEmpty()) {
@@ -171,7 +170,7 @@ public class LocationProxyRule {
 				}
 				
 				for(int i = 0; i < tokens.length; i++) {
-					cleanedCompareString = tokens[i].replaceAll(nonUnicodePattern.toString(), "");
+					cleanedCompareString = removeNonWordCharacters(tokens[i]);
 					if(cleanedCompareString.equalsIgnoreCase(cleanedInputString)) {
 						tokenMatches.add(originalName);
 						break;
@@ -220,6 +219,11 @@ public class LocationProxyRule {
 		}
 		
 		return result;
+	}
+	
+	public static String removeNonWordCharacters(String input) {
+		Pattern nonWordPattern = Pattern.compile("[^\\p{L}0-9]+", Pattern.UNICODE_CHARACTER_CLASS);
+		return input.replaceAll(nonWordPattern.toString(), "");
 	}
 	
 	private static List<String> getAsStringList(
