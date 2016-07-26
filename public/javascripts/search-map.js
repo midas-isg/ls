@@ -181,6 +181,7 @@ $(document).ready(function() {
 		
 		return;
 	}
+	
 	initialize();
 	
 	return;

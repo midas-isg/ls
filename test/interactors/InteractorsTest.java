@@ -89,19 +89,14 @@ public class InteractorsTest {
 	@Test
 	public void removeNonWordCharactersTest() {
 		String pokemon = "Pokémon-2";
+		String pokemon2;
 		String frenchWord = "/français/";
+		String frenchWord2;
 		
-		System.out.println(pokemon);
-		System.out.println(frenchWord);
-		
-		pokemon = LocationProxyRule.removeNonWordCharacters("Pokémon-2");
-		frenchWord = LocationProxyRule.removeNonWordCharacters("/français/");
-		
-		System.out.println(pokemon);
-		System.out.println(frenchWord);
-		
-		assertThat(pokemon).isEqualTo("Pokémon2");
-		assertThat(frenchWord).isEqualTo("français");
+		pokemon2 = LocationProxyRule.removeNonWordCharacters(pokemon);
+		frenchWord2 = LocationProxyRule.removeNonWordCharacters(frenchWord);
+		assertThat(pokemon2).isEqualTo("Pokémon2");
+		assertThat(frenchWord2).isEqualTo("français");
 		
 		/*
 		String japaneseWord = "日本語+";
@@ -114,6 +109,11 @@ public class InteractorsTest {
 		System.out.println(thaiWord);
 		assertThat(japaneseWord).isEqualTo("日本語");
 		assertThat(thaiWord).isEqualTo("ภาษาไทย");
+		
+		System.out.println(pokemon);
+		System.out.println(frenchWord);
+		System.out.println(pokemon2);
+		System.out.println(frenchWord2);
 		*/
 		
 		return;

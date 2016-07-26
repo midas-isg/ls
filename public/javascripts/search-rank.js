@@ -2,7 +2,8 @@
 Front-end based search ranking
 */
 
-var SEARCH_RANK = (function() {
+var SEARCH_RANK =
+(function() {
 	function SearchRank() {
 		return;
 	}
