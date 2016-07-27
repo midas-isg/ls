@@ -137,8 +137,12 @@ public class LocationRule {
 		
 	static public List<Location> findByPoint(double latitude, double longitude) {
 		List<BigInteger> result = GeometryRule.findByPoint(latitude, longitude);
-		List<Location> locations = LocationProxyRule.getLocations(result);
+		List<Location> locations = getLocations(result);
 		return locations;
+	}
+
+	public static List<Location> getLocations(List<BigInteger> result) {
+		return LocationDao.getLocations(result);
 	}
 
 	public static List<Object> findByTypeId(long typeId){

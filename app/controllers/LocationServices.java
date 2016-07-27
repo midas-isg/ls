@@ -605,7 +605,7 @@ public class LocationServices extends Controller {
 			FeatureGeometry geometry = GeoJsonRule.asFetureGeometry(fc);
 			String geo = Json.toJson(geometry).toString();
 			List<BigInteger> gids = GeometryRule.findGidsByGeometry(geo, superTypeId, typeId);
-			List<Location> locations = LocationProxyRule.getLocations(gids);
+			List<Location> locations = LocationRule.getLocations(gids);//LocationProxyRule.getLocations(gids);
 			return ok(Json.toJson(GeoJsonRule.toFeatureCollection(locations, GeoJsonRule.DEFAULT_KEYS)));
 		}
 	}
@@ -635,7 +635,7 @@ public class LocationServices extends Controller {
 
 	@Transactional
 	public Result updateCache(){
-		LocationProxyRule.updateCache();
-		return ok("Location-name cache updated!");
+		LocationProxyRule.scheduleCacheUpdate();
+		return ok("An update-cache request was scheduled.");
 	}
 }
