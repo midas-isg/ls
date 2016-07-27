@@ -13,88 +13,114 @@
 	<link href='@routes.Assets.at("external_packages/fancytree/ui.fancytree.css")' rel='stylesheet'/>
 	
 	<link href='@routes.Assets.at("stylesheets/fancytree-ext.css")' rel='stylesheet'/>
+	<link href='@routes.Assets.at("stylesheets/create.css")' rel='stylesheet'/>
 	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'/>
 }
 
 @main(message, imports, version) {
-	<div style="padding-left: 1%;">
-		<div class="pull-left">
-			<div style="padding: 2px;">
-				<div class="extra-bottom-space" style="border-width: 1px; border-style: groove; padding-left: 5px;">
-					<input id="file-input" class="pull-left" accept=".json, .geojson, .kml" type="file" style="padding-top: 1px; padding-bottom: 1px;">
-					
-					<div class="pre-spaced">
-						<em>ID:</em><input type="text" id="gid" class="pre-spaced" placeholder="New entry" disabled>
-						<button id="new-button" hidden>New entry</button>
+	<div style="">
+		<div id="creation-dialog" class="pull-left container-fluid no-padding" style="">
+			<div class="azure extra-bottom-space" style="padding: 2px;">
+				<div class="extra-bottom-space" style="">
+					<input id="file-input" class="pull-left vertical-spaced" accept=".json, .geojson, .kml" type="file">
+
+					<div class="vertical-spaced" style="clear:both;">
+						<div class="input-group extra-bottom-space">
+							<span class="input-group-addon" id="id-label">ID:</span>
+							<input type="text" id="gid" class="form-control" placeholder="New entry" aria-describedby="id-label" disabled>
+						</div>
 					</div>
 				</div>
 				
-				<div style="border-width: 1px; border-style: groove; padding-left: 5px;">
-					<div class="vertical-spaced">
-						<div class="dropdown pull-left">
-							<button class="btn btn-default btn-sm dropdown-toggle" type="button" id="dropdown-menu" data-toggle="dropdown" aria-expanded="true">
-								Location type <span class="caret"></span>
-							</button>
-							<ul class="dropdown-menu" role="menu" aria-labelledby="dropdown-menu" data-toggle="dropdown" aria-expanded="true">
-								<li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick='$("#au-type").val("Epidemic Zone"); $("#au-type").prop("disabled", true);'>Epidemic Zone</a></li>
-								<li id="au-create" role="presentation" hidden><a role="menuitem" tabindex="-1" href="#" onclick='$("#au-type").prop("disabled", false); $("#au-type").val("");'>Administrative Unit</a></li>
-							</ul>
-							<input type="text" id="au-type" placeholder="Location type" disabled>
+				<div class="azure">
+					<div class="input-group extra-bottom-space">
+						<span id="dropdown-label" class="input-group-addon no-padding">
+							<div class="dropdown">
+								<button class="btn btn-default btn-sm dropdown-toggle" type="button" id="dropdown-menu" data-toggle="dropdown" aria-expanded="true">
+									Location type <span class="caret"></span>
+								</button>
+								<ul class="dropdown-menu" role="menu" aria-labelledby="dropdown-menu" data-toggle="dropdown" aria-expanded="true">
+									<li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick='$("#au-type").val("Epidemic Zone"); $("#au-type").prop("disabled", true);'>Epidemic Zone</a></li>
+									<li id="au-create" role="presentation" hidden><a role="menuitem" tabindex="-1" href="#" onclick='$("#au-type").prop("disabled", false); $("#au-type").val("");'>Administrative Unit</a></li>
+								</ul>
+							</div>
+						</span>
+						<input type="text" id="au-type" class="form-control" placeholder="Location type" aria-describedby="dropdown-label" disabled>
+					</div>
+
+					<div class="extra-bottom-space input-group">
+						<span id="name-label" class="input-group-addon">Name:</span>
+						<input type="text" id="au-name" class="form-control" placeholder="Name" aria-describedby="name-label">
+					</div>
+					
+					<div class="extra-bottom-space" hidden>
+						<div class="input-group pull-left" style="width: 50%;">
+							<span id="code-label" class="input-group-addon">Code:</span>
+							<input type="text" id="au-code" class="form-control" placeholder="Code" aria-describedby="code-label">
 						</div>
-						
-						<div><em class="pre-spaced">Name:</em><input type="text" id="au-name" class="pre-spaced" placeholder="Name"></div>
+						<div class="input-group" style="width: 50%;">
+							<span id="ctype-label" class="input-group-addon">Code type:</span>
+							<input type="text" id="au-codetype" class="form-control" placeholder="Code type" aria-describedby="ctype-label">
+						</div>
+					</div>
+
+					<div class="extra-bottom-space">
+						<div class="input-group pull-left" style="width: 50%;">
+							<span id="start-label" class="input-group-addon">Date:</span>
+							<input type="text" id="start-date" class="form-control" placeholder="Start date" aria-describedby="start-label">
+						</div>
+
+						<div class="input-group" style="width: 50%;">
+							<span id="to-label" class="input-group-addon">to</span>
+							<input type="text" id="end-date" class="form-control" placeholder="End date" aria-describedby="to-label">
+						</div>
 					</div>
 					
-					<div class="vertical-spaced" hidden>
-						<em>Code:</em> <input type="text" id="au-code" class="pre-spaced" placeholder="Code"> <em>Code type:</em> <input type="text" id="au-codetype" class="pre-spaced" placeholder="Code type">
+					<div class="extra-bottom-space" style="margin-top: 10px;">
+						<div><span id="description-label">Description: </span></div>
+						<div><textarea id="description" placeholder="Description" rows="1" style=""></textarea></div>
 					</div>
 					
-					<div class="vertical-spaced">
-						<em>Date:</em> <input type="text" id="start-date" class="pre-spaced" placeholder="Start date"> <em>to</em> <input type="text" id="end-date" class="pre-spaced" placeholder="End date">
-					</div>
-					
-					<div class="vertical-spaced">
-						<div><em>Description: </em></div>
-						<div><textarea id="description" placeholder="Description" rows="1" style="width: 99%;"></textarea></div>
-					</div>
-					
-					<div class="vertical-spaced">
-						<button id="save-button">Save new entry to database</button>
+					<div class="extra-bottom-space">
+						<button id="save-button" class="btn btn-sm btn-default">Save new entry to database</button>
 						<button id="update-button" hidden>Update entry in database</button>
+						<button id="new-button" class="btn btn-sm btn-default pull-right">Reset page</button>
 						<span id="server-result"></span>
 					</div>
 				</div>
 			</div>
-			
+
 			<div>
 				<div id="map-one" class="map"></div>
 				<button id="download-button" hidden>Download as GeoJSON</button>
 			</div>
 		</div>
 		
-		<div class="pull-left pre-spaced" style="border-width: 1px; border-style: groove; padding-left: 5px;">
+		<div id="parent-wizard" class="pull-left container-fluid no-padding azure" style="border-width: 1px;">
 			<div id="parent-list">
 					<div>
-						<legend><em>Encompassing location</em></legend>
-						<label>Filter:</label>
-						<input id="parent" type="text" name="search" placeholder="Filter...">
-						<button id="resetParentSearchButton">Show all</button>
-						<button id="suggestion-button">Get suggestions</button>
-						<span id="parent-matches"></span>
+						<legend style="text-indent: 5px;"><em>Encompassing location</em></legend>
+						<div style="padding-left: 5px; padding-right: 5px;">
+							<label>Filter:</label>
+							<input id="parent" type="text" name="search" placeholder="Filter...">
+							<button id="resetParentSearchButton" class="btn btn-sm btn-default">Show all</button>
+							<button id="suggestion-button" class="btn btn-sm btn-default">Get suggestions</button>
+							<span id="parent-matches"></span>
+						</div>
 					</div>
 					<div id="parent-tree" style="padding-top: 5px; max-height: 500px; overflow: auto;"></div>
 			</div>
 			
-			<div id="au-list" class="pull-left" hidden>
+			<div id="au-list" hidden>
 					<div>
 						<legend><em>AU Component IDs:</em></legend>
 						<label>Filter:</label>
 						<input name="au-search" placeholder="Filter...">
-						<button id="resetCompositeSearchButton">&times;</button>
+						<button id="resetCompositeSearchButton" class="btn btn-sm btn-default">&times;</button>
 						<span id="composite-matches"></span>
 					</div>
 					<div id="au-composite-tree" style="padding-top: 5px"></div>
-					<button id="composite-button">Build Composite</button>
+					<button id="composite-button" class="btn btn-sm btn-default">Build Composite</button>
 			</div>
 		</div>
 	</div>

@@ -82,7 +82,7 @@ $(document).ready(function() {
 			
 			thisMapDriver.map.on('draw:drawstart', function(e) {
 				thisMapDriver.featureLayer.clearLayers();
-				console.log(e);
+				//console.log(e);
 				
 				return;
 			});
@@ -99,7 +99,7 @@ $(document).ready(function() {
 					SEARCH_RESULTS.searchByGeoJSON(geoJSON);
 				}
 				
-				console.log(e);
+				//console.log(e);
 				
 				return;
 			});
@@ -107,8 +107,11 @@ $(document).ready(function() {
 			thisMapDriver.map.on('draw:deleted', function(e) {
 				var layers = e.layers;
 				layers.eachLayer(function(layer) {
+					var output;
+
 					if(thisMapDriver.featureLayer.hasLayer(layer._leaflet_id + 1)) {
-						console.log(thisMapDriver.featureLayer.removeLayer(layer._leaflet_id + 1));
+						output = thisMapDriver.featureLayer.removeLayer(layer._leaflet_id + 1);
+						console.log(output);
 					}
 					
 					return;
