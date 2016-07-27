@@ -52,7 +52,7 @@ public class LocationProxyRule {
 		uniqueSortedLocationNames = getUniqueSortedLocationNames();
 		roots = getHierarchy();
 		auTree = getAuTree();
-		Logger.info("cache built finished.");
+		Logger.info("cache updated!");
 	}
 
 	private static void notifyChange() {

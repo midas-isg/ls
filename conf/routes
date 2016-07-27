@@ -12,6 +12,8 @@ GET           /create                             controllers.Application.create
 
 GET           /api/au-tree                        controllers.TreeView.tree()
 
+POST		  /api/topojson						  controllers.TopoJsonService.topoJson()
+
 #Alternate
 GET           /api/locations/:gid.jsonp           controllers.LocationServices.jsonp(gid:Long, callback:String ?="jsonp", maxExteriorRings:java.lang.Integer ?= null)
 GET           /api/locations/:gid.:format         controllers.LocationServices.locations(gid:Long, format, maxExteriorRings:java.lang.Integer ?= null)
