@@ -412,7 +412,7 @@ public class GeoJsonRule {
 		req.setSearchOtherNames(value);
 		value = returnDefaultIfKeyNotExists(node, "searchCodes", true);
 		req.setSearchCodes(value);
-		value = returnDefaultIfKeyNotExists(node, "verbose", false);
+		value = returnDefaultIfKeyNotExists(node, "verbose", true);
 		req.setVerbose(value);
 		
 	}
