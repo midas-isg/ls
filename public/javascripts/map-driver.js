@@ -370,12 +370,12 @@ MapDriver.prototype.upload = function() {
 	var thisMapDriver = this;
 	
 	fileReader.onload = (function() {
-		var kmlData = fileReader['result'];
+		var kmlData = fileReader['result'],
+			kmlDOM = (new DOMParser()).parseFromString(kmlData, 'text/xml'),
+			jsonData = toGeoJSON.kml(kmlDOM);
+
 		thisMapDriver.kml = kmlData;
-		var kmlDOM = (new DOMParser()).parseFromString(kmlData, 'text/xml');
-		
-		var jsonData = toGeoJSON.kml(kmlDOM);
-		
+
 		if(jsonData.features.length == 0) {
 			jsonData = JSON.parse(kmlData);
 		}

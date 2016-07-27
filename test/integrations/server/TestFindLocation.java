@@ -119,7 +119,7 @@ public class TestFindLocation {
 		WSResponse response = get(url);
 		assertStatus(response, OK);
 		JsonNode jsonResp = response.asJson();
-		assertAreEqual(jsonResp.get("geoJSON").get("features").size(), 1);
+		assertAreEqual(jsonResp.get("features").size(), 1);
 		searchOtherNames = false;
 		url = Server
 				.makeTestUrl(basePath
@@ -127,7 +127,7 @@ public class TestFindLocation {
 						+ searchOtherNames);
 		response = get(url);
 		jsonResp = response.asJson();
-		assertAreEqual(jsonResp.get("geoJSON").get("features").size(), 0);
+		assertAreEqual(jsonResp.get("features").size(), 0);
 	}
 
 	private void findByIdTest() {
