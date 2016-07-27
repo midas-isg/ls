@@ -127,47 +127,93 @@ public class LocationProxyRule {
 		return uniqueSortedLocationNames;
 	}
 
-	public static List<Map<String, String>> listUniqueNames(
-			String prefixNames, int limit){
+	public static List<Map<String, String>> listUniqueNames(String prefixNames, int limit) {
 		List<Map<String, String>> result = new ArrayList<>();
-		if (prefixNames == null || prefixNames.trim().isEmpty())
+		
+		if(prefixNames == null || prefixNames.trim().isEmpty())
 			return result;
 		
 		int numWord = 0;
-
 		List<String> names = getUniqueSortedLocationNames();
-		
 		String prefixName = prefixNames.trim().toLowerCase();
-		
 		String delim = " +";
-		while (!names.isEmpty()){
-			List<String> remainingNames = new ArrayList<>();
-			for (String originalName : names){
-				String name = originalName.replaceAll("[()]", "");
-				String[] tokens = name.split(delim);
-				String toBeRemoved = "";
-				for (int i = 0; i < numWord; i++){
+		String name;
+		String[] tokens;
+		String toBeRemoved;
+		String usedName = "";
+		List<String> remainingNames;
+		List<String> tokenMatches = new ArrayList();
+		boolean matches;
+		Map<String, String> map;
+		
+		while (!names.isEmpty()) {
+			remainingNames = new ArrayList<>();
+			
+			for(String originalName : names) {
+				name = originalName;
+				tokens = name.split(delim);
+				toBeRemoved = "";
+				
+				for(int i = 0; i < numWord; i++) {
 					toBeRemoved += tokens[i] + delim;
 				}
-				String usedName = name.replaceFirst(toBeRemoved, "");
-
-				if (usedName.toLowerCase().startsWith(prefixName)){
-					Map<String, String> map = new HashMap<>();
+				
+				try {
+					usedName = name.replaceFirst("\\Q" + toBeRemoved + "\\E", "");
+				}
+				catch(Exception exception) {
+					Logger.debug("Yes, the regex didn't work right!");
+					Logger.debug(exception.toString());
+				}
+				
+				for(int i = 0; i < tokens.length; i++) {
+					if(tokens[i].equalsIgnoreCase(prefixName)) {
+						tokenMatches.add(originalName);
+						break;
+					}
+				}
+				
+				if(usedName.toLowerCase().startsWith(prefixName)) {
+					map = new HashMap<>();
 					map.put("name", originalName);
 					result.add(map);
-					if (result.size() == limit){
+					
+					if(result.size() == limit) {
 						remainingNames = Collections.emptyList();
 						break;
 					}
-				} else if (tokens.length > numWord + 1){
+				}
+				else if(tokens.length > numWord + 1) {
 					remainingNames.add(originalName);
 				}
-
-				
 			}
+			
 			numWord++;
 			names = remainingNames;
 		}
+		
+		numWord = result.size() < limit ? tokenMatches.size() : 0;
+		for(int i = 0; i < numWord; i++) {
+			map = new HashMap<>();
+			map.put("name", tokenMatches.get(i));
+			
+			matches = false;
+			for(int j = 0; j < result.size(); j++) {
+				if(result.get(j).get("name").equals(tokenMatches.get(i))) {
+					matches = true;
+					break;
+				}
+			}
+			
+			if(!matches) {
+				result.add(map);
+				
+				if(result.size() == limit) {
+					break;
+				}
+			}
+		}
+		
 		return result;
 	}
 	

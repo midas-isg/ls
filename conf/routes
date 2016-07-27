@@ -54,5 +54,6 @@ GET           /api-docs                           controllers.Application.swagge
 GET     	  /api-docs.json					  @pl.matisoft.swagger.ApiHelpController.getResources
 GET			  /api-docs.json*path				  @pl.matisoft.swagger.ApiHelpController.getResource(path)
 
-# Test page
-GET     	  /test/acceptance            		  controllers.Test.acceptance()
+# Test pages
+GET		/test/acceptance						controllers.Test.acceptance()
+GET		/test/search-results					controllers.Test.searchResultsTest()
