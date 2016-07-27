@@ -210,8 +210,8 @@ public class LocationServices extends Controller {
 			@QueryParam("q")
 			String q,
 			@ApiParam(
-					value = "If false, only returns gids", 
-					defaultValue = "false"
+					value = "If false, returns only gids", 
+					defaultValue = "true"
 			) 
 			@QueryParam("verbose") 
 			Boolean verbose
@@ -371,7 +371,7 @@ public class LocationServices extends Controller {
 			double lat,
 			@ApiParam(value = "Longitude in degree", required = true) @QueryParam("long") 
 			double lon,
-			@ApiParam(value = "If false, returns only gids", defaultValue = "false") @QueryParam("verbose") 
+			@ApiParam(value = "If false, returns only gids", defaultValue = "true") @QueryParam("verbose") 
 			Boolean verbose
 	) {
 		Object result = GeoJsonRule.findByPoint(lat, lon, verbose);
@@ -570,7 +570,7 @@ public class LocationServices extends Controller {
 			Long typeId,
 			@ApiParam(
 					value = "If false, returns only gids", 
-					defaultValue = "false"
+					defaultValue = "true"
 			) 
 			@QueryParam("verbose") 
 			Boolean verbose

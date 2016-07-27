@@ -21,11 +21,11 @@ GET           /api/locations/$gid<[0-9]+>         controllers.LocationServices.l
 PUT           /api/locations/$gid<[0-9]+>         controllers.LocationServices.update(gid:Long)
 DELETE        /api/locations/$gid<[0-9]+>         controllers.LocationServices.delete(gid:Long)
 
-GET           /api/locations              		  controllers.LocationServices.filterByTerm(queryTerm?=null, limit:Int?=10, offset:Int?=0, searchOtherNames:Boolean?=true, q?=null, verbose:Boolean?=false)
+GET           /api/locations              		  controllers.LocationServices.filterByTerm(queryTerm?=null, limit:Int?=10, offset:Int?=0, searchOtherNames:Boolean?=true, q?=null, verbose:Boolean?=true)
 POST          /api/locations/find-bulk            controllers.LocationServices.findBulkLocations()
 POST          /api/locations/find-by-term         controllers.LocationServices.findByTerm()
-GET           /api/locations/find-by-coordinate   controllers.LocationServices.findByPoint(lat:Double, long:Double, verbose:Boolean?=false)
-POST          /api/locations/find-by-geometry     controllers.LocationServices.findByFeatureCollection(superTypeId:java.lang.Long ?= null, typeId:java.lang.Long ?= null, verbose:Boolean?=false)
+GET           /api/locations/find-by-coordinate   controllers.LocationServices.findByPoint(lat:Double, long:Double, verbose:Boolean?=true)
+POST          /api/locations/find-by-geometry     controllers.LocationServices.findByFeatureCollection(superTypeId:java.lang.Long ?= null, typeId:java.lang.Long ?= null, verbose:Boolean?=true)
 GET			  /api/locations/find-by-type/:id	  controllers.LocationServices.findByTypeId(id:Long)
 GET           /api/locations/unique-names    	  controllers.LocationServices.listUniqueNames(queryTerm, limit:Int?=10)
 
@@ -38,11 +38,11 @@ GET			  /api/update-cache					  controllers.LocationServices.updateCache()
 # Deprecated. Use /api/locations/find-bulk
 POST           /api/find-bulk                	  controllers.LocationServices.findBulk()
 # Deprecated
-GET           /api/locations/byCoordinate         controllers.LocationServices.findByLocationPoint(lat:Double, long:Double, verbose:Boolean?=false)
+GET           /api/locations/byCoordinate         controllers.LocationServices.findByLocationPoint(lat:Double, long:Double, verbose:Boolean?=true)
 # Deprecated. Use /api/locations/find-by-coordinate
-GET           /api/locations-by-coordinate        controllers.LocationServices.findByLocationPoint(lat:Double, long:Double, verbose:Boolean?=false)
+GET           /api/locations-by-coordinate        controllers.LocationServices.findByLocationPoint(lat:Double, long:Double, verbose:Boolean?=true)
 # Deprecated. Use /api/locations/find-by-geometry
-POST          /api/locations-by-geometry          controllers.LocationServices.findByLocationFeatureCollection(superTypeId:java.lang.Long ?= null, typeId:java.lang.Long ?= null, verbose:Boolean?=false)
+POST          /api/locations-by-geometry          controllers.LocationServices.findByLocationFeatureCollection(superTypeId:java.lang.Long ?= null, typeId:java.lang.Long ?= null, verbose:Boolean?=true)
 # Deprecated. Use /api/locations/list-unique-names
 GET           /api/unique-location-names          controllers.LocationServices.findLocationNames(q, limit:Int?=10)
 
