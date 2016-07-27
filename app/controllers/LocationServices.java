@@ -630,7 +630,7 @@ public class LocationServices extends Controller {
 			putAsStringIfNotNull(properties, "typeId", typeId);
 			putAsStringIfNotNull(properties, "verbose", verbose);
 			if(verbose){
-				List<Location> locations = LocationProxyRule.getLocations(gids);
+				List<Location> locations = LocationRule.getLocations(gids);
 				FeatureCollection result = GeoJsonRule.toFeatureCollection(locations, GeoJsonRule.DEFAULT_KEYS);
 				putAsStringIfNotNull(properties, "resultSize", locations.size());
 				result.setProperties(properties);				
@@ -671,7 +671,7 @@ public class LocationServices extends Controller {
 
 	@Transactional
 	public Result updateCache(){
-		LocationProxyRule.updateCache();
-		return ok("Location-name cache updated!");
+		LocationProxyRule.scheduleCacheUpdate();
+		return ok("An update-cache request was scheduled.");
 	}
 }
