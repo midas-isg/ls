@@ -120,24 +120,25 @@ function getURLParameterByName(name) {
 }
 
 function listLineageRefs(lineage, sectionID) {
-	var i;
-	var auName;
-	var auGID;
-	var show;
+	var i,
+		auName,
+		auGID,
+		show;
 	
 	show = false;
 	if(lineage && (lineage.length > 0)) {
 		$(sectionID).show();
-		
-		for(i = (lineage.length - 1); i >= 0; i--) {
+
+		i = (lineage.length - 1);
+		auName = lineage[i].name;
+		auGID = lineage[i].gid;
+		$(sectionID).append("<a href='" + context + "/browser?id=" + auGID + "' class='' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
+		for(i--; i >= 0; i--) {
 			auName = lineage[i].name;
 			auGID = lineage[i].gid;
-			
+
+			$(sectionID).append(", ");
 			$(sectionID).append("<a href='" + context + "/browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
-			
-			if(i > 0) {
-				$(sectionID).append(", ");
-			}
 		}
 	}
 	

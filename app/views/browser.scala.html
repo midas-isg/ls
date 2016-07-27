@@ -1,7 +1,7 @@
 @(message: String, version:String)
 
 @imports = {
-	<script src='@routes.Assets.at("javascripts/browser.js")'></script>
+	<script src='@routes.Assets.at("javascripts/browser.js")' defer></script>
 	
 	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'>
 }
@@ -9,34 +9,36 @@
 @main(message, imports, version) {
 	<div>
 		<div id="header-data" hidden>
-			<h2 style="clear: both;">
-				<div id="error" class="data-container" style="color : red; font-weight:bold;"></div>
-				<div id="au-name" class="pull-left"></div>
-				<div id="au-location-type" class="data-container"></div>
-			</h2>
-			
-			<div id="au-lineage" class="data-container extra-bottom-space" hidden>
-				<em class="pull-left">Located within:</em>
+			<div class="azure">
+				<h2 style="clear: both; margin-top: 0px;">
+					<div id="error" class="data-container" style="color : red; font-weight:bold;"></div>
+					<div id="au-name" class="pull-left"></div>
+					<div id="au-location-type" class="data-container"></div>
+				</h2>
+
+				<div id="au-lineage" class="data-container extra-bottom-space" hidden>
+					<em class="pull-left post-spaced">Located within:</em>
+				</div>
+
+				<div id="otherNames" class="data-container" hidden>
+					<em class="pull-left">Other names: </em>
+				</div>
+
+				<div id="description" class="data-container extra-bottom-space" hidden>
+					<em class="pull-left">Description:</em>
+				</div>
+
+				<div class="data-container">
+					<em class="pull-left">Apollo location code:</em> <div id="gid" class="pull-left pre-spaced"></div>
+				</div>
 			</div>
-			
-			<div id="otherNames" class="data-container" hidden>
-				<em class="pull-left">Other names: </em>
-			</div>
-			
-			<div id="description" class="data-container extra-bottom-space" hidden>
-				<em class="pull-left">Description:</em>
-			</div>
-			
-			<div class="data-container">
-				<em class="pull-left">Apollo location code:</em> <div id="gid" class="pull-left pre-spaced"></div>
-			</div>
-			
+
 			<div class="data-container" style="z-index: 0;">
 				<div id="historical-note" hidden>
 					<strong style="color: red;">*Historical data overlayed on current world map*</strong>
 				</div>
 				
-				<div class='map'>
+				<div class='map' style="position: relative;">
 					<div id='map-data' class='map' style="position: absolute;">Loading...</div>
 					<img id='loader' class='map' src='@routes.Assets.at("images/loading.gif")' style="opacity: 0.7;"></img>
 				</div>
@@ -53,24 +55,27 @@
 					<em class="pull-left">to</em> <div id="end-date" class="pull-left pre-spaced">present</div>
 				</div>
 			</div>
+
 			<div id="codes" class="data-container extra-bottom-space" hidden>
 				<em id="codes-toggle">Known codes for this location in other standards:</em>
 			</div>
-			
-			<div id="au-related" class="data-container extra-bottom-space" hidden>
-				<em class="pull-left">Related locations:</em>
-			</div>
-			
-			<div id="epidemic-zone" class="data-container extra-bottom-space" hidden>
-				<em class="pull-left">Epidemic zones:</em>
-			</div>
-			
-			<div id="au-children" class="data-container extra-bottom-space" hidden>
-			</div>
-			
-			<div class="data-container extra-bottom-space">
-				<em class="pull-left">View location in alternative data format:</em>
-				<div class="pull-left pre-spaced">[<a id="au-geojson">GeoJSON</a>], [<a id="au-kml">KML</a>], [<a id="au-apollojson">ApolloJSON</a>]</div>
+
+			<div class="azure">
+				<div id="au-related" class="data-container extra-bottom-space" hidden>
+					<em class="pull-left">Related locations:</em>
+				</div>
+
+				<div id="epidemic-zone" class="data-container extra-bottom-space" hidden>
+					<em class="pull-left">Epidemic zones:</em>
+				</div>
+
+				<div id="au-children" class="data-container extra-bottom-space" hidden>
+				</div>
+
+				<div class="data-container extra-bottom-space">
+					<em class="pull-left">View location in alternative data format:</em>
+					<div class="pull-left pre-spaced">[<a id="au-geojson">GeoJSON</a>], [<a id="au-kml">KML</a>] <!--, [<a id="au-apollojson">ApolloJSON</a>]--></div>
+				</div>
 			</div>
 		</div>
 		

@@ -1,18 +1,27 @@
 package controllers;
 
-import interactors.GeoJsonRule;
-import interactors.GeometryRule;
-import interactors.KmlRule;
-import interactors.LocationProxyRule;
-import interactors.LocationRule;
-
 import java.math.BigInteger;
 import java.util.List;
 
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
-import models.Response;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiImplicitParam;
+import com.wordnik.swagger.annotations.ApiImplicitParams;
+import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiParam;
+import com.wordnik.swagger.annotations.ApiResponse;
+import com.wordnik.swagger.annotations.ApiResponses;
+
+import dao.entities.Location;
+import interactors.GeoJsonRule;
+import interactors.GeometryRule;
+import interactors.KmlRule;
+import interactors.LocationProxyRule;
+import interactors.LocationRule;
 import models.exceptions.PostgreSQLException;
 import models.geo.FeatureCollection;
 import models.geo.FeatureGeometry;
@@ -23,19 +32,6 @@ import play.libs.Json;
 import play.libs.Jsonp;
 import play.mvc.Controller;
 import play.mvc.Result;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.sun.javafx.collections.ListListenerHelper;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiImplicitParam;
-import com.wordnik.swagger.annotations.ApiImplicitParams;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiParam;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
-
-import dao.entities.Location;
 
 @Api(value = "/api/locations", description = "Endpoint for locations")
 public class LocationServices extends Controller {
@@ -166,10 +162,10 @@ public class LocationServices extends Controller {
 			value = "Returns locations by term search", 
 			notes = "This endpoint returns locations whose name matches the requested search term (queryTerm or q). "
 			+ "To do pagination, use 'limit' and 'offset'. "
-			+ "Note: The schema of the 'geoJSON' field in the response is GeoJSON FeatureCollection. ", 
-			response = Response.class)
+			+ "Note: response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response). ", 
+			response = FeatureCollection.class)
 	@ApiResponses(value = {
-			@ApiResponse(code = OK, message = "Successfully returned", response = Response.class),
+			@ApiResponse(code = OK, message = "Successfully returned", response = FeatureCollection.class),
 			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
 			@ApiResponse(code = BAD_REQUEST, message = "Bad request") 
 	})
@@ -215,56 +211,17 @@ public class LocationServices extends Controller {
 		Object result = GeoJsonRule.filterByTerm(queryTerm, limit, offset, searchOtherNames);
 		return ok(Json.toJson(result));
 	}
-	
-	/**
-	 * @deprecated replaced by {@link #filterByTerm(String queryTerm, Integer limit,
-			Integer offset, Boolean searchOtherNames)}
-	 */
-	@Deprecated
-	@Transactional
-	public Result findLocations(
-	@ApiParam(
-			value = "Search terms delimited by a space charactor. "
-			+ "The search terms are combined together with conjunction. ",
-			required = true
-	) 
-	@QueryParam("q") 
-	String q,
-	
-	@ApiParam(
-			value = "Maximum number of locations to return. ", 
-			required = true, defaultValue = "10"
-	) 
-	@QueryParam("limit") 
-	Integer limit,
-	
-	@ApiParam(
-			value = "Page offset if number of locations exceeds limit. ", 
-			required = true, defaultValue = "0"
-	) 
-	@QueryParam("offset") 
-	Integer offset,
-	
-	@ApiParam(
-			value = "Whether to search in location alternative-names. ", 
-			defaultValue = "true"
-	) 
-	@QueryParam("searchOtherNames") 
-	Boolean searchOtherNames
-			) {
-		Object result = GeoJsonRule.filterByTerm(q, limit, offset, searchOtherNames);
-		return ok(Json.toJson(result));
-	}
-	
+
 	@Transactional
 	@ApiOperation(
 			httpMethod = "POST", 
 			nickname = "Find", 
 			value = "Finds locations by name, other-names, or code", 
-			notes = "", 
-			response = Response.class)
+			notes = "Receives a single query as shown in the example."
+			+ "Note: response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response). ", 
+			response = FeatureCollection.class)
 	@ApiResponses(value = {
-			@ApiResponse(code = OK, message = "Successfully returned", response = Response.class),
+			@ApiResponse(code = OK, message = "Successfully returned", response = FeatureCollection.class),
 			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
 			@ApiResponse(code = BAD_REQUEST, message = "Invalid input")
 	})
@@ -279,7 +236,7 @@ public class LocationServices extends Controller {
 	public Result findByTerm() {
 		if (!(request().body().asJson() instanceof JsonNode) ||
 				request().body().asJson() instanceof ArrayNode)
-			return badRequest("Invalid input");
+			return badRequest("Invalid input! JsonNode or ArrayNode expected.");
 
 		ArrayNode arrayNode = toArrayNode((JsonNode)request().body().asJson());
 		List<Object> result = GeoJsonRule.findByTerm(arrayNode);
@@ -300,11 +257,12 @@ public class LocationServices extends Controller {
 			httpMethod = "POST", 
 			nickname = "findBulkLocations", 
 			value = "Returns locations requested in bulk", 
-			notes = "This endpoint returns locations match with the requested search terms (queryTerm[required], start, end, locationTypeIds, etc. (see example file)). "
-			+ "Note: The schema of the 'geoJSON' field in the response is a GeoJSON, but 'geometry' and 'children' properties are excluded. ", 
-			response = Response.class)
+			notes = "This endpoint returns locations match with the requested search terms "
+			+ "(queryTerm[required], start, end, locationTypeIds, etc. (see example file)). "
+			+ "Note: response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response). ", 
+			response = FeatureCollection.class)
 	@ApiResponses(value = {
-			@ApiResponse(code = OK, message = "Successfully returned", response = Response.class),
+			@ApiResponse(code = OK, message = "Successfully returned", response = FeatureCollection.class),
 			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
 			@ApiResponse(code = BAD_REQUEST, message = "Invalid input")
 	})
@@ -318,7 +276,7 @@ public class LocationServices extends Controller {
 	} )
 	public Result findBulkLocations() {
 		if (!(request().body().asJson() instanceof ArrayNode))
-			return badRequest("Invalid input");
+			return badRequest("Invalid input! ArrayNode expected.");
 		List<Object> result = GeoJsonRule.findByTerm((ArrayNode)request().body().asJson());
 		return ok(toJson(result));
 	}
@@ -348,12 +306,12 @@ public class LocationServices extends Controller {
 			value = "Returns unique location-names", 
 			notes = "This endpoint returns uniqure location-names which match the requested search terms (queryTerm). "
 			+ "Use 'limit' to set the maximum number to return (default is 10). ",
-			response = String.class,
+			response = List.class,
 			produces = "application/json",
 			responseContainer = "set"
 	)
 	@ApiResponses(value = {
-			@ApiResponse(code = OK, message = "Successfully returned", response = Response.class),
+			@ApiResponse(code = OK, message = "Successfully returned", response = List.class),
 			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
 	})
 	public Result listUniqueNames(
@@ -391,11 +349,11 @@ public class LocationServices extends Controller {
 			value = "Returns locations by coordinate search", 
 			notes = "This endpoint returns locations whose geometry encompasses the submitting coordinate. "
 			+ "The coordinate is defined by latitude (lat) and longtitude (long). "
-			+ "Note: The schema of the 'geoJSON' field in the response is GeoJSON FeatureCollection. ", 
-			response = Response.class
+			+ "Note: response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response). ", 
+			response = FeatureCollection.class
 	)
 	@ApiResponses(value = {
-			@ApiResponse(code = OK, message = "Successfully returned", response = Response.class),
+			@ApiResponse(code = OK, message = "Successfully returned", response = FeatureCollection.class),
 			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
 	})
 	public Result findByPoint(
@@ -565,11 +523,12 @@ public class LocationServices extends Controller {
 			httpMethod = "POST", 
 			nickname = "findLocationByFeatureCollection", 
 			value = "Returns locations by featureCollection", 
-			notes = "This endpoint returns locations which intersect the submitted Geometry in body. ",
-			response = Response.class
+			notes = "This endpoint returns locations which intersect the submitted Geometry in body. "
+			+ "Note: response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response). ",
+			response = FeatureCollection.class
 	)
 	@ApiResponses(value = { 
-			@ApiResponse(code = OK, message = "Successfully returned", response = Response.class),
+			@ApiResponse(code = OK, message = "Successfully returned", response = FeatureCollection.class),
 			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error")
 	})
     @ApiImplicitParams( { 
