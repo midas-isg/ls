@@ -48,10 +48,10 @@ $(document).ready(function() {
 
 							thisMapDriver.map.fitBounds(bounds);
 							thisMapDriver.mapID = thisMapDriver.featureLayer.getGeoJSON().id;
-							setTextValue("#au-name", feature.properties.name);
-							setTextValue("#au-code", feature.properties.code);
-							setTextValue("#start-date", feature.properties.startDate);
-							setTextValue("#end-date", feature.properties.endDate);
+							HELPERS.setTextValue("#au-name", feature.properties.name);
+							HELPERS.setTextValue("#au-code", feature.properties.code);
+							HELPERS.setTextValue("#start-date", feature.properties.startDate);
+							HELPERS.setTextValue("#end-date", feature.properties.endDate);
 							PARENT_TREE.resetIsAboutList();
 							AU_COMPOSITE_TREE.resetIsAboutList();
 							
@@ -63,9 +63,9 @@ $(document).ready(function() {
 								
 								PARENT_TREE.clickIsAboutByValue(parentGID);
 							}
-							
-							setTextValue("#gid", feature.properties.gid);
-							setTextValue("#description", feature.properties.locationDescription);
+
+							HELPERS.setTextValue("#gid", feature.properties.gid);
+							HELPERS.setTextValue("#description", feature.properties.locationDescription);
 							
 							feature.properties.title = feature.properties.name + " " + feature.properties.locationTypeName + " from " + feature.properties.startDate;
 							
@@ -196,7 +196,7 @@ $(document).ready(function() {
 						MAP_DRIVER.kml = feature.properties.kml;
 						
 						$("#gid").prop("disabled", true);
-						setTextValue("#au-type", feature.properties.locationTypeName);
+						HELPERS.setTextValue("#au-type", feature.properties.locationTypeName);
 						
 						if(feature.properties.parentGid) {
 							PARENT_TREE.clickIsAboutByValue(feature.properties.parentGid);
@@ -222,7 +222,7 @@ $(document).ready(function() {
 					return;
 				}
 
-				id = getURLParameterByName("id");
+				id = HELPERS.getURLParameterByName("id");
 				if(id) {
 					loadFromDatabase(id);
 				}

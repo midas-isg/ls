@@ -47,10 +47,10 @@ $(document).ready(function() {
 							thisMapDriver.map.fitBounds(bounds);
 							
 							thisMapDriver.mapID = thisMapDriver.featureLayer.getGeoJSON().id;
-							setTextValue("#au-name", feature.properties.name);
-							setTextValue("#au-code", feature.properties.code);
-							setTextValue("#start-date", feature.properties.startDate);
-							setTextValue("#end-date", feature.properties.endDate);
+							HELPERS.setTextValue("#au-name", feature.properties.name);
+							HELPERS.setTextValue("#au-code", feature.properties.code);
+							HELPERS.setTextValue("#start-date", feature.properties.startDate);
+							HELPERS.setTextValue("#end-date", feature.properties.endDate);
 							PARENT_TREE.resetIsAboutList();
 							AU_COMPOSITE_TREE.resetIsAboutList();
 							
@@ -63,8 +63,8 @@ $(document).ready(function() {
 								
 								PARENT_TREE.clickIsAboutByValue(parentGID);
 							}
-							
-							setTextValue("#gid", feature.properties.gid);
+
+							HELPERS.setTextValue("#gid", feature.properties.gid);
 							feature.properties.title = feature.properties.name + " [" + feature.properties.codePath + "] " + "; " + feature.properties.startDate;
 							
 							if(feature.properties.endDate) {
@@ -169,10 +169,10 @@ $(document).ready(function() {
 						thisMapDriver.kml = feature.properties.kml;
 						
 						$("#gid").prop("disabled", true);
-						setTextValue("#au-type", feature.properties.locationTypeName);
+						HELPERS.setTextValue("#au-type", feature.properties.locationTypeName);
 						
 						PARENT_TREE.clickIsAboutByValue(feature.properties.parentGid);
-						setTextValue("input#parent", getFirstAlphaOnly(PARENT_TREE.tree.getNodeByKey(feature.properties.parentGid).title));
+						HELPERS.setTextValue("input#parent", HELPERS.getFirstAlphaOnly(PARENT_TREE.tree.getNodeByKey(feature.properties.parentGid).title));
 						$("input#parent").keyup();
 						
 						$("#save-button").hide();
@@ -185,7 +185,7 @@ $(document).ready(function() {
 					
 					return;
 				}
-				var id = getURLParameterByName("id");
+				var id = HELPERS.getURLParameterByName("id");
 				if(id) {
 					loadFromDatabase(id);
 				}
@@ -193,13 +193,13 @@ $(document).ready(function() {
 				$("#new-button").click(function() {
 					CONCEPT_MAP.mapID = Date().valueOf();
 					CONCEPT_MAP.featureLayer.clearLayers();
-					setTextValue("#au-name", "");
-					setTextValue("#au-code", "");
-					setTextValue("#au-codepath", "");
+					HELPERS.setTextValue("#au-name", "");
+					HELPERS.setTextValue("#au-code", "");
+					HELPERS.setTextValue("#au-codepath", "");
 					
 					var today = new Date();
-					setTextValue("#start-date", today.getUTCFullYear() + "-" + (today.getUTCMonth() + 1) + "-" + today.getUTCDate());
-					setTextValue("#end-date", "");
+					HELPERS.setTextValue("#start-date", today.getUTCFullYear() + "-" + (today.getUTCMonth() + 1) + "-" + today.getUTCDate());
+					HELPERS.setTextValue("#end-date", "");
 				});
 				
 				$("#delete-button").click(function() {
@@ -221,7 +221,7 @@ $(document).ready(function() {
 				});
 				
 				$("#db-load-button").click(function() {
-					var mapID = getValueText("#gid");
+					var mapID = HELPERS.getValueText("#gid");
 					CONCEPT_MAP.geoJSONURL = crudPath + "/" + mapID;
 					//"http://tps23-nb.univ.pitt.edu/test.json";
 					

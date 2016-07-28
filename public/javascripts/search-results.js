@@ -246,7 +246,7 @@ var SEARCH_RESULTS =
 				appendString = appendString + "<td class='within-col' id='result_lineage" + i + "'></td></tr>";
 				resultBody.append(appendString);
 
-				listLineageRefs(properties.lineage, "#result_lineage" + i);
+				HELPERS.listLineageRefs(properties.lineage, "#result_lineage" + i);
 			}
 			else {
 				appendString = appendString + "<td class='within-col'></td></tr>";
@@ -357,7 +357,7 @@ var SEARCH_RESULTS =
 })();
 
 $(document).ready(function() {
-	var query = getURLParameterByName("q");
+	var query = HELPERS.getURLParameterByName("q");
 
 	if(query) {
 		$("#input").val(query);

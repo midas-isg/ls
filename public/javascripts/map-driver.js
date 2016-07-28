@@ -71,15 +71,15 @@ MapDriver.prototype.loadFeatureLayer = function() {
 			
 			thisMapDriver.mapID = thisMapDriver.featureLayer.getGeoJSON().id;
 			thisMapDriver.kml = feature.properties.kml;
-			setTextValue("#au-name", feature.properties.name);
-			setTextValue("#description", feature.properties.locationDescription);
-			setTextValue("#start-date", feature.properties.startDate);
-			setTextValue("#end-date", feature.properties.endDate);
+			HELPERS.setTextValue("#au-name", feature.properties.name);
+			HELPERS.setTextValue("#description", feature.properties.locationDescription);
+			HELPERS.setTextValue("#start-date", feature.properties.startDate);
+			HELPERS.setTextValue("#end-date", feature.properties.endDate);
 			
 			parentGID = feature.properties.parentGid;
 			console.log(parentGID);
-			
-			setTextValue("#gid", feature.properties.gid);
+
+			HELPERS.setTextValue("#gid", feature.properties.gid);
 			feature.properties.title = feature.properties.name + " " + feature.properties.locationTypeName + " from " + feature.properties.startDate;
 			
 			if(feature.properties.endDate) {
@@ -237,13 +237,13 @@ console.log("Length: " + JSON.stringify(data).length);
 		success: function(data, status, response) {
 			console.log(data);
 			console.log(status);
-			setTextValue("#gid", getIDFromURI(response.getResponseHeader("Location")));
+			HELPERS.setTextValue("#gid", HELPERS.getIDFromURI(response.getResponseHeader("Location")));
 			$("#gid").prop("disabled", true);
 			$("#new-button").show();
 			$("#save-button").hide();
 			$("#update-button").show();
-			
-			setTextValue("#server-result", "Success, ID: " + $("#gid").val() + " created");
+
+			HELPERS.setTextValue("#server-result", "Success, ID: " + $("#gid").val() + " created");
 			$("#server-result").css("color", "#008000");
 			$("#server-result").show();
 			$("#server-result").fadeOut(15000);
@@ -251,7 +251,7 @@ console.log("Length: " + JSON.stringify(data).length);
 		error: function(data, status) {
 			console.log(status);
 			console.log(data);
-			setTextValue("#server-result", status + ": " + data.statusText + " - " + data.responseText);
+			HELPERS.setTextValue("#server-result", status + ": " + data.statusText + " - " + data.responseText);
 			$("#server-result").css("color", "#800000");
 			$("#server-result").show();
 			$("#server-result").fadeOut(15000);
@@ -270,7 +270,7 @@ MapDriver.prototype.updateMap = function() {
 
 	data.id = this.mapID;
 	
-	URL = URL + "/" + getValueText("#gid");
+	URL = URL + "/" + HELPERS.getValueText("#gid");
 	
 	if(!this.formatGeoJSON(data)) {
 		return;
@@ -290,11 +290,11 @@ console.log("Length: " + JSON.stringify(data).length);
 		success: function(data, status, response) {
 			console.log(data);
 			console.log(status);
-			setTextValue("#gid", getIDFromURI(response.getResponseHeader("Location")));
+			HELPERS.setTextValue("#gid", HELPERS.getIDFromURI(response.getResponseHeader("Location")));
 			$("#gid").prop("disabled", true);
 			$("#new-button").show();
-			
-			setTextValue("#server-result", "Success, ID: " + $("#gid").val() + " saved");
+
+			HELPERS.setTextValue("#server-result", "Success, ID: " + $("#gid").val() + " saved");
 			$("#server-result").css("color", "#008000");
 			$("#server-result").show();
 			$("#server-result").fadeOut(15000);
@@ -302,7 +302,7 @@ console.log("Length: " + JSON.stringify(data).length);
 		error: function(data, status) {
 			console.log(status);
 			console.log(data);
-			setTextValue("#server-result", status + ": " + data.statusText + " - " + data.responseText);
+			HELPERS.setTextValue("#server-result", status + ": " + data.statusText + " - " + data.responseText);
 			$("#server-result").css("color", "#800000");
 			$("#server-result").show();
 			$("#server-result").fadeOut(15000);
@@ -318,7 +318,7 @@ MapDriver.prototype.deleteLocation = function() {
 	var httpType = "DELETE",
 		URL = crudPath;
 	
-	URL = URL + "/" + getValueText("#gid");
+	URL = URL + "/" + HELPERS.getValueText("#gid");
 	
 	$.ajax({
 		type: httpType,
@@ -326,8 +326,8 @@ MapDriver.prototype.deleteLocation = function() {
 		success: function(data, status, response) {
 			console.log(data);
 			console.log(status);
-			
-			setTextValue("#server-result", "Success, ID: " + $("#gid").val() + " deleted");
+
+			HELPERS.setTextValue("#server-result", "Success, ID: " + $("#gid").val() + " deleted");
 			$("#server-result").css("color", "#008080");
 			$("#server-result").show();
 			$("#server-result").fadeOut(15000);
@@ -335,8 +335,8 @@ MapDriver.prototype.deleteLocation = function() {
 		error: function(data, status) {
 			console.log(status);
 			console.log(data);
-			
-			setTextValue("#server-result", status + ": " + data.statusText + " - " + data.responseText);
+
+			HELPERS.setTextValue("#server-result", status + ": " + data.statusText + " - " + data.responseText);
 			$("#server-result").css("color", "#800000");
 			$("#server-result").show();
 			$("#server-result").fadeOut(15000);
@@ -354,11 +354,11 @@ MapDriver.prototype.download = function() {
 	
 	for(i = 0; i < jsonData.features.length; i++) {
 		properties = jsonData.features[i].properties;
-		properties.name = getValueText("#au-name");
-		properties.startDate = getValueText("#start-date");
-		properties.endDate = getValueText("#end-date");
+		properties.name = HELPERS.getValueText("#au-name");
+		properties.startDate = HELPERS.getValueText("#start-date");
+		properties.endDate = HELPERS.getValueText("#end-date");
 		properties.parentGid = this.parent;
-		properties.description = getValueText("#description");
+		properties.description = HELPERS.getValueText("#description");
 	}
 	
 	if(!jsonData.id) {
@@ -396,19 +396,19 @@ MapDriver.prototype.upload = function() {
 		properties = jsonData.features[0].properties;
 		
 		if(properties.name) {
-			setTextValue("#au-name", properties.name);
+			HELPERS.setTextValue("#au-name", properties.name);
 		}
 	
 		if(properties.description) {
-			setTextValue("#description", properties.description);
+			HELPERS.setTextValue("#description", properties.description);
 		}
 		
 		if(properties.startDate) {
-			setTextValue("#start-date", properties.startDate);
+			HELPERS.setTextValue("#start-date", properties.startDate);
 		}
 		
 		if(properties.endDate) {
-			setTextValue("#end-date", properties.endDate);
+			HELPERS.setTextValue("#end-date", properties.endDate);
 		}
 
 		for(i = 0; i < jsonData.features.length; i++) {
@@ -458,7 +458,7 @@ MapDriver.prototype.suggestParents = function() {
 		error: function(data, status) {
 			console.log(status);
 			console.log(data);
-			setTextValue("#server-result", status + ": " + data.statusText + " - " + data.responseText);
+			HELPERS.setTextValue("#server-result", status + ": " + data.statusText + " - " + data.responseText);
 			$("#server-result").css("color", "#800000");
 			$("#server-result").show();
 			$("#server-result").fadeOut(15000);
@@ -510,16 +510,16 @@ MapDriver.prototype.removeAUComponent = function(gID) {
 }
 
 MapDriver.prototype.formatGeoJSON = function(geoJSON) {
-	var id = getValueText("#gid"),
-		auName = getValueText("#au-name"),
-		locationTypeName = getValueText("#au-type"),
-		auCode = getValueText("#au-code"),
-		auCodeType = getValueText("#au-codetype"),
-		startDate = getValueText("#start-date"),
-		endDate = getValueText("#end-date"),
+	var id = HELPERS.getValueText("#gid"),
+		auName = HELPERS.getValueText("#au-name"),
+		locationTypeName = HELPERS.getValueText("#au-type"),
+		auCode = HELPERS.getValueText("#au-code"),
+		auCodeType = HELPERS.getValueText("#au-codetype"),
+		startDate = HELPERS.getValueText("#start-date"),
+		endDate = HELPERS.getValueText("#end-date"),
 		auParentGID = this.parent,
 		description = $("#description").val(),
-		dateTokens = validDate(startDate),
+		dateTokens = HELPERS.validDate(startDate),
 		useParent,
 		properties;
 
@@ -529,7 +529,7 @@ MapDriver.prototype.formatGeoJSON = function(geoJSON) {
 	}
 
 	if(dateTokens > 2) {
-		startDate = toServerDate(new Date(startDate), dateTokens);
+		startDate = HELPERS.toServerDate(new Date(startDate), dateTokens);
 	}
 	else {
 		alert("Invalid start date: " + startDate);
@@ -537,14 +537,14 @@ MapDriver.prototype.formatGeoJSON = function(geoJSON) {
 		return null;
 	}
 
-	dateTokens = validDate(endDate);
+	dateTokens = HELPERS.validDate(endDate);
 	if(endDate == "today") {
 		endDate = new Date().toString();
 		dateTokens = 3;
 	}
 
 	if(dateTokens > 2) {
-		endDate = toServerDate(new Date(endDate), dateTokens);
+		endDate = HELPERS.toServerDate(new Date(endDate), dateTokens);
 
 		if((new Date(endDate)).valueOf() < (new Date(startDate)).valueOf()) {
 			alert("It is not possible for the end date to occur before the start date");

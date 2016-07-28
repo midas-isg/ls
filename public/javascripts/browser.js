@@ -4,11 +4,11 @@ var crudPath = context + "/api/locations",
 (function() {
 	function BrowserMap() {
 		var thisBrowserMap = this,
-			id = getURLParameterByName("id"),
-			format = getURLParameterByName("format"),
-			query = getURLParameterByName("q"),
-			limit = getURLParameterByName("limit"),
-			offset = getURLParameterByName("offset");
+			id = HELPERS.getURLParameterByName("id"),
+			format = HELPERS.getURLParameterByName("format"),
+			query = HELPERS.getURLParameterByName("q"),
+			limit = HELPERS.getURLParameterByName("limit"),
+			offset = HELPERS.getURLParameterByName("offset");
 
 		this.title = "";
 		this.mapID = id; //'tps23.k1765f0g';
@@ -131,8 +131,8 @@ var crudPath = context + "/api/locations",
 						$("#description").show();
 					}
 
-					setTextValue("#start-date", properties.startDate);
-					setTextValue("#end-date", properties.endDate);
+					HELPERS.setTextValue("#start-date", properties.startDate);
+					HELPERS.setTextValue("#end-date", properties.endDate);
 
 					if(properties.startDate == "0001-01-01") {
 						$("#founding-date-div").hide();
@@ -158,7 +158,7 @@ var crudPath = context + "/api/locations",
 						$("#au-apollojson").css("text-decoration", "underline");
 					}
 
-					listLineageRefs(properties.lineage, "#au-lineage");
+                    HELPERS.listLineageRefs(properties.lineage, "#au-lineage");
 
 					related = properties.related;
 					if(related && (related.length > 0)){
@@ -209,7 +209,7 @@ var crudPath = context + "/api/locations",
 						}
 					}
 
-					setTextValue("#gid", thisBrowserMap.mapID);
+					HELPERS.setTextValue("#gid", thisBrowserMap.mapID);
 					show = false;
 					codes = properties.codes;
 					if(codes) {
