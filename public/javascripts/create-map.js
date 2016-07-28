@@ -11,8 +11,8 @@ $(document).ready(function() {
 			AU_COMPOSITE_TREE.initInteractBetweenTreeAndTable("au-list", initialize());
 			
 			function initialize() {
-				var shiftKey = false,
-					controlKey = false;
+				var tildeKey = false,
+					altKey = false;
 
 				MapDriver.prototype.loadFeatureLayer = function() {
 					var noLoad = false,
@@ -296,15 +296,15 @@ $(document).ready(function() {
 				$(document).keydown(function(event) {
 					//console.log("Key: " + event.which);
 					
-					if(event.which == 16) {
-						shiftKey = true;
+					if(event.which == 192) {
+						tildeKey = true;
 					}
 					
-					if(event.which == 17) {
-						controlKey = true;
+					if(event.which == 18) {
+						altKey = true;
 					}
 					
-					if(shiftKey && controlKey) {
+					if(tildeKey && altKey) {
 						$("#au-create").show();
 					}
 					
@@ -312,12 +312,12 @@ $(document).ready(function() {
 				});
 				
 				$(document).keyup(function(event) {
-					if(event.which == 16) {
-						shiftKey = false;
+					if(event.which == 192) {
+						tildeKey = false;
 					}
 					
-					if(event.which == 17) {
-						controlKey = false;
+					if(event.which == 18) {
+						altKey = false;
 					}
 					
 					return;

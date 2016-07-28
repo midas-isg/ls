@@ -1,15 +1,15 @@
-var crudPath = context + "/api/locations";
-
-var apolloJSONDataPath = context + "/api/locations/";
-var BROWSER_MAP =
+var crudPath = context + "/api/locations",
+	apolloJSONDataPath = context + "/api/locations/",
+	BROWSER_MAP =
 (function() {
 	function BrowserMap() {
-		var thisBrowserMap = this;
-		var id = getURLParameterByName("id");
-		var format = getURLParameterByName("format");
-		var query = getURLParameterByName("q");
-		var limit = getURLParameterByName("limit");
-		var offset = getURLParameterByName("offset");
+		var thisBrowserMap = this,
+			id = getURLParameterByName("id"),
+			format = getURLParameterByName("format"),
+			query = getURLParameterByName("q"),
+			limit = getURLParameterByName("limit"),
+			offset = getURLParameterByName("offset");
+
 		this.title = "";
 		this.mapID = id; //'tps23.k1765f0g';
 
@@ -86,9 +86,9 @@ var BROWSER_MAP =
 
 		L.mapbox.accessToken = this.accessToken;
 
-		var southWest = L.latLng(-90, -180);
-		var northEast = L.latLng(90, 180);
-		var mapBounds = L.latLngBounds(southWest, northEast);
+		var southWest = L.latLng(-90, -180),
+			northEast = L.latLng(90, 180),
+			mapBounds = L.latLngBounds(southWest, northEast);
 
 		this.map = L.mapbox.map('map-data', 'examples.map-i86l3621', { worldCopyJump: true, minZoom: 1, bounceAtZoomLimits: false, maxBounds: mapBounds /*crs: L.CRS.EPSG385*/});
 		this.map.legendControl.addLegend(this.title);
@@ -108,17 +108,17 @@ var BROWSER_MAP =
 			(function initializeProperties() {
 				$.get(thisBrowserMap.propertiesURL, function(data, status) {
 					var properties = data.properties || data.features[0].properties,
-					related,
-					children,
-					buckets = [],
-					locationType,
-					locationDivID,
-					show,
-					codes,
-					i,
-					delimiter,
-					OtherNames,
-					unsupportedCharactersRegExp = /([^a-zA-Z0-9À-öø-ÿ])/g;
+						related,
+						children,
+						buckets = [],
+						locationType,
+						locationDivID,
+						show,
+						codes,
+						i,
+						delimiter,
+						OtherNames,
+						unsupportedCharactersRegExp = /([^a-zA-Z0-9À-öø-ÿ])/g;
 
 					thisBrowserMap.mapID = properties.gid;
 					properties.description = properties.name;
@@ -345,7 +345,7 @@ var BROWSER_MAP =
 		if(jsonData) {
 			//multiPolygonsToPolygons(jsonData);
 			var i,
-			features = jsonData.features;
+				features = jsonData.features;
 
 			for(i = 0; i < features.length; i++) {
 				features[i].properties.description = features[i].properties.name;
