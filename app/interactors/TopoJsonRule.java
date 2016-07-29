@@ -10,7 +10,6 @@ import java.nio.file.attribute.FileAttribute;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -39,7 +38,7 @@ public class TopoJsonRule {
 		Path geoJsonFilePath = toGeoJsonFile(fc, geoJsonFilePrefix, geoJsonFileSuffix);
 		Path topoJsonFilePath = createTempFile(topoJsonFilePrefix, topoJsonFileSuffix);
 		String topoJson = toTopoJson(topoJsonFilePath, geoJsonFilePath);
-		deleteFiles(new Path[] {topoJsonFilePath, geoJsonFilePath});
+		deleteFiles(new Path[] { topoJsonFilePath, geoJsonFilePath });
 		return topoJson;
 	}
 
@@ -109,13 +108,13 @@ public class TopoJsonRule {
 	}
 
 	String readFileContent(Path path) {
-		List<String> lines = new ArrayList<>();
+		byte[] bytes;
 		try {
-			lines = Files.readAllLines(path);
+			bytes = Files.readAllBytes(path);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-		return lines.stream().collect(Collectors.joining("\n"));
+		return new String(bytes);
 	}
 
 	private boolean deleteFiles(Path[] paths) {
