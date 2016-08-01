@@ -99,7 +99,7 @@ public class TestFindLocation {
 		assertAreEqual(jsonResp.get("properties").get("resultSize").asInt(),
 				jsonResp.get("features").size());
 
-		body = "{\"queryTerm\":\"name with accent\"}";
+		body = "{\"queryTerm\":\"name with accent\", \"verbose\":true}";
 		response = post(url, body, jsonContentType);
 		assertStatus(response, OK);
 		jsonResp = response.asJson();
@@ -115,7 +115,7 @@ public class TestFindLocation {
 		String url = Server
 				.makeTestUrl(basePath
 						+ "?q=an%20otherName%20for%20test&limit=2&offset=0&searchOtherNames="
-						+ searchOtherNames);
+						+ searchOtherNames + "&verbose=true");
 		WSResponse response = get(url);
 		assertStatus(response, OK);
 		JsonNode jsonResp = response.asJson();
@@ -124,7 +124,7 @@ public class TestFindLocation {
 		url = Server
 				.makeTestUrl(basePath
 						+ "?q=an%20otherName%20for%20test&limit=2&offset=0&searchOtherNames="
-						+ searchOtherNames);
+						+ searchOtherNames + "&verbose=true");
 		response = get(url);
 		jsonResp = response.asJson();
 		assertAreEqual(jsonResp.get("features").size(), 0);
@@ -185,7 +185,7 @@ public class TestFindLocation {
 				firstFeature.get("properties").get("resultSize").asInt(),
 				firstFeature.get("features").size());
 
-		body = "[{\"queryTerm\":\"pennsylvania\",\"startDate\":\"2000-\"}]";
+		body = "[{\"queryTerm\":\"pennsylvania\",\"startDate\":\"2000-\", \"verbose\":true}]";
 		response = post(url, body, jsonContentType);
 		assertStatus(response, BAD_REQUEST);
 

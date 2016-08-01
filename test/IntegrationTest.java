@@ -196,7 +196,7 @@ public class IntegrationTest extends WithApplication {
 		BigInteger gid = list.get(0);
 		
         JsonNode node = Json.parse(text);
-        final Call call = routes.LocationServices.findByFeatureCollection(null, null);
+        final Call call = routes.LocationServices.findByFeatureCollection(null, null, true);
 		final Result postResult = request(call, node);
         assertThat(postResult.status()).isEqualTo(Status.OK);
         assertThat(postResult.contentType()).isEqualTo("application/vnd.geo+json");
@@ -226,7 +226,7 @@ public class IntegrationTest extends WithApplication {
 				67019, 66820, 67081, 66664, 67117, 67111});
 
         JsonNode node = Json.parse(text);
-        final Call call = routes.LocationServices.findByFeatureCollection(supertTypeIdAdministrativeUnit, null);
+        final Call call = routes.LocationServices.findByFeatureCollection(supertTypeIdAdministrativeUnit, null, true);
 		Result postResult = request(call, node);
         assertThat(postResult.status()).isEqualTo(Status.OK);
         assertThat(postResult.contentType()).isEqualTo("application/vnd.geo+json");

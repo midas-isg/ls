@@ -145,7 +145,7 @@ public class Util {
 		return String.valueOf(object);
 	}
 
-	static void putAsStringIfNotNull(Map<String, Object> properties,
+	public static void putAsStringIfNotNull(Map<String, Object> properties,
 			String key, Object value) {
 		if (value == null)
 			return;

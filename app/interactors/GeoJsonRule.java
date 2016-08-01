@@ -8,7 +8,6 @@ import static interactors.GeoJsonHelperRule.getString;
 import static interactors.GeoJsonHelperRule.putAsAltNameObjectsIfNotNull;
 import static interactors.GeoJsonHelperRule.putAsCodeObjectsIfNotNull;
 import static interactors.GeoJsonHelperRule.putAsLocationObjectsIfNotNull;
-import static interactors.GeoJsonHelperRule.toProperties;
 import static interactors.GeoJsonHelperRule.wireLocationsIncluded;
 import static interactors.Util.containsKey;
 import static interactors.Util.getNowDate;
@@ -20,6 +19,7 @@ import static interactors.Util.toDate;
 import static interactors.Util.toListOfInt;
 import static interactors.Util.toStringValue;
 
+import java.math.BigInteger;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -142,10 +142,15 @@ public class GeoJsonRule {
 	private static FeatureCollection toFeatureCollection(Request req,
 			List<Location> result, List<String> fields) {
 		FeatureCollection geoJSON = toFeatureCollection(result, fields);
+		Map<String, Object> properties = toProperties(req, result.size());
+		geoJSON.setProperties(properties);
+		return geoJSON;
+	}
+
+	private static Map<String, Object> toProperties(Request req, int resultSize) {
 		Map<String, Object> properties = new HashMap<>();
 		LocationTypeDao locationTypeDao = new LocationTypeDao();
-		geoJSON.setProperties(properties);
-		properties.put("queryTerm", req.getQueryTerm());
+		putAsStringIfNotNull(properties, "queryTerm", req.getQueryTerm());
 		putAsStringIfNotNull(properties, "locationTypeIds",
 				listToString(req.getLocationTypeIds()));
 		putAsStringIfNotNull(properties, "locationTypeNames",
@@ -162,13 +167,13 @@ public class GeoJsonRule {
 		putAsStringIfNotNull(properties, "searchOtherNames",
 				req.isSearchOtherNames());
 		putAsStringIfNotNull(properties, "searchCodes", req.isSearchCodes());
-		putAsStringIfNotNull(properties, "resultSize", result.size());
-		return geoJSON;
+		putAsStringIfNotNull(properties, "resultSize", resultSize);
+		return properties;
 	}
 
 	private static Map<String, Object> toPropertiesOfFeature(Location location,
 			boolean includeChildren) {
-		Map<String, Object> properties = toProperties(location);
+		Map<String, Object> properties = GeoJsonHelperRule.toProperties(location);
 		if (includeChildren) {
 			List<Location> children = location.getChildren();
 			if (children != null)
@@ -256,41 +261,85 @@ public class GeoJsonRule {
 		return GeoOutputRule.toFeatureGeometry(geometry);
 	}
 
-	public static FeatureCollection filterByTerm(String queryTerm, Integer limit,
-			Integer offset, Boolean searchOtherNames) {
+	public static Object filterByTerm(String queryTerm, Integer limit,
+			Integer offset, Boolean searchOtherNames, Boolean verbose) {
 		Request req = toFindByNameRequest(queryTerm, searchOtherNames, limit,
-				offset);
-		List<Location> result = LocationRule.findByTerm(req);
-		return toFeatureCollection(req, result, DEFAULT_KEYS);
+				offset, verbose);
+		if (req.getVerbose()){
+			List<Location> result = LocationRule.findByTerm(req);
+			return toFeatureCollection(req, result, DEFAULT_KEYS);
+		}
+		else {
+			List<Long> gids = findGids(req);
+			return toNonVerboseResponse(req, gids);
+		}
+			
 	}
 
 	public static List<Object> findByTerm(ArrayNode queryArray) {
 		List<Object> result = new ArrayList<>();
-		FeatureCollection fc;
+		Object obj;
+		Request req;
 		for (JsonNode query : queryArray) {
-			Request req = toFindByTermRequest(query);
-			fc = findByTerm(req);
-			result.add(fc);
+			req = toFindByTermRequest(query);
+			obj = findByTerm(req);
+			result.add(obj);
 		}
 		return result;
 	}
 
-	public static FeatureCollection findByTerm(Request req) {
-		List<Location> result = LocationRule.findByTerm(req);
-		List<String> fields = Arrays.asList(new String[] { KEY_PROPERTIES });
-		return toFeatureCollection(req, result, fields);
+	public static Object findByTerm(Request req) {
+		if(req.getVerbose()){
+			List<Location> result = LocationRule.findByTerm(req);
+			List<String> fields = Arrays.asList(new String[] { KEY_PROPERTIES });
+			return toFeatureCollection(req, result, fields);
+		}
+		else {
+			List<Long> gids = findGids(req);
+			return toNonVerboseResponse(req, gids);
+		}
+		
 	}
 
-	public static FeatureCollection findByPoint(double latitude, double longitude) {
-		List<Location> result = LocationRule.findByPoint(latitude, longitude);
-		FeatureCollection response = toFeatureCollection(new Request(), result, DEFAULT_KEYS);
-		putAsStringIfNotNull(response.getProperties(), "latitude", latitude);
-		putAsStringIfNotNull(response.getProperties(), "longitude", longitude);
-		return response;
+	private static Map<String, Object> toNonVerboseResponse(Request req, List<Long> gids) {
+		Map<String, Object> result = new HashMap<>();
+		result.put("gids", gids);
+		result.put(KEY_PROPERTIES, toProperties(req, gids.size()));
+		return result;
+	}
+
+	private static List<Long> findGids(Request req) {
+		List<BigInteger> list = LocationRule.findGids(req);
+		List<Long> result = toListOfLong(list);
+		return result;
+	}
+
+	public static Object findByPoint(double latitude, double longitude, Boolean verbose) {
+		if(verbose){
+			List<Location> result = LocationRule.findByPoint(latitude, longitude);
+			FeatureCollection response = toFeatureCollection(new Request(), result, DEFAULT_KEYS);
+			putAsStringIfNotNull(response.getProperties(), "latitude", latitude);
+			putAsStringIfNotNull(response.getProperties(), "longitude", longitude);
+			putAsStringIfNotNull(response.getProperties(), "verbose", verbose);
+
+			return response;
+		}
+		else{
+			List<Long> gids = toListOfLong(GeometryRule.findByPoint(latitude, longitude));
+			Map<String, Object> response = new HashMap<>();
+			response.put("gids", gids);
+			Map<String, Object> properties = new HashMap<>();
+			putAsStringIfNotNull(properties, "resultSize", gids.size());
+			putAsStringIfNotNull(properties, "latitude", latitude);
+			putAsStringIfNotNull(properties, "longitude", longitude);
+			putAsStringIfNotNull(properties, "verbose", verbose);
+			response.put(KEY_PROPERTIES, properties);
+			return response;			
+		}
 	}
 
 	private static Request toFindByNameRequest(String queryTerm,
-			Boolean searchOtherNames, Integer limit, Integer offset) {
+			Boolean searchOtherNames, Integer limit, Integer offset, Boolean verbose) {
 		Request req = new Request();
 		if (queryTerm == null)
 			throw new BadRequest("\"" + "queryTerm" + "\" key is requierd!");
@@ -299,6 +348,7 @@ public class GeoJsonRule {
 		req.setSearchOtherNames(searchOtherNames);
 		req.setLimit(limit);
 		req.setOffset(offset);
+		req.setVerbose(verbose);
 		return req;
 	}
 
@@ -320,7 +370,7 @@ public class GeoJsonRule {
 	@Deprecated
 	public static List<Object> findBulk(ArrayNode arrayNode) {
 		List<Object> result = new ArrayList<>();
-		FeatureCollection fc;
+		Object fc;
 		for (JsonNode node : arrayNode) {
 			Request req = toFindBulkRequest(node);
 			fc = findByTerm(req);
@@ -362,6 +412,9 @@ public class GeoJsonRule {
 		req.setSearchOtherNames(value);
 		value = returnDefaultIfKeyNotExists(node, "searchCodes", true);
 		req.setSearchCodes(value);
+		value = returnDefaultIfKeyNotExists(node, "verbose", true);
+		req.setVerbose(value);
+		
 	}
 
 	private static void setEndDate(JsonNode node, Request req, String endDate) {
@@ -386,4 +439,12 @@ public class GeoJsonRule {
 		else
 			return defaultValue;
 	}
+	
+	private static List<Long> toListOfLong(List<BigInteger> list) {
+		List<Long> result = new ArrayList<>();
+		for (BigInteger gid : list)
+			result.add(gid.longValue());
+		return result;
+	}
+
 }

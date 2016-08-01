@@ -293,7 +293,7 @@ var SEARCH_RESULTS =
 			function getQueryResults(input) {
 				var url = SEARCH_RESULTS.searchURL,
 					data = {
-						"queryTerm": encodeURIComponent(input),
+						"queryTerm": input,
 						"searchNames":true,
 						"searchOtherNames":true,
 						"searchCodes":true,
