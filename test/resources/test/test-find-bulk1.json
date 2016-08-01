@@ -8,12 +8,15 @@
 "searchCodes":true,
 "ignoreAccent":false,
 "limit":10,
-"offset":0},
+"offset":0,
+"verbose":true},
 
 {"queryTerm":"code1", 
 "searchNames":false,
 "searchOtherNames":false,
-"searchCodes":true},
+"searchCodes":true,
+"verbose":true},
 
-{"queryTerm": "location test 1"}
+{"queryTerm": "location test 1",
+"verbose":true}
 ]

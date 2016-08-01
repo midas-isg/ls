@@ -2,6 +2,11 @@ package gateways.configuration;
 
 import java.lang.reflect.Method;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.JsonNode;
+
+import interactors.LocationProxyRule;
 import models.exceptions.BadRequest;
 import models.exceptions.PostgreSQLException;
 import play.Application;
@@ -16,9 +21,6 @@ import play.mvc.Http.Context;
 import play.mvc.Http.Request;
 import play.mvc.Result;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.databind.JsonNode;
 
 public class Global extends GlobalSettings {
 	private static final String appName = "ls";
@@ -26,6 +28,7 @@ public class Global extends GlobalSettings {
 	@Override
 	public void onStart(Application app) {
 		Logger.info(appName + " has started");
+		LocationProxyRule.scheduleCacheUpdate();
 	}
 
 	@Override

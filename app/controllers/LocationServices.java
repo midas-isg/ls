@@ -1,7 +1,11 @@
 package controllers;
 
+import static interactors.Util.putAsStringIfNotNull;
+
 import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
@@ -204,11 +208,17 @@ public class LocationServices extends Controller {
 					required = false
 			)
 			@QueryParam("q")
-			String q
+			String q,
+			@ApiParam(
+					value = "If false, returns only gids", 
+					defaultValue = "true"
+			) 
+			@QueryParam("verbose") 
+			Boolean verbose
 	) {
 		if (queryTerm == null)
 			queryTerm = q;
-		Object result = GeoJsonRule.filterByTerm(queryTerm, limit, offset, searchOtherNames);
+		Object result = GeoJsonRule.filterByTerm(queryTerm, limit, offset, searchOtherNames, verbose);
 		return ok(Json.toJson(result));
 	}
 
@@ -360,9 +370,11 @@ public class LocationServices extends Controller {
 			@ApiParam(value = "Latitude in degree", required = true) @QueryParam("lat") 
 			double lat,
 			@ApiParam(value = "Longitude in degree", required = true) @QueryParam("long") 
-			double lon
+			double lon,
+			@ApiParam(value = "If false, returns only gids", defaultValue = "true") @QueryParam("verbose") 
+			Boolean verbose
 	) {
-		Object result = GeoJsonRule.findByPoint(lat, lon);
+		Object result = GeoJsonRule.findByPoint(lat, lon, verbose);
 		return ok(Json.toJson(result));
 	}
 
@@ -372,8 +384,8 @@ public class LocationServices extends Controller {
 	 */
 	@Deprecated
 	@Transactional
-	public Result findByLocationPoint(double lat, double lon) {
-		return findByPoint(lat,lon);
+	public Result findByLocationPoint(double lat, double lon, boolean verbose) {
+		return findByPoint(lat, lon, verbose);
 	}
 
 	@Transactional
@@ -550,15 +562,22 @@ public class LocationServices extends Controller {
 			@QueryParam("superTypeId")
 			Long superTypeId,
 			@ApiParam(
-					name = "LocationTypeId",
+					name = "typeId",
 					value = "LocationTypeId. "
 							+ "refer to " + locationTypeAPI + " endpoint."
 			)
-			@QueryParam("LocationTypeId")
-			Long typeId) throws Exception {
+			@QueryParam("typeId")
+			Long typeId,
+			@ApiParam(
+					value = "If false, returns only gids", 
+					defaultValue = "true"
+			) 
+			@QueryParam("verbose") 
+			Boolean verbose
+			) throws Exception {
 		FeatureCollection fc = parseRequestAsFeatureCollection();
 		response().setContentType("application/vnd.geo+json");
-		return Wire.findByFeatureCollection(fc, superTypeId, typeId);
+		return Wire.findByFeatureCollection(fc, superTypeId, typeId, verbose);
 	}
 	
 	/**
@@ -566,8 +585,8 @@ public class LocationServices extends Controller {
 	 */
 	@Deprecated
 	@Transactional
-	public Result findByLocationFeatureCollection(Long superTypeId,	Long typeId) throws Exception {
-		return findByFeatureCollection(superTypeId, typeId);
+	public Result findByLocationFeatureCollection(Long superTypeId,	Long typeId, boolean verbose) throws Exception {
+		return findByFeatureCollection(superTypeId, typeId, verbose);
 	}
 
 	public static class Wire {
@@ -601,12 +620,29 @@ public class LocationServices extends Controller {
 			return id;
 		}
 
-		public static Result findByFeatureCollection(FeatureCollection fc, Long superTypeId, Long typeId) {
+		public static Result findByFeatureCollection(FeatureCollection fc, Long superTypeId, Long typeId, 
+				boolean verbose) {
 			FeatureGeometry geometry = GeoJsonRule.asFetureGeometry(fc);
 			String geo = Json.toJson(geometry).toString();
 			List<BigInteger> gids = GeometryRule.findGidsByGeometry(geo, superTypeId, typeId);
-			List<Location> locations = LocationProxyRule.getLocations(gids);
-			return ok(Json.toJson(GeoJsonRule.toFeatureCollection(locations, GeoJsonRule.DEFAULT_KEYS)));
+			Map<String, Object> properties = new HashMap<>();
+			putAsStringIfNotNull(properties, "superTypeId", superTypeId);
+			putAsStringIfNotNull(properties, "typeId", typeId);
+			putAsStringIfNotNull(properties, "verbose", verbose);
+			if(verbose){
+				List<Location> locations = LocationRule.getLocations(gids);
+				FeatureCollection result = GeoJsonRule.toFeatureCollection(locations, GeoJsonRule.DEFAULT_KEYS);
+				putAsStringIfNotNull(properties, "resultSize", locations.size());
+				result.setProperties(properties);				
+				return ok(Json.toJson(result));
+			}
+			else {
+				Map<String, Object> result = new HashMap<>();
+				result.put("gids", gids);
+				putAsStringIfNotNull(properties, "resultSize", gids.size());
+				result.put("properties", properties);
+				return ok(Json.toJson(result));
+			}
 		}
 	}
 
@@ -635,7 +671,7 @@ public class LocationServices extends Controller {
 
 	@Transactional
 	public Result updateCache(){
-		LocationProxyRule.updateCache();
-		return ok("Location-name cache updated!");
+		LocationProxyRule.scheduleCacheUpdate();
+		return ok("An update-cache request was scheduled.");
 	}
 }
