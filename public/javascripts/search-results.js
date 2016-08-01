@@ -56,8 +56,8 @@ var SEARCH_RESULTS =
 				return;
 			},
 			complete: function(xhr, status) {
-				SEARCH_RESULTS.updateOutput(thisSearch.typeList, thisSearch.totalCount);
-				$("#result-count").append("<strong>user selection</strong>");
+				SEARCH_RESULTS.updateOutput(thisSearch.typeList);
+				$("#searchInput").html("<strong>user selection</strong>");
 
 				return;
 			}
@@ -97,8 +97,8 @@ var SEARCH_RESULTS =
 				return;
 			},
 			complete: function(xhr, status) {
-				SEARCH_RESULTS.updateOutput(thisSearch.typeList, thisSearch.totalCount);
-				$("#result-count").append("<strong>latitude: " + latitude + ", longitude: " + longitude + "</strong>");
+				SEARCH_RESULTS.updateOutput(thisSearch.typeList);
+				$("#searchInput").html("<strong>latitude: " + latitude + ", longitude: " + longitude + "</strong>");
 
 				return;
 			}
@@ -107,55 +107,25 @@ var SEARCH_RESULTS =
 		return;
 	}
 
-	SearchResults.prototype.updateOutput = function(locationList, totalCount) {
-		var i,
-			feature,
-			featureType,
+	SearchResults.prototype.updateOutput = function(locationTypeList) {
+		var featureType,
 			appendString = "",
 			result = $("#result"),
-			features = [],
-			points,
-			target;
+			features = [];
 
-		if(totalCount > 0) {
-			if(!document.getElementById("results-tbody")) {
-				result.text("");
-				appendString = "<table class='table table-condensed' style='margin-bottom: 0px;'>";
-				appendString += "<caption id='result-count'><span id='result-total'><strong>" + totalCount + "</strong></span> result(s) from searching </caption>";
-				appendString += "<thead>";
-				appendString += "<th class='location-col'>Location</th>";
-				appendString += "<th class='type-col'><select id='location-types'><option selected>[Type]</option></select></th>";
-				appendString += "<th class='within-col'>Located within</th>";
-				appendString += "</thead>";
-				appendString += "<tbody id='results-tbody'></tbody>";
-				appendString += "</table>";
-				result.append(appendString);
-			}
+		if(!document.getElementById("results-tbody")) {
+			result.text("");
+			appendString = "<table class='table table-condensed' style='margin-bottom: 0px;'>";
+			appendString += "<caption id='result-count'><span id='result-total'><strong>" + this.totalCount + "</strong></span> result(s) from searching <span id='searchInput'></span></caption>";
+			appendString += "<thead>";
+			appendString += "<th class='location-col'>Location</th>";
+			appendString += "<th class='type-col'><select id='location-types'></select></th>";
+			appendString += "<th class='within-col'>Located within</th>";
+			appendString += "</thead>";
+			appendString += "<tbody id='results-tbody'></tbody>";
+			appendString += "</table>";
+			result.append(appendString);
 
-			for(featureType in locationList) {
-				if(locationList.hasOwnProperty(featureType)) {
-					$("#location-types").append("<option>" + featureType + "</option>");
-					
-					/*
-					for(feature in locationList[featureType]) {
-						if(locationList[featureType].hasOwnProperty(feature)) {
-							locationList[featureType][feature].relevance = 0;
-							
-							for(i = 0; i < SEARCH_RESULTS.inputComponent.length; i++) {
-								points = ((SEARCH_RESULTS.inputComponent.length - i) << 2);
-								target = SEARCH_RESULTS.inputComponent[i].toLowerCase();
-								
-								locationList[featureType][feature].relevance += SEARCH_RANK.getScore(locationList[featureType][feature], target, points);
-							}
-							
-							//console.log(locationList[featureType][feature]);
-							//console.log(locationList[featureType][feature].properties.name + ": " + locationList[featureType][feature].relevance);
-						}
-					}
-					*/
-				}
-			}
-			
 			function getFeatures(featureList) {
 				var feature;
 
@@ -164,6 +134,8 @@ var SEARCH_RESULTS =
 						features.push(featureList[feature]);
 					}
 				}
+
+				return;
 			}
 
 			$("#location-types").change(function() {
@@ -171,14 +143,14 @@ var SEARCH_RESULTS =
 				features = [];
 
 				if(this.value === "[Type]") {
-					for(type in locationList) {
-						if(locationList.hasOwnProperty(type)) {
-							getFeatures(locationList[type]);
+					for(type in locationTypeList) {
+						if(locationTypeList.hasOwnProperty(type)) {
+							getFeatures(locationTypeList[type]);
 						}
 					}
 				}
 				else {
-					getFeatures(locationList[this.value]);
+					getFeatures(locationTypeList[this.value]);
 				}
 
 				features.sort(function determineRelevance(currentFeature, oldFeature) {
@@ -187,23 +159,33 @@ var SEARCH_RESULTS =
 						currentName = currentFeature.properties.name.toLowerCase(),
 						oldName = oldFeature.properties.name.toLowerCase();
 
-					/*
-					if(currentName < oldName) {
-						currentScore++;
+					if(currentScore === oldScore) {
+						 if(currentName < oldName) {
+							currentScore += 0.001;
+						 }
+						 else {
+							oldScore += 0.001;
+						 }
 					}
-					else {
-						oldScore++;
-					}
-					*/
-					
+
 					return oldScore - currentScore;
 				});
 
 				SEARCH_RESULTS.updateTable(features);
 			});
+		}
+
+		(function resetTypes() {
+			$("#location-types").empty();
+			$("#location-types").append("<option selected>[Type]</option>");
+			for(featureType in locationTypeList) {
+				if(locationTypeList.hasOwnProperty(featureType)) {
+					$("#location-types").append("<option>" + featureType + "</option>");
+				}
+			}
 
 			$("#location-types").change();
-		}
+		})();
 
 		return;
 	}
@@ -275,17 +257,18 @@ var SEARCH_RESULTS =
 			}
 		}
 
+		$("#result-total").html("<strong>" + this.totalCount + "</strong>");
+
 		return;
 	}
 
 	SearchResults.prototype.runQuery = function(queryInput) {
 		var thisQuery = this;
-		this.originalInput = queryInput,
+		this.originalInput = queryInput;
 		this.inputComponent = this.originalInput.replace(',', '').split(' ');
 
 		function searchQuery() {
-			var stillWaiting = thisQuery.inputComponent.length,
-				i;
+			var i;
 
 			$("#result").text("Please wait ...");
 			SEARCH_MAP.featureLayer.clearLayers();
@@ -326,12 +309,8 @@ var SEARCH_RESULTS =
 						return;
 					},
 					complete: function(xhr, status) {
-						stillWaiting--;
-
-						if(!stillWaiting) {
-							SEARCH_RESULTS.updateOutput(thisQuery.typeList, thisQuery.totalCount);
-							$("#result-count").append("<strong>" + $("#input").val() + "</strong>");
-						}
+						SEARCH_RESULTS.updateOutput(thisQuery.typeList);
+						$("#searchInput").html("<strong>" + $("#input").val() + "</strong>");
 					}
 				});
 
@@ -339,7 +318,6 @@ var SEARCH_RESULTS =
 			}
 
 			if(thisQuery.originalInput !== thisQuery.inputComponent[0]) {
-				stillWaiting++;
 				getQueryResults(thisQuery.originalInput);
 			}
 
