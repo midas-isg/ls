@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -139,13 +141,18 @@ public class LocationDao {
 	public List<Location> queryResult2LocationList(List<?> resultList) {
 		List<BigInteger> result = getGids(resultList);
 		List<Location> locations = findAll(result);
-		int i = 0;
-		for (Location l : locations) {
-			Object[] objects = (Object[]) resultList.get(i++);
+		Map<Long, Location> gid2Location = locations.stream()
+				.collect(Collectors.toMap(x -> x.getGid(), Function.identity()));
+		Location l;
+		List<Location> list = new ArrayList<>();
+		for (Object elm : resultList) {
+			Object[] objects = (Object[]) elm;
+			l = gid2Location.get(Long.valueOf(objects[0].toString()));
 			l.setHeadline(objects[1].toString());
 			l.setRank(objects[2].toString());
+			list.add(l);
 		}
-		return locations;
+		return list;
 	}
 
 	public List<BigInteger> getGids(List<?> resultList) {
