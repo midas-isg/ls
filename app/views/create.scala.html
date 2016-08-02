@@ -20,23 +20,18 @@
 @main(message, imports, version) {
 	<div style="">
 		<div id="creation-dialog" class="pull-left container-fluid no-padding" style="">
-			<div class="azure extra-bottom-space" style="padding: 2px;">
-				<div class="extra-bottom-space" style="">
-					<input id="file-input" class="pull-left vertical-spaced" accept=".json, .geojson, .kml" type="file">
-
-					<div class="vertical-spaced" style="clear:both;">
-						<div class="input-group extra-bottom-space">
-							<span class="input-group-addon" id="id-label">ID:</span>
-							<input type="text" id="gid" class="form-control" placeholder="New entry" aria-describedby="id-label" disabled>
-						</div>
-					</div>
+			<div class="extra-bottom-space" style="padding: 2px;">
+				<div class="azure extra-bottom-space" style="">
+					<legend style="">Import from KML file</legend>
+					<input id="file-input" accept=".json, .geojson, .kml" type="file" placeholder="Upload KML file">
 				</div>
 				
-				<div class="azure">
+				<div class="azure vertical-spaced">
+					<legend>Enter details</legend>
 					<div class="input-group extra-bottom-space">
 						<span id="dropdown-label" class="input-group-addon no-padding">
 							<div class="dropdown">
-								<button class="btn btn-default btn-sm dropdown-toggle" type="button" id="dropdown-menu" data-toggle="dropdown" aria-expanded="true">
+								<button class="dropdown-toggle" type="button" id="dropdown-menu" style="padding-top: 6px; padding-bottom: 6px; color: #303030;" data-toggle="dropdown" aria-expanded="true">
 									Location type <span class="caret"></span>
 								</button>
 								<ul class="dropdown-menu" role="menu" aria-labelledby="dropdown-menu" data-toggle="dropdown" aria-expanded="true">
@@ -45,7 +40,7 @@
 								</ul>
 							</div>
 						</span>
-						<input type="text" id="au-type" class="form-control" placeholder="Location type" aria-describedby="dropdown-label" disabled>
+						<input type="text" id="au-type" class="form-control" placeholder="Location type" aria-describedby="dropdown-label" style="" disabled>
 					</div>
 
 					<div class="extra-bottom-space input-group">
@@ -76,15 +71,22 @@
 						</div>
 					</div>
 					
-					<div class="extra-bottom-space" style="margin-top: 10px;">
+					<div class="" style="margin-top: 10px;">
 						<div><span id="description-label">Description: </span></div>
 						<div><textarea id="description" placeholder="Description" rows="1" style=""></textarea></div>
 					</div>
-					
+
+					<div class="extra-bottom-space" style="clear:both;">
+						<div class="input-group">
+							<span class="input-group-addon" id="id-label">ID:</span>
+							<input type="text" id="gid" class="form-control" placeholder="New entry" aria-describedby="id-label" disabled>
+						</div>
+					</div>
+
 					<div class="extra-bottom-space">
-						<button id="save-button" class="btn btn-sm btn-default">Save new entry to database</button>
+						<button id="save-button" class="">Save new entry to database</button>
 						<button id="update-button" hidden>Update entry in database</button>
-						<button id="new-button" class="btn btn-sm btn-default pull-right">Reset page</button>
+						<button id="new-button" class="pull-right">Reset page</button>
 						<span id="server-result"></span>
 					</div>
 				</div>
@@ -99,12 +101,12 @@
 		<div id="parent-wizard" class="pull-left container-fluid no-padding azure" style="border-width: 1px;">
 			<div id="parent-list">
 					<div>
-						<legend style="text-indent: 5px;"><em>Encompassing location</em></legend>
+						<legend style="">Select encompassing location</legend>
 						<div style="padding-left: 5px; padding-right: 5px;">
 							<label>Filter:</label>
 							<input id="parent" type="text" name="search" placeholder="Filter...">
-							<button id="resetParentSearchButton" class="btn btn-sm btn-default">Show all</button>
-							<button id="suggestion-button" class="btn btn-sm btn-default">Get suggestions</button>
+							<button id="resetParentSearchButton" class="">Show all</button>
+							<button id="suggestion-button" class="">Get suggestions</button>
 							<span id="parent-matches"></span>
 						</div>
 					</div>

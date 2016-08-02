@@ -2,167 +2,176 @@
 Common Functions
 */
 
-function getIDFromURI(URI) {
-	var components = URI.split('/');
-	var id = components[components.length - 1];
-	
-	return id;
-}
+var HELPERS =
+(function(){
+	function Helpers() {
+		return;
+	}
 
-function multiPolygonsToPolygons(geoJSON) {
-	if(geoJSON) {
-		var features = geoJSON.features;
-		var count = features.length;
-		
-		var i;
-		var j;
-		var properties = null;
-		var addedFeature = null;
-		for(i = 0; i < count; i++) {
-			if(features[i].geometry.type == "MultiPolygon") {
-				properties = features[i].properties;
-				
-				for(j = 0; j < features[i].geometry.coordinates.length; j++) {
-					features.push({"type": "Feature", "geometry": {"type": "Polygon", "coordinates": null}, "properties": properties});
-					addedFeature = features[features.length - 1];
-					addedFeature.geometry.coordinates = features[i].geometry.coordinates[j];
+	Helpers.prototype.getIDFromURI = function(URI) {
+		var components = URI.split('/');
+		var id = components[components.length - 1];
+
+		return id;
+	}
+
+	Helpers.prototype.multiPolygonsToPolygons = function(geoJSON) {
+		if(geoJSON) {
+			var features = geoJSON.features;
+			var count = features.length;
+
+			var i;
+			var j;
+			var properties = null;
+			var addedFeature = null;
+			for(i = 0; i < count; i++) {
+				if(features[i].geometry.type == "MultiPolygon") {
+					properties = features[i].properties;
+
+					for(j = 0; j < features[i].geometry.coordinates.length; j++) {
+						features.push({"type": "Feature", "geometry": {"type": "Polygon", "coordinates": null}, "properties": properties});
+						addedFeature = features[features.length - 1];
+						addedFeature.geometry.coordinates = features[i].geometry.coordinates[j];
+					}
+
+					features.splice(i, 1);
+					i--;
+					count = features.length;
 				}
-				
-				features.splice(i, 1);
-				i--;
-				count = features.length;
+			}
+
+			try {
+				console.log(geoJSON);
+				var JSONString = JSON.stringify(geoJSON);
+				JSON.parse(JSONString);
+			}
+			catch(error) {
+				alert(error);
 			}
 		}
-		
-		try {
-			console.log(geoJSON);
-			var JSONString = JSON.stringify(geoJSON);
-			JSON.parse(JSONString);
-		}
-		catch(error) {
-			alert(error);
-		}
-	}
-	
-	return geoJSON;
-}
 
-function validDate(dateString) {
-	var date = new Date(dateString);
-	
-	if(date.valueOf()) {
-		var tokens;
-		
-		if(dateString.search("-") != -1) {
-			tokens = dateString.split("-");
-		}
-		else {
-			tokens = dateString.split("/");
-		}
-		
-		return tokens.length;
+		return geoJSON;
 	}
-	
-	return 0;
-}
 
-function toServerDate(inputDate, fields) {
-	var serverDate = "";
-	
-	serverDate = serverDate.concat(inputDate.getUTCFullYear());
-	
-	if(fields > 1) {
-		serverDate = serverDate.concat("-");
-		
-		if(inputDate.getUTCMonth() < 9) {
-			serverDate = serverDate.concat("0");
+	Helpers.prototype.validDate = function(dateString) {
+		var date = new Date(dateString);
+
+		if(date.valueOf()) {
+			var tokens;
+
+			if(dateString.search("-") != -1) {
+				tokens = dateString.split("-");
+			}
+			else {
+				tokens = dateString.split("/");
+			}
+
+			return tokens.length;
 		}
-		
-		serverDate = serverDate.concat((inputDate.getUTCMonth() + 1));
-		
-		if(fields > 2) {
+
+		return 0;
+	}
+
+	Helpers.prototype.toServerDate = function(inputDate, fields) {
+		var serverDate = "";
+
+		serverDate = serverDate.concat(inputDate.getUTCFullYear());
+
+		if(fields > 1) {
 			serverDate = serverDate.concat("-");
-			
-			if(inputDate.getUTCDate() < 10) {
+
+			if(inputDate.getUTCMonth() < 9) {
 				serverDate = serverDate.concat("0");
 			}
-			
-			serverDate = serverDate.concat(inputDate.getUTCDate());
+
+			serverDate = serverDate.concat((inputDate.getUTCMonth() + 1));
+
+			if(fields > 2) {
+				serverDate = serverDate.concat("-");
+
+				if(inputDate.getUTCDate() < 10) {
+					serverDate = serverDate.concat("0");
+				}
+
+				serverDate = serverDate.concat(inputDate.getUTCDate());
+			}
 		}
+
+		return serverDate;
 	}
-	
-	return serverDate;
-}
 
-function setTextValue(selector, input) {
-	$(selector).text(input);
-	$(selector).val(input);
-	
-	return;
-}
+	Helpers.prototype.setTextValue = function(selector, input) {
+		$(selector).text(input);
+		$(selector).val(input);
 
-function getValueText(selector) {
-	var value = $(selector).val();
-	
-	if(value == "") {
-		return $(selector).text();
+		return;
 	}
-	
-	return value;
-}
 
-function getURLParameterByName(name) {
-	name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-	var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-		results = regex.exec(location.search);
-	
-	return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-}
+	Helpers.prototype.getValueText = function(selector) {
+		var value = $(selector).val();
 
-function listLineageRefs(lineage, sectionID) {
-	var i,
-		auName,
-		auGID,
-		show;
-	
-	show = false;
-	if(lineage && (lineage.length > 0)) {
-		$(sectionID).show();
+		if(value == "") {
+			return $(selector).text();
+		}
 
-		i = (lineage.length - 1);
-		auName = lineage[i].name;
-		auGID = lineage[i].gid;
-		$(sectionID).append("<a href='" + context + "/browser?id=" + auGID + "' class='' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
-		for(i--; i >= 0; i--) {
+		return value;
+	}
+
+	Helpers.prototype.getURLParameterByName = function(name) {
+		name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+		var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+			results = regex.exec(location.search);
+
+		return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+	}
+
+	Helpers.prototype.listLineageRefs = function(lineage, sectionID) {
+		var i,
+			auName,
+			auGID,
+			show;
+
+		show = false;
+		if(lineage && (lineage.length > 0)) {
+			$(sectionID).show();
+
+			i = (lineage.length - 1);
 			auName = lineage[i].name;
 			auGID = lineage[i].gid;
+			$(sectionID).append("<a href='" + context + "/browser?id=" + auGID + "' class='' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
+			for(i--; i >= 0; i--) {
+				auName = lineage[i].name;
+				auGID = lineage[i].gid;
 
-			$(sectionID).append(", ");
-			$(sectionID).append("<a href='" + context + "/browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
+				$(sectionID).append(", ");
+				$(sectionID).append("<a href='" + context + "/browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
+			}
 		}
+
+		return;
 	}
-	
-	return;
-}
 
-function getFirstAlphaOnly(input) {
-	var output = "";
-	
-	for(var i = 0; i < input.length; i++) {
-		if((input.charAt(i) == ' ') || ((input.charAt(i) >= 'a') && (input.charAt(i) <= 'z')) || ((input.charAt(i) >= 'A') && (input.charAt(i) <= 'Z'))) {
-			output += input.charAt(i);
+	Helpers.prototype.getFirstAlphaOnly = function(input) {
+		var output = "";
+
+		for(var i = 0; i < input.length; i++) {
+			if((input.charAt(i) == ' ') || ((input.charAt(i) >= 'a') && (input.charAt(i) <= 'z')) || ((input.charAt(i) >= 'A') && (input.charAt(i) <= 'Z'))) {
+				output += input.charAt(i);
+			}
+			else if(input.charAt(i) != ' ') {
+				output = output.trim();
+
+				break;
+			}
 		}
-		else if(input.charAt(i) != ' ') {
-			output = output.trim();
-			
-			break;
-		}
+
+		return output;
 	}
-	
-	return output;
-}
 
-function backslashParentheses(input) {
-	output = input.replace("(", "\\(");
-	return output.replace(")", "\\)");
-}
+	Helpers.prototype.backslashParentheses = function(input) {
+		output = input.replace("(", "\\(");
+		return output.replace(")", "\\)");
+	}
+
+	return new Helpers();
+})();

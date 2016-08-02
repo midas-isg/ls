@@ -1,5 +1,4 @@
-var CREATE_MAP = null;
-var MAP_DRIVER = null;
+var MAP_DRIVER;
 
 $(document).ready(function() {
 	var url = ausPath + "/api/au-tree";
@@ -12,9 +11,12 @@ $(document).ready(function() {
 			AU_COMPOSITE_TREE.initInteractBetweenTreeAndTable("au-list", initialize());
 			
 			function initialize() {
+				var tildeKey = false,
+					altKey = false;
+
 				MapDriver.prototype.loadFeatureLayer = function() {
-					var noLoad = false;
-					var thisMapDriver = this;
+					var noLoad = false,
+						thisMapDriver = this;
 					
 					if(this.geoJSONURL) {
 						this.featureLayer = L.mapbox.featureLayer().loadURL(this.geoJSONURL);
@@ -34,26 +36,26 @@ $(document).ready(function() {
 						thisMapDriver.featureLayer.addTo(thisMapDriver.map);
 						
 						if(geoJSON) {
-							var feature = geoJSON.features[0];
-							
-							var minLng = geoJSON.bbox[0];
-							var minLat = geoJSON.bbox[1];
-							var maxLng = geoJSON.bbox[2];
-							var maxLat = geoJSON.bbox[3];
-							var southWest = L.latLng(minLat, minLng);
-							var northEast = L.latLng(maxLat, maxLng);
-							var bounds = L.latLngBounds(southWest, northEast);
+							var feature = geoJSON.features[0],
+								minLng = geoJSON.bbox[0],
+								minLat = geoJSON.bbox[1],
+								maxLng = geoJSON.bbox[2],
+								maxLat = geoJSON.bbox[3],
+								southWest = L.latLng(minLat, minLng),
+								northEast = L.latLng(maxLat, maxLng),
+								bounds = L.latLngBounds(southWest, northEast),
+								parentGID;
+
 							thisMapDriver.map.fitBounds(bounds);
-							
 							thisMapDriver.mapID = thisMapDriver.featureLayer.getGeoJSON().id;
-							setTextValue("#au-name", feature.properties.name);
-							setTextValue("#au-code", feature.properties.code);
-							setTextValue("#start-date", feature.properties.startDate);
-							setTextValue("#end-date", feature.properties.endDate);
+							HELPERS.setTextValue("#au-name", feature.properties.name);
+							HELPERS.setTextValue("#au-code", feature.properties.code);
+							HELPERS.setTextValue("#start-date", feature.properties.startDate);
+							HELPERS.setTextValue("#end-date", feature.properties.endDate);
 							PARENT_TREE.resetIsAboutList();
 							AU_COMPOSITE_TREE.resetIsAboutList();
 							
-							var parentGID = feature.properties.parentGid;
+							parentGID = feature.properties.parentGid;
 							if(parentGID) {
 								//for(var i = 0; i < parentGID.length; i++) {
 								//	AU_COMPOSITE_TREE.clickIsAboutByValue(parentGID[i]);
@@ -61,9 +63,9 @@ $(document).ready(function() {
 								
 								PARENT_TREE.clickIsAboutByValue(parentGID);
 							}
-							
-							setTextValue("#gid", feature.properties.gid);
-							setTextValue("#description", feature.properties.locationDescription);
+
+							HELPERS.setTextValue("#gid", feature.properties.gid);
+							HELPERS.setTextValue("#description", feature.properties.locationDescription);
 							
 							feature.properties.title = feature.properties.name + " " + feature.properties.locationTypeName + " from " + feature.properties.startDate;
 							
@@ -173,33 +175,32 @@ $(document).ready(function() {
 					
 					return;
 				}
-				
-				CREATE_MAP = new MapDriver();
-				MAP_DRIVER = CREATE_MAP;
-				var thisMapDriver = CREATE_MAP;
-				
-				thisMapDriver.map.whenReady(function() {
-					return CREATE_MAP.map.setZoom(1, {minZoom: 1});
+
+				MAP_DRIVER = new MapDriver();
+
+				MAP_DRIVER.map.whenReady(function() {
+					return MAP_DRIVER.map.setZoom(1, {minZoom: 1});
 				});
 				
 				function loadFromDatabase(mapID) {
-					thisMapDriver.geoJSONURL = crudPath + "/" + mapID;
+					MAP_DRIVER.geoJSONURL = crudPath + "/" + mapID;
 					
-					if(thisMapDriver.geoJSONURL) {
-						thisMapDriver.featureLayer.loadURL(thisMapDriver.geoJSONURL);
+					if(MAP_DRIVER.geoJSONURL) {
+						MAP_DRIVER.featureLayer.loadURL(MAP_DRIVER.geoJSONURL);
 					}
 					
-					thisMapDriver.featureLayer.on("ready", function() {
-						var feature = thisMapDriver.featureLayer.getGeoJSON().features[0];
+					MAP_DRIVER.featureLayer.on("ready", function() {
+						var feature = MAP_DRIVER.featureLayer.getGeoJSON().features[0],
+							IDs;
 						
-						thisMapDriver.kml = feature.properties.kml;
+						MAP_DRIVER.kml = feature.properties.kml;
 						
 						$("#gid").prop("disabled", true);
-						setTextValue("#au-type", feature.properties.locationTypeName);
+						HELPERS.setTextValue("#au-type", feature.properties.locationTypeName);
 						
 						if(feature.properties.parentGid) {
 							PARENT_TREE.clickIsAboutByValue(feature.properties.parentGid);
-							var IDs = [feature.properties.parentGid];
+							IDs = [feature.properties.parentGid];
 							PARENT_TREE.tree.filterNodes(function(node) {
 								var set = new Set(IDs);
 								
@@ -220,7 +221,8 @@ $(document).ready(function() {
 					
 					return;
 				}
-				var id = getURLParameterByName("id");
+
+				id = HELPERS.getURLParameterByName("id");
 				if(id) {
 					loadFromDatabase(id);
 				}
@@ -230,80 +232,79 @@ $(document).ready(function() {
 				});
 				
 				$("#file-input").change(function() {
-					CREATE_MAP.upload();
+					MAP_DRIVER.upload();
 					
 					return;
 				});
 				
 				$("#suggestion-button").click(function() {
-					CREATE_MAP.populateSuggestions();
+					MAP_DRIVER.populateSuggestions();
 					
 					return;
 				});
 				
 				$("#download-button").click(function() {
-					CREATE_MAP.download();
+					MAP_DRIVER.download();
 					
 					return;
 				});
 				
 				$("#save-button").click(function() {
-					CREATE_MAP.saveMap();
+					MAP_DRIVER.saveMap();
 					
 					return;
 				});
 				
 				$("#update-button").click(function() {
-					CREATE_MAP.updateMap();
+					MAP_DRIVER.updateMap();
 					
 					return;
 				});
 				
 				$("#composite-button").click(function() {
-					console.log(CREATE_MAP.getAUComponents());
+					console.log(MAP_DRIVER.getAUComponents());
 					
-					var i;
-					var currentAUGID;
-					var currentAU;
-					
-					var compositeJSON = {};
+					var i,
+						currentAUGID,
+						currentAU,
+						compositeJSON = {},
+						j;
+
 					compositeJSON.type = "FeatureCollection";
 					compositeJSON.id = null;
 					compositeJSON.features = [];
 					
-					currentAUGID = CREATE_MAP.auComponents[0];
+					currentAUGID = MAP_DRIVER.auComponents[0];
 					currentAU = L.mapbox.featureLayer().loadURL(crudPath + "/" + currentAUGID);
 					//currentAU.on('ready', function(){
 						//TODO: Load JSON via call-back
-						for(i = 1; i < CREATE_MAP.auComponents.length; i++) {
-							currentAUGID = CREATE_MAP.auComponents[i];
+						for(i = 1; i < MAP_DRIVER.auComponents.length; i++) {
+							currentAUGID = MAP_DRIVER.auComponents[i];
 							currentAU = L.mapbox.featureLayer().loadURL(crudPath + "/" + currentAUGID);
 							
 							console.log(currentAU);
-							var j;
+
 							for(j = 0; j < currentAU.geojson.features.length; j++) {
 								compositeJSON.features.push(currentAU.geojson.features[j]);
 							}
 						}
 						
-						CREATE_MAP.loadJSON(compositeJSON);
+						MAP_DRIVER.loadJSON(compositeJSON);
 					//});
 				});
 				
-				var shiftKey = false;
-				var controlKey = false;
 				$(document).keydown(function(event) {
 					//console.log("Key: " + event.which);
 					
-					if(event.which == 16) {
-						shiftKey = true;
+					if(event.which == 192) {
+						tildeKey = true;
 					}
 					
-					if(event.which == 17) {
-						controlKey = true;
+					if(event.which == 18) {
+						altKey = true;
 					}
 					
-					if(shiftKey && controlKey) {
+					if(tildeKey && altKey) {
 						$("#au-create").show();
 					}
 					
@@ -311,12 +312,12 @@ $(document).ready(function() {
 				});
 				
 				$(document).keyup(function(event) {
-					if(event.which == 16) {
-						shiftKey = false;
+					if(event.which == 192) {
+						tildeKey = false;
 					}
 					
-					if(event.which == 17) {
-						controlKey = false;
+					if(event.which == 18) {
+						altKey = false;
 					}
 					
 					return;

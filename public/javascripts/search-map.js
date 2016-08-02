@@ -32,15 +32,15 @@ $(document).ready(function() {
 				centerMap(thisMapDriver.featureLayer.getGeoJSON(), thisMapDriver);
 				
 				thisMapDriver.mapID = thisMapDriver.featureLayer.getGeoJSON().id;
-				setTextValue("#au-name", feature.properties.name);
-				setTextValue("#au-code", feature.properties.code);
-				setTextValue("#description", feature.properties.description);
-				setTextValue("#start-date", feature.properties.startDate);
-				setTextValue("#end-date", feature.properties.endDate);
+				HELPERS.setTextValue("#au-name", feature.properties.name);
+				HELPERS.setTextValue("#au-code", feature.properties.code);
+				HELPERS.setTextValue("#description", feature.properties.description);
+				HELPERS.setTextValue("#start-date", feature.properties.startDate);
+				HELPERS.setTextValue("#end-date", feature.properties.endDate);
 				
 				var parentGID = feature.properties.parentGid;
-				
-				setTextValue("#gid", feature.properties.gid);
+
+				HELPERS.setTextValue("#gid", feature.properties.gid);
 				feature.properties.title = feature.properties.name + " " + feature.properties.locationTypeName + " from " + feature.properties.startDate;
 				
 				if(feature.properties.endDate) {
@@ -181,6 +181,7 @@ $(document).ready(function() {
 		
 		return;
 	}
+	
 	initialize();
 	
 	return;

@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.concurrent.TimeUnit;
 
 import dao.LocationDao;
@@ -142,6 +144,8 @@ public class LocationProxyRule {
 		List<String> tokenMatches = new ArrayList();
 		boolean matches;
 		Map<String, String> map;
+		String cleanedInputString = removeNonWordCharacters(prefixName);
+		String cleanedCompareString;
 		
 		while (!names.isEmpty()) {
 			remainingNames = new ArrayList<>();
@@ -164,7 +168,8 @@ public class LocationProxyRule {
 				}
 				
 				for(int i = 0; i < tokens.length; i++) {
-					if(tokens[i].equalsIgnoreCase(prefixName)) {
+					cleanedCompareString = removeNonWordCharacters(tokens[i]);
+					if(cleanedCompareString.equalsIgnoreCase(cleanedInputString)) {
 						tokenMatches.add(originalName);
 						break;
 					}
@@ -213,7 +218,12 @@ public class LocationProxyRule {
 		
 		return result;
 	}
-
+	
+	public static String removeNonWordCharacters(String input) {
+		Pattern nonWordPattern = Pattern.compile("[^\\p{L}0-9]+", Pattern.UNICODE_CHARACTER_CLASS);
+		return input.replaceAll(nonWordPattern.toString(), "");
+	}
+	
 	private static void updateUniqueSortedLocationNames(Location location) {
 		if (uniqueSortedLocationNames == null)
 			uniqueSortedLocationNames = new ArrayList<>();
@@ -237,6 +247,7 @@ public class LocationProxyRule {
 	private static List<String> getNames(Location location) {
 		if (location == null)
 			return null;
+		
 		List<String> names = new ArrayList<>();
 		names.add(location.getData().getName());
 		for (AltName altName : location.getAltNames())
