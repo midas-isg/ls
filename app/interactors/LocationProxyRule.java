@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 import dao.LocationDao;
 import dao.entities.AltName;
 import dao.entities.Location;
+import gateways.configuration.ConfReader;
 import models.FancyTreeNode;
 import play.Logger;
 import play.db.jpa.JPA;
@@ -24,21 +25,24 @@ public class LocationProxyRule {
 	private static List<Location> roots = null;
 	private static List<String> uniqueSortedLocationNames = null;
 	private static List<FancyTreeNode> auTree = null;
+	private static Long defaultCacheDelay = 0L;
 
 	public static void scheduleCacheUpdate() {
 		scheduleCacheUpdate(null);
 	}
-	public static void scheduleCacheUpdate(Location location) {
 
-		Akka.system().scheduler().scheduleOnce(Duration.create(0, TimeUnit.MILLISECONDS), new Runnable() {
-			@Override
-			public void run() {
-				Logger.info("building cache ...");
-				JPA.withTransaction(() -> {
-					LocationProxyRule.updateCache(location);
-				});
-			}
-		}, Akka.system().dispatcher());
+	public static void scheduleCacheUpdate(Location location) {
+		Akka.system().scheduler().scheduleOnce(Duration.create(defaultCacheDelay, TimeUnit.MILLISECONDS),
+				new Runnable() {
+					@Override
+					public void run() {
+						Logger.info("updating cache ...");
+						JPA.withTransaction(() -> {
+							LocationProxyRule.updateCache(location);
+							Logger.info("cache updated!");
+						});
+					}
+				}, Akka.system().dispatcher());
 	}
 
 	private static synchronized void updateCache(Location location) {
@@ -52,7 +56,6 @@ public class LocationProxyRule {
 		uniqueSortedLocationNames = getUniqueSortedLocationNames();
 		roots = getHierarchy();
 		auTree = getAuTree();
-		Logger.info("cache updated!");
 	}
 
 	private static void notifyChange() {
@@ -125,8 +128,8 @@ public class LocationProxyRule {
 
 	public static List<Map<String, String>> listUniqueNames(String prefixNames, int limit) {
 		List<Map<String, String>> result = new ArrayList<>();
-		
-		if(prefixNames == null || prefixNames.trim().isEmpty())
+
+		if (prefixNames == null || prefixNames.trim().isEmpty())
 			return result;
 
 		int numWord = 0;
@@ -142,75 +145,73 @@ public class LocationProxyRule {
 		List<String> tokenMatches = new ArrayList();
 		boolean matches;
 		Map<String, String> map;
-		
+
 		while (!names.isEmpty()) {
 			remainingNames = new ArrayList<>();
-			
-			for(String originalName : names) {
+
+			for (String originalName : names) {
 				name = originalName;
 				tokens = name.split(delim);
 				toBeRemoved = "";
-				
-				for(int i = 0; i < numWord; i++) {
+
+				for (int i = 0; i < numWord; i++) {
 					toBeRemoved += tokens[i] + delim;
 				}
-				
+
 				try {
 					usedName = name.replaceFirst("\\Q" + toBeRemoved + "\\E", "");
-				}
-				catch(Exception exception) {
+				} catch (Exception exception) {
 					Logger.debug("Yes, the regex didn't work right!");
 					Logger.debug(exception.toString());
 				}
-				
-				for(int i = 0; i < tokens.length; i++) {
-					if(tokens[i].equalsIgnoreCase(prefixName)) {
+
+				for (int i = 0; i < tokens.length; i++) {
+					if (tokens[i].equalsIgnoreCase(prefixName)) {
 						tokenMatches.add(originalName);
 						break;
 					}
 				}
-				
-				if(usedName.toLowerCase().startsWith(prefixName)) {
+
+				if (usedName.toLowerCase().startsWith(prefixName)) {
 					map = new HashMap<>();
 					map.put("name", originalName);
 					result.add(map);
-					
-					if(result.size() == limit) {
+
+					if (result.size() == limit) {
 						remainingNames = Collections.emptyList();
 						break;
 					}
-				}
-				else if(tokens.length > numWord + 1) {
+				} else if (tokens.length > numWord + 1) {
 					remainingNames.add(originalName);
 				}
 			}
-			
+
 			numWord++;
 			names = remainingNames;
 		}
-		
+
 		numWord = result.size() < limit ? tokenMatches.size() : 0;
-		for(int i = 0; i < numWord; i++) {
+		for (int i = 0; i < numWord; i++) {
 			map = new HashMap<>();
 			map.put("name", tokenMatches.get(i));
-			
+
 			matches = false;
-			for(int j = 0; j < result.size(); j++) {
-				if(result.get(j).get("name").equals(tokenMatches.get(i))) {
+			for (int j = 0; j < result.size(); j++) {
+				if (result.get(j).get("name").equals(tokenMatches.get(i))) {
 					matches = true;
 					break;
 				}
 			}
-			
-			if(!matches) {
+
+			if (!matches) {
 				result.add(map);
-				
-				if(result.size() == limit) {
+
+				if (result.size() == limit) {
 					break;
 				}
 			}
 		}
-		
+
 		return result;
 	}
 
@@ -227,9 +228,8 @@ public class LocationProxyRule {
 		int insertPoint;
 		for (String name : names) {
 			insertPoint = Collections.binarySearch(uniqueSortedLocationNames, name, String.CASE_INSENSITIVE_ORDER);
-			if (insertPoint < 0){
+			if (insertPoint < 0) {
 				uniqueSortedLocationNames.add(-insertPoint - 1, name);
-				//Logger.debug(name + " inserted into uniqueNames at position: " + (-insertPoint - 1));
 			}
 		}
 	}
@@ -239,8 +239,10 @@ public class LocationProxyRule {
 			return null;
 		List<String> names = new ArrayList<>();
 		names.add(location.getData().getName());
-		for (AltName altName : location.getAltNames())
-			names.add(altName.getName());
+		List<AltName> altNames = location.getAltNames();
+		if (altNames != null)
+			for (AltName altName : altNames)
+				names.add(altName.getName());
 		return names;
 	}
 }

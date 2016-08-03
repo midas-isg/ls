@@ -4,22 +4,29 @@ import static play.test.Helpers.fakeApplication;
 import static play.test.Helpers.running;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.util.Map;
 
+import play.Application;
 import play.Configuration;
+import play.GlobalSettings;
+import play.Logger;
 import play.libs.F.Callback0;
 import play.libs.F.Function0;
+import play.mvc.Action;
+import play.mvc.Http.Request;
 import play.test.FakeApplication;
 import suites.Helper;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
+import gateways.configuration.Global;
+
 public class App {
 	private FakeApplication fakeApp = null;
 	private static String IN_MEMO_DB_CONF_PATH = "test/resources/test_in_memory_DB.conf";
 	private static String TEST_CONF_PATH = "test/resources/test.conf";
-
 
 	public static App newWithTestDb() {
 		return new App(TEST_CONF_PATH);
@@ -48,10 +55,26 @@ public class App {
 	@SuppressWarnings("unchecked")
 	private App(String testConfPathname, String uid) {
 		Map<String, Object> configurationMap = readConf(testConfPathname);
-		if(testConfPathname.equals(IN_MEMO_DB_CONF_PATH))
-			((Map<String,Object>)((Map<String,Object>)configurationMap.get("db")).get("default")).put("initSQL", "");
+		if (testConfPathname.equals(IN_MEMO_DB_CONF_PATH))
+			((Map<String, Object>) ((Map<String, Object>) configurationMap.get("db")).get("default")).put("initSQL",
+					"");
 		keepDatabaseOpen(configurationMap, uid);
-		fakeApp = fakeApplication(configurationMap);
+		fakeApp = fakeApplication(configurationMap, new GlobalSettings() {
+			@Override
+			public void onStart(Application app) {
+				Logger.info(" ls started as fakeApplication");
+			}
+
+			@Override
+			public void onStop(Application app) {
+				new Global().onStop(app);
+			}
+
+			@Override
+			public Action<Void> onRequest(Request request, Method actionMethod) {
+				return new Global().onRequest(request, actionMethod);
+			}
+		});
 	}
 
 	public FakeApplication getFakeApp() {
