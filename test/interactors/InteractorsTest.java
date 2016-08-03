@@ -17,6 +17,8 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import play.Logger;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -80,6 +82,39 @@ public class InteractorsTest {
 		parseMultiPolygon();
 		parseHoleyMultiPolygon();
 		parseGeometryCollection();
+		
+		return;
+	}
+	
+	@Test
+	public void removeNonWordCharactersTest() {
+		String pokemon = "Pokémon-2";
+		String pokemon2;
+		String frenchWord = "/français/";
+		String frenchWord2;
+		
+		pokemon2 = LocationProxyRule.removeNonWordCharacters(pokemon);
+		frenchWord2 = LocationProxyRule.removeNonWordCharacters(frenchWord);
+		assertThat(pokemon2).isEqualTo("Pokémon2");
+		assertThat(frenchWord2).isEqualTo("français");
+		
+		/*
+		String japaneseWord = "日本語+";
+		String thaiWord = "ภาษาไทย,";
+		System.out.println(japaneseWord);
+		System.out.println(thaiWord);
+		japaneseWord = LocationProxyRule.removeNonWordCharacters("日本語+");
+		thaiWord = LocationProxyRule.removeNonWordCharacters("ภาษาไทย,");
+		System.out.println(japaneseWord);
+		System.out.println(thaiWord);
+		assertThat(japaneseWord).isEqualTo("日本語");
+		assertThat(thaiWord).isEqualTo("ภาษาไทย");
+		
+		System.out.println(pokemon);
+		System.out.println(frenchWord);
+		System.out.println(pokemon2);
+		System.out.println(frenchWord2);
+		*/
 		
 		return;
 	}
@@ -174,7 +209,7 @@ public class InteractorsTest {
 		
 		return;
 	}
-	
+		
 	@Test 
 	@Ignore("TODO: malformed contains a polygon that is mislabeled as"
 			+ " a multipolygon but the current code can still process it;"

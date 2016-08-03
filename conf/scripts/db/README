@@ -1,0 +1,5 @@
+- In order to create Apollo Location Service database schema, run bash-script/run-me.sh
+
+- Use ls_schema_backup_command on Apollo-LS database server, if you want to backup the database schema_only
+
+- Find in-development SQL scripts in sql directory

@@ -18,13 +18,15 @@ div {
 
 footer {
 	border-radius: 5px;
-	background-color: #F0FFFF;
+	//background-color: #F0FFFF;
 }
 
 legend {
 	color: #00FFFF;
 	background-color: #000000;
 	border-radius: 5px 5px 0px 0px;
+	margin-bottom: 0px;
+	text-indent: 5px;
 }
 
 .azure {
