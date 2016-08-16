@@ -30,8 +30,8 @@ public class Helper {
 	}
 
 	public static String readContext() {
-		final ConfRule conf = new interactors.ConfRule(new ConfReader()); //Factory.makeConfRule();
-		return conf.readString("application.context");
+		final ConfRule conf = new interactors.ConfRule(new ConfReader());
+		return conf.readString("play.http.context");
 	}
 
 	public static <T> T wrapTransaction(Function0<T> block) {

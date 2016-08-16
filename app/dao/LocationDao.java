@@ -1,39 +1,39 @@
 package dao;
 
-import static interactors.Util.getDate;
-import static interactors.Util.getLong;
-import static interactors.Util.getString;
-import interactors.LocationProxyRule;
-
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
-import models.Request;
-import models.exceptions.PostgreSQLException;
-
-import org.hibernate.SQLQuery;
-import org.hibernate.Session;
-import org.hibernate.transform.Transformers;
 import org.postgresql.util.PSQLException;
 
-import play.Logger;
-import play.db.jpa.JPA;
 import dao.entities.AltName;
-import dao.entities.Code;
-import dao.entities.Data;
-import dao.entities.DeficientInterface;
 import dao.entities.Location;
 import dao.entities.LocationGeometry;
+import interactors.LocationProxyRule;
+import models.Request;
+import models.exceptions.PostgreSQLException;
+import play.Logger;
+import play.db.jpa.JPA;
 
 public class LocationDao {
-	static final int SRID =  4326;
-	
+	static final int SRID = 4326;
+	private static final int AU_SUPERTYPE_ID = 3;
+
 	public Long create(Location location) {
 		EntityManager em = JPA.em();
 		LocationGeometry geometry = prepareGeometry(location);
@@ -41,29 +41,28 @@ public class LocationDao {
 			em.persist(geometry);
 			em.persist(location);
 			em.flush();
-		} catch (Exception e){
+		} catch (Exception e) {
 			PSQLException pe = getPSQLException(e);
-			if(pe != null){
+			if (pe != null) {
 				throw new PostgreSQLException(pe, pe.getSQLState());
-			}
-			else
+			} else
 				throw new RuntimeException(e);
 		}
 		AltNameDao altNameDao = new AltNameDao(em);
 		CodeDao codeDao = new CodeDao(em);
 		altNameDao.createAll(location.getAltNames());
 		codeDao.createAll(location.getOtherCodes());
-		LocationProxyRule.notifyChange();
+		LocationProxyRule.scheduleCacheUpdate(location);
 		Long gid = location.getGid();
 		Logger.info("persisted " + gid);
-		
+
 		return gid;
 	}
 
 	private PSQLException getPSQLException(Exception e) {
 		Throwable cause = e.getCause();
-		while (cause != null){
-			if(cause instanceof PSQLException)
+		while (cause != null) {
+			if (cause instanceof PSQLException)
 				return (PSQLException) cause;
 			cause = cause.getCause();
 		}
@@ -73,7 +72,7 @@ public class LocationDao {
 	public Location read(long gid) {
 		EntityManager em = JPA.em();
 		Location result = em.find(Location.class, gid);
-		
+
 		return result;
 	}
 
@@ -82,10 +81,10 @@ public class LocationDao {
 		LocationGeometry geometry = prepareGeometry(location);
 		em.merge(geometry);
 		em.merge(location);
-		LocationProxyRule.notifyChange();
+		LocationProxyRule.scheduleCacheUpdate(location);
 		Long gid = location.getGid();
 		Logger.info("merged " + gid);
-		
+
 		return gid;
 	}
 
@@ -94,7 +93,7 @@ public class LocationDao {
 		setSridToDefault(geometry);
 		geometry.setLocation(location);
 		geometry.setGid(location.getGid());
-		
+
 		return geometry;
 	}
 
@@ -107,31 +106,30 @@ public class LocationDao {
 		AltNameDao altNameDao = new AltNameDao(em);
 		CodeDao codeDao = new CodeDao(em);
 		Long gid = null;
-		if (location != null){
+		if (location != null) {
 			gid = location.getGid();
 			altNameDao.deleteAll(location.getAltNames());
 			codeDao.deleteAll(location.getOtherCodes());
 			em.remove(location);
 			Logger.info("removed Location with gid=" + gid);
 		}
-		
+
 		return gid;
 	}
 
-	public List<Location> findByTerm(Request req) {
+	public List<?> findByTerm(Request req) {
 		EntityManager em = JPA.em();
 		String q = new SearchSql().toQuerySqlString(req);
 		Query query = em.createNativeQuery(q);
 		query = setQueryParameters(req, query);
 		List<?> resultList = query.getResultList();
-		List<Location> locations = queryResult2LocationList(resultList);
-		return locations;
+		return resultList;
 	}
 
 	private Query setQueryParameters(Request req, Query query) {
-		if(req.getStartDate() != null)
+		if (req.getStartDate() != null)
 			query = query.setParameter("start", req.getStartDate());
-		if(req.getEndDate() != null)
+		if (req.getEndDate() != null)
 			query = query.setParameter("end", req.getEndDate());
 		if (req.getLimit() != null)
 			query.setMaxResults(req.getLimit());
@@ -139,26 +137,31 @@ public class LocationDao {
 			query.setFirstResult(req.getOffset());
 		return query;
 	}
-	
-	private List<Location> queryResult2LocationList(List<?> resultList) {
+
+	public List<Location> queryResult2LocationList(List<?> resultList) {
 		List<BigInteger> result = getGids(resultList);
-		List<Location> locations = LocationProxyRule.getLocations(result);
-		int i = 0;
-		for (Location l : locations){
-			Object[] objects = (Object[])resultList.get(i++);
+		List<Location> locations = findAll(result);
+		Map<Long, Location> gid2Location = locations.stream()
+				.collect(Collectors.toMap(x -> x.getGid(), Function.identity()));
+		Location l;
+		List<Location> list = new ArrayList<>();
+		for (Object elm : resultList) {
+			Object[] objects = (Object[]) elm;
+			l = gid2Location.get(Long.valueOf(objects[0].toString()));
 			l.setHeadline(objects[1].toString());
 			l.setRank(objects[2].toString());
+			list.add(l);
 		}
-		return locations;
+		return list;
 	}
 
-	private List<BigInteger> getGids(List<?> resultList) {
+	public List<BigInteger> getGids(List<?> resultList) {
 		List<BigInteger> list = new ArrayList<>();
-		for (Object o : resultList){
-			Object[] l = (Object[])o;
-			list.add((BigInteger)l[0]);
+		for (Object o : resultList) {
+			Object[] l = (Object[]) o;
+			list.add((BigInteger) l[0]);
 		}
-		
+
 		return list;
 	}
 
@@ -170,8 +173,8 @@ public class LocationDao {
 		EntityManager em = JPA.em();
 		Query query = em.createQuery("from Location where parent=null");
 		@SuppressWarnings("unchecked")
-		List<Location> result = (List<Location>)query.getResultList();
-		
+		List<Location> result = (List<Location>) query.getResultList();
+
 		return result;
 	}
 
@@ -180,27 +183,25 @@ public class LocationDao {
 		List<Location> result = new ArrayList<>();
 		Map<Long, Location> gid2location = new HashMap<>();
 		Map<Long, List<Location>> gid2orphans = new HashMap<>();
-		for(Location location : all) {
+		for (Location location : all) {
 			em.detach(location);
 			List<Location> children = null;
 			Long gid = location.getGid();
-			if (gid2orphans.containsKey(gid)){
+			if (gid2orphans.containsKey(gid)) {
 				children = gid2orphans.remove(gid);
-			}
-			else {
+			} else {
 				children = new ArrayList<Location>();
 			}
 			location.setChildren(children);
-			
+
 			gid2location.put(gid, location);
 			Location parentFromDb = location.getParent();
-			if (parentFromDb == null){
+			if (parentFromDb == null) {
 				result.add(location);
-			}
-			else {
+			} else {
 				Long parentGid = parentFromDb.getGid();
 				Location foundParent = gid2location.get(parentGid);
-				if (foundParent == null){
+				if (foundParent == null) {
 					List<Location> parentChildren = gid2orphans.get(parentGid);
 					if (parentChildren == null) {
 						parentChildren = new ArrayList<>();
@@ -212,7 +213,7 @@ public class LocationDao {
 				}
 			}
 		}
-		
+
 		return result;
 	}
 
@@ -220,95 +221,67 @@ public class LocationDao {
 		EntityManager em = JPA.em();
 		Query query = em.createQuery("from Location");
 		@SuppressWarnings("unchecked")
-		List<Location> result = (List<Location>)query.getResultList();
-		
+		List<Location> result = (List<Location>) query.getResultList();
+
 		return result;
 	}
 
-	public Map<Long, Location> getGid2location() {
-		/*List<Location> all = findAll();
-		Map<Long, Location> result = new HashMap<>();
-		all.forEach(l -> result.put(l.getGid(), l));
-		*/
-		Map<Long, Location> result = new HashMap<>();
+	private static List<Location> findAll(List<BigInteger> ids) {
 		EntityManager em = JPA.em();
-		Session s = em.unwrap(Session.class);
-		String query = "SELECT gid, name, parent_gid, code, code_type_id, "
-				+ " description, start_date, end_date, location_type_id"
-				+ " FROM location"
-				;
-		SQLQuery q = s.createSQLQuery(query);
-		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
-		Map<Long, Long> orphants = new HashMap<>();
-		LocationTypeDao locationTypeDao = new LocationTypeDao();
-		CodeTypeDao codeTypeDao = new CodeTypeDao();
-		@SuppressWarnings("unchecked")
-		List<Map<String, Object>> l = (List<Map<String, Object>>)q.list();
-		AltNameDao altNameDao = new AltNameDao(em);
-		Map<Long, List<AltName>> otherNames = getGid2OtherInfo(altNameDao);
-		CodeDao codeDao = new CodeDao(em);
-		Map<Long, List<Code>> otherCodes = getGid2OtherInfo(codeDao);
-		for (Map<String, Object> m : l){
-			Long gid = getLong(m, "gid");
-			Long parentGid = getLong(m, "parent_gid");
-			
-			Location loc = new Location();
-			loc.setGid(gid);
-			Data data = new Data();
-			data.setName(getString(m, "name"));
-			data.setCode(getString(m, "code"));
-			data.setDescription(getString(m, "description"));
-			data.setStartDate(getDate(m, "start_date"));
-			data.setEndDate(getDate(m, "end_date"));
-			Long locationTypeId = getLong(m, "location_type_id");
-			data.setLocationType(locationTypeDao.read(locationTypeId));
-			Long codeTypeId = getLong(m, "code_type_id");
-			data.setCodeType(codeTypeDao.read(codeTypeId));
-			if (parentGid != null){
-				Location parent = result.get(parentGid);
-				loc.setParent(parent);
-				if(parent == null) {
-					orphants.put(gid, parentGid);
-				}
-				else {
-					parent.getChildren().add(loc);
-				}
-			}
-			loc.setData(data);
-			loc.setChildren(new ArrayList<Location>());
-			if(otherNames.containsKey(gid))
-				loc.setAltNames(otherNames.get(gid));
-			if(otherCodes.containsKey(gid))
-				loc.setOtherCodes(otherCodes.get(gid));
-			result.put(gid, loc);
-		}
-		for(Map.Entry<Long, Long> pair : orphants.entrySet()) {
-			Long gid = pair.getKey();
-			Location parent = result.get(pair.getValue());
-			if (parent == null) {
-				Logger.warn(gid + " has no parent!");
-			}
-			else {
-				Location child = result.get(gid);
-				child.setParent(parent);
-				parent.getChildren().add(child);
+		List<Location> result = new ArrayList<>();
+		if (ids == null || ids.isEmpty())
+			return result;
+		CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+		CriteriaQuery<Location> criteriaQuery = criteriaBuilder.createQuery(Location.class);
+		Root<Location> location = criteriaQuery.from(Location.class);
+		Expression<String> exp = location.get("gid");
+		criteriaQuery.where(exp.in(ids));
+		TypedQuery<Location> query = em.createQuery(criteriaQuery);
+		return query.getResultList();
+	}
+
+	public static List<Location> getLocations(List<BigInteger> ids) {
+		List<Location> result = new ArrayList<>();
+		result = findAll(ids);
+		for (Location location : result) {
+			if (location == null) {
+				Logger.warn("not found!");
+			} else {
+				location.setHeadline(location.getData().getName());
 			}
 		}
-		
 		return result;
 	}
 
-	private <T extends DeficientInterface> Map<Long, List<T>> getGid2OtherInfo(
-			DataAccessObject<T> daoClass) {
-		List<T> all = daoClass.findAll();
-		Map<Long, List<T>> result = new HashMap<>();
-		Long gid;
-		for(T entity: all){
-			gid = entity.getLocation().getGid();
-			if(!result.containsKey(gid))
-				result.put(gid, new ArrayList<T>());
-			result.get(gid).add(entity);
-		}	
-		return result;
+	public List<String> readUniqueNames() {
+		EntityManager em = JPA.em();
+		Set<String> allNames = new HashSet<>();
+		CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+
+		CriteriaQuery<String> criteriaQuery = criteriaBuilder.createQuery(String.class);
+		Root<Location> location = criteriaQuery.from(Location.class);
+		criteriaQuery.select(location.get("data").get("name")).distinct(true);
+		List<String> names = em.createQuery(criteriaQuery).getResultList();
+
+		criteriaQuery = criteriaBuilder.createQuery(String.class);
+		Root<AltName> altName = criteriaQuery.from(AltName.class);
+		criteriaQuery.select(altName.get("name")).distinct(true);
+		List<String> altames = em.createQuery(criteriaQuery).getResultList();
+
+		allNames.addAll(names);
+		allNames.addAll(altames);
+		return new ArrayList<String>(allNames);
+	}
+
+	public List<Location> readRoots() {
+		EntityManager em = JPA.em();
+		CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+		CriteriaQuery<Location> criteriaQuery = criteriaBuilder.createQuery(Location.class);
+		Root<Location> location = criteriaQuery.from(Location.class);
+		Expression<String> superType = location.get("data").get("locationType").get("superType").get("id");
+		Predicate isAU = criteriaBuilder.equal(superType, AU_SUPERTYPE_ID);
+		Predicate isParentNull = criteriaBuilder.isNull(location.get("parent"));
+		criteriaQuery.where(isAU, isParentNull);
+		return em.createQuery(criteriaQuery).getResultList();
 	}
 }

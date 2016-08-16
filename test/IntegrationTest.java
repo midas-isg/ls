@@ -34,7 +34,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import play.Application;
 import play.Configuration;
+import play.GlobalSettings;
 import play.api.mvc.Call;
 import play.db.jpa.JPA;
 import play.libs.F.Callback;
@@ -62,22 +64,15 @@ import controllers.LocationServices;
 import controllers.routes;
 import dao.entities.Location;
 import dao.entities.LocationType;
+import integrations.app.App;
 
-public class IntegrationTest extends WithApplication {
+public class IntegrationTest {
 	private static String context = "http://localhost:3333/ls";
 	private TestServer testServer = null; 
-	private static Map<String, Object> additionalConfiguration = null;
-	
-	@BeforeClass
-	public static void initTestConf(){
-		Config config = ConfigFactory.parseFile(new File("conf/test.conf"));
-		Configuration  additionalConfigurations = new Configuration(config);
-		additionalConfiguration = additionalConfigurations.asMap();
-	}
 	
 	@Before
 	public void init(){
-		testServer = testServer(3333, fakeApplication(additionalConfiguration));
+		testServer = testServer(3333, App.newWithTestDb().getFakeApp());
 	}
 
 	private EntityManager initEntityManager() {
@@ -196,7 +191,7 @@ public class IntegrationTest extends WithApplication {
 		BigInteger gid = list.get(0);
 		
         JsonNode node = Json.parse(text);
-        final Call call = routes.LocationServices.findByFeatureCollection(null, null);
+        final Call call = routes.LocationServices.findByFeatureCollection(null, null, true);
 		final Result postResult = request(call, node);
         assertThat(postResult.status()).isEqualTo(Status.OK);
         assertThat(postResult.contentType()).isEqualTo("application/vnd.geo+json");
@@ -226,7 +221,7 @@ public class IntegrationTest extends WithApplication {
 				67019, 66820, 67081, 66664, 67117, 67111});
 
         JsonNode node = Json.parse(text);
-        final Call call = routes.LocationServices.findByFeatureCollection(supertTypeIdAdministrativeUnit, null);
+        final Call call = routes.LocationServices.findByFeatureCollection(supertTypeIdAdministrativeUnit, null, true);
 		Result postResult = request(call, node);
         assertThat(postResult.status()).isEqualTo(Status.OK);
         assertThat(postResult.contentType()).isEqualTo("application/vnd.geo+json");

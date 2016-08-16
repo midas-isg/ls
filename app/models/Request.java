@@ -15,6 +15,7 @@ public class Request {
 	private Date startDate;
 	private Date endDate;
 	private List<Integer> locationTypeIds;
+	private Boolean verbose;
 
 	public String getQueryTerm() {
 		return queryTerm;
@@ -94,5 +95,13 @@ public class Request {
 
 	public void setLocationTypeIds(List<Integer> locationTypeIds) {
 		this.locationTypeIds = locationTypeIds;
+	}
+
+	public Boolean getVerbose() {
+		return verbose;
+	}
+
+	public void setVerbose(Boolean verbose) {
+		this.verbose = verbose;
 	}
 }
