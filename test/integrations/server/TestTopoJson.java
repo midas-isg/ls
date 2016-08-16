@@ -57,7 +57,7 @@ public class TestTopoJson {
 	}
 
 	private void createTopoJsonTest() {
-		String body = "{\"gids\":[" + gid + "]}";
+		String body = "{\"gids\":[" + gid + ", " + gid + "]}";
 		String url = Server.makeTestUrl(topoJsonRoute);
 		WSResponse response = post(url, body, jsonContentType);
 		assertStatus(response, OK);

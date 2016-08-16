@@ -9,7 +9,9 @@ import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -38,7 +40,7 @@ public class TopoJsonRule {
 		Path geoJsonFilePath = toGeoJsonFile(fc, geoJsonFilePrefix, geoJsonFileSuffix);
 		Path topoJsonFilePath = createTempFile(topoJsonFilePrefix, topoJsonFileSuffix);
 		String topoJson = toTopoJson(topoJsonFilePath, geoJsonFilePath);
-		deleteFiles(new Path[] { topoJsonFilePath, geoJsonFilePath });
+		//deleteFiles(new Path[] { topoJsonFilePath, geoJsonFilePath });
 		return topoJson;
 	}
 
@@ -62,7 +64,9 @@ public class TopoJsonRule {
 	private FeatureCollection toFeatureCollection(List<Long> gids) {
 
 		List<Location> locations = new ArrayList<>();
-		for (Long gid : gids)
+		Set<Long> uniqueGids = new HashSet<>();
+		uniqueGids.addAll(gids);
+		for (Long gid : uniqueGids)
 			locations.add(LocationRule.read(gid));
 
 		FeatureCollection fc = GeoJsonRule.toFeatureCollection(locations,
