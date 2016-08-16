@@ -40,7 +40,7 @@ public class TopoJsonRule {
 		Path geoJsonFilePath = toGeoJsonFile(fc, geoJsonFilePrefix, geoJsonFileSuffix);
 		Path topoJsonFilePath = createTempFile(topoJsonFilePrefix, topoJsonFileSuffix);
 		String topoJson = toTopoJson(topoJsonFilePath, geoJsonFilePath);
-		//deleteFiles(new Path[] { topoJsonFilePath, geoJsonFilePath });
+		deleteFiles(new Path[] { topoJsonFilePath, geoJsonFilePath });
 		return topoJson;
 	}
 

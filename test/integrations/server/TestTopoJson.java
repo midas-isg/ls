@@ -9,6 +9,10 @@ import static suites.Helper.assertAreEqual;
 import static suites.Helper.assertContainsAll;
 import interactors.KmlRule;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -33,7 +37,8 @@ public class TestTopoJson {
 	private String topoJsonRoute = "api/topojson";
 	private long gid;
 	private String jsonContentType = "application/json; charset=utf-8";
-	
+	private Path testTopoJsonFile = Paths.get("test/resources/test/testLocation1.topojson");
+
 	public static Runnable test() {
 		return () -> newInstance().testTopoJson();
 	}
@@ -57,14 +62,25 @@ public class TestTopoJson {
 	}
 
 	private void createTopoJsonTest() {
-		String body = "{\"gids\":[" + gid + ", " + gid + "]}";
+		String body = "{\"gids\":[" + gid + ", " + gid + ", " + gid + "]}";
 		String url = Server.makeTestUrl(topoJsonRoute);
 		WSResponse response = post(url, body, jsonContentType);
 		assertStatus(response, OK);
-		
+		JsonNode expGeometries = getGeometriesNode(readFileContent(testTopoJsonFile));
+		JsonNode geometries = getGeometriesNode(response.getBody());
+		assertAreEqual(geometries.size(), expGeometries.size());
+
 		body = "{\"gids\":[]}";
 		response = post(url, body, jsonContentType);
 		assertStatus(response, OK);
+	}
+
+	private JsonNode getGeometriesNode(String topojson) {
+		JsonNode expectedTopoJson = Json.parse(topojson);
+		JsonNode expectedObjects = expectedTopoJson.get("objects");
+		String expObjName = expectedObjects.fieldNames().next();
+		JsonNode expGeometries = expectedObjects.get(expObjName).get("geometries");
+		return expGeometries;
 	}
 
 	private WSResponse post(String url, String body, String contentType) {
@@ -100,5 +116,15 @@ public class TestTopoJson {
 		Call call = routes.LocationServices.delete(gid);
 		final RequestBuilder requestBuilder = Helpers.fakeRequest(call);
 		return route(requestBuilder);
+	}
+
+	private String readFileContent(Path path) {
+		byte[] bytes;
+		try {
+			bytes = Files.readAllBytes(path);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		return new String(bytes);
 	}
 }
