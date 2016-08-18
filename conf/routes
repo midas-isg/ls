@@ -9,6 +9,7 @@ GET           /concept                            controllers.Application.concep
 GET           /read-only                          controllers.Application.browser()
 GET           /browser                            controllers.Application.browser()
 GET           /create                             controllers.Application.create()
+GET           /resolver                           controllers.Application.resolver()
 
 GET           /api/au-tree                        controllers.TreeView.tree()
 

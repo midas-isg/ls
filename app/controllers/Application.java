@@ -42,6 +42,11 @@ public class Application extends Controller {
 	}
 	
 	@Transactional
+	public Result resolver() {
+		return ok(views.html.resolver.render("location resolver", info()));
+	}
+	
+	@Transactional
 	public Result create() {
 		return ok(views.html.create.render("location creator", info()));
 	}
