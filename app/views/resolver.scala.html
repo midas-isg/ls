@@ -14,24 +14,37 @@
 	<div class="no-padding">
 		<legend>Location Resolver</legend>
 		<div>
-			<input id="csv-input" type="file" accept=".csv, .txt">
-			<button id="process-button" class="vertical-spaced">Process File</button>
+			<div class="extra-bottom-space">
+				<input id="csv-input" type="file" accept=".csv, .txt" style="display: inline-block;">
+				<button id="process-button" class="">Process File</button>
+			</div>
 			
-			<div>
-				<legend>Input</legend>
-				<div class="extra-bottom-space" style="max-height: 300px; overflow: auto;">
-					<blockquote id="input-display" style="background-color: #ffffff;"></blockquote>
+			<div class="extra-bottom-space" style="clear: both;">
+				<div class="extra-bottom-space" style="display: inline-block;">
+					<legend>Country</legend>
+					<select id="country-selection">
+						<option id="-1">None selected</option>
+					</select>
 				</div>
 				
+				<div class="extra-bottom-space" style="clear: both;">
+					<div id="search-priorities" style="float: left;"></div>
+					
+					<div style="float: left;">
+						<button id="add-priority" class="">+</button>
+						<button id="remove-priority" class="">-</button>
+					</div>
+					
+					<div style="float: right; clear: both;">
+						<button id="resolve-button">Run Resolver</button>
+					</div>
+				</div>
+			</div>
+			
+			<div style="clear: both;">
 				<legend>Mappings</legend>
-				<div id="result">
-					<table id="mapping-table">
-						<thead>
-							<tr></tr>
-						</thead>
-						<tbody>
-						</tbody>
-					</table>
+				<div id="result" style="clear: both;">
+					<table id="input-table" style="float: left; clear: both;"></table>
 				</div>
 			</div>
 		</div>
