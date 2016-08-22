@@ -4,6 +4,8 @@
 	<script src='@routes.Assets.at("javascripts/search-results.js")' type='text/javascript'></script>
 	<script src='@routes.Assets.at("javascripts/search-rank.js")' type='text/javascript'></script>
 	
+	<script src='@routes.Assets.at("external_packages/PapaParse-4.1.2/papaparse.min.js")' type='text/javascript'></script>
+	
 	<script src='@routes.Assets.at("javascripts/resolver.js")' type='text/javascript'></script>
 	
 	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'>
@@ -43,6 +45,11 @@
 			
 			<div style="clear: both;">
 				<legend>Mappings</legend>
+				<div id="loading-gif" style="display: none;">
+					<!--<img src='@routes.Assets.at("images/loading.gif")' style="display: block; margin-left: auto; margin-right: auto;">-->
+					<h1 style="display: table; margin-left: auto; margin-right: auto;">LOADING, PLEASE WAIT =)</h1>
+				</div>
+				
 				<div id="result" style="clear: both;">
 					<table id="input-table" style="float: left; clear: both;"></table>
 				</div>

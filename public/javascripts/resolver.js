@@ -1,16 +1,26 @@
 $(document).ready(function Resolver() {
-	var input,
-		output = {headers: [], rows: [], mappingHeaders: [], mappings:[]},
+	var countriesURL = "",
+		searchURL = "",
+		input,
+		output,
 		fileReader = new FileReader();
 	
 	(function initialize() {
 		$("#process-button").click(function() {
+			output = {headers: [], rows: [], mappingHeaders: [], mappings:[]};
+			$("#search-priorities").empty();
 			$("#input-table thead").remove();
 			$("#input-table tbody").remove();
 			$("#input-table").append("<thead></thead>");
 			$("#input-table").append("<tbody></tbody>");
 			
 			readInputFile();
+			
+			return;
+		});
+		
+		$("#resolve-button").click(function() {
+			resolveAmbiguities();
 			
 			return;
 		});
@@ -30,36 +40,15 @@ $(document).ready(function Resolver() {
 		
 		return;
 	})();
+	
+	function resolveAmbiguities() {
 		
+		
+		return;
+	}
+	
 	function processCSVdata() {
-		var resultLines = fileReader.result.split("\n"),
-			currentLine = resultLines[0].split(","),
-			i,
-			j;
-		
-		for(j = 0; j < currentLine.length; j++) {
-			output.headers.push(currentLine[j].replace(/"/g, ""));
-		}
-		output.mappingHeaders.push("used_input");
-		output.mappingHeaders.push("ls_id");
-		
-		for(i = 0; i < (resultLines.length - 1); i++) {
-			if(resultLines[i + 1] !== "") {
-				currentLine = resultLines[i + 1].split(",");
-				output.rows.push({columns: [], header: {}});
-				
-				for(j = 0; j < currentLine.length; j++) {
-					output.rows[i].columns.push(currentLine[j].replace(/"/g, ""));
-					output.rows[i].header[output.headers[j]] = output.rows[i].columns[j];
-				}
-				
-				output.mappings.push({columns: []});
-				output.mappings[i].columns.push(undefined);
-				output.mappings[i].columns.push(undefined);
-			}
-		}
-		
-		console.log(output);
+		parseData();
 		displayTable();
 		addPrioritySelector();
 		
@@ -75,7 +64,40 @@ $(document).ready(function Resolver() {
 			return;
 		}
 		
+		$("#loading-gif").show();
 		fileReader.readAsText(input);
+		
+		return;
+	}
+	
+	function parseData() {
+		var parsedData = Papa.parse(fileReader.result),
+			c = 0,
+			i = 0,
+			j;
+		
+		for(j = 0; j < parsedData.data[i].length; j++) {
+			output.headers.push(parsedData.data[i][j]);
+		}
+		output.mappingHeaders.push("used_input");
+		output.mappingHeaders.push("apollo_location_code");
+		
+		for(i = 1; i < parsedData.data.length; i++) {
+			if(parsedData.data[i].length === output.headers.length) {
+				output.rows.push({columns: [], header: {}});
+				
+				for(j = 0; j < parsedData.data[i].length; j++) {
+					output.rows[c].columns.push(parsedData.data[i][j]);
+					output.rows[c].header[output.headers[j]] = output.rows[c].columns[j];
+				}
+				
+				output.mappings.push({columns: []});
+				output.mappings[c].columns.push(undefined);
+				output.mappings[c].columns.push(undefined);
+				c++;
+			}
+		}
+		console.log(output);
 		
 		return;
 	}
@@ -101,11 +123,13 @@ $(document).ready(function Resolver() {
 				$(row).append("<td style='width: " + columnWidth + "%;'>" + output.rows[i].columns[j] + "</td>");
 			}
 			
-			$(row).append("<td style='width: " + columnWidth + "%;'>" + output.mappings[i].columns[0] + "</td>");
-			$(row).append("<td style='width: " + columnWidth + "%;'>" + output.mappings[i].columns[1] + "</td>");
+			$(row).append("<td id='input-" + i + "' style='width: " + columnWidth + "%;'>" + output.mappings[i].columns[0] + "</td>");
+			$(row).append("<td id='code-" + i + "' style='width: " + columnWidth + "%;'>" + output.mappings[i].columns[1] + "</td>");
 			
 			$("#input-table tbody").append(row);
 		}
+		
+		$("#loading-gif").hide();
 		
 		return;
 	}
