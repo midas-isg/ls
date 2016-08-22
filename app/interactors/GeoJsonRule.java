@@ -167,6 +167,7 @@ public class GeoJsonRule {
 		putAsStringIfNotNull(properties, "searchOtherNames",
 				req.isSearchOtherNames());
 		putAsStringIfNotNull(properties, "searchCodes", req.isSearchCodes());
+		putAsStringIfNotNull(properties, "rootALC", req.getRootALC());
 		putAsStringIfNotNull(properties, "resultSize", resultSize);
 		return properties;
 	}
@@ -300,6 +301,17 @@ public class GeoJsonRule {
 		}
 		
 	}
+	
+	public static Object findByTypeId(long typeId) {
+		List<Location> locations = LocationRule.findByTypeId(typeId);
+		List<String> fields = Arrays.asList(new String[] { KEY_PROPERTIES });
+		FeatureCollection featureCollection = toFeatureCollection(locations, fields);
+		Request req = new Request();
+		req.setLocationTypeIds(Arrays.asList(new Integer[] {(int) typeId}));
+		Map<String, Object> properties = toProperties(req, locations.size());
+		featureCollection.setProperties(properties);
+		return featureCollection;
+	}
 
 	private static Map<String, Object> toNonVerboseResponse(Request req, List<Long> gids) {
 		Map<String, Object> result = new HashMap<>();
@@ -414,6 +426,9 @@ public class GeoJsonRule {
 		req.setSearchCodes(value);
 		value = returnDefaultIfKeyNotExists(node, "verbose", true);
 		req.setVerbose(value);
+		JsonNode rootALC = node.get("rootALC");
+		if(rootALC != null)
+			req.setRootALC(rootALC.asLong());
 		
 	}
 
@@ -446,5 +461,4 @@ public class GeoJsonRule {
 			result.add(gid.longValue());
 		return result;
 	}
-
 }

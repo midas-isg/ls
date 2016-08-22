@@ -36,6 +36,7 @@ public class TestFindLocation {
 	private long gidTest2;
 	private String jsonContentType = "application/json; charset=utf-8";
 	private final String findByTermTestFile1 = "test/test-find-by-term1.json";
+	private final String findByTermTestFile2 = "test/test-find-by-term2.json";
 	private final String findBulkTestFile1 = "test/test-find-bulk1.json";
 
 	public static Runnable test() {
@@ -73,9 +74,17 @@ public class TestFindLocation {
 		WSResponse response = get(url);
 		JsonNode jsonResp = response.asJson();
 		assertStatus(response, OK);
-		Object[] keys = toArray(jsonResp.get(0).fieldNames());
-		assertThat(keys).contains("gid");
-		assertThat(keys).contains("name");
+		assertAreEqual(jsonResp.size(), 3);
+		Object[] fieldNames = toArray(jsonResp.fieldNames());
+		assertContainsAll(fieldNames, new String[] { "type", "features", "properties" });
+		fieldNames = toArray(jsonResp.get("properties").fieldNames());
+		assertContainsAll(fieldNames,
+				new String[] { "locationTypeIds", "locationTypeNames", "resultSize" });
+		assertThat(jsonResp.get("features")).isNotNull();
+		fieldNames = toArray(jsonResp.get("features").get(0).get("properties").fieldNames());
+		assertContainsAll(fieldNames, new String[] { "name", "startDate", "otherNames", "codes",
+				"locationTypeName", "lineage", "gid" });
+		assertAreEqual(jsonResp.get("properties").get("resultSize").asInt(), jsonResp.get("features").size());
 	}
 
 	private void findByQueryTermTest() {
@@ -110,6 +119,14 @@ public class TestFindLocation {
 		body = "{}";
 		response = post(url, body, jsonContentType);
 		assertStatus(response, BAD_REQUEST);
+		
+		body = KmlRule.getStringFromFile(findByTermTestFile2);
+		response = post(url, body, jsonContentType);
+		assertStatus(response, OK);
+		jsonResp = response.asJson();
+		assertAreEqual(jsonResp.get("features").size(), 1);
+		fieldNames = toArray(jsonResp.get("properties").fieldNames());
+		assertContainsAll(fieldNames, new String[] { "rootALC" });
 	}
 
 	private void testHeadLineMatch(JsonNode jsonResp) {

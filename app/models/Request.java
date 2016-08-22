@@ -16,6 +16,7 @@ public class Request {
 	private Date endDate;
 	private List<Integer> locationTypeIds;
 	private Boolean verbose;
+	private Long rootALC;
 
 	public String getQueryTerm() {
 		return queryTerm;
@@ -103,5 +104,13 @@ public class Request {
 
 	public void setVerbose(Boolean verbose) {
 		this.verbose = verbose;
+	}
+
+	public Long getRootALC() {
+		return rootALC;
+	}
+
+	public void setRootALC(Long rootALC) {
+		this.rootALC = rootALC;
 	}
 }
