@@ -186,8 +186,9 @@ public class SearchSql {
 	}
 
 	private String toQueryFiltersSql(Request req) {
-		String typeCond = locationTypeIdsToSqlFilters(req.getLocationTypeIds());
+		String typeCond = listToSqlFilters( " location_type_id ", req.getLocationTypeIds());
 		String dateCond = dateCond(req.getStartDate(), req.getEndDate());
+		String gidCond = toGidCond(req.getRootALC());
 		String qc = "";
 		if (dateCond != null && typeCond != null)
 			qc += typeCond + " AND " + dateCond;
@@ -195,7 +196,24 @@ public class SearchSql {
 			qc += typeCond;
 		else if (dateCond != null)
 			qc += dateCond;
+		if(gidCond != null)
+			qc += qc.isEmpty() ? gidCond : " AND " + gidCond;
 		return qc;
+	}
+
+	private String toGidCond(Long rootGid) {
+		if(rootGid == null)
+			return null;
+		
+		String gids = " WITH RECURSIVE group_by_admin_level(gid, admin_level) AS ( "
+					+ " SELECT gid,0 FROM location WHERE gid = " + rootGid
+					+ " UNION "
+					+ " SELECT l.gid, g.admin_level + 1 FROM location l, group_by_admin_level g "
+					+ " WHERE l.parent_gid = g.gid ) "
+					+ " SELECT gid FROM group_by_admin_level "
+					+ " WHERE admin_level > 0 ";
+		
+		return " gid in ( " + gids + " ) ";
 	}
 
 	private String toSelectStatementSql(String column, String qt, String tempTable) {
@@ -207,7 +225,7 @@ public class SearchSql {
 		return q;
 	}
 
-	private String locationTypeIdsToSqlFilters(
+	private String listToSqlFilters(String columnName,
 			@SuppressWarnings("rawtypes") List list) {
 		if (list == null)
 			return null;
@@ -217,7 +235,7 @@ public class SearchSql {
 		for (Object o : list) {
 			joiner.add(o.toString());
 		}
-		return " location_type_id in " + joiner.toString();
+		return columnName + " in " + joiner.toString();
 	}
 
 	private String dateCond(Date startDate, Date endDate) {

@@ -150,17 +150,9 @@ public class LocationRule {
 		return LocationDao.getLocations(result);
 	}
 
-	public static List<Object> findByTypeId(long typeId) {
-		Map<String, Object> element;
-		List<Object> result = new ArrayList<>();
+	public static List<Location> findByTypeId(long typeId) {
 		List<Location> locations = LocationTypeDao.findByType(typeId);
-		for (Location l : locations) {
-			element = new HashMap<>();
-			element.put("gid", l.getGid());
-			element.put("name", l.getData().getName());
-			result.add(element);
-		}
-		return result;
+		return locations;
 	}
 
 	public static Object getSimplifiedGeometryMetadata(long gid, Double tolerance) {
