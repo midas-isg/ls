@@ -650,8 +650,10 @@ public class LocationServices extends Controller {
 	@ApiOperation(
 		httpMethod = "GET",
 		nickname = "findByLocationTypeId",
-		value = "Returns locations gid and name with the specified type",
-		notes = "This endpoint returns locations whose type matches the requested type id."
+		value = "Returns locations with the specified type-id",
+		notes = "This endpoint returns locations with the requested type-id.</br>"
+				+ "Note: response is not a valid geoJSON ('geometry' property is removed from the output FeatureCollection). ",
+		response = FeatureCollection.class
 	)
 	@ApiResponses(value = {
 		@ApiResponse(code = OK, message = "Successfully returned"),
@@ -665,7 +667,7 @@ public class LocationServices extends Controller {
 		@PathParam("id")
 		Long typeId
 		){
-		List<Object> result = LocationRule.findByTypeId(typeId);
+		Object result = GeoJsonRule.findByTypeId(typeId);
 		return ok(Json.toJson(result));
 	}
 
