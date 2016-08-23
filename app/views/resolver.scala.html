@@ -46,12 +46,19 @@
 			<div style="clear: both;">
 				<legend>Mappings</legend>
 				<div id="loading-gif" style="display: none;">
-					<!--<img src='@routes.Assets.at("images/loading.gif")' style="display: block; margin-left: auto; margin-right: auto;">-->
-					<h1 style="display: table; margin-left: auto; margin-right: auto;">LOADING, PLEASE WAIT =)</h1>
+					<img src='@routes.Assets.at("images/loading.gif")' style="display: block; margin-left: auto; margin-right: auto; height: 500px; width: 500px;">
+				</div>
+				
+				<div id="busy-message" style="display: none;">
+					<h1 style="display: table; margin-left: auto; margin-right: auto;">CREATING TABLE, PLEASE WAIT &#x263A;</h1>
 				</div>
 				
 				<div id="result" style="clear: both;">
 					<table id="input-table" style="float: left; clear: both;"></table>
+				</div>
+				
+				<div>
+					<button id="download">Download CSV</button>
 				</div>
 			</div>
 		</div>
