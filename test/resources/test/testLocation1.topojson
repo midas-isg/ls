@@ -1,0 +1,73 @@
+{
+"type":"Topology",
+"objects":{
+	"geoJSON_4631862198824018954":{
+		"type":"GeometryCollection",
+		"geometries":[
+			{
+			"type":"Polygon",
+			"properties":{
+				"locationTypeName":"State",
+				"lineage":[],
+				"codes":[
+					{
+					"code":"test-code",
+					"codeTypeName":"ISG"},
+					{
+					"code":"code2",
+					"codeTypeName":"ISG"},
+					{
+					"code":"code1",
+					"codeTypeName":"ISG"
+					}
+				],
+				"gid":"542946",
+				"otherNames":[
+					{
+					"name":"ñámé wíth áccéñt",
+					"description":null,
+					"language":"spa"},
+					{
+					"name":"name without accent",
+					"description":null,
+					"language":"eng"},
+					{
+					"name":"an otherName for test",
+					"description":null,
+					"language":null
+					}
+				],
+				"related":[],
+				"endDate":"2015-01-02",
+				"locationDescription":"test description",
+				"name":"Test Location 1",
+				"startDate":"2015-01-01"
+			},
+			"id":"542946",
+			"arcs":[
+						[
+						-1
+						]
+					]
+				}
+			]
+		}
+	},
+"arcs":[
+		[
+			[29.42870927274942,4.901023353709632],
+			[29.43975244021087,4.890815954000065],
+			[29.45479984951507,4.887435500818597],
+			[29.47419403615229,4.887984180330558],
+			[29.48457342523369,4.895840574133739],
+			[29.49061105146458,4.906816175436096],
+			[29.49108997406701,4.916619044341002],
+			[29.48458921653475,4.926144068595017],
+			[29.46867855800887,4.936854445589391],
+			[29.44902861137921,4.936818208822966],
+			[29.42950558780068,4.928581186225497],
+			[29.42249045418171,4.917354181092396],
+			[29.42870927274942,4.901023353709632]
+		]
+	]
+}
