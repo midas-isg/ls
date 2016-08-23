@@ -93,15 +93,18 @@ public class TestFindLocation {
 		WSResponse response = post(url, body, jsonContentType);
 		assertStatus(response, OK);
 		JsonNode jsonResp = response.asJson();
-		assertAreEqual(jsonResp.size(), 3);
+		assertAreEqual(jsonResp.size(), 4);
 		Object[] fieldNames = toArray(jsonResp.fieldNames());
-		assertContainsAll(fieldNames, new String[] { "type", "features", "properties" });
+		assertContainsAll(fieldNames, new String[] { "type", "features", "properties", "bbox" });
 		fieldNames = toArray(jsonResp.get("properties").fieldNames());
 		assertContainsAll(fieldNames,
 				new String[] { "queryTerm", "startDate", "endDate", "locationTypeIds", "locationTypeNames",
 						"ignoreAccent", "searchNames", "searchOtherNames", "searchCodes", "limit", "offset",
 						"resultSize" });
 		assertAreEqual(jsonResp.get("features").size(), 2);
+		fieldNames = toArray(jsonResp.get("features").get(0).fieldNames());
+		assertContainsAll(fieldNames, new String[] { "type", "properties", "repPoint", "bbox" });
+		
 		fieldNames = toArray(jsonResp.get("features").get(0).get("properties").fieldNames());
 		assertContainsAll(fieldNames, new String[] { "name", "startDate", "endDate", "otherNames", "codes",
 				"locationDescription", "locationTypeName", "lineage", "rank", "headline", "gid" });
@@ -167,6 +170,15 @@ public class TestFindLocation {
 		Object[] features = toArray(jsonResp.get("features").get(0).fieldNames());
 		assertContainsAll(features, new String[] { "type", "geometry", "properties", "id", "bbox", "repPoint" });
 		Object[] properties = toArray(jsonResp.get("features").get(0).get("properties").fieldNames());
+		assertContainsAll(properties, new String[] { "locationTypeName", "lineage", "codes", "otherNames", "gid",
+				"otherNames", "related", "children", "name", "startDate", "endDate" });
+		
+		url = Server.makeTestUrl(basePath + "/" + gidTest1 + "?maxExteriorRings=0");
+		response = get(url);
+		jsonResp = response.asJson();
+		features = toArray(jsonResp.get("features").get(0).fieldNames());
+		assertContainsAll(features, new String[] { "type", "properties", "id", "bbox", "repPoint" });
+		properties = toArray(jsonResp.get("features").get(0).get("properties").fieldNames());
 		assertContainsAll(properties, new String[] { "locationTypeName", "lineage", "codes", "otherNames", "gid",
 				"otherNames", "related", "children", "name", "startDate", "endDate" });
 	}

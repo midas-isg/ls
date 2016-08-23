@@ -49,8 +49,6 @@ import play.Logger;
 public class GeoJsonRule {
 	private static final String KEY_PROPERTIES = "properties";
 	private static final String KEY_CHILDREN = "children";
-	private static final String KEY_BBOX = "bbox";
-	private static final String KEY_REPPOINT = "rep_point";
 	private static final String KEY_GEOMETRY = "geometry";
 	public static final List<String> DEFAULT_KEYS = Arrays.asList(new String[] {
 			KEY_PROPERTIES, KEY_CHILDREN });
@@ -129,12 +127,11 @@ public class GeoJsonRule {
 			Geometry multiPolygonGeom = geometry.getShapeGeom();
 			feature.setGeometry(GeoOutputRule
 					.toFeatureGeometry(multiPolygonGeom));
-			if (includeField(fields, KEY_BBOX))
-				feature.setBbox(computeBbox(location));
-			if (includeField(fields, KEY_REPPOINT))
-				feature.setRepPoint(getRepPoint(geometry));
 			feature.setId(location.getGid() + "");
 		}
+		geometry = GeometryRule.read(location.getGid());
+		feature.setBbox(GeometryRule.computeBbox(geometry.getShapeGeom()));
+		feature.setRepPoint(getRepPoint(geometry));
 		
 		return feature;
 	}
