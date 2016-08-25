@@ -30,7 +30,6 @@ public class SearchSql {
 				codeTempTable);
 		q += unionTempTablesSql(req, qt, nameTempTable, otherNameTempTable,
 				codeTempTable);
-		//Logger.debug("\n q= " + q + "\n");
 		return q;
 	}
 
@@ -127,14 +126,14 @@ public class SearchSql {
 				: "code";
 		if (isTrue(req.isSearchCodes())) {
 			q += " SELECT DISTINCT ON(gid) gid, code AS name, "
-					+ "ts_rank_cd(ti, "	+ qt + ", 8) AS rank, "
+					+ "ts_rank_cd(" + codeTsVector + ", "	+ qt + ", 8) AS rank, "
 					+ " ts_headline('simple', " + codeCol + ", " + qt + " ) headline "
 					+ " FROM ("
 					+ " SELECT gid, code FROM location WHERE code_type_id != 2 ";
 			if (containsFilters(req))
 				q += " AND " + toQueryFiltersSql(req);
-			q += " UNION select gid, code FROM alt_code) AS foo" + " , "
-					+ codeTsVector + " ti " + " WHERE ti @@ " + qt;
+			q += " UNION select gid, code FROM alt_code) AS foo"
+				+ " WHERE " + codeTsVector + " @@ " + qt;
 			if (containsFilters(req))
 				q += " AND gid IN ( SELECT gid FROM location WHERE "
 						+ toQueryFiltersSql(req) + " ) ";
@@ -147,10 +146,10 @@ public class SearchSql {
 		String nameTsVector = toTsVector(req, "name");
 		String nameCol = isTrue(req.isIgnoreAccent()) ? "unaccent_immutable(name)" : "name";
 		if (isTrue(req.isSearchOtherNames())) {
-			q += " SELECT DISTINCT ON(gid) gid, name, ts_rank_cd(ti, " + qt + ", 8) AS rank, "
+			q += " SELECT DISTINCT ON(gid) gid, name, ts_rank_cd(" + nameTsVector + ", " + qt + ", 8) AS rank, "
 			+ " ts_headline('simple', " + nameCol + ", " + qt + " ) headline "
-			+ " FROM alt_name , " + nameTsVector + " ti "
-			+ " WHERE ti @@ " + qt;
+			+ " FROM alt_name "
+			+ " WHERE " + nameTsVector + " @@ " + qt;
 			if (containsFilters(req))
 				q += " AND gid IN ( SELECT gid FROM location WHERE "
 						+ toQueryFiltersSql(req) + " ) ";
@@ -164,10 +163,10 @@ public class SearchSql {
 		String nameCol = isTrue(req.isIgnoreAccent()) ? "unaccent_immutable(name)"
 				: "name";
 		if (isTrue(req.isSearchNames())) {
-			q += " SELECT gid, name, ts_rank_cd(ti, " + qt + ", 8) AS rank, "
+			q += " SELECT gid, name, ts_rank_cd(" + nameTsVector + ", " + qt + ", 8) AS rank, "
 					+ " ts_headline('simple', " + nameCol + ", " + qt + " ) headline " 
-					+ " FROM location, " + nameTsVector	+ " ti " 
-					+ " WHERE ti @@ " + qt;
+					+ " FROM location "
+					+ " WHERE " + nameTsVector + " @@ " + qt;
 			if (containsFilters(req))
 				q += " AND " + toQueryFiltersSql(req);
 		}

@@ -74,9 +74,9 @@ public class TestFindLocation {
 		WSResponse response = get(url);
 		JsonNode jsonResp = response.asJson();
 		assertStatus(response, OK);
-		assertAreEqual(jsonResp.size(), 3);
+		assertAreEqual(jsonResp.size(), 4);
 		Object[] fieldNames = toArray(jsonResp.fieldNames());
-		assertContainsAll(fieldNames, new String[] { "type", "features", "properties" });
+		assertContainsAll(fieldNames, new String[] { "type", "features", "properties", "bbox" });
 		fieldNames = toArray(jsonResp.get("properties").fieldNames());
 		assertContainsAll(fieldNames,
 				new String[] { "locationTypeIds", "locationTypeNames", "resultSize" });
