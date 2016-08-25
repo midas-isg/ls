@@ -2,8 +2,10 @@ $(document).ready(function Resolver() {
 	var DEBUG = true,
 		countriesURL = "api/locations/find-by-type/1",
 		searchURL = "api/locations/find-bulk",
+		countryName,
 		input,
 		output,
+		firstResolutionPass = true,
 		fileReader = new FileReader();
 	
 	(function initialize() {
@@ -27,9 +29,12 @@ $(document).ready(function Resolver() {
 						return (countryA.name < countryB.name ? -1: 1);
 					});
 					
+					countries.push({gid: 0, name: "[Multiple Countries]"});
+					
 					for(i = 0; i < countries.length; i++) {
 						countryOption = document.createElement("option");
 						countryOption.value = countries[i].gid;
+						countryOption.id = "country-option-" + countryOption.value;
 						countryOption.innerHTML = countries[i].name;
 						$("#country-selection").append(countryOption);
 					}
@@ -45,7 +50,23 @@ $(document).ready(function Resolver() {
 			return;
 		})();
 		
+		$("#country-selection").change(function() {
+			if(this.value === 0) {
+				countryName = "Multiple_countries";
+				
+				return;
+			}
+			
+			countryName = $("#country-option-" + this.value).text();
+			
+			return;
+		});
+		
 		$("#process-button").click(function() {
+			if($("#").val()) {
+				alert("Please select a file");
+			}
+			
 			output = {headers: [], rows: [], mappingHeaders: [], mappings:[]};
 			$("#search-priorities").empty();
 			readInputFile();
@@ -54,13 +75,31 @@ $(document).ready(function Resolver() {
 		});
 		
 		$("#resolve-button").click(function() {
-			resolveAmbiguities();
+			if(!output) {
+				alert("Please process a CSV");
+				
+				return;
+			}
+			
+			if($("#country-selection").val() === "-1") {
+				alert("Please select a country choice");
+				
+				return;
+			}
+			
+			if(firstResolutionPass) {
+				resolveAmbiguities();
+			}
+			else {
+				resolveExceptions();
+			}
 			
 			return;
 		});
 		
 		$("#add-priority").click(function() {
 			addPrioritySelector();
+			
 			return;
 		});
 		
@@ -71,6 +110,12 @@ $(document).ready(function Resolver() {
 		});
 		
 		$("#download").click(function() {
+			if(!output) {
+				alert("No data to download yet");
+				
+				return;
+			}
+			
 			var link = document.createElement("a"),
 				downloadable = "",
 				i,
@@ -91,13 +136,13 @@ $(document).ready(function Resolver() {
 				}
 				
 				for(j = 0; j < (output.mappings[i].length - 1); j++) {
-					downloadable += "\"" + output.mappings[i].columns[j] + "\",";
+					downloadable += "\"" + output.mappings[i].options[j] + "\",";
 				}
-				downloadable += "\"" + output.mappings[i].columns[j] + "\"\n";
+				downloadable += "\"" + output.mappings[i].options[j] + "\"\n";
 			}
 			
 			link.href = "data:text/plain;charset=utf-8," + encodeURIComponent(downloadable);
-			link.download = "mappings.csv";
+			link.download = countryName + "-" + "mappings.csv";
 			link.click();
 			
 			return;
@@ -108,17 +153,19 @@ $(document).ready(function Resolver() {
 		return;
 	})();
 	
-	function resolveAmbiguities() {
+	function resolveExceptions() {
 		var bulkInput = [],
 			mappings = {},
 			rootALC = $("#country-selection").val(),
 			columnNumber = $("#priority-0").val(),
 			i;
+			
+		//TODO: resolve exceptions within $("#input-selection-*")
 		
 		for(i = 0; i < output.rows.length; i++) {
 			bulkInput.push({"queryTerm": output.rows[i].columns[columnNumber]});
 			
-			if(rootALC !== -1) {
+			if(rootALC > 0) {
 				bulkInput[i]["rootALC"] = rootALC;
 			}
 		}
@@ -136,6 +183,54 @@ $(document).ready(function Resolver() {
 			success: function(result, status, xhr) {
 				populateMappings(result);
 				displayTable();
+				firstResolutionPass = false;
+				
+				return;
+			},
+			error: function(xhr, status, error) {
+				console.warn(error);
+				
+				return;
+			},
+			complete: function(xhr, status) {
+				$("#loading-gif").hide();
+				
+				return;
+			}
+		});
+		
+		return;
+	}
+	
+	function resolveAmbiguities() {
+		var bulkInput = [],
+			mappings = {},
+			rootALC = $("#country-selection").val(),
+			columnNumber = $("#priority-0").val(),
+			i;
+		
+		for(i = 0; i < output.rows.length; i++) {
+			bulkInput.push({"queryTerm": output.rows[i].columns[columnNumber]});
+			
+			if(rootALC > 0) {
+				bulkInput[i]["rootALC"] = rootALC;
+			}
+		}
+		
+		$.ajax({
+			url: searchURL,
+			type: "POST",
+			data: JSON.stringify(bulkInput),
+			contentType: "application/json",
+			beforeSend: function(xhr) {
+				$("#loading-gif").show();
+				
+				return;
+			},
+			success: function(result, status, xhr) {
+				populateMappings(result);
+				displayTable();
+				firstResolutionPass = false;
 				
 				return;
 			},
@@ -177,52 +272,10 @@ $(document).ready(function Resolver() {
 		
 		for(i = 0; i < output.rows.length; i++) {
 			entryName = output.rows[i].header[columnName];
+			output.mappings[i].options = [];
 			
-			$("#input-" + i).empty();
-			$("#code-" + i).empty();
-			if(possibleMappings[entryName].length === 1) {
-				//todo: attach well-named input for re-resolution
-				output.mappings[i].columns[0] = possibleMappings[entryName][0].name;
-				output.mappings[i].columns[1] = possibleMappings[entryName][0].gid;
-				
-				entryChoices = document.createElement("input");
-				entryChoices.type = "text";
-				entryChoices.value = output.mappings[i][0];
-				$("#input-" + i).append(entryChoices);
-				$("#code-" + i).append(output.mappings[i].columns[1]);
-			}
-			else if(possibleMappings[entryName].length > 1) {
-				entryChoices = document.createElement("select");
-				entryChoices.id = "input-selection-" + i;
-				entryChoices.row = i;
-				
-				for(j = 0; j < possibleMappings[entryName].length; j++) {
-					option = document.createElement("option");
-					option.value = possibleMappings[entryName][j].gid;
-					option.id = "input-code-" + option.value;
-					option.innerHTML = possibleMappings[entryName][j].name;
-					$(entryChoices).append(option);
-				}
-				
-				$("#input-" + i).append(entryChoices);
-				$("#input-selection-" + i).change(function() {
-					output.mappings[this.row].columns[0] = $("#input-code-" + this.value).text();
-					output.mappings[this.row].columns[1] = this.value;
-					$("#code-" + this.row).append(output.mappings[this.row].columns[1]);
-					
-					return;
-				});
-				$("#input-selection-" + i).change();
-			}
-			else /*if(possibleMappings[entryName].length < 1)*/ {
-				//todo: attach well-named input for re-resolution
-				output.mappings[i].columns[0] = "[" + columnName + "]";
-				output.mappings[i].columns[1] = undefined;
-				
-				entryChoices = document.createElement("input");
-				entryChoices.type = "text";
-				entryChoices.value = output.mappings[i].columns[0];
-				$("#input-" + i).append(entryChoices);
+			for(j = 0; j < possibleMappings[entryName].length; j++) {
+				output.mappings[i].options.push({inputName: possibleMappings[entryName][j].name, id: possibleMappings[entryName][j].gid});
 			}
 		}
 		
@@ -251,6 +304,7 @@ if(DEBUG) {
 		}
 		
 		fileReader.readAsText(input);
+		firstResolutionPass = true;
 		
 		return;
 	}
@@ -276,9 +330,7 @@ if(DEBUG) {
 					output.rows[c].header[output.headers[j]] = output.rows[c].columns[j];
 				}
 				
-				output.mappings.push({columns: []});
-				output.mappings[c].columns.push();
-				output.mappings[c].columns.push();
+				output.mappings.push({options: []});
 				c++;
 			}
 		}
@@ -296,7 +348,7 @@ if(DEBUG) {
 		
 		$("#input-table thead").remove();
 		$("#input-table tbody").remove();
-		$("#input-table").append("<caption style='display: inherit; margin-left: auto; margin-right: auto;'>PREVIEW</caption>");
+		$("#input-table").append("<caption style='text-align: center; background-color: #EEEE00;'>PREVIEW OF FIRST TEN ROWS</caption>");
 		$("#input-table").append("<thead></thead>");
 		$("#input-table").append("<tbody></tbody>");
 		
@@ -326,7 +378,10 @@ if(DEBUG) {
 		var i,
 			j,
 			row = document.createElement("tr"),
+			inputCell,
+			codeCell,
 			columnCount = output.headers.length + output.mappingHeaders.length,
+			entryChoices,
 			headerWidth = 99 / columnCount,
 			columnWidth = 100 / columnCount;
 		
@@ -340,8 +395,8 @@ if(DEBUG) {
 		for(i = 0; i < output.headers.length; i++) {
 			$(row).append("<td style='width: " + headerWidth + "%;'>" + output.headers[i] + "</td>");
 		}
-		$(row).append("<td style='width: " + headerWidth + "%;'>" + output.mappingHeaders[0] + "</td>");
-		$(row).append("<td style='width: " + headerWidth + "%;'>" + output.mappingHeaders[1] + "</td>");
+		$(row).append("<td style='width: " + headerWidth + "%;'><strong>" + output.mappingHeaders[0] + "</strong></td>");
+		$(row).append("<td style='width: " + headerWidth + "%;'><strong>" + output.mappingHeaders[1] + "</strong></td>");
 		$("#input-table thead").append(row);
 		
 		for(i = 0; i < output.rows.length; i++) {
@@ -350,58 +405,55 @@ if(DEBUG) {
 				$(row).append("<td style='width: " + columnWidth + "%;'>" + output.rows[i].columns[j] + "</td>");
 			}
 			
+			inputCell = document.createElement("td");
+			codeCell = document.createElement("td");
+			inputCell.id = "input-" + i;
+			codeCell.id = "code-" + i;
+			inputCell.style.width = columnWidth + "%";
+			codeCell.style.width = columnWidth + "%";
+			inputCell.style.textAlign = "center";
+			codeCell.style.textAlign = "center";
 			
-			/*
-			if(possibleMappings[entryName].length === 1) {
-				//todo: attach well-named input for re-resolution
-				output.mappings[i].columns[0] = possibleMappings[entryName][0].name;
-				output.mappings[i].columns[1] = possibleMappings[entryName][0].gid;
-				
-				entryChoices = document.createElement("input");
-				entryChoices.type = "text";
-				entryChoices.value = output.mappings[i][0];
-				$("#input-" + i).append(entryChoices);
-				$("#code-" + i).append(output.mappings[i].columns[1]);
+			if(output.mappings[i].options.length === 1) {
+				inputCell.innerHTML = "<strong>" + output.mappings[i].options[0].inputName + "</strong>";
+				codeCell.innerHTML = "<strong>" + output.mappings[i].options[0].id + "</strong>";
 			}
-			else if(possibleMappings[entryName].length > 1) {
+			else if(output.mappings[i].options.length > 1) {
 				entryChoices = document.createElement("select");
 				entryChoices.id = "input-selection-" + i;
+				entryChoices.style.width = "100%";
 				entryChoices.row = i;
 				
-				for(j = 0; j < possibleMappings[entryName].length; j++) {
+				for(j = 0; j < output.mappings[i].options.length; j++) {
 					option = document.createElement("option");
-					option.value = possibleMappings[entryName][j].gid;
+					option.value = output.mappings[i].options[j].id;
 					option.id = "input-code-" + option.value;
-					option.innerHTML = possibleMappings[entryName][j].name;
+					option.innerHTML = "<strong>" + output.mappings[i].options[j].inputName + "</strong>";
 					$(entryChoices).append(option);
 				}
 				
-				$("#input-" + i).append(entryChoices);
-				$("#input-selection-" + i).change(function() {
-					output.mappings[this.row].columns[0] = $("#input-code-" + this.value).text();
-					output.mappings[this.row].columns[1] = this.value;
-					$("#code-" + this.row).append(output.mappings[this.row].columns[1]);
+				$(inputCell).append(entryChoices);
+				$(entryChoices).change(function() {
+					$("#code-" + this.row).empty();
+					$("#code-" + this.row).append("<strong>" + this.value + "</strong>");
 					
 					return;
 				});
-				$("#input-selection-" + i).change();
-			}
-			else { //if(possibleMappings[entryName].length < 1)
-				//todo: attach well-named input for re-resolution
-				output.mappings[i].columns[0] = "unresolved";
-				output.mappings[i].columns[1] = undefined;
 				
-				entryChoices = document.createElement("input");
-				entryChoices.type = "text";
-				entryChoices.value = output.mappings[i].columns[0];
-				$("#input-" + i).append(entryChoices);
+				entryChoices.value = output.mappings[i].options[0].id;
+				codeCell.innerHTML = "<strong>" + output.mappings[i].options[0].id +"</strong>";
 			}
-			*/
+			else { //if(output.mappings[i].options.length < 1)
+				entryChoices = document.createElement("input");
+				entryChoices.id = "input-selection-" + i;
+				entryChoices.type = "text";
+				entryChoices.style.width = "100%";
+				entryChoices.value = undefined;
+				$(inputCell).append(entryChoices);
+			}
 			
-			
-			$(row).append("<td id='input-" + i + "' style='width: " + columnWidth + "%;'>" + (output.mappings[i].columns[0] || "") + "</td>");
-			$(row).append("<td id='code-" + i + "' style='width: " + columnWidth + "%;'>" + (output.mappings[i].columns[1] || "") + "</td>");
-			
+			$(row).append(inputCell);
+			$(row).append(codeCell);
 			$("#input-table tbody").append(row);
 		}
 		

@@ -25,20 +25,16 @@
 				<div class="extra-bottom-space" style="display: inline-block;">
 					<legend>Country</legend>
 					<select id="country-selection">
-						<option id="-1">None selected</option>
+						<option id="country-option--1" value="-1">Please select</option>
 					</select>
 				</div>
 				
 				<div class="extra-bottom-space" style="clear: both;">
 					<div id="search-priorities" style="float: left;"></div>
 					
-					<div style="float: left;">
+					<div style="float: left; display: none;">
 						<button id="add-priority" class="">+</button>
 						<button id="remove-priority" class="">-</button>
-					</div>
-					
-					<div style="float: right; clear: both;">
-						<button id="resolve-button">Run Resolver</button>
 					</div>
 				</div>
 			</div>
@@ -57,7 +53,8 @@
 					<table id="input-table" style="float: left; clear: both;"></table>
 				</div>
 				
-				<div>
+				<div style="float: right; clear: both;">
+					<button id="resolve-button">Run Resolver</button>
 					<button id="download">Download CSV</button>
 				</div>
 			</div>

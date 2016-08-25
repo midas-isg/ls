@@ -71,6 +71,10 @@
 	border-bottom: 0px;
 }
 
+#result table td {
+	text-align: center;
+}
+
 
 
 /*
