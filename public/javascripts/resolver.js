@@ -403,6 +403,7 @@ if(DEBUG) {
 			j,
 			row = document.createElement("tr"),
 			inputCell,
+			resetButton,
 			codeCell,
 			codeURL,
 			columnCount = output.headers.length + output.mappingHeaders.length,
@@ -449,7 +450,7 @@ if(DEBUG) {
 			else if(output.mappings[i].options.length > 1) {
 				entryChoices = document.createElement("select");
 				entryChoices.id = "input-selection-" + i;
-				entryChoices.style.width = "100%";
+				entryChoices.style.width = "90%";
 				entryChoices.row = i;
 				
 				for(j = 0; j < output.mappings[i].options.length; j++) {
@@ -485,12 +486,42 @@ if(DEBUG) {
 				entryChoices.id = "exception-" + i;
 				entryChoices.row = i;
 				entryChoices.type = "text";
-				entryChoices.style.width = "100%";
+				entryChoices.style.width = "90%";
 				entryChoices.placeholder = "New input";
 				$(inputCell).append(entryChoices);
 				
 				output.mappings[i].selectedOption = -1;
 			}
+			
+			resetButton = document.createElement("button");
+			resetButton.id = "reset-button-" + i;
+			resetButton.style.padding = "0px";
+			resetButton.style.float = "right";
+			resetButton.style.backgroundColor = "#ff8080";
+			resetButton.innerHTML = "<sup>x</sup>";
+			resetButton.row = i;
+			$(inputCell).append(resetButton);
+			
+			$(resetButton).click(function() {
+				entryChoices = document.createElement("input");
+				entryChoices.id = "exception-" + this.row;
+				entryChoices.row = this.row;
+				entryChoices.type = "text";
+				entryChoices.style.width = "90%";
+				entryChoices.placeholder = "New input";
+				
+				if(output.mappings[this.row].selectedOption !== -1) {
+					entryChoices.value = output.mappings[this.row].options[output.mappings[this.row].selectedOption].inputName;
+				}
+				
+				$("#input-" + this.row).empty();
+				$("#code-" + this.row).empty();
+				$("#input-" + this.row).append(entryChoices);
+				
+				output.mappings[this.row].selectedOption = -1;
+				
+				return;
+			});
 			
 			$(row).append(inputCell);
 			$(row).append(codeCell);
