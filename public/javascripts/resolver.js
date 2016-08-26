@@ -1,7 +1,9 @@
+var DEBUG = true;
+
 $(document).ready(function Resolver() {
-	var DEBUG = true,
-		countriesURL = "api/locations/find-by-type/1",
+	var countriesURL = "api/locations/find-by-type/1",
 		searchURL = "api/locations/find-bulk",
+		locationURL = "browser?id=",
 		countryName,
 		input,
 		output,
@@ -51,6 +53,8 @@ $(document).ready(function Resolver() {
 		})();
 		
 		$("#country-selection").change(function() {
+			firstResolutionPass = true;
+			
 			if(this.value === 0) {
 				countryName = "Multiple_countries";
 				
@@ -135,10 +139,13 @@ $(document).ready(function Resolver() {
 					downloadable += "\"" + output.rows[i].columns[j] + "\",";
 				}
 				
-				for(j = 0; j < (output.mappings[i].length - 1); j++) {
-					downloadable += "\"" + output.mappings[i].options[j] + "\",";
+				if(output.mappings[i].selectedOption > -1) {
+					downloadable += "\"" + output.mappings[i].options[output.mappings[i].selectedOption].inputName + "\",";
+					downloadable += "\"" + output.mappings[i].options[output.mappings[i].selectedOption].id + "\"\n";
 				}
-				downloadable += "\"" + output.mappings[i].options[j] + "\"\n";
+				else {
+					downloadable += "\"\",\"\"\n";
+				}
 			}
 			
 			link.href = "data:text/plain;charset=utf-8," + encodeURIComponent(downloadable);
@@ -155,15 +162,14 @@ $(document).ready(function Resolver() {
 	
 	function resolveExceptions() {
 		var bulkInput = [],
-			mappings = {},
+			name2rows = {},
 			rootALC = $("#country-selection").val(),
-			columnNumber = $("#priority-0").val(),
+			exceptions = $("[id^='exception-']"),
 			i;
-			
-		//TODO: resolve exceptions within $("#input-selection-*")
 		
-		for(i = 0; i < output.rows.length; i++) {
-			bulkInput.push({"queryTerm": output.rows[i].columns[columnNumber]});
+		for(i = 0; i < exceptions.length; i++) {
+			name2rows[exceptions[i].value] = exceptions[i].row;
+			bulkInput.push({"queryTerm": exceptions[i].value});
 			
 			if(rootALC > 0) {
 				bulkInput[i]["rootALC"] = rootALC;
@@ -181,9 +187,8 @@ $(document).ready(function Resolver() {
 				return;
 			},
 			success: function(result, status, xhr) {
-				populateMappings(result);
+				populateExceptions(name2rows, result);
 				displayTable();
-				firstResolutionPass = false;
 				
 				return;
 			},
@@ -202,9 +207,29 @@ $(document).ready(function Resolver() {
 		return;
 	}
 	
+	function populateExceptions(nameToRows, bulkResult) {
+		var i,
+			j,
+			entryRow,
+			properties,
+			features;
+		
+		for(i = 0; i < bulkResult.length; i++) {
+			properties = bulkResult[i].properties;
+			features = bulkResult[i].features;
+			entryRow = nameToRows[properties.queryTerm];
+			output.mappings[entryRow].options = [];
+			
+			for(j = 0; j < features.length; j++) {
+				output.mappings[entryRow].options.push({inputName: features[j].properties.name, id: features[j].properties.gid});
+			}
+		}
+		
+		return;
+	}
+	
 	function resolveAmbiguities() {
 		var bulkInput = [],
-			mappings = {},
 			rootALC = $("#country-selection").val(),
 			columnNumber = $("#priority-0").val(),
 			i;
@@ -255,8 +280,6 @@ $(document).ready(function Resolver() {
 			features,
 			columnName = $($("#priority-0").children()[$("#priority-0").val()]).text(),
 			entryName,
-			entryChoices,
-			option,
 			i,
 			j;
 		
@@ -346,6 +369,7 @@ if(DEBUG) {
 			headerWidth = 99 / columnCount,
 			columnWidth = 100 / columnCount;
 		
+		$("#input-table caption").remove();
 		$("#input-table thead").remove();
 		$("#input-table tbody").remove();
 		$("#input-table").append("<caption style='text-align: center; background-color: #EEEE00;'>PREVIEW OF FIRST TEN ROWS</caption>");
@@ -380,6 +404,7 @@ if(DEBUG) {
 			row = document.createElement("tr"),
 			inputCell,
 			codeCell,
+			codeURL,
 			columnCount = output.headers.length + output.mappingHeaders.length,
 			entryChoices,
 			headerWidth = 99 / columnCount,
@@ -411,12 +436,15 @@ if(DEBUG) {
 			codeCell.id = "code-" + i;
 			inputCell.style.width = columnWidth + "%";
 			codeCell.style.width = columnWidth + "%";
-			inputCell.style.textAlign = "center";
-			codeCell.style.textAlign = "center";
+			codeURL = document.createElement("a");
+			codeURL.target = "_blank";
+			$(codeCell).append(codeURL);
 			
 			if(output.mappings[i].options.length === 1) {
 				inputCell.innerHTML = "<strong>" + output.mappings[i].options[0].inputName + "</strong>";
-				codeCell.innerHTML = "<strong>" + output.mappings[i].options[0].id + "</strong>";
+				codeURL.href = locationURL + output.mappings[i].options[0].id;
+				codeURL.innerHTML = "<strong>" + output.mappings[i].options[0].id + "</strong>";
+				output.mappings[i].selectedOption = 0;
 			}
 			else if(output.mappings[i].options.length > 1) {
 				entryChoices = document.createElement("select");
@@ -426,6 +454,7 @@ if(DEBUG) {
 				
 				for(j = 0; j < output.mappings[i].options.length; j++) {
 					option = document.createElement("option");
+					option.number = j;
 					option.value = output.mappings[i].options[j].id;
 					option.id = "input-code-" + option.value;
 					option.innerHTML = "<strong>" + output.mappings[i].options[j].inputName + "</strong>";
@@ -434,22 +463,33 @@ if(DEBUG) {
 				
 				$(inputCell).append(entryChoices);
 				$(entryChoices).change(function() {
+					var codeURL = document.createElement("a");
+					codeURL.target = "_blank";
+					codeURL.href = locationURL + this.value;
+					codeURL.innerHTML = "<strong>" + this.value +"</strong>";
+					
 					$("#code-" + this.row).empty();
-					$("#code-" + this.row).append("<strong>" + this.value + "</strong>");
+					$("#code-" + this.row).append(codeURL);
+					output.mappings[i].selectedOption = this.number;
 					
 					return;
 				});
 				
 				entryChoices.value = output.mappings[i].options[0].id;
-				codeCell.innerHTML = "<strong>" + output.mappings[i].options[0].id +"</strong>";
+				codeURL.href = locationURL + output.mappings[i].options[0].id;
+				codeURL.innerHTML = "<strong>" + output.mappings[i].options[0].id +"</strong>";
+				output.mappings[i].selectedOption = 0;
 			}
 			else { //if(output.mappings[i].options.length < 1)
 				entryChoices = document.createElement("input");
-				entryChoices.id = "input-selection-" + i;
+				entryChoices.id = "exception-" + i;
+				entryChoices.row = i;
 				entryChoices.type = "text";
 				entryChoices.style.width = "100%";
-				entryChoices.value = undefined;
+				entryChoices.placeholder = "New input";
 				$(inputCell).append(entryChoices);
+				
+				output.mappings[i].selectedOption = -1;
 			}
 			
 			$(row).append(inputCell);
@@ -472,8 +512,12 @@ if(DEBUG) {
 		}
 		
 		newSelector.id = "priority-" + order;
+		$(newSelector).change(function() {
+			firstResolutionPass = true;
+			return;
+		});
 		
-		$("#search-priorities").append("<div id='priority-col-" + order + "' style='float: left;'><legend>Input Priority " + (order + 1) + "</legend></div>");
+		$("#search-priorities").append("<div id='priority-col-" + order + "' style='float: left;'><legend>Fetch ID Column</legend></div>");
 		$("#priority-col-" + order).append(newSelector);
 		
 		return;
