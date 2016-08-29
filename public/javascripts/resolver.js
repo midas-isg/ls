@@ -366,7 +366,6 @@ if(DEBUG) {
 			j,
 			row = document.createElement("tr"),
 			columnCount = output.headers.length + output.mappingHeaders.length,
-			headerWidth = 99 / columnCount,
 			columnWidth = 100 / columnCount;
 		
 		$("#input-table caption").remove();
@@ -377,10 +376,10 @@ if(DEBUG) {
 		$("#input-table").append("<tbody></tbody>");
 		
 		for(i = 0; i < output.headers.length; i++) {
-			$(row).append("<td style='width: " + headerWidth + "%;'>" + output.headers[i] + "</td>");
+			$(row).append("<td style='width: " + columnWidth + "%;'>" + output.headers[i] + "</td>");
 		}
-		$(row).append("<td style='width: " + headerWidth + "%;'>" + output.mappingHeaders[0] + "</td>");
-		$(row).append("<td style='width: " + headerWidth + "%;'>" + output.mappingHeaders[1] + "</td>");
+		$(row).append("<td style='width: " + columnWidth + "%;'>" + output.mappingHeaders[0] + "</td>");
+		$(row).append("<td style='width: " + columnWidth + "%;'>" + output.mappingHeaders[1] + "</td>");
 		$("#input-table thead").append(row);
 		
 		for(i = 0; i < 10; i++) {
@@ -457,7 +456,7 @@ if(DEBUG) {
 					option = document.createElement("option");
 					option.number = j;
 					option.value = output.mappings[i].options[j].id;
-					option.id = "input-code-" + option.value;
+					option.id = "input-" + i + "-code-" + option.value;
 					option.innerHTML = "<strong>" + output.mappings[i].options[j].inputName + "</strong>";
 					$(entryChoices).append(option);
 				}
@@ -471,7 +470,7 @@ if(DEBUG) {
 					
 					$("#code-" + this.row).empty();
 					$("#code-" + this.row).append(codeURL);
-					output.mappings[i].selectedOption = this.number;
+					output.mappings[this.row].selectedOption = this.selectedOptions[0].index;
 					
 					return;
 				});
@@ -487,7 +486,7 @@ if(DEBUG) {
 				entryChoices.row = i;
 				entryChoices.type = "text";
 				entryChoices.style.width = "90%";
-				entryChoices.placeholder = "New input";
+				entryChoices.placeholder = "Enter New input";
 				$(inputCell).append(entryChoices);
 				
 				output.mappings[i].selectedOption = -1;
@@ -508,7 +507,7 @@ if(DEBUG) {
 				entryChoices.row = this.row;
 				entryChoices.type = "text";
 				entryChoices.style.width = "90%";
-				entryChoices.placeholder = "New input";
+				entryChoices.placeholder = "Enter New input";
 				
 				if(output.mappings[this.row].selectedOption !== -1) {
 					entryChoices.value = output.mappings[this.row].options[output.mappings[this.row].selectedOption].inputName;
@@ -548,7 +547,7 @@ if(DEBUG) {
 			return;
 		});
 		
-		$("#search-priorities").append("<div id='priority-col-" + order + "' style='float: left;'><legend>Fetch ID Column</legend></div>");
+		$("#search-priorities").append("<div id='priority-col-" + order + "' style='float: left;'><legend>Input Column</legend></div>");
 		$("#priority-col-" + order).append(newSelector);
 		
 		return;
