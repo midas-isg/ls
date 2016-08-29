@@ -109,8 +109,8 @@ public class TestFindLocation {
 		assertContainsAll(fieldNames, new String[] { "type", "properties", "repPoint", "bbox" });
 		
 		fieldNames = toArray(jsonResp.get("features").get(0).get("properties").fieldNames());
-		assertContainsAll(fieldNames, new String[] { "name", "startDate", "endDate", "otherNames", "codes",
-				"locationDescription", "locationTypeName", "lineage", "rank", "headline", "gid" });
+		assertContainsOnly(fieldNames, new String[] { "name", "startDate", "endDate", "otherNames", "codes",
+				"locationDescription", "locationTypeName", "lineage", "rank", "headline", "gid", "matchedTerm", "related" });
 		assertAreEqual(jsonResp.get("properties").get("resultSize").asInt(), jsonResp.get("features").size());
 
 		testFeatureOrder(jsonResp);
@@ -154,7 +154,7 @@ public class TestFindLocation {
 		fieldNames = toArray(jsonResp.get("features").get(0).get("properties").fieldNames());
 		assertContainsOnly(fieldNames, new String[] { "name", "gid", "locationTypeName",
 				"lineage", "codes", "otherNames", "related", "rank", "headline",
-				"startDate", "endDate" });
+				"startDate", "endDate", "matchedTerm" });
 		
 		body = "{\"queryTerm\":\"name with accent\", \"includeOnly\":[\"name\", \"gid\"]}";
 		response = post(url, body, jsonContentType);
@@ -187,6 +187,10 @@ public class TestFindLocation {
 		assertStatus(response, OK);
 		JsonNode jsonResp = response.asJson();
 		assertAreEqual(jsonResp.get("features").size(), 2);
+		Object[] fieldNames = toArray(jsonResp.get("features").get(0).get("properties").fieldNames());
+		assertContainsOnly(fieldNames, new String[] { "name", "startDate", "endDate", "otherNames", "codes",
+				"locationDescription", "locationTypeName", "lineage", "rank", "headline", "gid", "matchedTerm",
+				"related", "children" });
 		
 		boolean verbose = false;
 		url = Server.makeTestUrl(basePath + "?q=an%20otherName%20for%20test&limit=2&offset=0&searchOtherNames="
@@ -194,8 +198,8 @@ public class TestFindLocation {
 		response = get(url);
 		assertStatus(response, OK);
 		jsonResp = response.asJson();
-		Object[] features = toArray(jsonResp.fieldNames());
-		assertContainsAll(features, new String[] { "gids", "properties"});
+		fieldNames = toArray(jsonResp.fieldNames());
+		assertContainsAll(fieldNames, new String[] { "gids", "properties"});
 		assertAreEqual(jsonResp.get("gids").size(), 2);
 		
 		searchOtherNames = false;

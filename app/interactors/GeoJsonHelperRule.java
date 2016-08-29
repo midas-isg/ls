@@ -197,6 +197,8 @@ public class GeoJsonHelperRule {
 			Location parent = location.getParent();
 			putAsStringIfNotNull(properties, "parentGid", getGid(parent));
 		}
+		if(containsOrIsEmpty(req.getIncludeOnly(), "matchedTerm"))
+			putAsStringIfNotNull(properties, "matchedTerm", location.getMatchedTerm());
 		return properties;
 	}
 
