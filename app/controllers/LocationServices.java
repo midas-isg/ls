@@ -3,6 +3,7 @@ package controllers;
 import static interactors.Util.putAsStringIfNotNull;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,7 @@ import interactors.GeometryRule;
 import interactors.KmlRule;
 import interactors.LocationProxyRule;
 import interactors.LocationRule;
+import models.Request;
 import models.exceptions.PostgreSQLException;
 import models.geo.FeatureCollection;
 import models.geo.FeatureGeometry;
@@ -631,7 +633,9 @@ public class LocationServices extends Controller {
 			putAsStringIfNotNull(properties, "verbose", verbose);
 			if(verbose){
 				List<Location> locations = LocationRule.getLocations(gids);
-				FeatureCollection result = GeoJsonRule.toFeatureCollection(locations, GeoJsonRule.DEFAULT_KEYS);
+				Request req = new Request();
+				req.setExclude(Arrays.asList(new String[] { GeoJsonRule.KEY_GEOMETRY }));
+				FeatureCollection result = GeoJsonRule.toFeatureCollection(locations, req);
 				putAsStringIfNotNull(properties, "resultSize", locations.size());
 				result.setProperties(properties);				
 				return ok(Json.toJson(result));

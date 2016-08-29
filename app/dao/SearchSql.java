@@ -37,7 +37,7 @@ public class SearchSql {
 			String nameTempTable, String otherNameTempTable,
 			String codeTempTable) {
 		List<String> searchSqls = new ArrayList<>();
-		
+				
 		String names = toNameSearchSql(req, qt);
 		names = (names.isEmpty()) ? names : nameTempTable + " AS ( " + names + " ) ";
 		searchSqls.add(names);
@@ -187,7 +187,7 @@ public class SearchSql {
 	private String toQueryFiltersSql(Request req) {
 		String typeCond = listToSqlFilters( " location_type_id ", req.getLocationTypeIds());
 		String dateCond = dateCond(req.getStartDate(), req.getEndDate());
-		String gidCond = toGidCond(req.getRootALC());
+		String gidCond = toRootGidCond(req);
 		String qc = "";
 		if (dateCond != null && typeCond != null)
 			qc += typeCond + " AND " + dateCond;
@@ -200,19 +200,10 @@ public class SearchSql {
 		return qc;
 	}
 
-	private String toGidCond(Long rootGid) {
-		if(rootGid == null)
+	private String toRootGidCond(Request req) {
+		if(req.getRootALC() == null)
 			return null;
-		
-		String gids = " WITH RECURSIVE group_by_admin_level(gid, admin_level) AS ( "
-					+ " SELECT gid,0 FROM location WHERE gid = " + rootGid
-					+ " UNION "
-					+ " SELECT l.gid, g.admin_level + 1 FROM location l, group_by_admin_level g "
-					+ " WHERE l.parent_gid = g.gid ) "
-					+ " SELECT gid FROM group_by_admin_level "
-					+ " WHERE admin_level > 0 ";
-		
-		return " gid in ( " + gids + " ) ";
+		return " gid in ( SELECT child_gid FROM forest WHERE root_gid = " + req.getRootALC() + " ) ";
 	}
 
 	private String toSelectStatementSql(String column, String qt, String tempTable) {

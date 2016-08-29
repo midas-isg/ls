@@ -162,4 +162,16 @@ public class Util {
 			return null;
 		return java.sql.Date.valueOf(date);
 	}
+
+	public static boolean containsOrIsEmpty(List<String> list, Object item) {
+		if(list == null || list.isEmpty() || list.contains(item))
+			return true;
+		return false;
+	}
+
+	public static boolean contains(List<String> list, String item) {
+		if(list == null)
+			return false;
+		return list.contains(item);
+	}
 }

@@ -7,6 +7,8 @@ import static play.mvc.Http.Status.OK;
 import static play.test.Helpers.route;
 import static suites.Helper.assertAreEqual;
 import static suites.Helper.assertContainsAll;
+import static suites.Helper.assertContainsOnly;
+
 import interactors.KmlRule;
 
 import java.util.ArrayList;
@@ -35,9 +37,10 @@ public class TestFindLocation {
 	private long gidTest1;
 	private long gidTest2;
 	private String jsonContentType = "application/json; charset=utf-8";
-	private final String findByTermTestFile1 = "test/test-find-by-term1.json";
-	private final String findByTermTestFile2 = "test/test-find-by-term2.json";
-	private final String findBulkTestFile1 = "test/test-find-bulk1.json";
+	private final String findByTermRequestFile1 = "test/test-find-by-term-request-1.json";
+	private final String findByTermRequestFile2 = "test/test-find-by-term-request-2.json";
+	private final String findByTermRequestFile3 = "test/test-find-by-term-request-3.json";
+	private final String findBulkRequestFile1 = "test/test-find-bulk-request-1.json";
 
 	public static Runnable test() {
 		return () -> newInstance().testFindLocation();
@@ -88,7 +91,7 @@ public class TestFindLocation {
 	}
 
 	private void findByQueryTermTest() {
-		String body = KmlRule.getStringFromFile(findByTermTestFile1);
+		String body = KmlRule.getStringFromFile(findByTermRequestFile1);
 		String url = Server.makeTestUrl(findByTermPath);
 		WSResponse response = post(url, body, jsonContentType);
 		assertStatus(response, OK);
@@ -118,18 +121,47 @@ public class TestFindLocation {
 		assertStatus(response, OK);
 		jsonResp = response.asJson();
 		assertAreEqual(jsonResp.get("features").size(), 2);
+		
+		body = "{\"queryTerm\":\"name with accent\", \"verbose\":false}";
+		response = post(url, body, jsonContentType);
+		assertStatus(response, OK);
+		jsonResp = response.asJson();
+		fieldNames = toArray(jsonResp.fieldNames());
+		assertContainsOnly(fieldNames, new String[] { "gids", "properties" });
+		assertAreEqual(jsonResp.get("gids").size(), 2);
 
 		body = "{}";
 		response = post(url, body, jsonContentType);
 		assertStatus(response, BAD_REQUEST);
 		
-		body = KmlRule.getStringFromFile(findByTermTestFile2);
+		body = KmlRule.getStringFromFile(findByTermRequestFile2);
 		response = post(url, body, jsonContentType);
 		assertStatus(response, OK);
 		jsonResp = response.asJson();
-		assertAreEqual(jsonResp.get("features").size(), 1);
+		assertAreEqual(jsonResp.get("features").size(), 2);
 		fieldNames = toArray(jsonResp.get("properties").fieldNames());
 		assertContainsAll(fieldNames, new String[] { "rootALC" });
+		
+		body = KmlRule.getStringFromFile(findByTermRequestFile3);
+		response = post(url, body, jsonContentType);
+		assertStatus(response, OK);
+		jsonResp = response.asJson();
+		assertAreEqual(jsonResp.get("features").size(), 2);
+		fieldNames = toArray(jsonResp.fieldNames());
+		assertContainsOnly(fieldNames, new String[] { "type", "properties", "bbox", "features" });
+		fieldNames = toArray(jsonResp.get("features").get(0).fieldNames());
+		assertContainsOnly(fieldNames, new String[] { "type", "properties", "bbox", "repPoint" });
+		fieldNames = toArray(jsonResp.get("features").get(0).get("properties").fieldNames());
+		assertContainsOnly(fieldNames, new String[] { "name", "gid", "locationTypeName",
+				"lineage", "codes", "otherNames", "related", "rank", "headline",
+				"startDate", "endDate" });
+		
+		body = "{\"queryTerm\":\"name with accent\", \"includeOnly\":[\"name\", \"gid\"]}";
+		response = post(url, body, jsonContentType);
+		assertStatus(response, OK);
+		jsonResp = response.asJson();
+		fieldNames = toArray(jsonResp.get("features").get(0).get("properties").fieldNames());
+		assertContainsOnly(fieldNames, new String[] { "gid", "name" });
 	}
 
 	private void testHeadLineMatch(JsonNode jsonResp) {
@@ -155,6 +187,17 @@ public class TestFindLocation {
 		assertStatus(response, OK);
 		JsonNode jsonResp = response.asJson();
 		assertAreEqual(jsonResp.get("features").size(), 2);
+		
+		boolean verbose = false;
+		url = Server.makeTestUrl(basePath + "?q=an%20otherName%20for%20test&limit=2&offset=0&searchOtherNames="
+				+ searchOtherNames + "&verbose=" + verbose);
+		response = get(url);
+		assertStatus(response, OK);
+		jsonResp = response.asJson();
+		Object[] features = toArray(jsonResp.fieldNames());
+		assertContainsAll(features, new String[] { "gids", "properties"});
+		assertAreEqual(jsonResp.get("gids").size(), 2);
+		
 		searchOtherNames = false;
 		url = Server.makeTestUrl(basePath + "?q=an%20otherName%20for%20test&limit=2&offset=0&searchOtherNames="
 				+ searchOtherNames + "&verbose=true");
@@ -167,6 +210,8 @@ public class TestFindLocation {
 		String url = Server.makeTestUrl(basePath + "/" + gidTest1);
 		WSResponse response = get(url);
 		JsonNode jsonResp = response.asJson();
+		Object[] jsonRespNodes = toArray(jsonResp.fieldNames());
+		assertContainsAll(jsonRespNodes, new String[] { "type", "features", "bbox" });
 		Object[] features = toArray(jsonResp.get("features").get(0).fieldNames());
 		assertContainsAll(features, new String[] { "type", "geometry", "properties", "id", "bbox", "repPoint" });
 		Object[] properties = toArray(jsonResp.get("features").get(0).get("properties").fieldNames());
@@ -176,6 +221,8 @@ public class TestFindLocation {
 		url = Server.makeTestUrl(basePath + "/" + gidTest1 + "?maxExteriorRings=0");
 		response = get(url);
 		jsonResp = response.asJson();
+		jsonRespNodes = toArray(jsonResp.fieldNames());
+		assertContainsAll(jsonRespNodes, new String[] { "type", "features", "bbox" });
 		features = toArray(jsonResp.get("features").get(0).fieldNames());
 		assertContainsAll(features, new String[] { "type", "properties", "id", "bbox", "repPoint" });
 		properties = toArray(jsonResp.get("features").get(0).get("properties").fieldNames());
@@ -199,7 +246,7 @@ public class TestFindLocation {
 	}
 
 	private void findBulkTest() {
-		String body = KmlRule.getStringFromFile(findBulkTestFile1);
+		String body = KmlRule.getStringFromFile(findBulkRequestFile1);
 		String url = Server.makeTestUrl(findBulkPath);
 		WSResponse response = post(url, body, jsonContentType);
 		JsonNode jsonResp = response.asJson();
@@ -210,7 +257,6 @@ public class TestFindLocation {
 		assertContainsAll(fieldNames, new String[] { "features", "properties" });
 		fieldNames = toArray(firstFeature.get("properties").fieldNames());
 		assertContainsAll(fieldNames, new String[] { "queryTerm", "startDate", "endDate", "locationTypeIds" });
-
 		assertAreEqual(jsonResp.size(), 3);
 		fieldNames = toArray(firstFeature.get("features").get(0).get("properties").fieldNames());
 		assertContainsAll(fieldNames, new String[] { "name", "startDate", "endDate", "otherNames", "codes",
@@ -224,6 +270,19 @@ public class TestFindLocation {
 		body = "[{}]";
 		response = post(url, body, jsonContentType);
 		assertStatus(response, BAD_REQUEST);
+		
+		body = "[{\"queryTerm\":\"Test Location 1\",\"includeOnly\":[\"name\",\"gid\"]},"
+				+ "{\"queryTerm\":\"Test Location 2\",\"includeOnly\":[\"name\"]}"
+				+ "]";
+		response = post(url, body, jsonContentType);
+		assertStatus(response, OK);
+		jsonResp = response.asJson();
+		firstFeature = jsonResp.get(0);
+		fieldNames = toArray(firstFeature.get("features").get(0).get("properties").fieldNames());
+		assertContainsOnly(fieldNames, new String[] { "name", "gid" });
+		JsonNode secondFeature = jsonResp.get(1);
+		fieldNames = toArray(secondFeature.get("features").get(0).get("properties").fieldNames());
+		assertContainsOnly(fieldNames, new String[] { "name" });
 	}
 
 	private WSResponse post(String url, String body, String contentType) {
