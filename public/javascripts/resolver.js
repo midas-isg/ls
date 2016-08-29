@@ -113,6 +113,12 @@ $(document).ready(function Resolver() {
 			return;
 		});
 		
+		$("#showResolved").click(updateResolved);
+		
+		$("#showUnresolvable").click(updateUnresolved);
+		
+		$("#showMultipleChoice").click(updateMultipleChoice);
+		
 		$("#download").click(function() {
 			if(!output) {
 				alert("No data to download yet");
@@ -159,6 +165,45 @@ $(document).ready(function Resolver() {
 		
 		return;
 	})();
+	
+	function updateResolved() {
+		var checked = $("#showResolved")[0].checked;
+		
+		if(checked) {
+			$("#input-table tr.resolved").show();
+		}
+		else {
+			$("#input-table tr.resolved").hide();
+		}
+		
+		return;
+	}
+	
+	function updateMultipleChoice() {
+		var checked = $("#showMultipleChoice")[0].checked;
+		
+		if(checked) {
+			$("#input-table tr.multipleChoice").show();
+		}
+		else {
+			$("#input-table tr.multipleChoice").hide();
+		}
+		
+		return;
+	}
+	
+	function updateUnresolved() {
+		var checked = $("#showUnresolvable")[0].checked;
+		
+		if(checked) {
+			$("#input-table tr.unresolved").show();
+		}
+		else {
+			$("#input-table tr.unresolved").hide();
+		}
+		
+		return;
+	}
 	
 	function resolveExceptions() {
 		var bulkInput = [],
@@ -426,6 +471,7 @@ if(DEBUG) {
 		
 		for(i = 0; i < output.rows.length; i++) {
 			row = document.createElement("tr");
+			row.id = "row-" + i;
 			for(j = 0; j < output.rows[i].columns.length; j++) {
 				$(row).append("<td style='width: " + columnWidth + "%;'>" + output.rows[i].columns[j] + "</td>");
 			}
@@ -445,6 +491,8 @@ if(DEBUG) {
 				codeURL.href = locationURL + output.mappings[i].options[0].id;
 				codeURL.innerHTML = "<strong>" + output.mappings[i].options[0].id + "</strong>";
 				output.mappings[i].selectedOption = 0;
+				
+				row.className = "resolved";
 			}
 			else if(output.mappings[i].options.length > 1) {
 				entryChoices = document.createElement("select");
@@ -464,6 +512,7 @@ if(DEBUG) {
 				$(inputCell).append(entryChoices);
 				$(entryChoices).change(function() {
 					var codeURL = document.createElement("a");
+					
 					codeURL.target = "_blank";
 					codeURL.href = locationURL + this.value;
 					codeURL.innerHTML = "<strong>" + this.value +"</strong>";
@@ -479,6 +528,8 @@ if(DEBUG) {
 				codeURL.href = locationURL + output.mappings[i].options[0].id;
 				codeURL.innerHTML = "<strong>" + output.mappings[i].options[0].id +"</strong>";
 				output.mappings[i].selectedOption = 0;
+				
+				row.className = "multipleChoice";
 			}
 			else { //if(output.mappings[i].options.length < 1)
 				entryChoices = document.createElement("input");
@@ -488,8 +539,9 @@ if(DEBUG) {
 				entryChoices.style.width = "90%";
 				entryChoices.placeholder = "Enter New input";
 				$(inputCell).append(entryChoices);
-				
 				output.mappings[i].selectedOption = -1;
+				
+				row.className = "unresolved";
 			}
 			
 			resetButton = document.createElement("button");
@@ -516,8 +568,10 @@ if(DEBUG) {
 				$("#input-" + this.row).empty();
 				$("#code-" + this.row).empty();
 				$("#input-" + this.row).append(entryChoices);
-				
 				output.mappings[this.row].selectedOption = -1;
+				
+				$("#row-" + this.row)[0].className = "unresolved";
+				updateUnresolved();
 				
 				return;
 			});
