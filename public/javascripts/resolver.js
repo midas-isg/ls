@@ -638,7 +638,7 @@ if(DEBUG) {
 			$("#input-table div." + column).show();
 		}
 		else {
-			$("#input-table td." + column).css("width", "10px");
+			$("#input-table td." + column).css("width", "1%");
 			$("#input-table div." + column).hide();
 		}
 		
