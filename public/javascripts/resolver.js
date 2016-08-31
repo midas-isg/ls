@@ -176,6 +176,8 @@ $(document).ready(function Resolver() {
 			$("#input-table tr.resolved").hide();
 		}
 		
+		updateCounts();
+		
 		return;
 	}
 	
@@ -189,6 +191,8 @@ $(document).ready(function Resolver() {
 			$("#input-table tr.multipleChoice").hide();
 		}
 		
+		updateCounts();
+		
 		return;
 	}
 	
@@ -201,6 +205,8 @@ $(document).ready(function Resolver() {
 		else {
 			$("#input-table tr.unresolved").hide();
 		}
+		
+		updateCounts();
 		
 		return;
 	}
@@ -447,8 +453,11 @@ if(DEBUG) {
 			j,
 			row = document.createElement("tr"),
 			inputCell,
-			resetButton,
+			buttonCell,
 			codeCell,
+			tableCell,
+			resetButton,
+			columnButton,
 			codeURL,
 			columnCount = output.headers.length + output.mappingHeaders.length,
 			entryChoices,
@@ -463,7 +472,29 @@ if(DEBUG) {
 		$("#busy-message").show();
 		
 		for(i = 0; i < output.headers.length; i++) {
-			$(row).append("<td style='width: " + headerWidth + "%;'>" + output.headers[i] + "</td>");
+			columnButton = document.createElement("button");
+			columnButton.className = "column-" + i;
+			columnButton.value = true;
+			columnButton.innerHTML = "/";
+			columnButton.style.backgroundColor = "#8080ff";
+			
+			$(columnButton).click(function() {
+				this.value = (this.value === "false");
+				toggleColumn(this.className, this.value);
+				
+				return;
+			});
+			
+			tableCell = document.createElement("td");
+			tableCell.className = "column-" + i;
+			tableCell.style.width = headerWidth + "%";
+			tableCell.innerHTML = "<div class='column-" + i + "' style='display: inline-block; width: 90%;'>" + output.headers[i] + "</div>";
+			
+			buttonCell = document.createElement("sup");
+			
+			$(buttonCell).append(columnButton);
+			$(tableCell).append(buttonCell);
+			$(row).append(tableCell);
 		}
 		$(row).append("<td style='width: " + headerWidth + "%;'><strong>" + output.mappingHeaders[0] + "</strong></td>");
 		$(row).append("<td style='width: " + headerWidth + "%;'><strong>" + output.mappingHeaders[1] + "</strong></td>");
@@ -473,7 +504,7 @@ if(DEBUG) {
 			row = document.createElement("tr");
 			row.id = "row-" + i;
 			for(j = 0; j < output.rows[i].columns.length; j++) {
-				$(row).append("<td style='width: " + columnWidth + "%;'>" + output.rows[i].columns[j] + "</td>");
+				$(row).append("<td class='column-" + j + "' style='width: " + columnWidth + "%;'><div class='column-" + j + "'>" + output.rows[i].columns[j] + "</div></td>");
 			}
 			
 			inputCell = document.createElement("td");
@@ -487,7 +518,7 @@ if(DEBUG) {
 			$(codeCell).append(codeURL);
 			
 			if(output.mappings[i].options.length === 1) {
-				inputCell.innerHTML = "<strong>" + output.mappings[i].options[0].inputName + "</strong>";
+				inputCell.innerHTML = "<strong style='display: inline-block; width: 90%;'>" + output.mappings[i].options[0].inputName + "</strong>";
 				codeURL.href = locationURL + output.mappings[i].options[0].id;
 				codeURL.innerHTML = "<strong>" + output.mappings[i].options[0].id + "</strong>";
 				output.mappings[i].selectedOption = 0;
@@ -546,12 +577,14 @@ if(DEBUG) {
 			
 			resetButton = document.createElement("button");
 			resetButton.id = "reset-button-" + i;
-			resetButton.style.padding = "0px";
-			resetButton.style.float = "right";
+			resetButton.title = "Remove Input " + i;
 			resetButton.style.backgroundColor = "#ff8080";
-			resetButton.innerHTML = "<sup>x</sup>";
+			resetButton.innerHTML = "x";
 			resetButton.row = i;
-			$(inputCell).append(resetButton);
+			
+			buttonCell = document.createElement("sup");
+			$(buttonCell).append(resetButton);
+			$(inputCell).append(buttonCell);
 			
 			$(resetButton).click(function() {
 				entryChoices = document.createElement("input");
@@ -581,7 +614,33 @@ if(DEBUG) {
 			$("#input-table tbody").append(row);
 		}
 		
+		updateCounts();
 		$("#busy-message").hide();
+		
+		return;
+	}
+	
+	function updateCounts() {
+		var resolvedCount = $("#input-table tr.resolved").length,
+			multipleChoicesCount = $("#input-table tr.multipleChoice").length,
+			unresolvableCount = $("#input-table tr.unresolved").length;
+		
+		$("#resolved-count").text(resolvedCount);
+		$("#multiple-choices-count").text(multipleChoicesCount);
+		$("#unresolvable-count").text(unresolvableCount);
+		
+		return;
+	}
+	
+	function toggleColumn(column, show) {
+		if(show === "true") {
+			$("#input-table td." + column).css("width", "10%");
+			$("#input-table div." + column).show();
+		}
+		else {
+			$("#input-table td." + column).css("width", "10px");
+			$("#input-table div." + column).hide();
+		}
 		
 		return;
 	}

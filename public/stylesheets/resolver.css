@@ -71,10 +71,20 @@
 	border-bottom: 0px;
 }
 
+#result table thead td {
+	vertical-align: top;
+}
+
 #result table td {
 	text-align: center;
 }
 
+#result table button {
+	padding-left: 0px;
+	padding-right: 0px;
+	padding-bottom: 3px;
+	float: right;
+}
 
 
 /*

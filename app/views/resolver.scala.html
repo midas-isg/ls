@@ -50,7 +50,7 @@
 				</div>
 				
 				<div id="result" style="clear: both;">
-					<div>
+					<div style="float: left;">
 						<sub>
 							Show Resolved <input id="showResolved" type="checkbox" checked>
 						</sub>
@@ -62,7 +62,13 @@
 						</sub>
 					</div>
 					
-					<table id="input-table" style="float: left; clear: both;"></table>
+					<div style="display: inline-block; float: right;">
+						<sub>Resolved: <samp id="resolved-count">#</samp></sub>
+						<sub>Multiple Choices: <samp id="multiple-choices-count">#</samp></sub>
+						<sub>Unresolvable: <samp id="unresolvable-count">#</samp></sub>
+					</div>
+					
+					<table id="input-table" style="clear: both;"></table>
 				</div>
 				
 				<div style="float: right; clear: both;">
