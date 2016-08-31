@@ -1,4 +1,4 @@
-var DEBUG = true;
+var DEBUG = false;
 
 $(document).ready(function Resolver() {
 	var countriesURL = "api/locations/find-by-type/1",
@@ -74,6 +74,7 @@ $(document).ready(function Resolver() {
 			output = {headers: [], rows: [], mappingHeaders: [], mappings:[]};
 			$("#search-priorities").empty();
 			readInputFile();
+			firstResolutionPass = true;
 			
 			return;
 		});
@@ -155,7 +156,7 @@ $(document).ready(function Resolver() {
 			}
 			
 			link.href = "data:text/plain;charset=utf-8," + encodeURIComponent(downloadable);
-			link.download = countryName + "-" + "mappings.csv";
+			link.download = ($("#csv-input")[0].files[0].name).replace(".csv", "_resolved.csv");
 			link.click();
 			
 			return;
@@ -392,8 +393,8 @@ if(DEBUG) {
 		for(j = 0; j < parsedData.data[i].length; j++) {
 			output.headers.push(parsedData.data[i][j]);
 		}
-		output.mappingHeaders.push("used_input");
-		output.mappingHeaders.push("apollo_location_code");
+		output.mappingHeaders.push("Resolved");
+		output.mappingHeaders.push("Apollo Location Code");
 		
 		for(i = 1; i < parsedData.data.length; i++) {
 			if(parsedData.data[i].length === output.headers.length) {
@@ -429,8 +430,6 @@ if(DEBUG) {
 		for(i = 0; i < output.headers.length; i++) {
 			$(row).append("<td style='width: " + columnWidth + "%;'>" + output.headers[i] + "</td>");
 		}
-		$(row).append("<td style='width: " + columnWidth + "%;'>" + output.mappingHeaders[0] + "</td>");
-		$(row).append("<td style='width: " + columnWidth + "%;'>" + output.mappingHeaders[1] + "</td>");
 		$("#input-table thead").append(row);
 		
 		for(i = 0; i < 10; i++) {
@@ -438,12 +437,10 @@ if(DEBUG) {
 			for(j = 0; j < output.rows[i].columns.length; j++) {
 				$(row).append("<td style='width: " + columnWidth + "%;'>" + output.rows[i].columns[j] + "</td>");
 			}
-			
-			$(row).append("<td id='input-" + i + "' style='width: " + columnWidth + "%;'>?</td>");
-			$(row).append("<td id='code-" + i + "' style='width: " + columnWidth + "%;'>?</td>");
-			
 			$("#input-table tbody").append(row);
 		}
+		
+		$("#results-status").hide();
 		
 		return;
 	}
@@ -463,6 +460,10 @@ if(DEBUG) {
 			entryChoices,
 			headerWidth = 99 / columnCount,
 			columnWidth = 100 / columnCount;
+		
+		$("#showResolved")[0].checked = true;
+		$("#showMultipleChoice")[0].checked = true;
+		$("#showUnresolvable")[0].checked = true;
 		
 		$("#input-table caption").remove();
 		$("#input-table thead").remove();
@@ -615,6 +616,7 @@ if(DEBUG) {
 		}
 		
 		updateCounts();
+		$("#results-status").show();
 		$("#busy-message").hide();
 		
 		return;
@@ -660,7 +662,7 @@ if(DEBUG) {
 			return;
 		});
 		
-		$("#search-priorities").append("<div id='priority-col-" + order + "' style='float: left;'><legend>Input Column</legend></div>");
+		$("#search-priorities").append("<div id='priority-col-" + order + "' style='float: left;'><legend>Select Column Containing Location Name</legend></div>");
 		$("#priority-col-" + order).append(newSelector);
 		
 		return;

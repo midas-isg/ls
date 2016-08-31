@@ -14,23 +14,25 @@
 
 @main(message, imports, version) {
 	<div class="no-padding">
-		<legend>Location Resolver</legend>
 		<div>
-			<div class="extra-bottom-space">
-				<input id="csv-input" type="file" accept=".csv, .txt" style="display: inline-block;">
-				<button id="process-button" class="">Process File</button>
+			<div class="extra-bottom-space" style="display: inline-block;">
+				<legend>Select CSV File</legend>
+				<div class="">
+					<input id="csv-input" type="file" accept=".csv, .txt" style="display: inline-block;">
+					<button id="process-button" class="">Process File</button>
+				</div>
 			</div>
 			
 			<div class="extra-bottom-space" style="clear: both;">
 				<div class="extra-bottom-space" style="display: inline-block;">
-					<legend>Country</legend>
+					<legend>Select Country</legend>
 					<select id="country-selection">
 						<option id="country-option--1" value="-1">Please select</option>
 					</select>
 				</div>
 				
-				<div class="extra-bottom-space" style="clear: both;">
-					<div id="search-priorities" style="float: left;"></div>
+				<div style="clear: both;">
+					<div id="search-priorities" class="extra-bottom-space" style="float: left;"></div>
 					
 					<div style="float: left; display: none;">
 						<button id="add-priority" class="">+</button>
@@ -40,7 +42,7 @@
 			</div>
 			
 			<div style="clear: both;">
-				<legend>Mappings</legend>
+				<legend>Resolve Results</legend>
 				<div id="loading-gif" style="display: none;">
 					<img src='@routes.Assets.at("images/loading.gif")' style="display: block; margin-left: auto; margin-right: auto; height: 500px; width: 500px;">
 				</div>
@@ -50,22 +52,18 @@
 				</div>
 				
 				<div id="result" style="clear: both;">
-					<div style="float: left;">
-						<sub>
-							Show Resolved <input id="showResolved" type="checkbox" checked>
-						</sub>
-						<sub>
-							Show Multiple Choices <input id="showMultipleChoice" type="checkbox" checked>
-						</sub>
-						<sub>
-							Show Unresolvable <input id="showUnresolvable" type="checkbox" checked>
-						</sub>
-					</div>
-					
-					<div style="display: inline-block; float: right;">
-						<sub>Resolved: <samp id="resolved-count">#</samp></sub>
-						<sub>Multiple Choices: <samp id="multiple-choices-count">#</samp></sub>
-						<sub>Unresolvable: <samp id="unresolvable-count">#</samp></sub>
+					<div id="results-status" style="display: none;">
+						<div style="float: left;">
+							<sub>Show Resolved <input id="showResolved" type="checkbox" checked></sub>
+							<sub>Show Multiple Choices <input id="showMultipleChoice" type="checkbox" checked></sub>
+							<sub>Show Unresolvable <input id="showUnresolvable" type="checkbox" checked></sub>
+						</div>
+						
+						<div style="display: inline-block; float: right;">
+							<sub>Resolved: <samp id="resolved-count">#</samp></sub>
+							<sub>Multiple Choices: <samp id="multiple-choices-count">#</samp></sub>
+							<sub>Unresolvable: <samp id="unresolvable-count">#</samp></sub>
+						</div>
 					</div>
 					
 					<table id="input-table" style="clear: both;"></table>
