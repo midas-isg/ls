@@ -226,6 +226,8 @@ $(document).ready(function Resolver() {
 			if(rootALC > 0) {
 				bulkInput[i]["rootALC"] = rootALC;
 			}
+			
+			bulkInput[i]["includeOnly"] = ["gid", "name"];// "lineage", "locationTypeName"];
 		}
 		
 		$.ajax({
@@ -292,6 +294,8 @@ $(document).ready(function Resolver() {
 			if(rootALC > 0) {
 				bulkInput[i]["rootALC"] = rootALC;
 			}
+			
+			bulkInput[i]["includeOnly"] = ["gid", "name"];//, "lineage", "locationTypeName"];
 		}
 		
 		$.ajax({
@@ -417,7 +421,7 @@ if(DEBUG) {
 		var i,
 			j,
 			row = document.createElement("tr"),
-			columnCount = output.headers.length + output.mappingHeaders.length,
+			columnCount = output.headers.length,
 			columnWidth = 100 / columnCount;
 		
 		$("#input-table caption").remove();
