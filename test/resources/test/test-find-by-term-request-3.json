@@ -1,0 +1,3 @@
+{"queryTerm":"ñámé wíth áccéñt", 
+"includeOnly":["name", "gid", "locationTypeName", "lineage", "codes", "otherNames", "related", "rank", "headline", "matchedTerm", "startDate", "endDate", "parentGid", "bbox", "repPoint"]
+}

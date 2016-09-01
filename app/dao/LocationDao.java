@@ -150,6 +150,7 @@ public class LocationDao {
 			l = gid2Location.get(Long.valueOf(objects[0].toString()));
 			l.setHeadline(objects[1].toString());
 			l.setRank(objects[2].toString());
+			l.setMatchedTerm(objects[3].toString());
 			list.add(l);
 		}
 		return list;

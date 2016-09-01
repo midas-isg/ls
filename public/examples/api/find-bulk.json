@@ -1,4 +1,18 @@
 [
-{"queryTerm": "UPSTATE NEW YORK", "startDate": 1975, "endDate": 1985, "locationTypeIds":[16, 6], "verbose":true},
-{"queryTerm": "NEW JERSEY", "startDate": 1975, "startDate": 1985, "locationTypeIds":[16, 6], "verbose":true}
+{
+ "queryTerm": "UPSTATE NEW YORK",
+ "startDate": 1975,
+ "endDate": 1985, 
+ "locationTypeIds":[16, 6], 
+ "verbose":true,
+ "includeOnly":[]
+ },
+{
+ "queryTerm": "NEW JERSEY",
+ "startDate": 1975,
+ "endDate": 1985,
+ "locationTypeIds":[16, 6],
+ "verbose":true,
+ "includeOnly":[]
+ }
 ]

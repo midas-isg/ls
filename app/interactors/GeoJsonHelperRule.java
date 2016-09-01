@@ -1,5 +1,6 @@
 package interactors;
 
+import static interactors.Util.containsOrIsEmpty;
 import static interactors.Util.putAsStringIfNotNull;
 
 import java.sql.Date;
@@ -8,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import models.Request;
 import models.geo.Feature;
 import models.geo.FeatureCollection;
 import play.Logger;
@@ -159,27 +161,44 @@ public class GeoJsonHelperRule {
 	}
 	
 	static Map<String, Object> toProperties(Location location) {
+		return toProperties(location, new Request());
+	}
+	
+	static Map<String, Object> toProperties(Location location, Request req) {
 		Map<String, Object> properties = new HashMap<>();
-		LocationTypeDao locationTypeDao = new LocationTypeDao();
 		String gid = getGid(location);
-		putAsStringIfNotNull(properties, "gid", gid);
 		Data data = location.getData();
 		if (data == null) {
 			Logger.warn(gid + " has null data!");
 			return properties;
 		}
-		putAsStringIfNotNull(properties, "name", data.getName());
-		putAsStringIfNotNull(properties, "locationDescription",
-				data.getDescription());
-		putAsStringIfNotNull(properties, "headline", location.getHeadline());
-		putAsStringIfNotNull(properties, "rank", location.getRank());
-		putAsStringIfNotNull(properties, "startDate", data.getStartDate());
-		putAsStringIfNotNull(properties, "endDate", data.getEndDate());
-		String locationTypeName = locationTypeDao.getLocationTypeName(
-				data.getLocationType());
-		putAsStringIfNotNull(properties, "locationTypeName", locationTypeName);
-		Location parent = location.getParent();
-		putAsStringIfNotNull(properties, "parentGid", getGid(parent));
+		if(containsOrIsEmpty(req.getIncludeOnly(), "gid"))
+			putAsStringIfNotNull(properties, "gid", gid);
+		if(containsOrIsEmpty(req.getIncludeOnly(), "name"))
+			putAsStringIfNotNull(properties, "name", data.getName());
+		if(containsOrIsEmpty(req.getIncludeOnly(), "locationDescription"))
+			putAsStringIfNotNull(properties, "locationDescription",
+					data.getDescription());
+		if(containsOrIsEmpty(req.getIncludeOnly(), "headline"))
+			putAsStringIfNotNull(properties, "headline", location.getHeadline());
+		if(containsOrIsEmpty(req.getIncludeOnly(), "rank"))
+			putAsStringIfNotNull(properties, "rank", location.getRank());
+		if(containsOrIsEmpty(req.getIncludeOnly(), "startDate"))
+			putAsStringIfNotNull(properties, "startDate", data.getStartDate());
+		if(containsOrIsEmpty(req.getIncludeOnly(), "endDate"))
+			putAsStringIfNotNull(properties, "endDate", data.getEndDate());	
+		if(containsOrIsEmpty(req.getIncludeOnly(), "locationTypeName")){
+			LocationTypeDao locationTypeDao = new LocationTypeDao();
+			String locationTypeName = locationTypeDao.getLocationTypeName(
+					data.getLocationType());
+			putAsStringIfNotNull(properties, "locationTypeName", locationTypeName);
+		}
+		if(containsOrIsEmpty(req.getIncludeOnly(), "parentGid")){
+			Location parent = location.getParent();
+			putAsStringIfNotNull(properties, "parentGid", getGid(parent));
+		}
+		if(containsOrIsEmpty(req.getIncludeOnly(), "matchedTerm"))
+			putAsStringIfNotNull(properties, "matchedTerm", location.getMatchedTerm());
 		return properties;
 	}
 

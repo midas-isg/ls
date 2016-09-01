@@ -1,14 +1,9 @@
 package interactors;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import models.Request;
-import play.Logger;
-import play.Play;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.LineString;
@@ -21,6 +16,9 @@ import dao.entities.GisSource;
 import dao.entities.Location;
 import dao.entities.LocationGeometry;
 import dao.entities.LocationType;
+import models.Request;
+import play.Logger;
+import play.Play;
 
 public class LocationRule {
 	public static final long PUMA_TYPE_ID = 102L;
