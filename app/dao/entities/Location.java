@@ -36,6 +36,7 @@ public class Location implements Comparable<Location> {
 	
 	private String headline;
 	private String rank;
+	private String matchedTerm;
 
 	@Id
 	@Column(name = "gid")
@@ -265,6 +266,16 @@ public class Location implements Comparable<Location> {
 
 	public void setRank(String rank) {
 		this.rank = rank;
+	}
+
+	@Transient
+	public String getMatchedTerm() {
+		return matchedTerm;
+	}
+
+	public void setMatchedTerm(String matchedTerm) {
+		this.matchedTerm = matchedTerm;
+		
 	}
 
 }

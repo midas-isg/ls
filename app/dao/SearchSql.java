@@ -30,7 +30,6 @@ public class SearchSql {
 				codeTempTable);
 		q += unionTempTablesSql(req, qt, nameTempTable, otherNameTempTable,
 				codeTempTable);
-		//Logger.debug("\n q= " + q + "\n");
 		return q;
 	}
 
@@ -38,7 +37,7 @@ public class SearchSql {
 			String nameTempTable, String otherNameTempTable,
 			String codeTempTable) {
 		List<String> searchSqls = new ArrayList<>();
-		
+				
 		String names = toNameSearchSql(req, qt);
 		names = (names.isEmpty()) ? names : nameTempTable + " AS ( " + names + " ) ";
 		searchSqls.add(names);
@@ -127,14 +126,14 @@ public class SearchSql {
 				: "code";
 		if (isTrue(req.isSearchCodes())) {
 			q += " SELECT DISTINCT ON(gid) gid, code AS name, "
-					+ "ts_rank_cd(ti, "	+ qt + ", 8) AS rank, "
+					+ "ts_rank_cd(" + codeTsVector + ", "	+ qt + ", 8) AS rank, "
 					+ " ts_headline('simple', " + codeCol + ", " + qt + " ) headline "
 					+ " FROM ("
 					+ " SELECT gid, code FROM location WHERE code_type_id != 2 ";
 			if (containsFilters(req))
 				q += " AND " + toQueryFiltersSql(req);
-			q += " UNION select gid, code FROM alt_code) AS foo" + " , "
-					+ codeTsVector + " ti " + " WHERE ti @@ " + qt;
+			q += " UNION select gid, code FROM alt_code) AS foo"
+				+ " WHERE " + codeTsVector + " @@ " + qt;
 			if (containsFilters(req))
 				q += " AND gid IN ( SELECT gid FROM location WHERE "
 						+ toQueryFiltersSql(req) + " ) ";
@@ -147,10 +146,10 @@ public class SearchSql {
 		String nameTsVector = toTsVector(req, "name");
 		String nameCol = isTrue(req.isIgnoreAccent()) ? "unaccent_immutable(name)" : "name";
 		if (isTrue(req.isSearchOtherNames())) {
-			q += " SELECT DISTINCT ON(gid) gid, name, ts_rank_cd(ti, " + qt + ", 8) AS rank, "
+			q += " SELECT DISTINCT ON(gid) gid, name, ts_rank_cd(" + nameTsVector + ", " + qt + ", 8) AS rank, "
 			+ " ts_headline('simple', " + nameCol + ", " + qt + " ) headline "
-			+ " FROM alt_name , " + nameTsVector + " ti "
-			+ " WHERE ti @@ " + qt;
+			+ " FROM alt_name "
+			+ " WHERE " + nameTsVector + " @@ " + qt;
 			if (containsFilters(req))
 				q += " AND gid IN ( SELECT gid FROM location WHERE "
 						+ toQueryFiltersSql(req) + " ) ";
@@ -164,10 +163,10 @@ public class SearchSql {
 		String nameCol = isTrue(req.isIgnoreAccent()) ? "unaccent_immutable(name)"
 				: "name";
 		if (isTrue(req.isSearchNames())) {
-			q += " SELECT gid, name, ts_rank_cd(ti, " + qt + ", 8) AS rank, "
+			q += " SELECT gid, name, ts_rank_cd(" + nameTsVector + ", " + qt + ", 8) AS rank, "
 					+ " ts_headline('simple', " + nameCol + ", " + qt + " ) headline " 
-					+ " FROM location, " + nameTsVector	+ " ti " 
-					+ " WHERE ti @@ " + qt;
+					+ " FROM location "
+					+ " WHERE " + nameTsVector + " @@ " + qt;
 			if (containsFilters(req))
 				q += " AND " + toQueryFiltersSql(req);
 		}
@@ -188,7 +187,7 @@ public class SearchSql {
 	private String toQueryFiltersSql(Request req) {
 		String typeCond = listToSqlFilters( " location_type_id ", req.getLocationTypeIds());
 		String dateCond = dateCond(req.getStartDate(), req.getEndDate());
-		String gidCond = toGidCond(req.getRootALC());
+		String gidCond = toRootGidCond(req);
 		String qc = "";
 		if (dateCond != null && typeCond != null)
 			qc += typeCond + " AND " + dateCond;
@@ -201,19 +200,10 @@ public class SearchSql {
 		return qc;
 	}
 
-	private String toGidCond(Long rootGid) {
-		if(rootGid == null)
+	private String toRootGidCond(Request req) {
+		if(req.getRootALC() == null)
 			return null;
-		
-		String gids = " WITH RECURSIVE group_by_admin_level(gid, admin_level) AS ( "
-					+ " SELECT gid,0 FROM location WHERE gid = " + rootGid
-					+ " UNION "
-					+ " SELECT l.gid, g.admin_level + 1 FROM location l, group_by_admin_level g "
-					+ " WHERE l.parent_gid = g.gid ) "
-					+ " SELECT gid FROM group_by_admin_level "
-					+ " WHERE admin_level > 0 ";
-		
-		return " gid in ( " + gids + " ) ";
+		return " gid in ( SELECT child_gid FROM forest WHERE root_gid = " + req.getRootALC() + " ) ";
 	}
 
 	private String toSelectStatementSql(String column, String qt, String tempTable) {

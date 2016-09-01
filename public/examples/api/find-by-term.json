@@ -1,12 +1,15 @@
-{"queryTerm":"sudan", 
-"locationTypeIds":[1,6],
-"startDate":2010,
-"endDate":"2015-01-01",
-"rootALC": 1217,
-"searchNames":true,
-"searchOtherNames":true,
-"searchCodes":true,
-"ignoreAccent":true,
-"limit":10,
-"offset":0,
-"verbose":true}
+{
+ "queryTerm":"sudan", 
+ "locationTypeIds":[1,6],
+ "startDate":2010,
+ "endDate":"2015-01-01",
+ "rootALC": 1217,
+ "searchNames":true,
+ "searchOtherNames":true,
+ "searchCodes":true,
+ "ignoreAccent":true,
+ "includeOnly":[],
+ "limit":10,
+ "offset":0,
+ "verbose":true
+}

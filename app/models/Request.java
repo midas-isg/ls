@@ -17,6 +17,8 @@ public class Request {
 	private List<Integer> locationTypeIds;
 	private Boolean verbose;
 	private Long rootALC;
+	private List<String> includeOnly;
+	private List<String> exclude;
 
 	public String getQueryTerm() {
 		return queryTerm;
@@ -112,5 +114,21 @@ public class Request {
 
 	public void setRootALC(Long rootALC) {
 		this.rootALC = rootALC;
+	}
+
+	public List<String> getIncludeOnly() {
+		return includeOnly;
+	}
+
+	public void setIncludeOnly(List<String> includeOnly) {
+		this.includeOnly = includeOnly;
+	}
+
+	public List<String> getExclude() {
+		return exclude;
+	}
+
+	public void setExclude(List<String> exclude) {
+		this.exclude = exclude;
 	}
 }
