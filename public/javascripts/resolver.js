@@ -220,14 +220,18 @@ $(document).ready(function Resolver() {
 			i;
 		
 		for(i = 0; i < exceptions.length; i++) {
-			name2rows[exceptions[i].value] = exceptions[i].row;
+			if(!name2rows[exceptions[i].value]) {
+				name2rows[exceptions[i].value] = [];
+			}
+			
+			name2rows[exceptions[i].value].push(exceptions[i].row);
 			bulkInput.push({"queryTerm": exceptions[i].value});
 			
 			if(rootALC > 0) {
 				bulkInput[i]["rootALC"] = rootALC;
 			}
 			
-			bulkInput[i]["includeOnly"] = ["gid", "name"];// "lineage", "locationTypeName"];
+			bulkInput[i]["includeOnly"] = ["gid", "name"];// "matchedName", "lineage", "locationTypeName"];
 		}
 		
 		$.ajax({
@@ -264,20 +268,32 @@ $(document).ready(function Resolver() {
 	function populateExceptions(nameToRows, bulkResult) {
 		var i,
 			j,
-			entryRow,
+			k,
+			entryRows,
 			properties,
 			features;
 		
 		for(i = 0; i < bulkResult.length; i++) {
 			properties = bulkResult[i].properties;
 			features = bulkResult[i].features;
-			entryRow = nameToRows[properties.queryTerm];
-			output.mappings[entryRow].options = [];
+			entryRows = nameToRows[properties.queryTerm];
 			
-			for(j = 0; j < features.length; j++) {
-				output.mappings[entryRow].options.push({inputName: features[j].properties.name, id: features[j].properties.gid});
+			if(entryRows) {
+				for(j = 0; j < entryRows.length; j++) {
+					output.mappings[entryRows[j]].options = [];
+					
+					for(k = 0; k < features.length; k++) {
+						output.mappings[entryRows[j]].options.push({inputName: features[k].properties.name, id: features[k].properties.gid});
+					}
+				}
+				
+				delete nameToRows[properties.queryTerm];
 			}
 		}
+		
+if(DEBUG) {
+	console.debug(output);
+}
 		
 		return;
 	}
@@ -295,7 +311,7 @@ $(document).ready(function Resolver() {
 				bulkInput[i]["rootALC"] = rootALC;
 			}
 			
-			bulkInput[i]["includeOnly"] = ["gid", "name"];//, "lineage", "locationTypeName"];
+			bulkInput[i]["includeOnly"] = ["gid", "name"];// "matchedName", "lineage", "locationTypeName"];
 		}
 		
 		$.ajax({
