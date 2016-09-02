@@ -51,7 +51,7 @@
 }
 
 #result tbody tr:nth-child(even) {
-	background-color: #F0FFFF;
+	background-color: #E9E9FF;
 }
 
 #result tbody tr:nth-child(odd) {
@@ -59,7 +59,7 @@
 }
 
 #result table thead tr {
-	background-color: #F0FFFF;
+	background-color: #E9E9FF;
 	border-bottom-color: rgb(221, 221, 221);
 	border-bottom-width: 1px;
 	border-bottom-style: solid;

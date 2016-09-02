@@ -120,47 +120,7 @@ $(document).ready(function Resolver() {
 		
 		$("#showMultipleChoice").click(updateMultipleChoice);
 		
-		$("#download").click(function() {
-			if(!output) {
-				alert("No data to download yet");
-				
-				return;
-			}
-			
-			var link = document.createElement("a"),
-				downloadable = "",
-				i,
-				j;
-			
-			for(i = 0; i < output.headers.length; i++) {
-				downloadable += "\"" + output.headers[i] + "\","; 
-			}
-			
-			for(i = 0; i < (output.mappingHeaders.length - 1); i++) {
-				downloadable += "\"" + output.mappingHeaders[i] + "\",";
-			}
-			downloadable += "\"" + output.mappingHeaders[i] + "\"\n";
-			
-			for(i = 0; i < output.rows.length; i++) {
-				for(j = 0; j < output.rows[i].columns.length; j++) {
-					downloadable += "\"" + output.rows[i].columns[j] + "\",";
-				}
-				
-				if(output.mappings[i].selectedOption > -1) {
-					downloadable += "\"" + output.mappings[i].options[output.mappings[i].selectedOption].inputName + "\",";
-					downloadable += "\"" + output.mappings[i].options[output.mappings[i].selectedOption].id + "\"\n";
-				}
-				else {
-					downloadable += "\"\",\"\"\n";
-				}
-			}
-			
-			link.href = "data:text/plain;charset=utf-8," + encodeURIComponent(downloadable);
-			link.download = ($("#csv-input")[0].files[0].name).replace(".csv", "_resolved.csv");
-			link.click();
-			
-			return;
-		});
+		$("#download").click(download);
 		
 		fileReader.onload = processCSVdata;
 		
@@ -552,9 +512,14 @@ if(DEBUG) {
 				entryChoices.style.width = "90%";
 				entryChoices.row = i;
 				
+				option = document.createElement("option");
+				option.value = -1;
+				option.id = "input-blank";
+				option.innerHTML = "";
+				$(entryChoices).append(option);
+				
 				for(j = 0; j < output.mappings[i].options.length; j++) {
 					option = document.createElement("option");
-					option.number = j;
 					option.value = output.mappings[i].options[j].id;
 					option.id = "input-" + i + "-code-" + option.value;
 					option.innerHTML = "<strong>" + output.mappings[i].options[j].inputName + "</strong>";
@@ -565,21 +530,24 @@ if(DEBUG) {
 				$(entryChoices).change(function() {
 					var codeURL = document.createElement("a");
 					
+					$("#code-" + this.row).empty();
 					codeURL.target = "_blank";
 					codeURL.href = locationURL + this.value;
 					codeURL.innerHTML = "<strong>" + this.value +"</strong>";
-					
-					$("#code-" + this.row).empty();
 					$("#code-" + this.row).append(codeURL);
-					output.mappings[this.row].selectedOption = this.selectedOptions[0].index;
+					output.mappings[this.row].selectedOption = this.selectedOptions[0].index - 1;
 					
 					return;
 				});
 				
-				entryChoices.value = output.mappings[i].options[0].id;
-				codeURL.href = locationURL + output.mappings[i].options[0].id;
-				codeURL.innerHTML = "<strong>" + output.mappings[i].options[0].id +"</strong>";
-				output.mappings[i].selectedOption = 0;
+				if((output.mappings[i].selectedOption === undefined) || (output.mappings[i].selectedOption === -1)) {
+					output.mappings[i].selectedOption = -1;
+				}
+				else {
+					entryChoices.value = output.mappings[i].options[output.mappings[i].selectedOption].id;
+					codeURL.href = locationURL + output.mappings[i].options[output.mappings[i].selectedOption].id;
+					codeURL.innerHTML = "<strong>" + output.mappings[i].options[output.mappings[i].selectedOption].id +"</strong>";
+				}
 				
 				row.className = "multipleChoice";
 			}
@@ -622,7 +590,7 @@ if(DEBUG) {
 				$("#input-" + this.row).empty();
 				$("#code-" + this.row).empty();
 				$("#input-" + this.row).append(entryChoices);
-				output.mappings[this.row].selectedOption = -1;
+				output.mappings[this.row].selectedOption = undefined;
 				
 				$("#row-" + this.row)[0].className = "unresolved";
 				updateUnresolved();
@@ -692,6 +660,48 @@ if(DEBUG) {
 		var deletedSelector = "#priority-col-" + ($("#search-priorities").children().length - 1);
 		
 		$(deletedSelector).remove();
+		
+		return;
+	}
+	
+	function download() {
+		if(!output) {
+			alert("No data to download yet");
+			
+			return;
+		}
+		
+		var link = document.createElement("a"),
+			downloadable = "",
+			i,
+			j;
+		
+		for(i = 0; i < output.headers.length; i++) {
+			downloadable += "\"" + output.headers[i] + "\","; 
+		}
+		
+		for(i = 0; i < (output.mappingHeaders.length - 1); i++) {
+			downloadable += "\"" + output.mappingHeaders[i] + "\",";
+		}
+		downloadable += "\"" + output.mappingHeaders[i] + "\"\n";
+		
+		for(i = 0; i < output.rows.length; i++) {
+			for(j = 0; j < output.rows[i].columns.length; j++) {
+				downloadable += "\"" + output.rows[i].columns[j] + "\",";
+			}
+			
+			if(output.mappings[i].selectedOption > -1) {
+				downloadable += "\"" + output.mappings[i].options[output.mappings[i].selectedOption].inputName + "\",";
+				downloadable += "\"" + output.mappings[i].options[output.mappings[i].selectedOption].id + "\"\n";
+			}
+			else {
+				downloadable += "\"\",\"\"\n";
+			}
+		}
+		
+		link.href = "data:text/plain;charset=utf-8," + encodeURIComponent(downloadable);
+		link.download = ($("#csv-input")[0].files[0].name).replace(".csv", "_resolved.csv");
+		link.click();
 		
 		return;
 	}
