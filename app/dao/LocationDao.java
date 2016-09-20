@@ -1,5 +1,7 @@
 package dao;
 
+import static interactors.Util.isTrue;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -119,6 +121,9 @@ public class LocationDao {
 
 	public List<?> findByTerm(Request req) {
 		EntityManager em = JPA.em();
+		if(isTrue(req.isFuzzyMatch()) && req.getFuzzyMatchThreshold() != null)
+			em.createNativeQuery("SELECT set_limit(" + req.getFuzzyMatchThreshold() + ")"
+					).getSingleResult();
 		String q = new SearchSql().toQuerySqlString(req);
 		Query query = em.createNativeQuery(q);
 		query = setQueryParameters(req, query);

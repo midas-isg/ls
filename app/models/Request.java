@@ -19,6 +19,8 @@ public class Request {
 	private Long rootALC;
 	private List<String> includeOnly;
 	private List<String> exclude;
+	private Boolean fuzzyMatch;
+	private Float fuzzyMatchThreshold = 0.3F;
 
 	public String getQueryTerm() {
 		return queryTerm;
@@ -130,5 +132,21 @@ public class Request {
 
 	public void setExclude(List<String> exclude) {
 		this.exclude = exclude;
+	}
+
+	public Boolean isFuzzyMatch() {
+		return fuzzyMatch;
+	}
+
+	public void setFuzzyMatch(Boolean fuzzyMatch) {
+		this.fuzzyMatch = fuzzyMatch;
+	}
+
+	public Float getFuzzyMatchThreshold() {
+		return fuzzyMatchThreshold;
+	}
+
+	public void setFuzzyMatchThreshold(Float fuzzyMatchThreshold) {
+		this.fuzzyMatchThreshold = fuzzyMatchThreshold;
 	}
 }

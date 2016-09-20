@@ -40,6 +40,7 @@ public class TestFindLocation {
 	private final String findByTermRequestFile1 = "test/test-find-by-term-request-1.json";
 	private final String findByTermRequestFile2 = "test/test-find-by-term-request-2.json";
 	private final String findByTermRequestFile3 = "test/test-find-by-term-request-3.json";
+	private final String fuzzyMatchRequest1 = "test/fuzzy-match-request-1.json";
 	private final String findBulkRequestFile1 = "test/test-find-bulk-request-1.json";
 
 	public static Runnable test() {
@@ -63,6 +64,7 @@ public class TestFindLocation {
 			unsafeFindBulkTest();
 			unsafeFindByNameTest();
 			findByTypeId();
+			fuzzyMatchTest();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		} finally {
@@ -70,6 +72,19 @@ public class TestFindLocation {
 			deleteLocation(gidTest1);
 		}
 
+	}
+
+	private void fuzzyMatchTest() {
+		String body = KmlRule.getStringFromFile(fuzzyMatchRequest1);
+		String url = Server.makeTestUrl(findByTermPath);
+		WSResponse response = post(url, body, jsonContentType);
+		assertStatus(response, OK);
+		JsonNode jsonResp = response.asJson();
+		assertAreEqual(jsonResp.size(), 4);
+		assertAreEqual(jsonResp.get("features").size(), 1);
+		assertAreEqual(jsonResp.get("features").get(0).get("properties").get("rank").asDouble(), 0.33333334);
+		assertAreEqual(jsonResp.get("features").get(0).get("properties").get("matchedTerm").asText(), "ñámé wíth áccéñt");
+		assertAreEqual(jsonResp.get("properties").get("fuzzyMatchThreshold").asDouble(), 0.32);
 	}
 
 	private void findByTypeId() {

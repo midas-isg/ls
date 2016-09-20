@@ -5,7 +5,9 @@
  "endDate": 1985, 
  "locationTypeIds":[16, 6], 
  "verbose":true,
- "includeOnly":[]
+ "includeOnly":[],
+ "fuzzyMatch":true,
+ "fuzzyMatchThreshold":0.3
  },
 {
  "queryTerm": "NEW JERSEY",
