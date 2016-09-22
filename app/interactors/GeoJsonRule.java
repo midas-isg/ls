@@ -157,6 +157,9 @@ public class GeoJsonRule {
 		putAsStringIfNotNull(properties, "includeOnly",
 				listToString(req.getIncludeOnly()));
 		putAsStringIfNotNull(properties, "resultSize", resultSize);
+		putAsStringIfNotNull(properties, "fuzzyMatch", req.isFuzzyMatch());
+		if (isTrue(req.isFuzzyMatch()))
+			putAsStringIfNotNull(properties, "fuzzyMatchThreshold", req.getFuzzyMatchThreshold());
 		return properties;
 	}
 
@@ -429,6 +432,10 @@ public class GeoJsonRule {
 		JsonNode includeOnly = node.get("includeOnly");
 		if(includeOnly != null)
 			req.setIncludeOnly(interactors.Util.toListOfString(includeOnly));
+		value = returnDefaultIfKeyNotExists(node, "fuzzyMatch", false);
+		req.setFuzzyMatch(value);
+		if (containsKey(node, "fuzzyMatchThreshold"))
+			req.setFuzzyMatchThreshold((float) node.get("fuzzyMatchThreshold").asDouble());
 	}
 
 	private static void setEndDate(JsonNode node, Request req, String endDate) {

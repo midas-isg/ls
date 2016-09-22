@@ -1,0 +1,9 @@
+{"queryTerm":"namewit aksent", 
+"searchNames":true,
+"searchOtherNames":true,
+"searchCodes":true,
+"ignoreAccent":true,
+"fuzzyMatch":true,
+"fuzzyMatchThreshold":0.32,
+"limit":10
+}

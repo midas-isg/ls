@@ -2,6 +2,8 @@ package dao;
 
 import gateways.database.sql.SQLSanitizer;
 
+import static interactors.Util.isTrue;
+
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +32,7 @@ public class SearchSql {
 				codeTempTable);
 		q += unionTempTablesSql(req, qt, nameTempTable, otherNameTempTable,
 				codeTempTable);
+		
 		return q;
 	}
 
@@ -43,31 +46,15 @@ public class SearchSql {
 		searchSqls.add(names);
 		
 		String otherNames = toOtherNameSearchSql(req, qt);
-		otherNames = (otherNames.isEmpty()) ? otherNames : otherNameTempTable + " AS ( " + otherNames;
-		if (!otherNames.isEmpty()){
-			if(!names.isEmpty())
-				otherNames += "  AND " + exclude(nameTempTable);
-			otherNames += " ) ";
-		}
+		otherNames = (otherNames.isEmpty()) ? otherNames : otherNameTempTable + " AS ( " + otherNames + " ) ";
 		searchSqls.add(otherNames);
 		
 		String codes = toCodeSearchSql(req, qt);
-		codes = (codes.isEmpty()) ? codes : codeTempTable + " AS ( " + codes;
-		if (!codes.isEmpty()){
-			if(!names.isEmpty())
-				codes += "  AND " + exclude(nameTempTable);
-			if(!otherNames.isEmpty())
-				codes += "  AND " + exclude(otherNameTempTable);
-			codes += " ) ";
-		}
+		codes = (codes.isEmpty()) ? codes : codeTempTable + " AS ( " + codes + " ) ";
 		searchSqls.add(codes);
 
 		String q = toWithStatementSql(searchSqls);
 		return q;
-	}
-
-	private String exclude(String nameTempTable) {
-		return " gid NOT IN (SELECT gid FROM " + nameTempTable + " ) ";
 	}
 
 	private String toWithStatementSql(List<String> searchSqls) {
@@ -87,15 +74,12 @@ public class SearchSql {
 		return q;
 	}
 
-	private String toTsVector(Request req, String columnName) {
-		String col = isTrue(req.isIgnoreAccent()) ? "unaccent_immutable("
-				+ columnName + ")" : columnName;
-		String tsVector = "to_tsvector('simple', " + col + ")";
-		return tsVector;
-	}
-
 	private String toQueryTerm(Request req) {
-		String queryText = toQueryText(req.getQueryTerm());
+		String queryText = req.getQueryTerm();
+		if(isTrue(req.isFuzzyMatch()))
+			return (isTrue(req.isIgnoreAccent())) ? "unaccent_immutable("
+				+ "'" + queryText + "'" + ")" : "'" + queryText	+ "'";
+		queryText = toQueryText(req.getQueryTerm());
 		String qt = (isTrue(req.isIgnoreAccent())) ? "unaccent_immutable("
 				+ "'" + queryText + "'" + ")\\:\\:tsquery" : "'" + queryText
 				+ "'";
@@ -114,26 +98,31 @@ public class SearchSql {
 		String q = joinStringList(sqlQueries, " UNION ");
 		if (q.isEmpty())
 			return q;
-		q = " SELECT * FROM ( " + q + " ) AS foo ";
+		q = " SELECT * FROM ( "
+				+ " SELECT DISTINCT ON (gid) gid, headline, rank, name "
+				+ " FROM ( " + q + " ) AS foo"
+				+ " ORDER BY gid, rank DESC "
+				+ " ) AS foo ";
 		q += " ORDER BY rank DESC, name ";
 		return q;
 	}
 
 	private String toCodeSearchSql(Request req, String qt) {
 		String q = "";
-		String codeTsVector = toTsVector(req, "code");
-		String codeCol = isTrue(req.isIgnoreAccent()) ? "unaccent_immutable(code)"
-				: "code";
+		String actualTerm = toActualTerm(req, "code");
 		if (isTrue(req.isSearchCodes())) {
+			String rankingStatement = toRankingStatement(req, qt, actualTerm);
+			String comparisonStatement = toComparisonStatement(req, qt, actualTerm);
+			String headlineStatement = toHeadlineStatement(req, qt, "code");
 			q += " SELECT DISTINCT ON(gid) gid, code AS name, "
-					+ "ts_rank_cd(" + codeTsVector + ", "	+ qt + ", 8) AS rank, "
-					+ " ts_headline('simple', " + codeCol + ", " + qt + " ) headline "
+					+ rankingStatement + " AS rank, "
+					+ headlineStatement + " AS headline "
 					+ " FROM ("
 					+ " SELECT gid, code FROM location WHERE code_type_id != 2 ";
 			if (containsFilters(req))
 				q += " AND " + toQueryFiltersSql(req);
 			q += " UNION select gid, code FROM alt_code) AS foo"
-				+ " WHERE " + codeTsVector + " @@ " + qt;
+				+ " WHERE " + comparisonStatement;
 			if (containsFilters(req))
 				q += " AND gid IN ( SELECT gid FROM location WHERE "
 						+ toQueryFiltersSql(req) + " ) ";
@@ -143,13 +132,15 @@ public class SearchSql {
 
 	private String toOtherNameSearchSql(Request req, String qt) {
 		String q = "";
-		String nameTsVector = toTsVector(req, "name");
-		String nameCol = isTrue(req.isIgnoreAccent()) ? "unaccent_immutable(name)" : "name";
+		String actualTerm = toActualTerm(req, "name");
 		if (isTrue(req.isSearchOtherNames())) {
-			q += " SELECT DISTINCT ON(gid) gid, name, ts_rank_cd(" + nameTsVector + ", " + qt + ", 8) AS rank, "
-			+ " ts_headline('simple', " + nameCol + ", " + qt + " ) headline "
+			String rankingStatement = toRankingStatement(req, qt, actualTerm);
+			String comparisonStatement = toComparisonStatement(req, qt, actualTerm);
+			String headlineStatement = toHeadlineStatement(req, qt, "name");
+			q += " SELECT DISTINCT ON(gid) gid, name, " + rankingStatement + " AS rank, "
+			+ headlineStatement + " AS headline "
 			+ " FROM alt_name "
-			+ " WHERE " + nameTsVector + " @@ " + qt;
+			+ " WHERE " + comparisonStatement;
 			if (containsFilters(req))
 				q += " AND gid IN ( SELECT gid FROM location WHERE "
 						+ toQueryFiltersSql(req) + " ) ";
@@ -159,18 +150,52 @@ public class SearchSql {
 
 	private String toNameSearchSql(Request req, String qt) {
 		String q = "";
-		String nameTsVector = toTsVector(req, "name");
-		String nameCol = isTrue(req.isIgnoreAccent()) ? "unaccent_immutable(name)"
-				: "name";
+		String actualTerm = toActualTerm(req, "name");
 		if (isTrue(req.isSearchNames())) {
-			q += " SELECT gid, name, ts_rank_cd(" + nameTsVector + ", " + qt + ", 8) AS rank, "
-					+ " ts_headline('simple', " + nameCol + ", " + qt + " ) headline " 
+			String rankingStatement = toRankingStatement(req, qt, actualTerm);
+			String comparisonStatement = toComparisonStatement(req, qt, actualTerm);
+			String headlineStatement = toHeadlineStatement(req, qt, "name");
+			q += " SELECT gid, name, " + rankingStatement + " AS rank, "
+					+ headlineStatement + " AS headline " 
 					+ " FROM location "
-					+ " WHERE " + nameTsVector + " @@ " + qt;
+					+ " WHERE " + comparisonStatement;
 			if (containsFilters(req))
 				q += " AND " + toQueryFiltersSql(req);
 		}
 		return q;
+	}
+
+	private String toHeadlineStatement(Request req, String qt, String columnName) {
+		String actualTerm = isTrue(req.isIgnoreAccent()) ? 
+				"unaccent_immutable(" + columnName + ")" : columnName;
+		if(isTrue(req.isFuzzyMatch())){
+			qt = isTrue(req.isIgnoreAccent()) ? 
+					"unaccent_immutable('" + toQueryText(req.getQueryTerm()) + "')" : 
+						"'" + toQueryText(req.getQueryTerm()) + "'";
+			qt = " to_tsquery(" + qt + ") ";
+		}
+		return " ts_headline('simple', " + actualTerm + ", " + qt + " ) ";
+	}
+
+	private String toComparisonStatement(Request req, String qt, String actualTerm) {
+		if(isTrue(req.isFuzzyMatch()))
+			return actualTerm + " % " + qt;
+		return actualTerm + " @@ " + qt;
+	}
+
+	private String toActualTerm(Request req, String columnName) {
+		String actualTerm = isTrue(req.isIgnoreAccent()) ? "unaccent_immutable("
+				+ columnName + ")" : columnName;
+		if(isTrue(req.isFuzzyMatch()))
+			return actualTerm;
+		String tsVector = "to_tsvector('simple', " + actualTerm + ")";
+		return tsVector;
+	}
+
+	private String toRankingStatement(Request req, String qt, String actualTerm) {
+		if(isTrue(req.isFuzzyMatch()))
+			return " similarity(" + actualTerm + ", " + qt + ") ";
+		return " ts_rank_cd(" + actualTerm + ", " + qt + ", 8) ";
 	}
 
 	private boolean containsFilters(Request req) {
@@ -210,8 +235,7 @@ public class SearchSql {
 		String q = "";
 		if (tempTable == null)
 			return q;
-		q = " SELECT gid, ts_headline('simple', " + column + ", " + qt
-				+ " ) headline, rank, name " + " FROM " + tempTable + " ";
+		q = " SELECT gid, headline, rank, name " + " FROM " + tempTable + " ";
 		return q;
 	}
 
@@ -264,7 +288,4 @@ public class SearchSql {
 		}
 	}
 
-	private Boolean isTrue(Boolean param) {
-		return (param == null) ? false : param;
-	}
 }

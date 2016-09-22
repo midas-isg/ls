@@ -174,4 +174,8 @@ public class Util {
 			return false;
 		return list.contains(item);
 	}
+	
+	public static Boolean isTrue(Boolean param) {
+		return (param == null) ? false : param;
+	}
 }

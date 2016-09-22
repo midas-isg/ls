@@ -241,7 +241,7 @@ public class LocationServices extends Controller {
 	    	@ApiImplicitParam(
 	    			value = findExBody, 
 	    			required = true, 
-	    			dataType = "[model.Request]",
+	    			dataType = "models.Request",
 	    			paramType = "body"
 	    	)
 	})
@@ -282,7 +282,7 @@ public class LocationServices extends Controller {
 	    	@ApiImplicitParam(
 	    			value = findBulkExBody, 
 	    			required = true, 
-	    			dataType = "List[JsonNode]",
+	    			dataType = "Array[models.Request]",
 	    			paramType = "body"
 	    	)
 	} )
