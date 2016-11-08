@@ -1,5 +1,6 @@
 package dao.entities;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -26,6 +27,7 @@ public class SpewLink {
 		this.id = id;
 	}
 
+	@Column(nullable = false)
 	public String getUrl() {
 		return url;
 	}

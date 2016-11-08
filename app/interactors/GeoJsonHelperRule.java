@@ -120,9 +120,34 @@ public class GeoJsonHelperRule {
 	static void putAsSpewLinkObjectsIfNotNull(Map<String, Object> properties, String key, Location location) {
 		if (location == null)
 			return;
+
+		List<Forest> forest = new ForestDao().findByChildALC(location.getGid());
+		List<SpewLink> spLinks = findSpewLinks(forest);
+		if (spLinks == null || spLinks.isEmpty())
+			return;
+		String spewBaseUrl = readSpewBaseUrl();
+		putSpewLinkObjects(properties, key, spewBaseUrl, spLinks);
+	}
+
+	static void putSpewLinkObjects(Map<String, Object> properties, String key, String spewBaseUrl,
+			List<SpewLink> spLinks) {
+		if (spLinks == null)
+			return;
+		List<Map<String, Object>> links = new ArrayList<>();
+		for (SpewLink spLink : spLinks) {
+			Map<String, Object> link = new HashMap<>();
+			link.put("url", spewBaseUrl + spLink.getUrl());
+			if (spLink.getLocation() != null)
+				link.put("gid", spLink.getLocation().getGid());
+			links.add(link);
+		}
+		properties.put(key, links);
+	}
+
+	static List<SpewLink> findSpewLinks(List<Forest> forest) {
+		if (forest == null)
+			return null;
 		List<SpewLink> spLinks = new ArrayList<>();
-		ForestDao forestDao = new ForestDao();
-		List<Forest> forest = forestDao.findByChildALC(location.getGid());
 		List<SpewLink> sp;
 		for (Forest f : forest) {
 			Location root = f.getRoot();
@@ -130,18 +155,13 @@ public class GeoJsonHelperRule {
 			if (sp != null)
 				spLinks.addAll(sp);
 		}
-		if (spLinks.isEmpty())
-			return;
+		return spLinks;
+	}
+
+	private static String readSpewBaseUrl() {
 		ConfReader reader = new ConfReader();
 		String spewBaseUrl = reader.readString("spew.base.url");
-		List<Map<String, Object>> links = new ArrayList<>();
-		for (SpewLink spLink : spLinks) {
-			Map<String, Object> link = new HashMap<>();
-			link.put("url", spewBaseUrl + spLink.getUrl());
-			link.put("gid", spLink.getLocation().getGid());
-			links.add(link);
-		}
-		properties.put(key, links);
+		return spewBaseUrl;
 	}
 
 	static void putAsCodeObjectsIfNotNull(Map<String, Object> properties, String string, Location location) {

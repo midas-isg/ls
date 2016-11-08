@@ -34,8 +34,8 @@ public class Forest {
 		return root;
 	}
 
-	public void setRoot(Location rootALC) {
-		this.root = rootALC;
+	public void setRoot(Location root) {
+		this.root = root;
 	}
 
 	@ManyToOne
@@ -44,8 +44,8 @@ public class Forest {
 		return child;
 	}
 
-	public void setChild(Location childALC) {
-		this.child = childALC;
+	public void setChild(Location child) {
+		this.child = child;
 	}
 
 	@Column(name = "admin_level")
