@@ -16,17 +16,20 @@ import play.Logger;
 
 import com.vividsolutions.jts.geom.Point;
 
+import dao.ForestDao;
 import dao.LocationTypeDao;
 import dao.entities.AltName;
 import dao.entities.Code;
 import dao.entities.Data;
+import dao.entities.Forest;
 import dao.entities.Location;
 import dao.entities.LocationGeometry;
 import dao.entities.LocationType;
+import dao.entities.SpewLink;
+import gateways.configuration.ConfReader;
 
 public class GeoJsonHelperRule {
-	static List<Location> wireLocationsIncluded(FeatureCollection fc,
-			LocationType type) {
+	static List<Location> wireLocationsIncluded(FeatureCollection fc, LocationType type) {
 		LocationType allowType = type.getComposedOf();
 		List<Location> locations = new ArrayList<>();
 		for (Feature f : fc.getFeatures()) {
@@ -34,16 +37,13 @@ public class GeoJsonHelperRule {
 			if (gid != null) {
 				Location location = LocationRule.read(Long.parseLong(gid));
 				if (location == null) {
-					throw new RuntimeException(
-							"Cannot find LocationIncluded gid=" + gid);
+					throw new RuntimeException("Cannot find LocationIncluded gid=" + gid);
 				}
 				LocationType foundType = location.getData().getLocationType();
 				if (allowType != null && !foundType.equals(allowType))
-					throw new RuntimeException(foundType.getName()
-							+ " type of gid=" + gid
-							+ " is not allowed  to compose type "
-							+ type.getName());
-	
+					throw new RuntimeException(foundType.getName() + " type of gid=" + gid
+							+ " is not allowed  to compose type " + type.getName());
+
 				locations.add(location);
 			}
 		}
@@ -59,8 +59,7 @@ public class GeoJsonHelperRule {
 		return GeoOutputRule.toPoint(repPoint.getCoordinate());
 	}
 
-	static void putAsAltNameObjectsIfNotNull(
-			Map<String, Object> properties, String key, Location location) {
+	static void putAsAltNameObjectsIfNotNull(Map<String, Object> properties, String key, Location location) {
 		if (location == null)
 			return;
 
@@ -96,8 +95,7 @@ public class GeoJsonHelperRule {
 	static double[] computeBbox(List<Feature> features) {
 		if (features == null || features.isEmpty())
 			return null;
-		double[] result = new double[] { Double.POSITIVE_INFINITY,
-				Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY,
+		double[] result = new double[] { Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY,
 				Double.NEGATIVE_INFINITY };
 		for (Feature f : features) {
 			double[] bbox = f.getBbox();
@@ -119,8 +117,34 @@ public class GeoJsonHelperRule {
 		return result;
 	}
 
-	static void putAsCodeObjectsIfNotNull(
-			Map<String, Object> properties, String string, Location location) {
+	static void putAsSpewLinkObjectsIfNotNull(Map<String, Object> properties, String key, Location location) {
+		if (location == null)
+			return;
+		List<SpewLink> spLinks = new ArrayList<>();
+		ForestDao forestDao = new ForestDao();
+		List<Forest> forest = forestDao.findByChildALC(location.getGid());
+		List<SpewLink> sp;
+		for (Forest f : forest) {
+			Location root = f.getRoot();
+			sp = root.getSpewLinks();
+			if (sp != null)
+				spLinks.addAll(sp);
+		}
+		if (spLinks.isEmpty())
+			return;
+		ConfReader reader = new ConfReader();
+		String spewBaseUrl = reader.readString("spew.base.url");
+		List<Map<String, Object>> links = new ArrayList<>();
+		for (SpewLink spLink : spLinks) {
+			Map<String, Object> link = new HashMap<>();
+			link.put("url", spewBaseUrl + spLink.getUrl());
+			link.put("gid", spLink.getLocation().getGid());
+			links.add(link);
+		}
+		properties.put(key, links);
+	}
+
+	static void putAsCodeObjectsIfNotNull(Map<String, Object> properties, String string, Location location) {
 		if (location == null)
 			return;
 
@@ -139,14 +163,13 @@ public class GeoJsonHelperRule {
 		for (Code c : otherCodes) {
 			Map<String, String> anotherCode = new HashMap<>();
 			anotherCode.put(KEY_CODE, c.getCode());
-			if(c.getCodeType() != null)
+			if (c.getCodeType() != null)
 				anotherCode.put(KEY_TYPE, c.getCodeType().getName());
 			codes.add(anotherCode);
 		}
 	}
 
-	static void putAsLocationObjectsIfNotNull(
-			Map<String, Object> properties, String key, List<Location> locations) {
+	static void putAsLocationObjectsIfNotNull(Map<String, Object> properties, String key, List<Location> locations) {
 		if (locations == null)
 			return;
 		Map<String, Object> locationProperties;
@@ -159,11 +182,11 @@ public class GeoJsonHelperRule {
 		}
 		properties.put(key, list);
 	}
-	
+
 	static Map<String, Object> toProperties(Location location) {
 		return toProperties(location, new Request());
 	}
-	
+
 	static Map<String, Object> toProperties(Location location, Request req) {
 		Map<String, Object> properties = new HashMap<>();
 		String gid = getGid(location);
@@ -172,32 +195,30 @@ public class GeoJsonHelperRule {
 			Logger.warn(gid + " has null data!");
 			return properties;
 		}
-		if(containsOrIsEmpty(req.getIncludeOnly(), "gid"))
+		if (containsOrIsEmpty(req.getIncludeOnly(), "gid"))
 			putAsStringIfNotNull(properties, "gid", gid);
-		if(containsOrIsEmpty(req.getIncludeOnly(), "name"))
+		if (containsOrIsEmpty(req.getIncludeOnly(), "name"))
 			putAsStringIfNotNull(properties, "name", data.getName());
-		if(containsOrIsEmpty(req.getIncludeOnly(), "locationDescription"))
-			putAsStringIfNotNull(properties, "locationDescription",
-					data.getDescription());
-		if(containsOrIsEmpty(req.getIncludeOnly(), "headline"))
+		if (containsOrIsEmpty(req.getIncludeOnly(), "locationDescription"))
+			putAsStringIfNotNull(properties, "locationDescription", data.getDescription());
+		if (containsOrIsEmpty(req.getIncludeOnly(), "headline"))
 			putAsStringIfNotNull(properties, "headline", location.getHeadline());
-		if(containsOrIsEmpty(req.getIncludeOnly(), "rank"))
+		if (containsOrIsEmpty(req.getIncludeOnly(), "rank"))
 			putAsStringIfNotNull(properties, "rank", location.getRank());
-		if(containsOrIsEmpty(req.getIncludeOnly(), "startDate"))
+		if (containsOrIsEmpty(req.getIncludeOnly(), "startDate"))
 			putAsStringIfNotNull(properties, "startDate", data.getStartDate());
-		if(containsOrIsEmpty(req.getIncludeOnly(), "endDate"))
-			putAsStringIfNotNull(properties, "endDate", data.getEndDate());	
-		if(containsOrIsEmpty(req.getIncludeOnly(), "locationTypeName")){
+		if (containsOrIsEmpty(req.getIncludeOnly(), "endDate"))
+			putAsStringIfNotNull(properties, "endDate", data.getEndDate());
+		if (containsOrIsEmpty(req.getIncludeOnly(), "locationTypeName")) {
 			LocationTypeDao locationTypeDao = new LocationTypeDao();
-			String locationTypeName = locationTypeDao.getLocationTypeName(
-					data.getLocationType());
+			String locationTypeName = locationTypeDao.getLocationTypeName(data.getLocationType());
 			putAsStringIfNotNull(properties, "locationTypeName", locationTypeName);
 		}
-		if(containsOrIsEmpty(req.getIncludeOnly(), "parentGid")){
+		if (containsOrIsEmpty(req.getIncludeOnly(), "parentGid")) {
 			Location parent = location.getParent();
 			putAsStringIfNotNull(properties, "parentGid", getGid(parent));
 		}
-		if(containsOrIsEmpty(req.getIncludeOnly(), "matchedTerm"))
+		if (containsOrIsEmpty(req.getIncludeOnly(), "matchedTerm"))
 			putAsStringIfNotNull(properties, "matchedTerm", location.getMatchedTerm());
 		return properties;
 	}
@@ -221,14 +242,13 @@ public class GeoJsonHelperRule {
 			if (type == null)
 				type = LocationTypeRule.findByName(name);
 		} catch (Exception e2) {
-			throw new RuntimeException("Requested location type not found: "
-					+ idKey + "=" + id + ", " + nameKey + "=" + name);
+			throw new RuntimeException(
+					"Requested location type not found: " + idKey + "=" + id + ", " + nameKey + "=" + name);
 		}
 		return type;
 	}
 
-	static LocationGeometry createLocationGeometry(
-			FeatureCollection fc, Location l) {
+	static LocationGeometry createLocationGeometry(FeatureCollection fc, Location l) {
 		LocationGeometry lg = new LocationGeometry();
 		lg.setShapeGeom(GeoInputRule.toGeometry(fc));
 		lg.setLocation(l);
@@ -243,7 +263,7 @@ public class GeoJsonHelperRule {
 			return null;
 		return object.toString();
 	}
-	
+
 	private static String getGid(Location location) {
 		if (location == null)
 			return null;
