@@ -33,6 +33,7 @@ public class Location implements Comparable<Location> {
 	private List<Location> relatedLocations;
 	private LocationGeometry locationGeom;
 	private List<AltName> altNames;
+	private List<SpewLink> spewLinks;
 	
 	private String headline;
 	private String rank;
@@ -111,6 +112,15 @@ public class Location implements Comparable<Location> {
 
 	public void setAltNames(List<AltName> altNames) {
 		this.altNames = altNames;
+	}
+
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "location")
+	public List<SpewLink> getSpewLinks() {
+		return spewLinks;
+	}
+
+	public void setSpewLinks(List<SpewLink> spewLinks) {
+		this.spewLinks = spewLinks;
 	}
 
 	@ManyToMany(fetch = FetchType.LAZY)

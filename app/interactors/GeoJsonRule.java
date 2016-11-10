@@ -185,6 +185,8 @@ public class GeoJsonRule {
 			putAsAltNameObjectsIfNotNull(properties, "otherNames", location);
 		if(containsOrIsEmpty(req.getIncludeOnly(), "kml"))
 			putAsStringIfNotNull(properties, "kml", location.getData().getKml());
+		if(containsOrIsEmpty(req.getIncludeOnly(), "syntheticPopulation"))
+			putAsSpewLinkObjectsIfNotNull(properties, "syntheticPopulation", location);
 		return properties;
 	}
 
