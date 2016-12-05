@@ -34,3 +34,9 @@ EclipseKeys.preTasks := Seq(compile in Compile)
 
 // Needed as workaround for jpa persistence.xml bug   https://github.com/playframework/playframework/issues/4590
 PlayKeys.externalizeResources := false
+
+// Java project. Don't expect Scala IDE
+EclipseKeys.projectFlavor := EclipseProjectFlavor.Java
+
+// Use .class files instead of generated .scala files for views and routes
+EclipseKeys.createSrc := EclipseCreateSrc.ValueSet(EclipseCreateSrc.ManagedClasses, EclipseCreateSrc.ManagedResources)

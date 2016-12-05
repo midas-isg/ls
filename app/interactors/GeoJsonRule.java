@@ -1,6 +1,8 @@
 package interactors;
 
 import static interactors.GeoJsonHelperRule.*;
+import static interactors.RequestRule.isRequestedFeatureField;
+import static interactors.RequestRule.isRequestedFeatureProperties;
 import static interactors.Util.*;
 
 import java.math.BigInteger;
@@ -23,6 +25,7 @@ import dao.entities.Data;
 import dao.entities.Location;
 import dao.entities.LocationGeometry;
 import dao.entities.LocationType;
+import models.FeatureKey;
 import models.Request;
 import models.exceptions.BadRequest;
 import models.geo.Feature;
@@ -31,19 +34,16 @@ import models.geo.FeatureGeometry;
 import play.Logger;
 
 public class GeoJsonRule {
-	private static final String KEY_PROPERTIES = "properties";
-	static final String KEY_CHILDREN = "children";
-	public static final String KEY_GEOMETRY = "geometry";
 
-	public static FeatureCollection asFeatureCollection(Location location) {
+	public static FeatureCollection asFeatureCollection(Location location, Request req) {
 		long locationTypeId = location.getData().getLocationType().getId();
 		if (locationTypeId == LocationRule.PUMA_TYPE_ID
 				|| locationTypeId == LocationRule.COMPOSITE_LOCATION_ID) {
-			return toFeatureCollection(location);
+			return toFeatureCollection(location, req);
 		}
 		List<Location> list = new ArrayList<>();
 		list.add(location);
-		return toFeatureCollection(list, new Request());
+		return toFeatureCollection(list, req);
 	}
 
 	public static FeatureCollection toFeatureCollection(List<Location> locations, Request req) {
@@ -51,25 +51,29 @@ public class GeoJsonRule {
 		List<Feature> features = toFeatures(locations, req);
 		fc.setFeatures(features);
 		fc.setType("FeatureCollection");
-		if(containsOrIsEmpty(req.getIncludeOnly(), "bbox"))
-			fc.setBbox(computeBbox(features));
+		fc.setBbox(computeBbox(features));
 		return fc;
 	}
 
-	private static FeatureCollection toFeatureCollection(Location composite) {
+	private static FeatureCollection toFeatureCollection(Location composite, Request req) {
 		FeatureCollection fc = new FeatureCollection();
 		List<Location> locationsIncluded = composite.getLocationsIncluded();
-		List<Feature> features = toFeatures(locationsIncluded, new Request());
+		List<Feature> features = toFeatures(locationsIncluded, req);
 		fc.setFeatures(features);
 		fc.setType("FeatureCollection");
-		Request req = new Request();
-		req.setExclude(Arrays.asList(new String[] { KEY_CHILDREN }));
-		fc.setProperties(toPropertiesOfFeature(composite, req));
+		if(req == null)
+		 req = new Request();
+		if(req.getExcludedFeatureFields() == null)
+			req.setExcludedFeatureFields(Arrays.asList(new String[] { toPropertiesPath(FeatureKey.CHILDREN.valueOf()) }));
+		if(isRequestedFeatureField(req, FeatureKey.PROPERTIES.valueOf()))
+			fc.setProperties(toPropertiesOfFeature(composite, req));
+		
 		double[] computeBbox = computeBbox(composite);
 		if (computeBbox == null)
 			computeBbox = computeBbox(features);
 		fc.setBbox(computeBbox);
 		fc.setId(composite.getGid() + "");
+		
 		return fc;
 	}
 
@@ -88,17 +92,18 @@ public class GeoJsonRule {
 
 	private static Feature toFeature(Location location, Request req) {
 		Feature feature = new Feature();
-		Map<String, Object> properties = toPropertiesOfFeature(location, req);
-		feature.setProperties(properties);
+		Map<String, Object> properties = new HashMap<>();
+		if(RequestRule.isPropertiesRequested(req)){
+			properties = toPropertiesOfFeature(location, req);
+			feature.setProperties(properties);
+		}
 		LocationGeometry geometry = null;
-		if(containsOrIsEmpty(req.getIncludeOnly(), KEY_GEOMETRY)) {
-			if (!contains(req.getExclude(), KEY_GEOMETRY)) {
-				final LocationGeometry locationGeometry = location.getGeometry();
-				if (locationGeometry == null)
-					geometry = GeometryRule.read(location.getGid());
-				else
-					geometry = locationGeometry;
-			}
+		if(isRequestedFeatureField(req, FeatureKey.GEOMETRY.valueOf())) {
+			final LocationGeometry locationGeometry = location.getGeometry();
+			if (locationGeometry == null)
+				geometry = GeometryRule.read(location.getGid());
+			else
+				geometry = locationGeometry;
 		}
 
 		if (geometry != null) {
@@ -107,13 +112,13 @@ public class GeoJsonRule {
 					.toFeatureGeometry(multiPolygonGeom));
 			feature.setId(location.getGid() + "");
 		}
-		if(containsOrIsEmpty(req.getIncludeOnly(), "bbox")) {
+		if(isRequestedFeatureField(req, toPropertiesPath(FeatureKey.BBOX.valueOf()))) {
 			geometry = readGeometryIfNullOrEmpty(location, geometry); //TODO: read only bbox instead of whole record
 			feature.setBbox(GeometryRule.computeBbox(geometry.getShapeGeom()));
 		}
 		
-		if(containsOrIsEmpty(req.getIncludeOnly(), "repPoint")) {
-			geometry = readGeometryIfNullOrEmpty(location, geometry);
+		if(isRequestedFeatureField(req, toPropertiesPath(FeatureKey.REPPOINT.valueOf()))) {
+			geometry = readGeometryIfNullOrEmpty(location, geometry); //TODO: read only repPoint instead of whole record
 			feature.setRepPoint(getRepPoint(geometry));
 		}
 		
@@ -155,7 +160,7 @@ public class GeoJsonRule {
 		putAsStringIfNotNull(properties, "searchCodes", req.isSearchCodes());
 		putAsStringIfNotNull(properties, "rootALC", req.getRootALC());
 		putAsStringIfNotNull(properties, "includeOnly",
-				listToString(req.getIncludeOnly()));
+				listToString(req.getOnlyFeatureFields()));
 		putAsStringIfNotNull(properties, "resultSize", resultSize);
 		putAsStringIfNotNull(properties, "fuzzyMatch", req.isFuzzyMatch());
 		if (isTrue(req.isFuzzyMatch()))
@@ -165,28 +170,33 @@ public class GeoJsonRule {
 
 	private static Map<String, Object> toPropertiesOfFeature(Location location, Request req) {
 		Map<String, Object> properties = GeoJsonHelperRule.toProperties(location, req);
-		if(containsOrIsEmpty(req.getIncludeOnly(), KEY_CHILDREN)) {
-			if (!contains(req.getExclude(), KEY_CHILDREN)) {
+		if(isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.CHILDREN.valueOf()))) {
 				List<Location> children = location.getChildren();
 				if (children != null)
 					Collections.sort(children);
-				putAsLocationObjectsIfNotNull(properties, "children", children);
-			}
+				putAsLocationObjectsIfNotNull(properties, FeatureKey.CHILDREN.valueOf(), children);
 		}
-		if(containsOrIsEmpty(req.getIncludeOnly(), "lineage"))
-			putAsLocationObjectsIfNotNull(properties, "lineage",
+		
+		if(isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.LINEAGE.valueOf())))
+			putAsLocationObjectsIfNotNull(properties, FeatureKey.LINEAGE.valueOf(),
 					LocationProxyRule.getLineage(location.getGid()));
-		if(containsOrIsEmpty(req.getIncludeOnly(), "related"))
-			putAsLocationObjectsIfNotNull(properties, "related",
+		
+		if(isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.RELATED.valueOf())))
+			putAsLocationObjectsIfNotNull(properties, FeatureKey.RELATED.valueOf(),
 					location.getRelatedLocations());
-		if(containsOrIsEmpty(req.getIncludeOnly(), "codes"))
-			putAsCodeObjectsIfNotNull(properties, "codes", location);
-		if(containsOrIsEmpty(req.getIncludeOnly(), "otherNames"))
-			putAsAltNameObjectsIfNotNull(properties, "otherNames", location);
-		if(containsOrIsEmpty(req.getIncludeOnly(), "kml"))
-			putAsStringIfNotNull(properties, "kml", location.getData().getKml());
-		if(containsOrIsEmpty(req.getIncludeOnly(), "syntheticPopulation"))
-			putAsSpewLinkObjectsIfNotNull(properties, "syntheticPopulation", location);
+		
+		if(isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.CODES.valueOf())))
+			putAsCodeObjectsIfNotNull(properties, FeatureKey.CODES.valueOf(), location);
+		
+		if(isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.OTHER_NAMES.valueOf())))
+			putAsAltNameObjectsIfNotNull(properties, FeatureKey.OTHER_NAMES.valueOf(), location);
+		
+		if(isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.KML.valueOf())))
+			putAsStringIfNotNull(properties, FeatureKey.KML.valueOf(), location.getData().getKml());
+		
+		if(isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.SYNTHETIC_POPULATION.valueOf())))
+			putAsSpewLinkObjectsIfNotNull(properties, FeatureKey.SYNTHETIC_POPULATION.valueOf(), location);
+		
 		return properties;
 	}
 
@@ -267,7 +277,7 @@ public class GeoJsonRule {
 				offset, verbose);
 		if (req.getVerbose()){
 			List<Location> result = LocationRule.findByTerm(req);
-			req.setExclude(Arrays.asList(new String[] { KEY_GEOMETRY }));
+			req.setExcludedFeatureFields(Arrays.asList(new String[] { FeatureKey.GEOMETRY.valueOf() }));
 			return toFeatureCollection(req, result);
 		}
 		else {
@@ -292,7 +302,8 @@ public class GeoJsonRule {
 	public static Object findByTerm(Request req) {
 		if(req.getVerbose()){
 			List<Location> result = LocationRule.findByTerm(req);
-			req.setExclude(Arrays.asList(new String[] { KEY_CHILDREN, KEY_GEOMETRY }));
+			req.setExcludedFeatureFields(Arrays.asList(new String[] { toPropertiesPath(FeatureKey.CHILDREN.valueOf()),
+					FeatureKey.GEOMETRY.valueOf() }));
 			return toFeatureCollection(req, result);
 		}
 		else {
@@ -305,7 +316,8 @@ public class GeoJsonRule {
 	public static Object findByTypeId(long typeId) {
 		List<Location> locations = LocationRule.findByTypeId(typeId);
 		Request req = new Request();
-		req.setExclude(Arrays.asList(new String[] { KEY_CHILDREN, KEY_GEOMETRY }));
+		req.setExcludedFeatureFields(Arrays.asList(new String[] { toPropertiesPath(FeatureKey.CHILDREN.valueOf()),
+				FeatureKey.GEOMETRY.valueOf() }));
 		FeatureCollection featureCollection = toFeatureCollection(locations, req);
 		req.setLocationTypeIds(Arrays.asList(new Integer[] {(int) typeId}));
 		Map<String, Object> properties = toProperties(req, locations.size());
@@ -316,7 +328,7 @@ public class GeoJsonRule {
 	private static Map<String, Object> toNonVerboseResponse(Request req, List<Long> gids) {
 		Map<String, Object> result = new HashMap<>();
 		result.put("gids", gids);
-		result.put(KEY_PROPERTIES, toProperties(req, gids.size()));
+		result.put(FeatureKey.PROPERTIES.valueOf(), toProperties(req, gids.size()));
 		return result;
 	}
 
@@ -330,7 +342,8 @@ public class GeoJsonRule {
 		if(verbose){
 			List<Location> result = LocationRule.findByPoint(latitude, longitude);
 			Request req = new Request();
-			req.setExclude(Arrays.asList(new String[] { KEY_CHILDREN, KEY_GEOMETRY }));
+			req.setExcludedFeatureFields(Arrays.asList(new String[] { toPropertiesPath(FeatureKey.CHILDREN.valueOf()),
+					FeatureKey.GEOMETRY.valueOf() }));
 			FeatureCollection response = toFeatureCollection(req, result);
 			putAsStringIfNotNull(response.getProperties(), "latitude", latitude);
 			putAsStringIfNotNull(response.getProperties(), "longitude", longitude);
@@ -347,7 +360,7 @@ public class GeoJsonRule {
 			putAsStringIfNotNull(properties, "latitude", latitude);
 			putAsStringIfNotNull(properties, "longitude", longitude);
 			putAsStringIfNotNull(properties, "verbose", verbose);
-			response.put(KEY_PROPERTIES, properties);
+			response.put(FeatureKey.PROPERTIES.valueOf(), properties);
 			return response;			
 		}
 	}
@@ -433,7 +446,7 @@ public class GeoJsonRule {
 			req.setRootALC(rootALC.asLong());
 		JsonNode includeOnly = node.get("includeOnly");
 		if(includeOnly != null)
-			req.setIncludeOnly(interactors.Util.toListOfString(includeOnly));
+			req.setOnlyFeatureFields(interactors.Util.toListOfString(includeOnly));
 		value = returnDefaultIfKeyNotExists(node, "fuzzyMatch", false);
 		req.setFuzzyMatch(value);
 		if (containsKey(node, "fuzzyMatchThreshold"))

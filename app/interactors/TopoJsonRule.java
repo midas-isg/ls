@@ -16,6 +16,7 @@ import java.util.Set;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import dao.entities.Location;
+import models.FeatureKey;
 import models.Request;
 import models.geo.FeatureCollection;
 import play.Logger;
@@ -71,7 +72,7 @@ public class TopoJsonRule {
 			locations.add(LocationRule.read(gid));
 
 		Request req = new Request();
-		req.setExclude(Arrays.asList(new String[] { GeoJsonRule.KEY_CHILDREN }));
+		req.setExcludedFeatureFields(Arrays.asList(new String[] { FeatureKey.CHILDREN.valueOf() }));
 		FeatureCollection fc = GeoJsonRule.toFeatureCollection(locations, req);
 		return fc;
 	}

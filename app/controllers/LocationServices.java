@@ -27,6 +27,8 @@ import interactors.GeometryRule;
 import interactors.KmlRule;
 import interactors.LocationProxyRule;
 import interactors.LocationRule;
+import interactors.RequestRule;
+import models.FeatureKey;
 import models.Request;
 import models.exceptions.PostgreSQLException;
 import models.geo.FeatureCollection;
@@ -100,6 +102,20 @@ public class LocationServices extends Controller {
 			String format,
 			
 			@ApiParam(
+					value = "Includes only the given fields in feature objects", 
+					required = false
+			) 
+			@QueryParam("_onlyFeatureFields")
+			String onlyFeatureFields,
+			
+			@ApiParam(
+					value = "Excludes the given fields from feature objects", 
+					required = false
+			) 
+			@QueryParam("_excludedFeatureFields")
+			String excludedFeatureFields,
+			
+			@ApiParam(
 					value = "Maximum number of exterior rings in the response. ", 
 					required = false
 			) 
@@ -116,11 +132,14 @@ public class LocationServices extends Controller {
 		Location location = Wire.simplifyToMaxExteriorRings(gid, maxExteriorRings);
 		if (location == null)
 			return notFound("Location not found");
+		
+		Request req = RequestRule.toRequest(onlyFeatureFields, excludedFeatureFields);
+		
 		switch (format.toLowerCase()) {
 		case FORMAT_GEOJSON:
-			return asGeoJson(location);
+			return asGeoJson(location, req);
 		case FORMAT_GEOJSONP:
-			return asGeoJsonp(location, "jsonpCallback");
+			return asGeoJsonp(location, "jsonpCallback", req);
 		case FORMAT_APOLLOJSON:
 			return ApolloLocationServices.asJson(location);
 		case FORMAT_APOLLOXML:
@@ -143,12 +162,12 @@ public class LocationServices extends Controller {
 			return notFound("gid is required but got " + gid);
 
 		Location location = Wire.simplifyToMaxExteriorRings(gid, maxExteriorRings);
-		return asGeoJsonp(location, callback);
+		return asGeoJsonp(location, callback, new Request());
 	}
 
-	static Result asGeoJsonp(Location location, String callback) {
+	static Result asGeoJsonp(Location location, String callback, Request req) {
 		response().setContentType("text/javascript");
-		return ok(Jsonp.jsonp(callback, Json.toJson(Wire.asFeatureCollection(location))));
+		return ok(Jsonp.jsonp(callback, Json.toJson(Wire.asFeatureCollection(location, req))));
 	}
 
 	@Transactional
@@ -450,9 +469,9 @@ public class LocationServices extends Controller {
 	}
 
 	@Transactional
-	Result asGeoJson(Location location) {
+	Result asGeoJson(Location location, Request req) {
 		response().setContentType("application/vnd.geo+json");
-		return ok(Json.toJson(Wire.asFeatureCollection(location)));
+		return ok(Json.toJson(Wire.asFeatureCollection(location, req)));
 	}
 
 	@Transactional
@@ -607,8 +626,13 @@ public class LocationServices extends Controller {
 			return location;
 		}
 
+		public static FeatureCollection asFeatureCollection(Location location, Request req) {
+			FeatureCollection fc = GeoJsonRule.asFeatureCollection(location, req);
+			return fc;
+		}
+		
 		public static FeatureCollection asFeatureCollection(Location location) {
-			FeatureCollection fc = GeoJsonRule.asFeatureCollection(location);
+			FeatureCollection fc = GeoJsonRule.asFeatureCollection(location, new Request());
 			return fc;
 		}
 
@@ -634,7 +658,7 @@ public class LocationServices extends Controller {
 			if(verbose){
 				List<Location> locations = LocationRule.getLocations(gids);
 				Request req = new Request();
-				req.setExclude(Arrays.asList(new String[] { GeoJsonRule.KEY_GEOMETRY }));
+				req.setExcludedFeatureFields(Arrays.asList(new String[] { FeatureKey.GEOMETRY.valueOf()}));
 				FeatureCollection result = GeoJsonRule.toFeatureCollection(locations, req);
 				putAsStringIfNotNull(properties, "resultSize", locations.size());
 				result.setProperties(properties);				

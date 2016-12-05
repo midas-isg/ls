@@ -1,6 +1,6 @@
 package interactors;
 
-import static interactors.Util.containsOrIsEmpty;
+import static interactors.RequestRule.isRequestedFeatureProperties;
 import static interactors.Util.putAsStringIfNotNull;
 
 import java.sql.Date;
@@ -8,11 +8,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import models.Request;
-import models.geo.Feature;
-import models.geo.FeatureCollection;
-import play.Logger;
 
 import com.vividsolutions.jts.geom.Point;
 
@@ -27,8 +22,17 @@ import dao.entities.LocationGeometry;
 import dao.entities.LocationType;
 import dao.entities.SpewLink;
 import gateways.configuration.ConfReader;
+import models.FeatureKey;
+import models.Request;
+import models.geo.Feature;
+import models.geo.FeatureCollection;
+import play.Logger;
 
 public class GeoJsonHelperRule {
+	
+	private static final String KEY_SPEW_URL = "url";
+	private static final String SPEW_BASE_URL_CONF_KEY = "spew.base.url";
+	
 	static List<Location> wireLocationsIncluded(FeatureCollection fc, LocationType type) {
 		LocationType allowType = type.getComposedOf();
 		List<Location> locations = new ArrayList<>();
@@ -64,7 +68,6 @@ public class GeoJsonHelperRule {
 			return;
 
 		List<Map<String, String>> names = new ArrayList<>();
-		final String KEY_NAME = "name";
 		final String KEY_LANG = "language";
 		final String KEY_DESC = "description";
 
@@ -76,7 +79,7 @@ public class GeoJsonHelperRule {
 			return;
 		for (AltName name : otherNames) {
 			anotherName = new HashMap<>();
-			anotherName.put(KEY_NAME, name.getName());
+			anotherName.put(FeatureKey.NAME.valueOf(), name.getName());
 			anotherName.put(KEY_LANG, name.getLanguage());
 			anotherName.put(KEY_DESC, name.getDescription());
 			names.add(anotherName);
@@ -136,9 +139,9 @@ public class GeoJsonHelperRule {
 		List<Map<String, Object>> links = new ArrayList<>();
 		for (SpewLink spLink : spLinks) {
 			Map<String, Object> link = new HashMap<>();
-			link.put("url", spewBaseUrl + spLink.getUrl());
+			link.put(KEY_SPEW_URL, spewBaseUrl + spLink.getUrl());
 			if (spLink.getLocation() != null)
-				link.put("gid", spLink.getLocation().getGid());
+				link.put(FeatureKey.GID.valueOf(), spLink.getLocation().getGid());
 			links.add(link);
 		}
 		properties.put(key, links);
@@ -160,7 +163,7 @@ public class GeoJsonHelperRule {
 
 	private static String readSpewBaseUrl() {
 		ConfReader reader = new ConfReader();
-		String spewBaseUrl = reader.readString("spew.base.url");
+		String spewBaseUrl = reader.readString(SPEW_BASE_URL_CONF_KEY);
 		return spewBaseUrl;
 	}
 
@@ -170,10 +173,8 @@ public class GeoJsonHelperRule {
 
 		List<Map<String, String>> codes = new ArrayList<>();
 		Map<String, String> code = new HashMap<>();
-		final String KEY_CODE = "code";
-		final String KEY_TYPE = "codeTypeName";
-		code.put(KEY_CODE, location.getData().getCode());
-		code.put(KEY_TYPE, location.getData().getCodeType().getName());
+		code.put(FeatureKey.CODE.valueOf(), location.getData().getCode());
+		code.put(FeatureKey.CODE_TYPE_NAME.valueOf(), location.getData().getCodeType().getName());
 		codes.add(code);
 		properties.put(string, codes);
 
@@ -182,9 +183,9 @@ public class GeoJsonHelperRule {
 			return;
 		for (Code c : otherCodes) {
 			Map<String, String> anotherCode = new HashMap<>();
-			anotherCode.put(KEY_CODE, c.getCode());
+			anotherCode.put(FeatureKey.CODE.valueOf(), c.getCode());
 			if (c.getCodeType() != null)
-				anotherCode.put(KEY_TYPE, c.getCodeType().getName());
+				anotherCode.put(FeatureKey.CODE_TYPE_NAME.valueOf(), c.getCodeType().getName());
 			codes.add(anotherCode);
 		}
 	}
@@ -196,8 +197,8 @@ public class GeoJsonHelperRule {
 		List<Map<String, Object>> list = new ArrayList<>();
 		for (Location l : locations) {
 			locationProperties = toProperties(l);
-			locationProperties.remove("headline");
-			locationProperties.remove("rank");
+			locationProperties.remove(FeatureKey.HEADLINE.valueOf());
+			locationProperties.remove(FeatureKey.RANK.valueOf());
 			list.add(locationProperties);
 		}
 		properties.put(key, list);
@@ -215,39 +216,41 @@ public class GeoJsonHelperRule {
 			Logger.warn(gid + " has null data!");
 			return properties;
 		}
-		if (containsOrIsEmpty(req.getIncludeOnly(), "gid"))
-			putAsStringIfNotNull(properties, "gid", gid);
-		if (containsOrIsEmpty(req.getIncludeOnly(), "name"))
-			putAsStringIfNotNull(properties, "name", data.getName());
-		if (containsOrIsEmpty(req.getIncludeOnly(), "locationDescription"))
-			putAsStringIfNotNull(properties, "locationDescription", data.getDescription());
-		if (containsOrIsEmpty(req.getIncludeOnly(), "headline"))
-			putAsStringIfNotNull(properties, "headline", location.getHeadline());
-		if (containsOrIsEmpty(req.getIncludeOnly(), "rank"))
-			putAsStringIfNotNull(properties, "rank", location.getRank());
-		if (containsOrIsEmpty(req.getIncludeOnly(), "startDate"))
-			putAsStringIfNotNull(properties, "startDate", data.getStartDate());
-		if (containsOrIsEmpty(req.getIncludeOnly(), "endDate"))
-			putAsStringIfNotNull(properties, "endDate", data.getEndDate());
-		if (containsOrIsEmpty(req.getIncludeOnly(), "locationTypeName")) {
+		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.GID.valueOf())))
+			putAsStringIfNotNull(properties, FeatureKey.GID.valueOf(), gid);
+		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.NAME.valueOf())))
+			putAsStringIfNotNull(properties, FeatureKey.NAME.valueOf(), data.getName());
+		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.LOCATION_DESCRIPTION.valueOf())))
+			putAsStringIfNotNull(properties, FeatureKey.LOCATION_DESCRIPTION.valueOf(), data.getDescription());
+		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.HEADLINE.valueOf())))
+			putAsStringIfNotNull(properties, FeatureKey.HEADLINE.valueOf(), location.getHeadline());
+		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.RANK.valueOf())))
+			putAsStringIfNotNull(properties, FeatureKey.RANK.valueOf(), location.getRank());
+		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.START_DATE.valueOf())))
+			putAsStringIfNotNull(properties, FeatureKey.START_DATE.valueOf(), data.getStartDate());
+		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.END_DATE.valueOf())))
+			putAsStringIfNotNull(properties, FeatureKey.END_DATE.valueOf(), data.getEndDate());
+		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.LOCATION_TYPE_NAME.valueOf()))) {
 			LocationTypeDao locationTypeDao = new LocationTypeDao();
 			String locationTypeName = locationTypeDao.getLocationTypeName(data.getLocationType());
-			putAsStringIfNotNull(properties, "locationTypeName", locationTypeName);
+			putAsStringIfNotNull(properties, FeatureKey.LOCATION_TYPE_NAME.valueOf(), locationTypeName);
 		}
-		if (containsOrIsEmpty(req.getIncludeOnly(), "parentGid")) {
+		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.PARENT_GID.valueOf()))) {
 			Location parent = location.getParent();
-			putAsStringIfNotNull(properties, "parentGid", getGid(parent));
+			putAsStringIfNotNull(properties, FeatureKey.PARENT_GID.valueOf(), getGid(parent));
 		}
-		if (containsOrIsEmpty(req.getIncludeOnly(), "matchedTerm"))
-			putAsStringIfNotNull(properties, "matchedTerm", location.getMatchedTerm());
+		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.MATCHED_TERM.valueOf())))
+			putAsStringIfNotNull(properties,FeatureKey.MATCHED_TERM.valueOf(), location.getMatchedTerm());
 		return properties;
 	}
 
+	static String toPropertiesPath(String key) {
+		return FeatureKey.PROPERTIES.valueOf() + "." + key;
+	}
+
 	static LocationType findLocationType(FeatureCollection fc) {
-		String idKey = "locationTypeId";
-		String id = getString(fc, idKey);
-		String nameKey = "locationTypeName";
-		String name = getString(fc, nameKey);
+		String id = getString(fc, FeatureKey.LOCATION_TYPE_ID.valueOf());
+		String name = getString(fc, FeatureKey.LOCATION_TYPE_NAME.valueOf());
 		if (id == null && name == null)
 			throw new RuntimeException("undefined location type by id or name");
 		LocationType type = null;
@@ -263,7 +266,8 @@ public class GeoJsonHelperRule {
 				type = LocationTypeRule.findByName(name);
 		} catch (Exception e2) {
 			throw new RuntimeException(
-					"Requested location type not found: " + idKey + "=" + id + ", " + nameKey + "=" + name);
+					"Requested location type not found: " + FeatureKey.LOCATION_TYPE_ID.valueOf() + "=" 
+							+ id + ", " + FeatureKey.LOCATION_TYPE_NAME.valueOf() + "=" + name);
 		}
 		return type;
 	}

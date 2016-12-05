@@ -17,8 +17,8 @@ public class Request {
 	private List<Integer> locationTypeIds;
 	private Boolean verbose;
 	private Long rootALC;
-	private List<String> includeOnly;
-	private List<String> exclude;
+	private List<String> onlyFeatureFields;
+	private List<String> excludedFeatureFields;
 	private Boolean fuzzyMatch;
 	private Float fuzzyMatchThreshold = 0.3F;
 
@@ -118,20 +118,20 @@ public class Request {
 		this.rootALC = rootALC;
 	}
 
-	public List<String> getIncludeOnly() {
-		return includeOnly;
+	public List<String> getOnlyFeatureFields() {
+		return onlyFeatureFields;
 	}
 
-	public void setIncludeOnly(List<String> includeOnly) {
-		this.includeOnly = includeOnly;
+	public void setOnlyFeatureFields(List<String> onlyFeatureFields) {
+		this.onlyFeatureFields = onlyFeatureFields;
 	}
 
-	public List<String> getExclude() {
-		return exclude;
+	public List<String> getExcludedFeatureFields() {
+		return excludedFeatureFields;
 	}
 
-	public void setExclude(List<String> exclude) {
-		this.exclude = exclude;
+	public void setExcludedFeatureFields(List<String> excludedFeatureFields) {
+		this.excludedFeatureFields = excludedFeatureFields;
 	}
 
 	public Boolean isFuzzyMatch() {

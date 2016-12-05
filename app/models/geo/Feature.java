@@ -18,7 +18,7 @@ public class Feature {
 
 	public Feature() {
 		type = Feature.class.getSimpleName();
-		properties = new HashMap<>();
+		// properties = new HashMap<>();
 	}
 	
 	public String getType() {

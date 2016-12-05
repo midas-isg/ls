@@ -17,10 +17,10 @@ POST		  /api/topojson						  controllers.TopoJsonService.topoJson()
 
 #Alternate
 GET           /api/locations/:gid.jsonp           controllers.LocationServices.jsonp(gid:Long, callback:String ?="jsonp", maxExteriorRings:java.lang.Integer ?= null)
-GET           /api/locations/:gid.:format         controllers.LocationServices.locations(gid:Long, format, maxExteriorRings:java.lang.Integer ?= null)
+GET           /api/locations/:gid.:format         controllers.LocationServices.locations(gid:Long, format, _onlyFeatureFields:String ?= null, _excludedFeatureFields:String ?= null, maxExteriorRings:java.lang.Integer ?= null)
 
 POST          /api/locations                      controllers.LocationServices.create()
-GET           /api/locations/$gid<[0-9]+>         controllers.LocationServices.locations(gid:Long, format?="GeoJSON", maxExteriorRings:java.lang.Integer?=null)
+GET           /api/locations/$gid<[0-9]+>         controllers.LocationServices.locations(gid:Long, format?="GeoJSON", _onlyFeatureFields:String ?= null, _excludedFeatureFields:String ?= null, maxExteriorRings:java.lang.Integer?=null)
 PUT           /api/locations/$gid<[0-9]+>         controllers.LocationServices.update(gid:Long)
 DELETE        /api/locations/$gid<[0-9]+>         controllers.LocationServices.delete(gid:Long)
 

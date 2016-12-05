@@ -231,7 +231,7 @@ $(document).ready(function Resolver() {
 				bulkInput[i]["rootALC"] = rootALC;
 			}
 			
-			bulkInput[i]["includeOnly"] = ["gid", "name"];// "matchedName", "lineage", "locationTypeName"];
+			bulkInput[i]["includeOnly"] = ["properties.gid", "properties.name"];// "properties.matchedName", "properties.lineage", "properties.locationTypeName"];
 		}
 		
 		$.ajax({
@@ -311,7 +311,7 @@ if(DEBUG) {
 				bulkInput[i]["rootALC"] = rootALC;
 			}
 			
-			bulkInput[i]["includeOnly"] = ["gid", "name"];// "matchedName", "lineage", "locationTypeName"];
+			bulkInput[i]["includeOnly"] = ["properties.gid", "properties.name"];// "properties.matchedName", "properties.lineage", "properties.locationTypeName"];
 		}
 		
 		$.ajax({
