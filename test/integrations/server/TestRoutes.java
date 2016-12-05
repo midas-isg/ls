@@ -8,7 +8,7 @@ public class TestRoutes {
     	Runnable[] tests = {
 
     			TestFindLocation.test(),
-    			//TestTopoJson.test()
+    			TestTopoJson.test()
     	};
 		Server.run(tests);
     }
