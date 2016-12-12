@@ -1,0 +1,129 @@
+@(message: String, version:String)
+
+@imports = {
+	<script src='@routes.Assets.at("external_packages/fancytree/jquery.fancytree.js")'></script>
+	
+	<script src='@routes.Assets.at("javascripts/create-map.js")'></script>
+	<script src='@routes.Assets.at("javascripts/map-driver.js")'></script>
+	<script src='@routes.Assets.at("javascripts/indexing-terms.js")'></script>
+	<script src='@routes.Assets.at("javascripts/parent-tree.js")'></script>
+	<script src='@routes.Assets.at("javascripts/au-composite-tree.js")'></script>
+	<script src='@routes.Assets.at("javascripts/fancytree-ext-filter.js")'></script>
+	
+	<link href='@routes.Assets.at("external_packages/fancytree/ui.fancytree.css")' rel='stylesheet'/>
+	
+	<link href='@routes.Assets.at("stylesheets/fancytree-ext.css")' rel='stylesheet'/>
+	<link href='@routes.Assets.at("stylesheets/create.css")' rel='stylesheet'/>
+	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'/>
+}
+
+@main(message, imports, version) {
+	<div style="">
+		<div id="creation-dialog" class="pull-left container-fluid no-padding" style="">
+			<div class="extra-bottom-space" style="padding: 2px;">
+				<div class="azure extra-bottom-space" style="">
+					<legend style="">Import from KML file</legend>
+					<input id="file-input" accept=".json, .geojson, .kml" type="file" placeholder="Upload KML file">
+				</div>
+				
+				<div class="azure vertical-spaced">
+					<legend>Enter details</legend>
+					<div class="input-group extra-bottom-space">
+						<span id="dropdown-label" class="input-group-addon no-padding">
+							<div class="dropdown">
+								<button class="dropdown-toggle" type="button" id="dropdown-menu" style="padding-top: 6px; padding-bottom: 6px; color: #303030;" data-toggle="dropdown" aria-expanded="true">
+									Location type <span class="caret"></span>
+								</button>
+								<ul class="dropdown-menu" role="menu" aria-labelledby="dropdown-menu" data-toggle="dropdown" aria-expanded="true">
+									<li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick='$("#au-type").val("Epidemic Zone"); $("#au-type").prop("disabled", true);'>Epidemic Zone</a></li>
+									<li id="au-create" role="presentation" hidden><a role="menuitem" tabindex="-1" href="#" onclick='$("#au-type").prop("disabled", false); $("#au-type").val("");'>Administrative Unit</a></li>
+								</ul>
+							</div>
+						</span>
+						<input type="text" id="au-type" class="form-control" placeholder="Location type" aria-describedby="dropdown-label" style="" disabled>
+					</div>
+
+					<div class="extra-bottom-space input-group">
+						<span id="name-label" class="input-group-addon">Name:</span>
+						<input type="text" id="au-name" class="form-control" placeholder="Name" aria-describedby="name-label">
+					</div>
+					
+					<div class="extra-bottom-space" hidden>
+						<div class="input-group pull-left" style="width: 50%;">
+							<span id="code-label" class="input-group-addon">Code:</span>
+							<input type="text" id="au-code" class="form-control" placeholder="Code" aria-describedby="code-label">
+						</div>
+						<div class="input-group" style="width: 50%;">
+							<span id="ctype-label" class="input-group-addon">Code type:</span>
+							<input type="text" id="au-codetype" class="form-control" placeholder="Code type" aria-describedby="ctype-label">
+						</div>
+					</div>
+
+					<div class="extra-bottom-space">
+						<div class="input-group pull-left" style="width: 50%;">
+							<span id="start-label" class="input-group-addon">Date:</span>
+							<input type="text" id="start-date" class="form-control" placeholder="Start date" aria-describedby="start-label">
+						</div>
+
+						<div class="input-group" style="width: 50%;">
+							<span id="to-label" class="input-group-addon">to</span>
+							<input type="text" id="end-date" class="form-control" placeholder="End date" aria-describedby="to-label">
+						</div>
+					</div>
+					
+					<div class="" style="margin-top: 10px;">
+						<div><span id="description-label">Description: </span></div>
+						<div><textarea id="description" placeholder="Description" rows="1" style=""></textarea></div>
+					</div>
+
+					<div class="extra-bottom-space" style="clear:both;">
+						<div class="input-group">
+							<span class="input-group-addon" id="id-label">ID:</span>
+							<input type="text" id="gid" class="form-control" placeholder="New entry" aria-describedby="id-label" disabled>
+						</div>
+					</div>
+
+					<div class="extra-bottom-space">
+						<button id="save-button" class="">Save new entry to database</button>
+						<button id="update-button" hidden>Update entry in database</button>
+						<button id="new-button" class="pull-right">Reset page</button>
+						<span id="server-result"></span>
+					</div>
+				</div>
+			</div>
+
+			<div>
+				<div id="map-one" class="map"></div>
+				<button id="download-button" hidden>Download as GeoJSON</button>
+			</div>
+		</div>
+		
+		<div id="parent-wizard" class="pull-left container-fluid no-padding azure" style="border-width: 1px;">
+			<div id="parent-list">
+					<div>
+						<legend style="">Select encompassing location</legend>
+						<div style="padding-left: 5px; padding-right: 5px;">
+							<label>Filter:</label>
+							<input id="parent" type="text" name="search" placeholder="Filter...">
+							<button id="resetParentSearchButton" class="">Show all</button>
+							<button id="suggestion-button" class="">Get suggestions</button>
+							<span id="parent-matches"></span>
+						</div>
+					</div>
+					<div id="parent-tree" style="padding-top: 5px; max-height: 500px; overflow: auto;"></div>
+			</div>
+			
+			<div id="au-list" hidden>
+					<div>
+						<legend><em>AU Component IDs:</em></legend>
+						<label>Filter:</label>
+						<input name="au-search" placeholder="Filter...">
+						<button id="resetCompositeSearchButton" class="btn btn-sm btn-default">&times;</button>
+						<span id="composite-matches"></span>
+					</div>
+					<div id="au-composite-tree" style="padding-top: 5px"></div>
+					<button id="composite-button" class="btn btn-sm btn-default">Build Composite</button>
+			</div>
+		</div>
+	</div>
+}

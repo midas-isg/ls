@@ -1,0 +1,79 @@
+@(message: String, version: String)
+
+@imports = {
+	<script src='@routes.Assets.at("javascripts/search-results.js")' type='text/javascript'></script>
+	<script src='@routes.Assets.at("javascripts/search-rank.js")' type='text/javascript'></script>
+	
+	<script src='@routes.Assets.at("external_packages/PapaParse-4.1.2/papaparse.min.js")' type='text/javascript'></script>
+	
+	<script src='@routes.Assets.at("javascripts/resolver.js")' type='text/javascript'></script>
+	
+	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'>
+	<link href='@routes.Assets.at("stylesheets/resolver.css")' rel='stylesheet'>
+}
+
+@main(message, imports, version) {
+	<div class="no-padding">
+		<div>
+			<div class="extra-bottom-space" style="display: inline-block;">
+				<legend>Select CSV File</legend>
+				<div class="">
+					<input id="csv-input" type="file" accept=".csv, .txt" style="display: inline-block;">
+					<button id="process-button" class="">Process File</button>
+				</div>
+			</div>
+			
+			<div class="extra-bottom-space" style="clear: both;">
+				<div class="extra-bottom-space" style="display: inline-block;">
+					<legend>Select Country</legend>
+					<select id="country-selection">
+						<option id="country-option--1" value="-1">Please select</option>
+					</select>
+				</div>
+				
+				<div style="clear: both;">
+					<div id="search-priorities" class="extra-bottom-space" style="float: left;"></div>
+					
+					<div style="float: left; display: none;">
+						<button id="add-priority" class="">+</button>
+						<button id="remove-priority" class="">-</button>
+					</div>
+				</div>
+			</div>
+			
+			<div style="clear: both;">
+				<legend>Resolve Results</legend>
+				<div id="loading-gif" style="display: none;">
+					<img src='@routes.Assets.at("images/loading.gif")' style="display: block; margin-left: auto; margin-right: auto; height: 500px; width: 500px;">
+				</div>
+				
+				<div id="busy-message" style="display: none;">
+					<h1 style="display: table; margin-left: auto; margin-right: auto;">CREATING TABLE, PLEASE WAIT &#x263A;</h1>
+				</div>
+				
+				<div id="result" style="clear: both;">
+					<div id="results-status" style="display: none;">
+						<div style="float: left;">
+							<sub>Show Resolved <input id="showResolved" type="checkbox" checked></sub>
+							<sub>Show Multiple Choices <input id="showMultipleChoice" type="checkbox" checked></sub>
+							<sub>Show Unresolvable <input id="showUnresolvable" type="checkbox" checked></sub>
+						</div>
+						
+						<div style="display: inline-block; float: right;">
+							<sub>Resolved: <samp id="resolved-count">#</samp></sub>
+							<sub>Multiple Choices: <samp id="multiple-choices-count">#</samp></sub>
+							<sub>Unresolvable: <samp id="unresolvable-count">#</samp></sub>
+						</div>
+					</div>
+					
+					<table id="input-table" style="clear: both;"></table>
+				</div>
+				
+				<div style="float: right; clear: both;">
+					<button id="resolve-button">Run Resolver</button>
+					<button id="download">Download CSV</button>
+				</div>
+			</div>
+		</div>
+	</div>
+}
