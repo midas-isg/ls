@@ -12,10 +12,13 @@ import dao.entities.LocationType;
 
 public class LocationTypeDao {
 	
-	public static List<Location> findByType(long typeId){
+	public static List<Location> findByType(long typeId, Integer limit, Integer offset){
 		EntityManager em = JPA.em();
-		Query query = em.createQuery("from Location where location_type_id = :typeId");
+		Query query = em.createQuery("from Location where location_type_id = :typeId "
+				+ " ORDER BY gid ");
 		query.setParameter("typeId", typeId);
+		query.setMaxResults(limit);
+		query.setFirstResult(offset);
 		@SuppressWarnings("unchecked")
 		List<Location> result = query.getResultList();
 		return result;

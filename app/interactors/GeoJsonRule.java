@@ -302,10 +302,10 @@ public class GeoJsonRule {
 		
 	}
 	
-	public static Object findByTypeId(long typeId) {
-		List<Location> locations = LocationRule.findByTypeId(typeId);
+	public static Object findByTypeId(long typeId, Integer limit, Integer offset) {
+		List<Location> locations = LocationRule.findByTypeId(typeId, limit, offset);
 		Request req = new Request();
-		req.setExclude(Arrays.asList(new String[] { KEY_CHILDREN, KEY_GEOMETRY }));
+		req.setExclude(Arrays.asList(new String[] { KEY_CHILDREN }));
 		FeatureCollection featureCollection = toFeatureCollection(locations, req);
 		req.setLocationTypeIds(Arrays.asList(new Integer[] {(int) typeId}));
 		Map<String, Object> properties = toProperties(req, locations.size());

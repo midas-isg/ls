@@ -148,8 +148,8 @@ public class LocationRule {
 		return LocationDao.getLocations(result);
 	}
 
-	public static List<Location> findByTypeId(long typeId) {
-		List<Location> locations = LocationTypeDao.findByType(typeId);
+	public static List<Location> findByTypeId(long typeId, Integer limit, Integer offset) {
+		List<Location> locations = LocationTypeDao.findByType(typeId, limit, offset);
 		return locations;
 	}
 

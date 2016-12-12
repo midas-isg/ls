@@ -656,7 +656,7 @@ public class LocationServices extends Controller {
 		nickname = "findByLocationTypeId",
 		value = "Returns locations with the specified type-id",
 		notes = "This endpoint returns locations with the requested type-id.</br>"
-				+ "Note: response is not a valid geoJSON ('geometry' property is removed from the output FeatureCollection). ",
+			+ "Pagination is possible via limit and offset parameters.",
 		response = FeatureCollection.class
 	)
 	@ApiResponses(value = {
@@ -669,9 +669,24 @@ public class LocationServices extends Controller {
 			required = true, defaultValue = "1"
 		)
 		@PathParam("id")
-		Long typeId
+		Long typeId,
+		
+		@ApiParam(
+			value = "Maximum number of locations to return. ", 
+			required = true, defaultValue = "10"
+		) 
+		@QueryParam("limit") 
+		Integer limit,
+		
+		@ApiParam(
+			value = "Page offset if number of locations exceeds limit. ", 
+			required = true, defaultValue = "0"
+		) 
+		@QueryParam("offset") 
+		Integer offset
+
 		){
-		Object result = GeoJsonRule.findByTypeId(typeId);
+		Object result = GeoJsonRule.findByTypeId(typeId, limit, offset);
 		return ok(Json.toJson(result));
 	}
 

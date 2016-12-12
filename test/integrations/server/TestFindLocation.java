@@ -8,6 +8,7 @@ import static play.test.Helpers.route;
 import static suites.Helper.assertAreEqual;
 import static suites.Helper.assertContainsAll;
 import static suites.Helper.assertContainsOnly;
+import static suites.Helper.assertExcludes;
 
 import interactors.KmlRule;
 
@@ -88,7 +89,7 @@ public class TestFindLocation {
 	}
 
 	private void findByTypeId() {
-		String url = Server.makeTestUrl(basePath + "/find-by-type/1");
+		String url = Server.makeTestUrl(basePath + "/find-by-type/1?limit=1&offset=2");
 		WSResponse response = get(url);
 		JsonNode jsonResp = response.asJson();
 		assertStatus(response, OK);
@@ -99,9 +100,12 @@ public class TestFindLocation {
 		assertContainsAll(fieldNames,
 				new String[] { "locationTypeIds", "locationTypeNames", "resultSize" });
 		assertThat(jsonResp.get("features")).isNotNull();
+		fieldNames = toArray(jsonResp.get("features").get(0).fieldNames());
+		assertContainsAll(fieldNames, new String[] { "geometry" , "properties"  });
 		fieldNames = toArray(jsonResp.get("features").get(0).get("properties").fieldNames());
 		assertContainsAll(fieldNames, new String[] { "name", "startDate", "otherNames", "codes",
 				"locationTypeName", "lineage", "gid" });
+		assertExcludes(fieldNames, new String[]{ "children" });
 		assertAreEqual(jsonResp.get("properties").get("resultSize").asInt(), jsonResp.get("features").size());
 	}
 
