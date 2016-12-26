@@ -60,6 +60,10 @@ public class Helper {
 	public static void assertContainsOnly(Object[] actual, Object[] expected) {
 			assertThat(actual).containsOnly(expected);
 	}
+	
+	public static void assertExcludes(Object[] actual, Object[] expected) {
+		assertThat(actual).excludes(expected);
+	}
 
 	public static JsonNode testJsonResponseMin(String url, int min) {
 		return testJsonResponseClosedInterval(url, min, null);

@@ -6,9 +6,9 @@ import java.util.Collections;
 import java.util.List;
 
 import play.Logger;
-import v1.dao.entities.Data;
-import v1.dao.entities.Location;
-import v1.models.FancyTreeNode;
+import dao.entities.Data;
+import dao.entities.Location;
+import models.FancyTreeNode;
 
 public class FancyTreeRule {
 

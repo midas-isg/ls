@@ -8,6 +8,7 @@ import static play.test.Helpers.route;
 import static suites.Helper.assertAreEqual;
 import static suites.Helper.assertContainsAll;
 import static suites.Helper.assertContainsOnly;
+import static suites.Helper.assertExcludes;
 
 import interactors.KmlRule;
 
@@ -99,6 +100,28 @@ public class TestFindLocation {
 		fieldNames = toArray(jsonResp.get("properties").fieldNames());
 		assertContainsAll(fieldNames, new String[] { "locationTypeIds", "resultSize" });
 		assertAreEqual(jsonResp.get("properties").get("resultSize").asInt(), jsonResp.get("features").size());
+		
+		url = Server.makeTestUrl(basePath + "/find-by-type/1?_onlyFeatureFields=properties.name&limit=5&offset=1&_v=1.1");
+		response = get(url);
+		jsonResp = response.asJson();
+		assertStatus(response, OK);
+		assertAreEqual(jsonResp.size(), 3);
+		fieldNames = toArray(jsonResp.fieldNames());
+		assertContainsAll(fieldNames, new String[] { "type", "features", "properties" });
+		assertAreEqual(jsonResp.get("features").size(), 5);
+		fieldNames = toArray(jsonResp.get("features").get(0).fieldNames());
+		assertContainsOnly(fieldNames, new String[] { "type", "properties" });
+		fieldNames = toArray(jsonResp.get("features").get(0).get("properties").fieldNames());
+		assertContainsOnly(fieldNames, new String[] { "name" });
+		
+		url = Server.makeTestUrl(basePath + "/find-by-type/1?_excludedFeatureFields=properties.children,geometry&limit=2&offset=0&_v=1.1");
+		response = get(url);
+		jsonResp = response.asJson();
+		assertStatus(response, OK);
+		fieldNames = toArray(jsonResp.get("features").get(0).fieldNames());
+		assertExcludes(fieldNames, new String[] { "geometry" });
+		fieldNames = toArray(jsonResp.get("features").get(0).get("properties").fieldNames());
+		assertExcludes(fieldNames, new String[] { "children" });
 	}
 
 	private void findByQueryTermTest() {

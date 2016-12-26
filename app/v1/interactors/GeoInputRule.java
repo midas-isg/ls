@@ -4,10 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import play.Logger;
-import v1.dao.entities.LocationGeometry;
-import v1.models.geo.Feature;
-import v1.models.geo.FeatureCollection;
-import v1.models.geo.FeatureGeometry;
+import dao.entities.LocationGeometry;
+import models.geo.Feature;
+import models.geo.FeatureCollection;
+import models.geo.FeatureGeometry;
+import models.geo.GeometryCollection;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateSequence;
@@ -58,7 +59,7 @@ public class GeoInputRule {
 					}
 				}
 			} else if(featureGeometry.getType().equals("GeometryCollection")) {
-				List<FeatureGeometry> subGeometries = ((v1.models.geo.GeometryCollection)featureGeometry).getGeometries();
+				List<FeatureGeometry> subGeometries = ((models.geo.GeometryCollection)featureGeometry).getGeometries();
 				
 				for(FeatureGeometry subGeometry : subGeometries) {
 					Feature geometryFeature = new Feature();
@@ -72,7 +73,7 @@ public class GeoInputRule {
 			}
 			else if(featureGeometry.getType().equals("Point")) {
 				if(features.size() == 1) {
-					v1.models.geo.Point pointGeometry = (v1.models.geo.Point) featureGeometry;
+					models.geo.Point pointGeometry = (models.geo.Point) featureGeometry;
 					Coordinate [] coordinates = new Coordinate[1];
 					coordinates[0] = new Coordinate(pointGeometry.getLatitude(), pointGeometry.getLongitude());
 					CoordinateSequence coordinate = new CoordinateArraySequence(coordinates);
@@ -113,7 +114,7 @@ public class GeoInputRule {
 			List<Geometry> polygons, Feature feature, FeatureGeometry geometry) {
 		if(geometry.getType().equals("MultiPolygon")) {
 //Logger.debug("============");
-			v1.models.geo.MultiPolygon multipolygon = (v1.models.geo.MultiPolygon)geometry;
+			models.geo.MultiPolygon multipolygon = (models.geo.MultiPolygon)geometry;
 			List<List<List<double[]>>> multipolygonsCoordinatesList = multipolygon.getCoordinates();
 			int polygonCount = multipolygonsCoordinatesList.size();
 //Logger.debug("There exist/s " + polygonCount + " Polygon/s");
@@ -122,7 +123,7 @@ public class GeoInputRule {
 				List<List<double []>> polygonsCoordinatesList = multipolygonsCoordinatesList.get(j);
 //Logger.debug("There exist/s " + polygonsCoordinatesList.size() + " linear ring/s");
 					Feature polygonFeature = new Feature();
-					v1.models.geo.Polygon polygonBody = new v1.models.geo.Polygon();
+					models.geo.Polygon polygonBody = new models.geo.Polygon();
 					
 					polygonBody.setCoordinates(polygonsCoordinatesList);
 					polygonBody.setType("Polygon");
@@ -177,7 +178,7 @@ public class GeoInputRule {
 		
 //Logger.debug("type is: " + type);
 		if(type.equals("Polygon")) {
-			v1.models.geo.Polygon polygon = (v1.models.geo.Polygon)fg;
+			models.geo.Polygon polygon = (models.geo.Polygon)fg;
 			List<List<double[]>> pointCollection = polygon.getCoordinates();
 			int polygonRingsCount = pointCollection.size();
 			

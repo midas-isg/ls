@@ -110,15 +110,15 @@ public class Util {
 		return joiner.toString();
 	}
 
-	static List<Integer> toListOfInt(JsonNode jsonNode) {
+	static List<Long> toListOfLong(JsonNode jsonNode) {
 		if (jsonNode == null)
 			return null;
-		List<Integer> intList = new ArrayList<>();
+		List<Long> list = new ArrayList<>();
 		Iterator<JsonNode> elements = jsonNode.elements();
 		while (elements.hasNext()) {
-			intList.add(elements.next().asInt());
+			list.add(elements.next().asLong());
 		}
-		return intList;
+		return list;
 	}
 
 	static List<String> toListOfString(JsonNode jsonNode) {

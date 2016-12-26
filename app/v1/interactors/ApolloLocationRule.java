@@ -9,8 +9,8 @@ import edu.pitt.apollo.types.v3_0_0.LocationDefinition;
 import edu.pitt.apollo.types.v3_0_0.LocationPolygon;
 import edu.pitt.apollo.types.v3_0_0.MultiGeometry;
 import edu.pitt.apollo.types.v3_0_0.NamedMultiGeometry;
-import v1.dao.entities.Data;
-import v1.dao.entities.Location;
+import dao.entities.Data;
+import dao.entities.Location;
 
 public class ApolloLocationRule {
 	public static edu.pitt.apollo.types.v3_0_0.Location asApolloLocation(Location location) {

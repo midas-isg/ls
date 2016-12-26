@@ -9,9 +9,9 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 
 import play.Logger;
-import v1.dao.GeometryDao;
-import v1.dao.entities.LocationGeometry;
-import v1.dao.entities.LocationLowResolutionGeometry;
+import dao.GeometryDao;
+import dao.entities.LocationGeometry;
+import dao.entities.LocationLowResolutionGeometry;
 
 public class GeometryRule {
 	private static Collection<Class<? extends LocationGeometry>> 

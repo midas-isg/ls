@@ -14,11 +14,11 @@ import play.Logger;
 import play.db.jpa.JPA;
 import play.libs.Akka;
 import scala.concurrent.duration.Duration;
-import v1.dao.LocationDao;
-import v1.dao.entities.AltName;
-import v1.dao.entities.Location;
-import v1.gateways.configuration.ConfReader;
-import v1.models.FancyTreeNode;
+import dao.LocationDao;
+import dao.entities.AltName;
+import dao.entities.Location;
+import gateways.configuration.ConfReader;
+import models.FancyTreeNode;
 import akka.util.*;
 import akka.actor.ActorSystem;
 

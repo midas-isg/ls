@@ -29,7 +29,7 @@ POST          /api/locations/find-bulk            controllers.LocationServices.f
 POST          /api/locations/find-by-term         controllers.LocationServices.findByTerm()
 GET           /api/locations/find-by-coordinate   controllers.LocationServices.findByPoint(lat:Double, long:Double, verbose:Boolean?=true)
 POST          /api/locations/find-by-geometry     controllers.LocationServices.findByFeatureCollection(superTypeId:java.lang.Long ?= null, typeId:java.lang.Long ?= null, verbose:Boolean?=true)
-GET			  /api/locations/find-by-type/:id	  controllers.LocationServices.findByTypeId(id:Long)
+GET			  /api/locations/find-by-type/:id	  controllers.LocationServices.findByTypeId(id:Long, _onlyFeatureFields:String ?= null, _excludedFeatureFields:String ?= null, limit:Int?=10, offset:Int?=0, _v:String ?= "1.0")
 GET           /api/locations/unique-names    	  controllers.LocationServices.listUniqueNames(queryTerm, limit:Int?=10)
 
 GET           /api/super-types                    controllers.ListServices.findSuperTypes()

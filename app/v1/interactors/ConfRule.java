@@ -1,6 +1,6 @@
 package v1.interactors;
 
-import v1.gateways.configuration.ConfReader;
+import gateways.configuration.ConfReader;
 
 public class ConfRule {
 	private ConfReader reader = null;

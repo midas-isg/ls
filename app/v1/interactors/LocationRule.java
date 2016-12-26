@@ -11,14 +11,14 @@ import com.vividsolutions.jts.geom.Polygon;
 
 import play.Logger;
 import play.Play;
-import v1.dao.LocationDao;
-import v1.dao.LocationTypeDao;
-import v1.dao.entities.CodeType;
-import v1.dao.entities.GisSource;
-import v1.dao.entities.Location;
-import v1.dao.entities.LocationGeometry;
-import v1.dao.entities.LocationType;
-import v1.models.Request;
+import dao.LocationDao;
+import dao.LocationTypeDao;
+import dao.entities.CodeType;
+import dao.entities.GisSource;
+import dao.entities.Location;
+import dao.entities.LocationGeometry;
+import dao.entities.LocationType;
+import models.Request;
 
 public class LocationRule {
 	public static final long PUMA_TYPE_ID = 102L;
@@ -149,7 +149,7 @@ public class LocationRule {
 	}
 
 	public static List<Location> findByTypeId(long typeId) {
-		List<Location> locations = LocationTypeDao.findByType(typeId);
+		List<Location> locations = LocationTypeDao.findByType(typeId, 0, 0);
 		return locations;
 	}
 

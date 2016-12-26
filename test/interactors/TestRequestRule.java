@@ -1,6 +1,7 @@
 package interactors;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static suites.Helper.assertAreEqual;
 import static suites.Helper.assertContainsAll;
 
 import java.util.Arrays;
@@ -23,13 +24,21 @@ public class TestRequestRule {
 	public void toRequestTest() {
 		String onlyFeatureFields = " properties.gid , properties.name ";
 		String excludedFeatureFields = geometry;
+		Long typeId = 1L;
+		Integer limit = 10;
+		Integer offset = 0;
 		String[] includedFields = new String[] { properties + "." + gid, properties + "." + name };
 		String[] excludedFields = new String[] { geometry };
 
-		Request actual = RequestRule.toRequest(onlyFeatureFields, excludedFeatureFields);
+		Request req = RequestRule.toRequest(onlyFeatureFields, excludedFeatureFields);
 
-		assertContainsAll(actual.getOnlyFeatureFields().toArray(), includedFields);
-		assertContainsAll(actual.getExcludedFeatureFields().toArray(), excludedFields);
+		assertContainsAll(req.getOnlyFeatureFields().toArray(), includedFields);
+		assertContainsAll(req.getExcludedFeatureFields().toArray(), excludedFields);
+		
+		req = RequestRule.toRequest(onlyFeatureFields, excludedFeatureFields, typeId, limit, offset);
+		assertAreEqual(req.getLimit(), limit);
+		assertAreEqual(req.getOffset(), offset);
+		assertThat(req.getLocationTypeIds()).contains(typeId);		
 	}
 
 	@Test

@@ -10,13 +10,21 @@ import models.Request;
 
 public class RequestRule {
 
-	public static Request toRequest(String onlyFeatureFields, String excludedFeatureFields) {
+	public static Request toRequest(String onlyFeatureFields, String excludedFeatureFields, Long typeId,
+			Integer limit, Integer offset) {
 		Request request = new Request();
 		List<String> list = parse(onlyFeatureFields);
 		request.setOnlyFeatureFields(list);
 		list = parse(excludedFeatureFields);
 		request.setExcludedFeatureFields(list);
+		request.setLimit(limit);
+		request.setOffset(offset);
+		request.setLocationTypeIds(Arrays.asList(new Long[] { typeId }));
 		return request;
+	}
+
+	public static Request toRequest(String onlyFeatureFields, String excludedFeatureFields) {
+		return toRequest(onlyFeatureFields, excludedFeatureFields, null, null, null);
 	}
 
 	public static boolean isRequestedFeatureField(Request req, String key) {
@@ -28,7 +36,7 @@ public class RequestRule {
 			return false;
 		boolean isRequested = isRequestedFeatureField(req, propertiesField);
 		boolean isPropertiesIncluded = Util.contains(req.getOnlyFeatureFields(), FeatureKey.PROPERTIES.valueOf());
-		boolean isPropertiesExcluded = Util.contains(req.getExcludedFeatureFields(), FeatureKey.PROPERTIES.valueOf()); 
+		boolean isPropertiesExcluded = Util.contains(req.getExcludedFeatureFields(), FeatureKey.PROPERTIES.valueOf());
 		return (isRequested || isPropertiesIncluded) && !isPropertiesExcluded;
 	}
 

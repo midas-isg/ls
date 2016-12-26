@@ -19,19 +19,19 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.vividsolutions.jts.geom.Geometry;
 
 import play.Logger;
-import v1.dao.LocationTypeDao;
-import v1.dao.entities.AltName;
-import v1.dao.entities.Code;
-import v1.dao.entities.Data;
-import v1.dao.entities.Location;
-import v1.dao.entities.LocationGeometry;
-import v1.dao.entities.LocationType;
-import v1.models.FeatureKey;
-import v1.models.Request;
-import v1.models.exceptions.BadRequest;
-import v1.models.geo.Feature;
-import v1.models.geo.FeatureCollection;
-import v1.models.geo.FeatureGeometry;
+import dao.LocationTypeDao;
+import dao.entities.AltName;
+import dao.entities.Code;
+import dao.entities.Data;
+import dao.entities.Location;
+import dao.entities.LocationGeometry;
+import dao.entities.LocationType;
+import models.FeatureKey;
+import models.Request;
+import models.exceptions.BadRequest;
+import models.geo.Feature;
+import models.geo.FeatureCollection;
+import models.geo.FeatureGeometry;
 
 public class GeoJsonRule {
 
@@ -319,7 +319,7 @@ public class GeoJsonRule {
 		req.setExcludedFeatureFields(Arrays.asList(new String[] { toPropertiesPath(FeatureKey.CHILDREN.valueOf()),
 				FeatureKey.GEOMETRY.valueOf() }));
 		FeatureCollection featureCollection = toFeatureCollection(locations, req);
-		req.setLocationTypeIds(Arrays.asList(new Integer[] {(int) typeId}));
+		req.setLocationTypeIds(Arrays.asList(new Long[] { typeId }));
 		Map<String, Object> properties = toProperties(req, locations.size());
 		featureCollection.setProperties(properties);
 		return featureCollection;
@@ -425,7 +425,7 @@ public class GeoJsonRule {
 	private static void setOtherParams(JsonNode node, Request req) {
 		Boolean value;
 		if (containsKey(node, "locationTypeIds"))
-			req.setLocationTypeIds(toListOfInt((JsonNode) node
+			req.setLocationTypeIds(Util.toListOfInt((JsonNode) node
 					.get("locationTypeIds")));
 		if (containsKey(node, "limit"))
 			req.setLimit(node.get("limit").asInt());

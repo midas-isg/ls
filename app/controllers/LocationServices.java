@@ -43,6 +43,8 @@ import play.mvc.Result;
 
 @Api(value = "/api/locations", description = "Endpoint for locations")
 public class LocationServices extends Controller {
+	public static final String CURRENT_VERSION = "1.1";
+	public static final String OLD_VERSION = "1.0";
 	public static final String FORMAT_GEOJSON = "geojson";
 	public static final String FORMAT_GEOJSONP = "jsonp";
 	public static final String FORMAT_APOLLOJSON = "json";
@@ -122,7 +124,6 @@ public class LocationServices extends Controller {
 			@QueryParam("maxExteriorRings") 
 			Integer maxExteriorRings
 	) {
-
 		if (gid == null)
 			return notFound("gid is required but got " + gid);
 
@@ -680,7 +681,8 @@ public class LocationServices extends Controller {
 		nickname = "findByLocationTypeId",
 		value = "Returns locations with the specified type-id",
 		notes = "This endpoint returns locations with the requested type-id.</br>"
-				+ "Note: response is not a valid geoJSON ('geometry' property is removed from the output FeatureCollection). ",
+				+ "Note: In version 1.0, 'geometry' and 'property.children' are removed from response.</br>"
+				+ "Some parameters are only available in version 1.1 an later. See parameter descriptions.",
 		response = FeatureCollection.class
 	)
 	@ApiResponses(value = {
@@ -693,10 +695,55 @@ public class LocationServices extends Controller {
 			required = true, defaultValue = "1"
 		)
 		@PathParam("id")
-		Long typeId
+		Long typeId,
+		
+		@ApiParam(
+			value = "Includes only the given fields in feature objects (as of version 1.1)", 
+			required = false
+		) 
+		@QueryParam("_onlyFeatureFields")
+			String onlyFeatureFields,
+			
+		@ApiParam(
+			value = "Excludes the given fields from feature objects (as of version 1.1)", 
+			required = false
+		) 
+		@QueryParam("_excludedFeatureFields")
+			String excludedFeatureFields,
+			
+		@ApiParam(
+			value = "Maximum number of locations to return (as of version 1.1)", 
+			required = true, defaultValue = "10"
+		) 
+		@QueryParam("limit") 
+			Integer limit,
+				
+		@ApiParam(
+			value = "Page offset if number of locations exceeds limit (as of version 1.1)", 
+			required = true, defaultValue = "0"
+		) 
+		@QueryParam("offset") 
+			Integer offset,
+			
+		@ApiParam(
+			value = "API version", 
+			required = false, defaultValue = OLD_VERSION
+		) 
+		@QueryParam("_v") 
+			String version
 		){
-		Object result = GeoJsonRule.findByTypeId(typeId);
-		return ok(Json.toJson(result));
+		Object result;
+		switch (version) {
+		case OLD_VERSION:
+			result = v1.interactors.GeoJsonRule.findByTypeId(typeId);
+			return ok(Json.toJson(result));
+		case CURRENT_VERSION:
+			Request req = RequestRule.toRequest(onlyFeatureFields, excludedFeatureFields, typeId, limit, offset);
+			result = GeoJsonRule.findByTypeId(req);
+			return ok(Json.toJson(result));
+		default:
+			return badRequest("Invalid api version: " + version + ". current_version=" + CURRENT_VERSION);
+		}
 	}
 
 	@Transactional

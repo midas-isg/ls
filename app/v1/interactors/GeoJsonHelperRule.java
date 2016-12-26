@@ -12,21 +12,21 @@ import java.util.Map;
 import com.vividsolutions.jts.geom.Point;
 
 import play.Logger;
-import v1.dao.ForestDao;
-import v1.dao.LocationTypeDao;
-import v1.dao.entities.AltName;
-import v1.dao.entities.Code;
-import v1.dao.entities.Data;
-import v1.dao.entities.Forest;
-import v1.dao.entities.Location;
-import v1.dao.entities.LocationGeometry;
-import v1.dao.entities.LocationType;
-import v1.dao.entities.SpewLink;
-import v1.gateways.configuration.ConfReader;
-import v1.models.FeatureKey;
-import v1.models.Request;
-import v1.models.geo.Feature;
-import v1.models.geo.FeatureCollection;
+import dao.ForestDao;
+import dao.LocationTypeDao;
+import dao.entities.AltName;
+import dao.entities.Code;
+import dao.entities.Data;
+import dao.entities.Forest;
+import dao.entities.Location;
+import dao.entities.LocationGeometry;
+import dao.entities.LocationType;
+import dao.entities.SpewLink;
+import gateways.configuration.ConfReader;
+import models.FeatureKey;
+import models.Request;
+import models.geo.Feature;
+import models.geo.FeatureCollection;
 
 public class GeoJsonHelperRule {
 	

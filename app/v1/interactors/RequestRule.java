@@ -5,8 +5,8 @@ import static v1.interactors.Util.containsOrIsEmpty;
 import java.util.Arrays;
 import java.util.List;
 
-import v1.models.FeatureKey;
-import v1.models.Request;
+import models.FeatureKey;
+import models.Request;
 
 public class RequestRule {
 

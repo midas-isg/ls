@@ -14,7 +14,7 @@ public class Request {
 	private Boolean searchCodes;
 	private Date startDate;
 	private Date endDate;
-	private List<Integer> locationTypeIds;
+	private List<Long> locationTypeIds;
 	private Boolean verbose;
 	private Long rootALC;
 	private List<String> onlyFeatureFields;
@@ -94,11 +94,11 @@ public class Request {
 		this.endDate = endDate;
 	}
 
-	public List<Integer> getLocationTypeIds() {
+	public List<Long> getLocationTypeIds() {
 		return locationTypeIds;
 	}
 
-	public void setLocationTypeIds(List<Integer> locationTypeIds) {
+	public void setLocationTypeIds(List<Long> locationTypeIds) {
 		this.locationTypeIds = locationTypeIds;
 	}
 

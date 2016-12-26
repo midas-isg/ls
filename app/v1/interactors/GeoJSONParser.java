@@ -7,15 +7,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import v1.dao.entities.AltName;
-import v1.dao.entities.Code;
-import v1.models.geo.Feature;
-import v1.models.geo.FeatureCollection;
-import v1.models.geo.FeatureGeometry;
-import v1.models.geo.GeometryCollection;
-import v1.models.geo.MultiPolygon;
-import v1.models.geo.Point;
-import v1.models.geo.Polygon;
+import dao.entities.AltName;
+import dao.entities.Code;
+import models.geo.Feature;
+import models.geo.FeatureCollection;
+import models.geo.FeatureGeometry;
+import models.geo.GeometryCollection;
+import models.geo.MultiPolygon;
+import models.geo.Point;
+import models.geo.Polygon;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;

@@ -17,10 +17,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import play.Logger;
 import play.libs.Json;
-import v1.dao.entities.Location;
-import v1.models.FeatureKey;
-import v1.models.Request;
-import v1.models.geo.FeatureCollection;
+import dao.entities.Location;
+import models.FeatureKey;
+import models.Request;
+import models.geo.FeatureCollection;
 
 public class TopoJsonRule {
 

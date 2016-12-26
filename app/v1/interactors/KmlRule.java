@@ -6,8 +6,8 @@ import java.net.URL;
 import java.util.Scanner;
 
 import play.Play;
-import v1.dao.entities.Data;
-import v1.dao.entities.Location;
+import dao.entities.Data;
+import dao.entities.Location;
 
 public class KmlRule {
 	public static String asKml(Location location) {

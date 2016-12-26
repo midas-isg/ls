@@ -7,9 +7,9 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Polygon;
 
-import v1.models.geo.FeatureGeometry;
-import v1.models.geo.MultiPolygon;
-import v1.models.geo.Point;
+import models.geo.FeatureGeometry;
+import models.geo.MultiPolygon;
+import models.geo.Point;
 
 public class GeoOutputRule {
 	static FeatureGeometry toFeatureGeometry(Geometry geom) {

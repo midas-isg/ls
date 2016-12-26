@@ -313,13 +313,14 @@ public class GeoJsonRule {
 		
 	}
 	
-	public static Object findByTypeId(long typeId) {
-		List<Location> locations = LocationRule.findByTypeId(typeId);
-		Request req = new Request();
-		req.setExcludedFeatureFields(Arrays.asList(new String[] { toPropertiesPath(FeatureKey.CHILDREN.valueOf()),
-				FeatureKey.GEOMETRY.valueOf() }));
+	public static Object findByTypeId(Request req) {
+		if(req == null)
+			return null;
+		if(req.getLocationTypeIds() == null || req.getLocationTypeIds().isEmpty())
+			return null;
+		long typeId = req.getLocationTypeIds().get(0);
+		List<Location> locations = LocationRule.findByTypeId(typeId, req.getLimit(), req.getOffset());
 		FeatureCollection featureCollection = toFeatureCollection(locations, req);
-		req.setLocationTypeIds(Arrays.asList(new Integer[] {(int) typeId}));
 		Map<String, Object> properties = toProperties(req, locations.size());
 		featureCollection.setProperties(properties);
 		return featureCollection;
@@ -425,7 +426,7 @@ public class GeoJsonRule {
 	private static void setOtherParams(JsonNode node, Request req) {
 		Boolean value;
 		if (containsKey(node, "locationTypeIds"))
-			req.setLocationTypeIds(toListOfInt((JsonNode) node
+			req.setLocationTypeIds(Util.toListOfLong((JsonNode) node
 					.get("locationTypeIds")));
 		if (containsKey(node, "limit"))
 			req.setLimit(node.get("limit").asInt());

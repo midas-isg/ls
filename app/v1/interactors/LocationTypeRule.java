@@ -2,10 +2,10 @@ package v1.interactors;
 
 import java.util.List;
 
-import v1.dao.LocationTypeDao;
-import v1.dao.SuperTypeDao;
-import v1.dao.entities.LocationType;
-import v1.dao.entities.SuperType;
+import dao.LocationTypeDao;
+import dao.SuperTypeDao;
+import dao.entities.LocationType;
+import dao.entities.SuperType;
 
 public class LocationTypeRule {
 	public static List<SuperType> findSuperTypes() {
