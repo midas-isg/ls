@@ -292,7 +292,7 @@ public class GeoJsonRule {
 		Object obj;
 		Request req;
 		for (JsonNode query : queryArray) {
-			req = toFindByTermRequest(query);
+			req = RequestRule.toFindByTermRequest(query);
 			obj = findByTerm(req);
 			result.add(obj);
 		}
@@ -302,8 +302,6 @@ public class GeoJsonRule {
 	public static Object findByTerm(Request req) {
 		if(req.getVerbose()){
 			List<Location> result = LocationRule.findByTerm(req);
-			req.setExcludedFeatureFields(Arrays.asList(new String[] { toPropertiesPath(FeatureKey.CHILDREN.valueOf()),
-					FeatureKey.GEOMETRY.valueOf() }));
 			return toFeatureCollection(req, result);
 		}
 		else {
@@ -380,18 +378,6 @@ public class GeoJsonRule {
 		return req;
 	}
 
-	private static Request toFindByTermRequest(JsonNode node) {
-		Request req = new Request();
-		if (containsKey(node, "queryTerm"))
-			req.setQueryTerm(node.get("queryTerm").asText());
-		else
-			throw new BadRequest("\"" + "queryTerm" + "\" key is requierd!");
-		setStartDate(node, req, "startDate");
-		setEndDate(node, req, "endDate");
-		setOtherParams(node, req);
-		return req;
-	}
-
 	/**
 	 * @deprecated replaced by {@link #findByTerm(ArrayNode arrayNode)}
 	 */
@@ -423,6 +409,10 @@ public class GeoJsonRule {
 		return req;
 	}
 
+	/**
+	 * @deprecated replaced by {@link #RequestRule.toFindByTermRequest(JsonNode node)}
+	 */
+	@Deprecated
 	private static void setOtherParams(JsonNode node, Request req) {
 		Boolean value;
 		if (containsKey(node, "locationTypeIds"))
@@ -453,7 +443,11 @@ public class GeoJsonRule {
 		if (containsKey(node, "fuzzyMatchThreshold"))
 			req.setFuzzyMatchThreshold((float) node.get("fuzzyMatchThreshold").asDouble());
 	}
-
+	
+	/**
+	 * @deprecated
+	 */
+	@Deprecated
 	private static void setEndDate(JsonNode node, Request req, String endDate) {
 		if (containsKey(node, endDate))
 			req.setEndDate(toDate(node.get(endDate).asText()));
@@ -461,6 +455,10 @@ public class GeoJsonRule {
 			req.setEndDate(getNowDate());
 	}
 
+	/**
+	 * @deprecated
+	 */
+	@Deprecated
 	private static void setStartDate(JsonNode node, Request req,
 			String startDate) {
 		if (containsKey(node, startDate))
@@ -469,6 +467,10 @@ public class GeoJsonRule {
 			req.setStartDate(toDate("0001-01-01"));
 	}
 
+	/**
+	 * @deprecated
+	 */
+	@Deprecated
 	private static Boolean returnDefaultIfKeyNotExists(JsonNode node,
 			String key, Boolean defaultValue) {
 		if (containsKey(node, key))

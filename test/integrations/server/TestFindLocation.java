@@ -43,6 +43,7 @@ public class TestFindLocation {
 	private final String findByTermRequestFile3 = "test/test-find-by-term-request-3.json";
 	private final String fuzzyMatchRequest1 = "test/fuzzy-match-request-1.json";
 	private final String findBulkRequestFile1 = "test/test-find-bulk-request-1.json";
+	private final String CURRENT_VERSION = "1.1";
 
 	public static Runnable test() {
 		return () -> newInstance().testFindLocation();
@@ -101,7 +102,7 @@ public class TestFindLocation {
 		assertContainsAll(fieldNames, new String[] { "locationTypeIds", "resultSize" });
 		assertAreEqual(jsonResp.get("properties").get("resultSize").asInt(), jsonResp.get("features").size());
 		
-		url = Server.makeTestUrl(basePath + "/find-by-type/1?_onlyFeatureFields=properties.name&limit=5&offset=1&_v=1.1");
+		url = Server.makeTestUrl(basePath + "/find-by-type/1?_onlyFeatureFields=properties.name&limit=5&offset=1&_v=" + CURRENT_VERSION);
 		response = get(url);
 		jsonResp = response.asJson();
 		assertStatus(response, OK);
@@ -114,7 +115,7 @@ public class TestFindLocation {
 		fieldNames = toArray(jsonResp.get("features").get(0).get("properties").fieldNames());
 		assertContainsOnly(fieldNames, new String[] { "name" });
 		
-		url = Server.makeTestUrl(basePath + "/find-by-type/1?_excludedFeatureFields=properties.children,geometry&limit=2&offset=0&_v=1.1");
+		url = Server.makeTestUrl(basePath + "/find-by-type/1?_excludedFeatureFields=properties.children,geometry&limit=2&offset=0&_v=" + CURRENT_VERSION);
 		response = get(url);
 		jsonResp = response.asJson();
 		assertStatus(response, OK);
@@ -191,6 +192,14 @@ public class TestFindLocation {
 				"otherNames", "related", "rank", "headline", "startDate", "endDate", "matchedTerm" });
 
 		body = "{\"queryTerm\":\"name with accent\", \"includeOnly\":[\"properties.name\", \"properties.gid\"]}";
+		response = post(url, body, jsonContentType);
+		assertStatus(response, OK);
+		jsonResp = response.asJson();
+		fieldNames = toArray(jsonResp.get("features").get(0).get("properties").fieldNames());
+		assertContainsOnly(fieldNames, new String[] { "gid", "name" });
+		
+		body = "{\"queryTerm\":\"name with accent\", \"onlyFeatureFields\":[\"properties.name\", \"properties.gid\"]}";
+		url = Server.makeTestUrl(findByTermPath + "?_v=" + CURRENT_VERSION);
 		response = post(url, body, jsonContentType);
 		assertStatus(response, OK);
 		jsonResp = response.asJson();
@@ -337,6 +346,19 @@ public class TestFindLocation {
 		fieldNames = toArray(firstFeature.get("features").get(0).get("properties").fieldNames());
 		assertContainsOnly(fieldNames, new String[] { "name", "gid" });
 		JsonNode secondFeature = jsonResp.get(1);
+		fieldNames = toArray(secondFeature.get("features").get(0).get("properties").fieldNames());
+		assertContainsOnly(fieldNames, new String[] { "name" });
+		
+		body = "[{\"queryTerm\":\"Test Location 1\",\"onlyFeatureFields\":[\"properties.name\",\"properties.gid\"]},"
+				+ "{\"queryTerm\":\"Test Location 2\",\"onlyFeatureFields\":[\"properties.name\"]}" + "]";
+		url = Server.makeTestUrl(findBulkPath + "?_v=" + CURRENT_VERSION);
+		response = post(url, body, jsonContentType);
+		assertStatus(response, OK);
+		jsonResp = response.asJson();
+		firstFeature = jsonResp.get(0);
+		fieldNames = toArray(firstFeature.get("features").get(0).get("properties").fieldNames());
+		assertContainsOnly(fieldNames, new String[] { "name", "gid" });
+		secondFeature = jsonResp.get(1);
 		fieldNames = toArray(secondFeature.get("features").get(0).get("properties").fieldNames());
 		assertContainsOnly(fieldNames, new String[] { "name" });
 	}

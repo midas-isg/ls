@@ -53,11 +53,17 @@ public class LocationServices extends Controller {
 	public static final String FORMAT_DEFAULT = "geojson";
 	private static final String UNIQUE_VIOLATION = "23505";
 	private static final String findBulkEx = "find-bulk.json";
-	private static final String findBulkExBody = "Only \"queryTerm\" is required. See an example of body at "
-			+ "<a href='assets/examples/api/" + findBulkEx + "'>" + findBulkEx + "</a> ";
-	private static final String findEx = "find-by-term.json";
-	private static final String findExBody = "Only \"queryTerm\" is required. See an example of body at "
-			+ "<a href='assets/examples/api/" + findEx + "'>" + findEx + "</a> ";
+	private static final String findBulkExV1_1 = "find-bulk-v1_1.json";
+	private static final String findBulkExBody = "Only \"queryTerm\" is required. See an example of body for vesrsion "
+			+ CURRENT_VERSION + " at "
+			+ "<a href='assets/examples/api/" + findBulkExV1_1 + "'>" + findBulkExV1_1 + "</a></br>"
+			+ "Vesrion " + OLD_VERSION + " body example: <a href='assets/examples/api/" + findBulkEx + "'>" + findBulkEx + "</a> ";;
+	private static final String findByTermEx = "find-by-term.json";
+	private static final String findByTermExV1_1 = "find-by-term-v1_1.json";
+	private static final String findByTermExBody = "Only \"queryTerm\" is required. See a request example for vesrsion "
+			+ CURRENT_VERSION + " at "
+			+ "<a href='assets/examples/api/" + findByTermExV1_1 + "'>" + findByTermExV1_1 + "</a></br>"
+			+ "Vesrion " + OLD_VERSION + " request example: <a href='assets/examples/api/" + findByTermEx + "'>" + findByTermEx + "</a> ";
 	private static final String findbyGeomEx = "AuMaridiTown.geojson";
 	private static final String findbyGeomExBody = "See an example of body at "
 			+ "<a href='assets/examples/api/" + findbyGeomEx + "'>" + findbyGeomEx + "</a> ";
@@ -249,8 +255,12 @@ public class LocationServices extends Controller {
 			httpMethod = "POST", 
 			nickname = "Find", 
 			value = "Finds locations by name, other-names, or code", 
-			notes = "Receives a single query as shown in the example."
-			+ "Note: response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response). ", 
+			notes = "Receives a single query as shown in the example.</br>"
+			+ "Note: In version 1.0, response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response).</br>"
+			+ "In version 1.0, properties.children is excluded from features.</br>"
+			+ "As of version 1.1, no response fields is excluded by default.</br>"
+			+ "As of version 1.1, request filter-key names changed: 'includeOnly' -> 'onlyFeatureFields' & 'exclude' -> 'excludedFeatureFields'.</br>"
+			+ "As of version 1.1, request filter syntax changed. Refer to <a href='assets/examples/api/" + findByTermExV1_1 + "'>" + findByTermExV1_1 + "</a>", 
 			response = FeatureCollection.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = OK, message = "Successfully returned", response = FeatureCollection.class),
@@ -259,23 +269,46 @@ public class LocationServices extends Controller {
 	})
 	@ApiImplicitParams({ 
 	    	@ApiImplicitParam(
-	    			value = findExBody, 
+	    			value = findByTermExBody, 
 	    			required = true, 
 	    			dataType = "models.Request",
 	    			paramType = "body"
 	    	)
 	})
-	public Result findByTerm() {
+	public Result findByTerm(
+			@ApiParam(
+				value = "API version", 
+				required = false, defaultValue = OLD_VERSION
+			) 
+			@QueryParam("_v") 
+			String version
+		) {
 		if (!(request().body().asJson() instanceof JsonNode) ||
 				request().body().asJson() instanceof ArrayNode)
 			return badRequest("Invalid input! JsonNode or ArrayNode expected.");
 
 		ArrayNode arrayNode = toArrayNode((JsonNode)request().body().asJson());
-		List<Object> result = GeoJsonRule.findByTerm(arrayNode);
+		List<Object> result;
+		
+		switch (version) {
+		case OLD_VERSION:
+			result = v1.interactors.GeoJsonRule.findByTerm(arrayNode);
+			break;
+		case CURRENT_VERSION:
+			result = GeoJsonRule.findByTerm(arrayNode);
+			break;
+		default:
+			return badVersion(version);
+		}
+		
 		if(result == null || result.isEmpty())
 			return ok(Json.newObject());
 		return ok(Json.toJson(result.get(0)));
 		
+	}
+
+	private Status badVersion(String version) {
+		return badRequest("Invalid api version: " + version + ". current_version=" + CURRENT_VERSION);
 	}
 
 	private ArrayNode toArrayNode(JsonNode asJson) {
@@ -290,8 +323,12 @@ public class LocationServices extends Controller {
 			nickname = "findBulkLocations", 
 			value = "Returns locations requested in bulk", 
 			notes = "This endpoint returns locations match with the requested search terms "
-			+ "(queryTerm[required], start, end, locationTypeIds, etc. (see example file)). "
-			+ "Note: response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response). ", 
+			+ "(queryTerm[required], start, end, locationTypeIds, etc. (see example file)).</br>"
+			+ "Note: In version 1.0, response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response).</br>"
+			+ "In version 1.0, properties.children is excluded from features.</br>"
+			+ "As of version 1.1, no response fields is excluded by default.</br>"
+			+ "As of version 1.1, request filter-key names changed: 'includeOnly' -> 'onlyFeatureFields' & 'exclude' -> 'excludedFeatureFields'.</br>"
+			+ "As of version 1.1, request filter syntax changed. Refer to <a href='assets/examples/api/" + findBulkExV1_1 + "'>" + findBulkExV1_1 + "</a>",
 			response = FeatureCollection.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = OK, message = "Successfully returned", response = FeatureCollection.class),
@@ -306,10 +343,28 @@ public class LocationServices extends Controller {
 	    			paramType = "body"
 	    	)
 	} )
-	public Result findBulkLocations() {
+	public Result findBulkLocations(
+			@ApiParam(
+				value = "API version", 
+				required = false, defaultValue = OLD_VERSION
+			) 
+			@QueryParam("_v") 
+				String version
+		) {
 		if (!(request().body().asJson() instanceof ArrayNode))
 			return badRequest("Invalid input! ArrayNode expected.");
-		List<Object> result = GeoJsonRule.findByTerm((ArrayNode)request().body().asJson());
+		ArrayNode arrayNode = (ArrayNode)request().body().asJson();
+		List<Object> result;
+		switch (version) {
+		case OLD_VERSION:
+			result = v1.interactors.GeoJsonRule.findByTerm(arrayNode);
+			break;
+		case CURRENT_VERSION:
+			result = GeoJsonRule.findByTerm(arrayNode);
+			break;
+		default:
+			return badVersion(version);
+		}
 		return ok(toJson(result));
 	}
 	
@@ -742,7 +797,7 @@ public class LocationServices extends Controller {
 			result = GeoJsonRule.findByTypeId(req);
 			return ok(Json.toJson(result));
 		default:
-			return badRequest("Invalid api version: " + version + ". current_version=" + CURRENT_VERSION);
+			return badVersion(version);
 		}
 	}
 
