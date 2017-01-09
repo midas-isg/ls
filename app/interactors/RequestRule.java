@@ -80,6 +80,14 @@ public class RequestRule {
 		request.setQueryTerm(queryTerm);
 		return request;
 	}
+	
+	public static Request toFindByPointRequest(String onlyFeatureFields, String excludedFeatureFields, double latitude,
+			double longitude) {
+		Request req = toRequest(onlyFeatureFields, excludedFeatureFields);
+		req.setLatitude(latitude);
+		req.setLongitude(longitude);
+		return req;
+	}
 
 	public static boolean isRequestedFeatureField(Request req, String key) {
 		return isIncluded(req, key) && !isExcluded(req, key);

@@ -5,7 +5,6 @@ import static interactors.RequestRule.isRequestedFeatureField;
 import static interactors.RequestRule.isRequestedFeatureProperties;
 import static interactors.Util.*;
 
-import java.math.BigInteger;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -159,12 +158,16 @@ public class GeoJsonRule {
 				req.isSearchOtherNames());
 		putAsStringIfNotNull(properties, "searchCodes", req.isSearchCodes());
 		putAsStringIfNotNull(properties, "rootALC", req.getRootALC());
-		putAsStringIfNotNull(properties, "includeOnly",
+		putAsStringIfNotNull(properties, "onlyFeatureFields",
 				listToString(req.getOnlyFeatureFields()));
+		putAsStringIfNotNull(properties, "excludedFeatureFields",
+				listToString(req.getExcludedFeatureFields()));
 		putAsStringIfNotNull(properties, "resultSize", resultSize);
 		putAsStringIfNotNull(properties, "fuzzyMatch", req.isFuzzyMatch());
 		if (isTrue(req.isFuzzyMatch()))
 			putAsStringIfNotNull(properties, "fuzzyMatchThreshold", req.getFuzzyMatchThreshold());
+		putAsStringIfNotNull(properties, "latitude", req.getLatitude());
+		putAsStringIfNotNull(properties, "longitude", req.getLongitude());
 		return properties;
 	}
 
@@ -310,31 +313,13 @@ public class GeoJsonRule {
 		return featureCollection;
 	}
 
-	public static Object findByPoint(double latitude, double longitude, Boolean verbose) {
-		if(verbose){
-			List<Location> result = LocationRule.findByPoint(latitude, longitude);
-			Request req = new Request();
-			req.setExcludedFeatureFields(Arrays.asList(new String[] { toPropertiesPath(FeatureKey.CHILDREN.valueOf()),
-					FeatureKey.GEOMETRY.valueOf() }));
-			FeatureCollection response = toFeatureCollection(req, result);
-			putAsStringIfNotNull(response.getProperties(), "latitude", latitude);
-			putAsStringIfNotNull(response.getProperties(), "longitude", longitude);
-			putAsStringIfNotNull(response.getProperties(), "verbose", verbose);
-
-			return response;
-		}
-		else{
-			List<Long> gids = toListOfLong(GeometryRule.findByPoint(latitude, longitude));
-			Map<String, Object> response = new HashMap<>();
-			response.put("gids", gids);
-			Map<String, Object> properties = new HashMap<>();
-			putAsStringIfNotNull(properties, "resultSize", gids.size());
-			putAsStringIfNotNull(properties, "latitude", latitude);
-			putAsStringIfNotNull(properties, "longitude", longitude);
-			putAsStringIfNotNull(properties, "verbose", verbose);
-			response.put(FeatureKey.PROPERTIES.valueOf(), properties);
-			return response;			
-		}
+	public static Object findByPoint(String onlyFeatureFields, String excludedFeatureFields, double latitude, double longitude) {
+		
+		Request req = RequestRule.toFindByPointRequest(onlyFeatureFields, excludedFeatureFields, latitude, longitude);
+		List<Location> result = LocationRule.findByPoint(latitude, longitude);
+		FeatureCollection response = toFeatureCollection(req, result);
+		response.setProperties(toProperties(req, result.size()));
+		return response;
 	}
 
 	/**
@@ -436,13 +421,6 @@ public class GeoJsonRule {
 			return node.get(key).asBoolean();
 		else
 			return defaultValue;
-	}
-	
-	private static List<Long> toListOfLong(List<BigInteger> list) {
-		List<Long> result = new ArrayList<>();
-		for (BigInteger gid : list)
-			result.add(gid.longValue());
-		return result;
 	}
 	
 	private static void throwNoQueryTermExp() {

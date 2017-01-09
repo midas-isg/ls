@@ -259,7 +259,7 @@ public class LocationServices extends Controller {
 			
 			@ApiParam(
 					value = "If false, returns only gids</br>"
-							+ "NOT supported as of version 1.1, use _onlyFeatureFields=properties.gid", 
+							+ "NOT supported as of version 1.1, use _onlyFeatureFields=properties.gid for non-verbose results", 
 					defaultValue = "true"
 			) 
 			@QueryParam("verbose") 
@@ -477,7 +477,10 @@ public class LocationServices extends Controller {
 			value = "Returns locations by coordinate search", 
 			notes = "This endpoint returns locations whose geometry encompasses the submitting coordinate. "
 			+ "The coordinate is defined by latitude (lat) and longtitude (long). "
-			+ "Note: response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response). ", 
+			+ "</br>Note:</br>"
+			+ " In version 1.0, response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response).</br>"
+			+ " As of version 1.1, no response field is excluded by default. Use _onlyFeatureFields or _excludedFeatureFields to include/remove fields.</br>"
+			+ " Some parameters are only available in version 1.1 and later. See parameter descriptions.", 
 			response = FeatureCollection.class
 	)
 	@ApiResponses(value = {
@@ -489,10 +492,44 @@ public class LocationServices extends Controller {
 			double lat,
 			@ApiParam(value = "Longitude in degree", required = true) @QueryParam("long") 
 			double lon,
-			@ApiParam(value = "If false, returns only gids", defaultValue = "true") @QueryParam("verbose") 
-			Boolean verbose
+			@ApiParam(value = "If false, returns only gids</br>"
+					+ "NOT supported as of version 1.1, use _onlyFeatureFields=properties.gid for non-verbose results",
+					defaultValue = "true")
+			@QueryParam("verbose") 
+			Boolean verbose,
+			
+			@ApiParam(
+				value = "Includes only the given fields in feature objects (as of version 1.1)", 
+				required = false
+			) 
+			@QueryParam("_onlyFeatureFields")
+			String onlyFeatureFields,
+					
+			@ApiParam(
+				value = "Excludes the given fields from feature objects (as of version 1.1)", 
+				required = false
+			) 
+			@QueryParam("_excludedFeatureFields")
+			String excludedFeatureFields,
+			
+			@ApiParam(
+				value = "API version", 
+				required = false, defaultValue = OLD_VERSION
+			) 
+			@QueryParam("_v") 
+			String version
 	) {
-		Object result = GeoJsonRule.findByPoint(lat, lon, verbose);
+		Object result;
+		switch (version) {
+		case OLD_VERSION:
+			result = v1.interactors.GeoJsonRule.findByPoint(lat, lon, verbose);
+			break;
+		case CURRENT_VERSION:
+			result = GeoJsonRule.findByPoint(onlyFeatureFields, excludedFeatureFields, lat, lon);
+			break;
+		default:
+			return badVersion(version);
+		}
 		return ok(Json.toJson(result));
 	}
 
@@ -503,7 +540,7 @@ public class LocationServices extends Controller {
 	@Deprecated
 	@Transactional
 	public Result findByLocationPoint(double lat, double lon, boolean verbose) {
-		return findByPoint(lat, lon, verbose);
+		return findByPoint(lat, lon, verbose, null, null, null);
 	}
 
 	@Transactional

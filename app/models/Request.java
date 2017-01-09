@@ -21,6 +21,8 @@ public class Request {
 	private List<String> excludedFeatureFields;
 	private Boolean fuzzyMatch;
 	private Float fuzzyMatchThreshold = 0.3F;
+	private Double latitude;
+	private Double longitude;
 
 	public String getQueryTerm() {
 		return queryTerm;
@@ -148,5 +150,21 @@ public class Request {
 
 	public void setFuzzyMatchThreshold(Float fuzzyMatchThreshold) {
 		this.fuzzyMatchThreshold = fuzzyMatchThreshold;
+	}
+
+	public Double getLatitude() {
+		return latitude;
+	}
+
+	public void setLatitude(Double latitude) {
+		this.latitude = latitude;
+	}
+
+	public Double getLongitude() {
+		return longitude;
+	}
+
+	public void setLongitude(Double longitude) {
+		this.longitude = longitude;
 	}
 }
