@@ -6,21 +6,17 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import dao.LocationDao;
 import dao.entities.AltName;
 import dao.entities.Location;
-import gateways.configuration.ConfReader;
 import models.FancyTreeNode;
 import play.Logger;
 import play.db.jpa.JPA;
 import play.libs.Akka;
 import scala.concurrent.duration.Duration;
-import akka.util.*;
-import akka.actor.ActorSystem;
 
 public class LocationProxyRule {
 	private static Map<Long, Location> gid2location = null;
@@ -144,7 +140,7 @@ public class LocationProxyRule {
 		String toBeRemoved;
 		String usedName = "";
 		List<String> remainingNames;
-		List<String> tokenMatches = new ArrayList();
+		List<String> tokenMatches = new ArrayList<>();
 		boolean matches;
 		Map<String, String> map;
 		String cleanedInputString = removeNonWordCharacters(prefixName);

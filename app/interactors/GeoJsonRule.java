@@ -271,20 +271,12 @@ public class GeoJsonRule {
 		return GeoOutputRule.toFeatureGeometry(geometry);
 	}
 
-	public static Object filterByTerm(String queryTerm, Integer limit,
-			Integer offset, Boolean searchOtherNames, Boolean verbose) {
-		Request req = toFindByNameRequest(queryTerm, searchOtherNames, limit,
-				offset, verbose);
-		if (req.getVerbose()){
-			List<Location> result = LocationRule.findByTerm(req);
-			req.setExcludedFeatureFields(Arrays.asList(new String[] { FeatureKey.GEOMETRY.valueOf() }));
-			return toFeatureCollection(req, result);
-		}
-		else {
-			List<Long> gids = findGids(req);
-			return toNonVerboseResponse(req, gids);
-		}
-			
+	public static Object filterByTerm(String onlyFeatureFields, String excludedFeatureFields,
+			String queryTerm, Integer limit, Integer offset, Boolean searchOtherNames) {
+		if (queryTerm == null)
+			throwNoQueryTermExp();
+		Request req = RequestRule.toFilterByTermRequest(onlyFeatureFields, excludedFeatureFields, queryTerm, limit, offset, searchOtherNames);
+		return findByTerm(req);
 	}
 
 	public static List<Object> findByTerm(ArrayNode queryArray) {
@@ -293,6 +285,8 @@ public class GeoJsonRule {
 		Request req;
 		for (JsonNode query : queryArray) {
 			req = RequestRule.toFindByTermRequest(query);
+			if(req.getQueryTerm() == null)
+				throwNoQueryTermExp();
 			obj = findByTerm(req);
 			result.add(obj);
 		}
@@ -300,41 +294,20 @@ public class GeoJsonRule {
 	}
 
 	public static Object findByTerm(Request req) {
-		if(req.getVerbose()){
-			List<Location> result = LocationRule.findByTerm(req);
-			return toFeatureCollection(req, result);
-		}
-		else {
-			List<Long> gids = findGids(req);
-			return toNonVerboseResponse(req, gids);
-		}
-		
+		List<Location> result = LocationRule.findByTerm(req);
+		return toFeatureCollection(req, result);
 	}
 	
-	public static Object findByTypeId(Request req) {
-		if(req == null)
-			return null;
-		if(req.getLocationTypeIds() == null || req.getLocationTypeIds().isEmpty())
-			return null;
-		long typeId = req.getLocationTypeIds().get(0);
-		List<Location> locations = LocationRule.findByTypeId(typeId, req.getLimit(), req.getOffset());
+	public static Object findByTypeId(String onlyFeatureFields, String excludedFeatureFields, Long typeId,
+			Integer limit, Integer offset) {
+		if(typeId == null)
+			throw new BadRequest("\"" + "typeId" + "\" is requierd!");
+		Request req = RequestRule.toFindByTypeRequest(onlyFeatureFields, excludedFeatureFields, typeId, limit, offset);
+		List<Location> locations = LocationRule.findByTypeId(typeId, limit, offset);
 		FeatureCollection featureCollection = toFeatureCollection(locations, req);
 		Map<String, Object> properties = toProperties(req, locations.size());
 		featureCollection.setProperties(properties);
 		return featureCollection;
-	}
-
-	private static Map<String, Object> toNonVerboseResponse(Request req, List<Long> gids) {
-		Map<String, Object> result = new HashMap<>();
-		result.put("gids", gids);
-		result.put(FeatureKey.PROPERTIES.valueOf(), toProperties(req, gids.size()));
-		return result;
-	}
-
-	private static List<Long> findGids(Request req) {
-		List<BigInteger> list = LocationRule.findGids(req);
-		List<Long> result = toListOfLong(list);
-		return result;
 	}
 
 	public static Object findByPoint(double latitude, double longitude, Boolean verbose) {
@@ -362,20 +335,6 @@ public class GeoJsonRule {
 			response.put(FeatureKey.PROPERTIES.valueOf(), properties);
 			return response;			
 		}
-	}
-
-	private static Request toFindByNameRequest(String queryTerm,
-			Boolean searchOtherNames, Integer limit, Integer offset, Boolean verbose) {
-		Request req = new Request();
-		if (queryTerm == null)
-			throw new BadRequest("\"" + "queryTerm" + "\" key is requierd!");
-		req.setQueryTerm(queryTerm);
-		req.setSearchNames(true);
-		req.setSearchOtherNames(searchOtherNames);
-		req.setLimit(limit);
-		req.setOffset(offset);
-		req.setVerbose(verbose);
-		return req;
 	}
 
 	/**
@@ -484,5 +443,9 @@ public class GeoJsonRule {
 		for (BigInteger gid : list)
 			result.add(gid.longValue());
 		return result;
+	}
+	
+	private static void throwNoQueryTermExp() {
+		throw new BadRequest("\"" + "queryTerm" + "\" key is requierd!");
 	}
 }

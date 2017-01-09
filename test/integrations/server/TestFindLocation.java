@@ -252,6 +252,27 @@ public class TestFindLocation {
 		response = get(url);
 		jsonResp = response.asJson();
 		assertAreEqual(jsonResp.get("features").size(), 0);
+		
+		searchOtherNames = true;
+		url = Server.makeTestUrl(basePath + "?q=an%20otherName%20for%20test&limit=2&offset=0&searchOtherNames="
+				+ searchOtherNames + "&_onlyFeatureFields=properties.gid,properties.name&_v=" + CURRENT_VERSION);
+		response = get(url);
+		jsonResp = response.asJson();
+		assertAreEqual(jsonResp.get("features").size(), 2);
+		fieldNames = toArray(jsonResp.get("features").get(0).get("properties").fieldNames());
+		assertContainsOnly(fieldNames, new String[] { "name", "gid" });
+		
+		searchOtherNames = true;
+		url = Server.makeTestUrl(basePath + "?q=an%20otherName%20for%20test&limit=2&offset=0&searchOtherNames="
+				+ searchOtherNames + "&_excludedFeatureFields=geometry,properties.children&_v=" + CURRENT_VERSION);
+		response = get(url);
+		jsonResp = response.asJson();
+		assertAreEqual(jsonResp.get("features").size(), 2);
+		fieldNames = toArray(jsonResp.get("features").get(0).fieldNames());
+		assertContainsOnly(fieldNames, new String[] { "properties", "type", "bbox", "repPoint" });
+		fieldNames = toArray(jsonResp.get("features").get(0).get("properties").fieldNames());
+		assertContainsOnly(fieldNames, new String[] { "name", "startDate", "endDate", "otherNames", "codes", "locationDescription",
+				"locationTypeName", "lineage", "rank", "headline", "gid", "matchedTerm", "related" });
 	}
 
 	private void findByIdTest() {

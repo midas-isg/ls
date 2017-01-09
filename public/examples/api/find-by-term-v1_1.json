@@ -13,6 +13,5 @@
  "fuzzyMatch":false,
  "fuzzyMatchThreshold":0.3,
  "limit":10,
- "offset":0,
- "verbose":true
+ "offset":0
 }

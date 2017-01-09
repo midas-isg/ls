@@ -13,7 +13,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import models.FeatureKey;
 import models.Request;
-import models.exceptions.BadRequest;
 
 public class RequestRule {
 
@@ -22,8 +21,6 @@ public class RequestRule {
 		Boolean value;
 		if (containsKey(node, "queryTerm"))
 			req.setQueryTerm(node.get("queryTerm").asText());
-		else
-			throw new BadRequest("\"" + "queryTerm" + "\" key is requierd!");
 		setStartDate(node, req, "startDate");
 		setEndDate(node, req, "endDate");
 		if (containsKey(node, "locationTypeIds"))
@@ -52,7 +49,7 @@ public class RequestRule {
 			req.setOnlyFeatureFields(list);
 		}
 
-		if (containsKey(node, "excludedFeatureFields")) {			
+		if (containsKey(node, "excludedFeatureFields")) {
 			JsonNode jsonNode = node.get("excludedFeatureFields");
 			List<String> list = toListOfString(jsonNode);
 			req.setExcludedFeatureFields(list);
@@ -65,21 +62,23 @@ public class RequestRule {
 		return req;
 	}
 
-	public static Request toRequest(String onlyFeatureFields, String excludedFeatureFields, Long typeId, Integer limit,
-			Integer offset) {
-		Request request = new Request();
-		List<String> list = parse(onlyFeatureFields);
-		request.setOnlyFeatureFields(list);
-		list = parse(excludedFeatureFields);
-		request.setExcludedFeatureFields(list);
-		request.setLimit(limit);
-		request.setOffset(offset);
+	public static Request toFindByTypeRequest(String onlyFeatureFields, String excludedFeatureFields, Long typeId,
+			Integer limit, Integer offset) {
+		Request request = toRequest(onlyFeatureFields, excludedFeatureFields, limit, offset);
 		request.setLocationTypeIds(Arrays.asList(new Long[] { typeId }));
 		return request;
 	}
 
 	public static Request toRequest(String onlyFeatureFields, String excludedFeatureFields) {
-		return toRequest(onlyFeatureFields, excludedFeatureFields, null, null, null);
+		return toRequest(onlyFeatureFields, excludedFeatureFields, null, null);
+	}
+
+	public static Request toFilterByTermRequest(String onlyFeatureFields, String excludedFeatureFields,
+			String queryTerm, Integer limit, Integer offset, Boolean searchOtherNames) {
+		Request request = toRequest(onlyFeatureFields, excludedFeatureFields, limit, offset);
+		request.setSearchOtherNames(searchOtherNames);
+		request.setQueryTerm(queryTerm);
+		return request;
 	}
 
 	public static boolean isRequestedFeatureField(Request req, String key) {
@@ -108,6 +107,18 @@ public class RequestRule {
 				return true;
 		}
 		return false;
+	}
+
+	private static Request toRequest(String onlyFeatureFields, String excludedFeatureFields, Integer limit,
+			Integer offset) {
+		Request request = new Request();
+		List<String> list = parse(onlyFeatureFields);
+		request.setOnlyFeatureFields(list);
+		list = parse(excludedFeatureFields);
+		request.setExcludedFeatureFields(list);
+		request.setLimit(limit);
+		request.setOffset(offset);
+		return request;
 	}
 
 	private static boolean isExcluded(Request req, String key) {

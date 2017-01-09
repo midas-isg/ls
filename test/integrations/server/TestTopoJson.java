@@ -1,23 +1,19 @@
 package integrations.server;
 
-import static org.fest.assertions.Assertions.assertThat;
 import static play.mvc.Http.HeaderNames.LOCATION;
-import static play.mvc.Http.Status.BAD_REQUEST;
 import static play.mvc.Http.Status.OK;
 import static play.test.Helpers.route;
 import static suites.Helper.assertAreEqual;
-import static suites.Helper.assertContainsAll;
-import interactors.KmlRule;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
-import play.Logger;
+import com.fasterxml.jackson.databind.JsonNode;
+
+import controllers.routes;
+import interactors.KmlRule;
 import play.api.mvc.Call;
 import play.libs.Json;
 import play.libs.ws.WS;
@@ -26,10 +22,6 @@ import play.libs.ws.WSResponse;
 import play.mvc.Http.RequestBuilder;
 import play.mvc.Result;
 import play.test.Helpers;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import controllers.routes;
 
 public class TestTopoJson {
 

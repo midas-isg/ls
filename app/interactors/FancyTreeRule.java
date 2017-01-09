@@ -8,7 +8,6 @@ import java.util.List;
 import dao.entities.Data;
 import dao.entities.Location;
 import models.FancyTreeNode;
-import play.Logger;
 
 public class FancyTreeRule {
 

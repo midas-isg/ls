@@ -35,7 +35,7 @@ public class TestRequestRule {
 		assertContainsAll(req.getOnlyFeatureFields().toArray(), includedFields);
 		assertContainsAll(req.getExcludedFeatureFields().toArray(), excludedFields);
 		
-		req = RequestRule.toRequest(onlyFeatureFields, excludedFeatureFields, typeId, limit, offset);
+		req = RequestRule.toFindByTypeRequest(onlyFeatureFields, excludedFeatureFields, typeId, limit, offset);
 		assertAreEqual(req.getLimit(), limit);
 		assertAreEqual(req.getOffset(), offset);
 		assertThat(req.getLocationTypeIds()).contains(typeId);		
