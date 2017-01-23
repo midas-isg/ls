@@ -43,8 +43,8 @@ import play.mvc.Result;
 
 @Api(value = "/api/locations", description = "Endpoint for locations")
 public class LocationServices extends Controller {
-	public static final String CURRENT_VERSION = "1.1";
-	public static final String OLD_VERSION = "1.0";
+	public static final String CURRENT_VERSION = "2";
+	public static final String OLD_VERSION = "1";
 	public static final String FORMAT_GEOJSON = "geojson";
 	public static final String FORMAT_GEOJSONP = "jsonp";
 	public static final String FORMAT_APOLLOJSON = "json";
@@ -53,16 +53,16 @@ public class LocationServices extends Controller {
 	public static final String FORMAT_DEFAULT = "geojson";
 	private static final String UNIQUE_VIOLATION = "23505";
 	private static final String findBulkEx = "find-bulk.json";
-	private static final String findBulkExV1_1 = "find-bulk-v1_1.json";
+	private static final String findBulkExV2 = "find-bulk-v2.json";
 	private static final String findBulkExBody = "Only \"queryTerm\" is required. See an example of body for vesrsion "
 			+ CURRENT_VERSION + " at "
-			+ "<a href='assets/examples/api/" + findBulkExV1_1 + "'>" + findBulkExV1_1 + "</a></br>"
+			+ "<a href='assets/examples/api/" + findBulkExV2 + "'>" + findBulkExV2 + "</a></br>"
 			+ "Vesrion " + OLD_VERSION + " body example: <a href='assets/examples/api/" + findBulkEx + "'>" + findBulkEx + "</a> ";;
 	private static final String findByTermEx = "find-by-term.json";
-	private static final String findByTermExV1_1 = "find-by-term-v1_1.json";
+	private static final String findByTermExV2 = "find-by-term-v2.json";
 	private static final String findByTermExBody = "Only \"queryTerm\" is required. See a request example for vesrsion "
 			+ CURRENT_VERSION + " at "
-			+ "<a href='assets/examples/api/" + findByTermExV1_1 + "'>" + findByTermExV1_1 + "</a></br>"
+			+ "<a href='assets/examples/api/" + findByTermExV2 + "'>" + findByTermExV2 + "</a></br>"
 			+ "Vesrion " + OLD_VERSION + " request example: <a href='assets/examples/api/" + findByTermEx + "'>" + findByTermEx + "</a> ";
 	private static final String findbyGeomEx = "AuMaridiTown.geojson";
 	private static final String findbyGeomExBody = "See an example of body at "
@@ -194,9 +194,9 @@ public class LocationServices extends Controller {
 			value = "Returns locations by term search", 
 			notes = "This endpoint returns locations whose name matches the requested search term (queryTerm or q). "
 			+ "To do pagination, use 'limit' and 'offset'.</br>"
-			+ "Note: In vestion 1.0, response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response).</br>"
-			+ "As of version 1.1, no response fields is excluded by default. Use _onlyFeatureFields or _excludedFeatureFields for filtering fields.</br>"
-			+ "Some parameters are only available in version 1.1 and later. See parameter descriptions.",
+			+ "Note: In vestion 1, response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response).</br>"
+			+ "As of version 2, no response fields is excluded by default. Use _onlyFeatureFields or _excludedFeatureFields for filtering fields.</br>"
+			+ "Some parameters are only available in version 2 and later. See parameter descriptions.",
 			response = FeatureCollection.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = OK, message = "Successfully returned", response = FeatureCollection.class),
@@ -234,7 +234,7 @@ public class LocationServices extends Controller {
 			Boolean searchOtherNames,
 			
 			@ApiParam(
-					value = "Includes only the given fields in feature objects (available as of version 1.1)</br>"
+					value = "Includes only the given fields in feature objects (available as of version 2)</br>"
 							+ "Example: _onlyFeatureFields= properties.gid, properties.name", 
 					required = false
 			) 
@@ -242,7 +242,7 @@ public class LocationServices extends Controller {
 			String onlyFeatureFields,
 			
 			@ApiParam(
-					value = "Excludes the given fields from feature objects (available as of version 1.1)</br>"
+					value = "Excludes the given fields from feature objects (available as of version 2)</br>"
 							+ "Example: _excludedFeatureFields= geometry, properties.children", 
 					required = false
 			) 
@@ -259,7 +259,7 @@ public class LocationServices extends Controller {
 			
 			@ApiParam(
 					value = "If false, returns only gids</br>"
-							+ "NOT supported as of version 1.1, use _onlyFeatureFields=properties.gid for non-verbose results", 
+							+ "NOT supported as of version 2, use _onlyFeatureFields=properties.gid for non-verbose results", 
 					defaultValue = "true"
 			) 
 			@QueryParam("verbose") 
@@ -296,12 +296,12 @@ public class LocationServices extends Controller {
 			value = "Finds locations by name, other-names, or code", 
 			notes = "Receives a single query as shown in the example.</br>"
 			+ "Note:</br>"
-			+ "In version 1.0, response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response).</br>"
-			+ "In version 1.0, properties.children is excluded from features.</br>"
-			+ "As of version 1.1, Use _onlyFeatureFields or _excludedFeatureFields for filtering fields.</br>"
-			+ "As of version 1.1, request filter-key names changed: 'includeOnly' -> 'onlyFeatureFields' & 'exclude' -> 'excludedFeatureFields'.</br>"
-			+ "As of version 1.1, request filter syntax changed. Refer to <a href='assets/examples/api/" + findByTermExV1_1 + "'>" + findByTermExV1_1 + "</a>"
-			+ "As of version 1.1, \"verbose\" option is not suppoerted. Use \"_onlyFeatureFields\":\"properties.gid\" for non-verbose results.", 
+			+ "In version 1, response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response).</br>"
+			+ "In version 1, properties.children is excluded from features.</br>"
+			+ "As of version 2, Use _onlyFeatureFields or _excludedFeatureFields for filtering fields.</br>"
+			+ "As of version 2, request filter-key names changed: 'includeOnly' -> 'onlyFeatureFields' & 'exclude' -> 'excludedFeatureFields'.</br>"
+			+ "As of version 2, request filter syntax changed. Refer to <a href='assets/examples/api/" + findByTermExV2 + "'>" + findByTermExV2 + "</a>"
+			+ "As of version 2, \"verbose\" option is not suppoerted. Use \"_onlyFeatureFields\":\"properties.gid\" for non-verbose results.", 
 			response = FeatureCollection.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = OK, message = "Successfully returned", response = FeatureCollection.class),
@@ -365,11 +365,11 @@ public class LocationServices extends Controller {
 			value = "Returns locations requested in bulk", 
 			notes = "This endpoint returns locations match with the requested search terms "
 			+ "(queryTerm[required], start, end, locationTypeIds, etc. (see example file)).</br>"
-			+ "Note: In version 1.0, response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response).</br>"
-			+ "In version 1.0, properties.children is excluded from features.</br>"
-			+ "As of version 1.1, no response fields is excluded by default.</br>"
-			+ "As of version 1.1, request filter-key names changed: 'includeOnly' -> 'onlyFeatureFields' & 'exclude' -> 'excludedFeatureFields'.</br>"
-			+ "As of version 1.1, request filter syntax changed. Refer to <a href='assets/examples/api/" + findBulkExV1_1 + "'>" + findBulkExV1_1 + "</a>",
+			+ "Note: In version 1, response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response).</br>"
+			+ "In version 1, properties.children is excluded from features.</br>"
+			+ "As of version 2, no response fields is excluded by default.</br>"
+			+ "As of version 2, request filter-key names changed: 'includeOnly' -> 'onlyFeatureFields' & 'exclude' -> 'excludedFeatureFields'.</br>"
+			+ "As of version 2, request filter syntax changed. Refer to <a href='assets/examples/api/" + findBulkExV2 + "'>" + findBulkExV2 + "</a>",
 			response = FeatureCollection.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = OK, message = "Successfully returned", response = FeatureCollection.class),
@@ -415,7 +415,7 @@ public class LocationServices extends Controller {
 	@Deprecated
 	@Transactional
 	public Result findBulk() {
-		List<Object> result = GeoJsonRule.findBulk((ArrayNode)request().body().asJson());
+		List<Object> result = v1.interactors.GeoJsonRule.findBulk((ArrayNode)request().body().asJson());
 		return ok(toJson(result));
 	}
 	
@@ -478,9 +478,9 @@ public class LocationServices extends Controller {
 			notes = "This endpoint returns locations whose geometry encompasses the submitting coordinate. "
 			+ "The coordinate is defined by latitude (lat) and longtitude (long). "
 			+ "</br>Note:</br>"
-			+ " In version 1.0, response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response).</br>"
-			+ " As of version 1.1, no response field is excluded by default. Use _onlyFeatureFields or _excludedFeatureFields to include/remove fields.</br>"
-			+ " Some parameters are only available in version 1.1 and later. See parameter descriptions.", 
+			+ " In version 1, response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response).</br>"
+			+ " As of version 2, no response field is excluded by default. Use _onlyFeatureFields or _excludedFeatureFields to include/remove fields.</br>"
+			+ " Some parameters are only available in version 2 and later. See parameter descriptions.", 
 			response = FeatureCollection.class
 	)
 	@ApiResponses(value = {
@@ -493,20 +493,20 @@ public class LocationServices extends Controller {
 			@ApiParam(value = "Longitude in degree", required = true) @QueryParam("long") 
 			double lon,
 			@ApiParam(value = "If false, returns only gids</br>"
-					+ "NOT supported as of version 1.1, use _onlyFeatureFields=properties.gid for non-verbose results",
+					+ "NOT supported as of version 2, use _onlyFeatureFields=properties.gid for non-verbose results",
 					defaultValue = "true")
 			@QueryParam("verbose") 
 			Boolean verbose,
 			
 			@ApiParam(
-				value = "Includes only the given fields in feature objects (as of version 1.1)", 
+				value = "Includes only the given fields in feature objects (as of version 2)", 
 				required = false
 			) 
 			@QueryParam("_onlyFeatureFields")
 			String onlyFeatureFields,
 					
 			@ApiParam(
-				value = "Excludes the given fields from feature objects (as of version 1.1)", 
+				value = "Excludes the given fields from feature objects (as of version 2)", 
 				required = false
 			) 
 			@QueryParam("_excludedFeatureFields")
@@ -814,8 +814,8 @@ public class LocationServices extends Controller {
 		nickname = "findByLocationTypeId",
 		value = "Returns locations with the specified type-id",
 		notes = "This endpoint returns locations with the requested type-id.</br>"
-				+ "Note: In version 1.0, 'geometry' and 'property.children' are removed from response.</br>"
-				+ "Some parameters are only available in version 1.1 and later. See parameter descriptions.",
+				+ "Note: In version 1, 'geometry' and 'property.children' are removed from response.</br>"
+				+ "Some parameters are only available in version 2 and later. See parameter descriptions.",
 		response = FeatureCollection.class
 	)
 	@ApiResponses(value = {
@@ -831,28 +831,28 @@ public class LocationServices extends Controller {
 		Long typeId,
 		
 		@ApiParam(
-			value = "Includes only the given fields in feature objects (as of version 1.1)", 
+			value = "Includes only the given fields in feature objects (as of version 2)", 
 			required = false
 		) 
 		@QueryParam("_onlyFeatureFields")
 			String onlyFeatureFields,
 			
 		@ApiParam(
-			value = "Excludes the given fields from feature objects (as of version 1.1)", 
+			value = "Excludes the given fields from feature objects (as of version 2)", 
 			required = false
 		) 
 		@QueryParam("_excludedFeatureFields")
 			String excludedFeatureFields,
 			
 		@ApiParam(
-			value = "Maximum number of locations to return (as of version 1.1)", 
+			value = "Maximum number of locations to return (as of version 2)", 
 			required = true, defaultValue = "10"
 		) 
 		@QueryParam("limit") 
 			Integer limit,
 				
 		@ApiParam(
-			value = "Page offset if number of locations exceeds limit (as of version 1.1)", 
+			value = "Page offset if number of locations exceeds limit (as of version 2)", 
 			required = true, defaultValue = "0"
 		) 
 		@QueryParam("offset") 

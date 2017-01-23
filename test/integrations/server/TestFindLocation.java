@@ -43,7 +43,7 @@ public class TestFindLocation {
 	private final String findByTermRequestFile3 = "test/test-find-by-term-request-3.json";
 	private final String fuzzyMatchRequest1 = "test/fuzzy-match-request-1.json";
 	private final String findBulkRequestFile1 = "test/test-find-bulk-request-1.json";
-	private final String CURRENT_VERSION = "1.1";
+	private final String CURRENT_VERSION = "2";
 
 	public static Runnable test() {
 		return () -> newInstance().testFindLocation();
