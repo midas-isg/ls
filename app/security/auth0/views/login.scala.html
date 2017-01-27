@@ -1,0 +1,54 @@
+@import security.auth0.Auth0Aid
+@(aid:Auth0Aid, callbackUrl:String, userId:String)
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Log In - SPEW Web</title>
+    </head>
+    <body>
+        <script src="https://cdn.auth0.com/w2/auth0-6.8.js"></script>
+        <script type="text/javascript">
+        (function() {
+            var auth0 = new Auth0({
+                domain: '@aid.domain',
+                clientID: '@aid.clientId',
+                callbackURL: '@callbackUrl'
+            });
+
+            auth0.getSSOData(function (err, data) {
+                var loggedInUserId = '@userId';
+                if (data && data.sso === true) {
+                    console.log('SSO: an Auth0 SSO session already exists');
+                    if (loggedInUserId !== data.lastUsedUserID) {
+                        console.log("SSO Session but NOT locally authenticated ");
+                        auth0.login({
+                            // state: '$ {state}',
+                            scope: 'openid name email picture'
+                        }, function (err) {
+                            console.error('Error logging in: ' + err);
+                        });
+                    } else {
+                        console.log("SSO Session and locally authenticated ");
+                        window.location = CONTEXT;
+                    }
+                } else if (loggedInUserId){
+                    console.log("NO SSO Session but locally authenticated -> log them out locally");
+                    window.location = CONTEXT + '/logout';
+                } else {
+                    console.log("NO SSO Session and NOT locally authenticated ");
+                    var title = "Apollo LS";
+                    var message = "Please login to use the services";
+                    var hash = window.location.hash.substr(1);
+                    if (hash.match('^logout')){
+                        message = "Logged out successfully.";
+                    }
+                    window.location = '@aid.hubWsUrl/sso?returnToUrl='
+                            + encodeURIComponent(window.location) + '&title=' + title + '&message=' + message;
+                }
+            });
+        })();
+        </script>
+    </body>
+</html>
+
