@@ -20,11 +20,4 @@ public class User extends UserProfile {
         final List<String> roles = (List<String>) rolesObj;
         return new ArrayList<>(roles);
     }
-
-    public boolean hasAffiliation(){
-        final Map<String, Object> extraInfo = getExtraInfo();
-        if (extraInfo == null)
-            return false;
-        return extraInfo.get("affiliation") != null;
-    }
 }

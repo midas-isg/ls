@@ -1,6 +1,5 @@
 package security;
 
-import play.libs.F;
 import play.libs.F.Promise;
 import play.mvc.Action;
 import play.mvc.Http.Context;
@@ -10,12 +9,9 @@ import security.Secured.Authority;
 import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
 import static common.RuntimeExceptionReThrower.tryTo;
 import static java.util.Arrays.stream;
-import static java.util.concurrent.CompletableFuture.completedFuture;
 import static play.mvc.Security.Authenticator;
 
 public class SecuredAction extends Action<Secured> {
@@ -37,23 +33,23 @@ public class SecuredAction extends Action<Secured> {
         final User user = provider.getUser(ctx.session());
         return isAuthenticated(user)
                 ? authorizeUser(ctx, user)
-                : null; //theCallWasNotAuthenticated(ctx);
+                : theCallWasNotAuthenticated(ctx);
     }
 
     private Promise<Result> authorizeUser(Context ctx, User theUser) {
         final Authority[] requiredAuthorities = toRequiredAuthorities();
         return hasAuthority(theUser, requiredAuthorities)
                 ? tryTo(()->delegate.call(ctx))
-                : null; //theUserHasNoAuthority(requiredAuthorities);
+                : theUserHasNoAuthority(requiredAuthorities);
     }
 
     private boolean isAuthenticated(User user) {
         return user != null;
     }
 
-    /*private CompletableFuture<Promise<Result>> theCallWasNotAuthenticated(Context ctx) {
-        return completedFuture(authenticator.onUnauthorized(ctx));
-    }*/
+    private Promise<Result> theCallWasNotAuthenticated(Context ctx) {
+        return Promise.pure(authenticator.onUnauthorized(ctx));
+    }
 
     private Authority[] toRequiredAuthorities() {
         return configuration.value();
@@ -67,8 +63,8 @@ public class SecuredAction extends Action<Secured> {
                 .anyMatch(roles::contains);
     }
 
-    private CompletionStage<Result> theUserHasNoAuthority(Authority[] requiredAuthorities) {
+    private Promise<Result> theUserHasNoAuthority(Authority[] requiredAuthorities) {
         final String message = "You need at least one of " + Arrays.toString(requiredAuthorities);
-        return completedFuture(forbidden(message));
+        return Promise.pure(forbidden(message));
     }
 }

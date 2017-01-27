@@ -3,8 +3,9 @@ package controllers;
 import play.mvc.Controller;
 import play.mvc.Result;
 import play.twirl.api.Html;
+import security.controllers.AdminController;
 
-public class Test extends Controller {
+public class Test extends AdminController {
     public Result acceptance() {
         return ok(views.html.tests.acceptance.render());
     }
