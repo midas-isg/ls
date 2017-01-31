@@ -1,6 +1,3 @@
-@import play.api.Play.current
-@import play.api.Play
-
 @(title: String, imports: Html = Html(""), version: String)(content: Html)
 
 <!DOCTYPE html>
@@ -11,7 +8,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<script type="application/javascript">
-			var context = '@Play.configuration.getString("play.http.context")',
+			var context = '@http_context()',
 				CONTEXT = context;
 		</script>
 		
@@ -66,9 +63,9 @@
 
 					<div id="navigator" class="collapse navbar-collapse">
 						<ul class="nav navbar-nav navbar-right">
-							<li><a href="/ls">Search</a></li>
-							<li><a href="/ls/create">Create</a></li>
-							<li><a href="/ls/logout">Log out</a></li>
+							<li><a href="@http_context()">Search</a></li>
+							<li><a href="@http_context()/create">Create</a></li>
+							<li><a href="@http_context()/logout">Log out</a></li>
 						</ul>
 					</div>
 				</div>
