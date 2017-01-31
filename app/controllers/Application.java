@@ -5,9 +5,10 @@ import play.Play;
 import play.db.jpa.Transactional;
 import play.mvc.Controller;
 import play.mvc.Result;
+import security.controllers.UserController;
 
 
-public class Application extends Controller {
+public class Application extends UserController {
 
    	private static String INFO = null;
 
