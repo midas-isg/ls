@@ -10,6 +10,7 @@
         <script src="https://cdn.auth0.com/w2/auth0-6.8.js"></script>
         <script type="text/javascript">
         (function() {
+            var CONTEXT = '@http_context()';
             var auth0 = new Auth0({
                 domain: '@aid.domain',
                 clientID: '@aid.clientId',
