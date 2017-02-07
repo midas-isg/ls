@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import play.Logger;
 import dao.entities.Data;
 import dao.entities.Location;
 import models.FancyTreeNode;

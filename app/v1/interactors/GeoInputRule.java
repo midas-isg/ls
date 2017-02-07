@@ -3,13 +3,6 @@ package v1.interactors;
 import java.util.ArrayList;
 import java.util.List;
 
-import play.Logger;
-import dao.entities.LocationGeometry;
-import models.geo.Feature;
-import models.geo.FeatureCollection;
-import models.geo.FeatureGeometry;
-import models.geo.GeometryCollection;
-
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.Geometry;
@@ -19,6 +12,12 @@ import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
+
+import dao.entities.LocationGeometry;
+import models.geo.Feature;
+import models.geo.FeatureCollection;
+import models.geo.FeatureGeometry;
+import play.Logger;
 
 public class GeoInputRule {
 	/** 

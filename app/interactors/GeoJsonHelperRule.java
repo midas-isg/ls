@@ -23,6 +23,7 @@ import dao.entities.LocationType;
 import dao.entities.SpewLink;
 import gateways.configuration.ConfReader;
 import models.FeatureKey;
+import static models.FeatureKey.asFullPath;
 import models.Request;
 import models.geo.Feature;
 import models.geo.FeatureCollection;
@@ -79,7 +80,7 @@ public class GeoJsonHelperRule {
 			return;
 		for (AltName name : otherNames) {
 			anotherName = new HashMap<>();
-			anotherName.put(FeatureKey.NAME.valueOf(), name.getName());
+			anotherName.put(FeatureKey.NAME, name.getName());
 			anotherName.put(KEY_LANG, name.getLanguage());
 			anotherName.put(KEY_DESC, name.getDescription());
 			names.add(anotherName);
@@ -141,7 +142,7 @@ public class GeoJsonHelperRule {
 			Map<String, Object> link = new HashMap<>();
 			link.put(KEY_SPEW_URL, spewBaseUrl + spLink.getUrl());
 			if (spLink.getLocation() != null)
-				link.put(FeatureKey.GID.valueOf(), spLink.getLocation().getGid());
+				link.put(FeatureKey.GID, spLink.getLocation().getGid());
 			links.add(link);
 		}
 		properties.put(key, links);
@@ -173,8 +174,8 @@ public class GeoJsonHelperRule {
 
 		List<Map<String, String>> codes = new ArrayList<>();
 		Map<String, String> code = new HashMap<>();
-		code.put(FeatureKey.CODE.valueOf(), location.getData().getCode());
-		code.put(FeatureKey.CODE_TYPE_NAME.valueOf(), location.getData().getCodeType().getName());
+		code.put(FeatureKey.CODE, location.getData().getCode());
+		code.put(FeatureKey.CODE_TYPE_NAME, location.getData().getCodeType().getName());
 		codes.add(code);
 		properties.put(string, codes);
 
@@ -183,9 +184,9 @@ public class GeoJsonHelperRule {
 			return;
 		for (Code c : otherCodes) {
 			Map<String, String> anotherCode = new HashMap<>();
-			anotherCode.put(FeatureKey.CODE.valueOf(), c.getCode());
+			anotherCode.put(FeatureKey.CODE, c.getCode());
 			if (c.getCodeType() != null)
-				anotherCode.put(FeatureKey.CODE_TYPE_NAME.valueOf(), c.getCodeType().getName());
+				anotherCode.put(FeatureKey.CODE_TYPE_NAME, c.getCodeType().getName());
 			codes.add(anotherCode);
 		}
 	}
@@ -197,8 +198,8 @@ public class GeoJsonHelperRule {
 		List<Map<String, Object>> list = new ArrayList<>();
 		for (Location l : locations) {
 			locationProperties = toProperties(l);
-			locationProperties.remove(FeatureKey.HEADLINE.valueOf());
-			locationProperties.remove(FeatureKey.RANK.valueOf());
+			locationProperties.remove(FeatureKey.HEADLINE);
+			locationProperties.remove(FeatureKey.RANK);
 			list.add(locationProperties);
 		}
 		properties.put(key, list);
@@ -216,41 +217,37 @@ public class GeoJsonHelperRule {
 			Logger.warn(gid + " has null data!");
 			return properties;
 		}
-		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.GID.valueOf())))
-			putAsStringIfNotNull(properties, FeatureKey.GID.valueOf(), gid);
-		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.NAME.valueOf())))
-			putAsStringIfNotNull(properties, FeatureKey.NAME.valueOf(), data.getName());
-		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.LOCATION_DESCRIPTION.valueOf())))
-			putAsStringIfNotNull(properties, FeatureKey.LOCATION_DESCRIPTION.valueOf(), data.getDescription());
-		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.HEADLINE.valueOf())))
-			putAsStringIfNotNull(properties, FeatureKey.HEADLINE.valueOf(), location.getHeadline());
-		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.RANK.valueOf())))
-			putAsStringIfNotNull(properties, FeatureKey.RANK.valueOf(), location.getRank());
-		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.START_DATE.valueOf())))
-			putAsStringIfNotNull(properties, FeatureKey.START_DATE.valueOf(), data.getStartDate());
-		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.END_DATE.valueOf())))
-			putAsStringIfNotNull(properties, FeatureKey.END_DATE.valueOf(), data.getEndDate());
-		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.LOCATION_TYPE_NAME.valueOf()))) {
+		if (isRequestedFeatureProperties(req, asFullPath(FeatureKey.GID)))
+			putAsStringIfNotNull(properties, FeatureKey.GID, gid);
+		if (isRequestedFeatureProperties(req, asFullPath(FeatureKey.NAME)))
+			putAsStringIfNotNull(properties, FeatureKey.NAME, data.getName());
+		if (isRequestedFeatureProperties(req, asFullPath(FeatureKey.LOCATION_DESCRIPTION)))
+			putAsStringIfNotNull(properties, FeatureKey.LOCATION_DESCRIPTION, data.getDescription());
+		if (isRequestedFeatureProperties(req, asFullPath(FeatureKey.HEADLINE)))
+			putAsStringIfNotNull(properties, FeatureKey.HEADLINE, location.getHeadline());
+		if (isRequestedFeatureProperties(req, asFullPath(FeatureKey.RANK)))
+			putAsStringIfNotNull(properties, FeatureKey.RANK, location.getRank());
+		if (isRequestedFeatureProperties(req, asFullPath(FeatureKey.START_DATE)))
+			putAsStringIfNotNull(properties, FeatureKey.START_DATE, data.getStartDate());
+		if (isRequestedFeatureProperties(req, asFullPath(FeatureKey.END_DATE)))
+			putAsStringIfNotNull(properties, FeatureKey.END_DATE, data.getEndDate());
+		if (isRequestedFeatureProperties(req, asFullPath(FeatureKey.LOCATION_TYPE_NAME))) {
 			LocationTypeDao locationTypeDao = new LocationTypeDao();
 			String locationTypeName = locationTypeDao.getLocationTypeName(data.getLocationType());
-			putAsStringIfNotNull(properties, FeatureKey.LOCATION_TYPE_NAME.valueOf(), locationTypeName);
+			putAsStringIfNotNull(properties, FeatureKey.LOCATION_TYPE_NAME, locationTypeName);
 		}
-		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.PARENT_GID.valueOf()))) {
+		if (isRequestedFeatureProperties(req, asFullPath(FeatureKey.PARENT_GID))) {
 			Location parent = location.getParent();
-			putAsStringIfNotNull(properties, FeatureKey.PARENT_GID.valueOf(), getGid(parent));
+			putAsStringIfNotNull(properties, FeatureKey.PARENT_GID, getGid(parent));
 		}
-		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.MATCHED_TERM.valueOf())))
-			putAsStringIfNotNull(properties,FeatureKey.MATCHED_TERM.valueOf(), location.getMatchedTerm());
+		if (isRequestedFeatureProperties(req, asFullPath(FeatureKey.MATCHED_TERM)))
+			putAsStringIfNotNull(properties,FeatureKey.MATCHED_TERM, location.getMatchedTerm());
 		return properties;
 	}
 
-	static String toPropertiesPath(String key) {
-		return FeatureKey.PROPERTIES.valueOf() + "." + key;
-	}
-
 	static LocationType findLocationType(FeatureCollection fc) {
-		String id = getString(fc, FeatureKey.LOCATION_TYPE_ID.valueOf());
-		String name = getString(fc, FeatureKey.LOCATION_TYPE_NAME.valueOf());
+		String id = getString(fc, FeatureKey.LOCATION_TYPE_ID);
+		String name = getString(fc, FeatureKey.LOCATION_TYPE_NAME);
 		if (id == null && name == null)
 			throw new RuntimeException("undefined location type by id or name");
 		LocationType type = null;
@@ -266,8 +263,8 @@ public class GeoJsonHelperRule {
 				type = LocationTypeRule.findByName(name);
 		} catch (Exception e2) {
 			throw new RuntimeException(
-					"Requested location type not found: " + FeatureKey.LOCATION_TYPE_ID.valueOf() + "=" 
-							+ id + ", " + FeatureKey.LOCATION_TYPE_NAME.valueOf() + "=" + name);
+					"Requested location type not found: " + FeatureKey.LOCATION_TYPE_ID + "=" 
+							+ id + ", " + FeatureKey.LOCATION_TYPE_NAME + "=" + name);
 		}
 		return type;
 	}

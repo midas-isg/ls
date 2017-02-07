@@ -97,15 +97,15 @@ public class RequestRule {
 		if (req == null || propertiesField == null)
 			return false;
 		boolean isRequested = isRequestedFeatureField(req, propertiesField);
-		boolean isPropertiesIncluded = Util.contains(req.getOnlyFeatureFields(), FeatureKey.PROPERTIES.valueOf());
-		boolean isPropertiesExcluded = Util.contains(req.getExcludedFeatureFields(), FeatureKey.PROPERTIES.valueOf());
+		boolean isPropertiesIncluded = Util.contains(req.getOnlyFeatureFields(), FeatureKey.PROPERTIES);
+		boolean isPropertiesExcluded = Util.contains(req.getExcludedFeatureFields(), FeatureKey.PROPERTIES);
 		return (isRequested || isPropertiesIncluded) && !isPropertiesExcluded;
 	}
 
 	public static boolean isPropertiesRequested(Request req) {
 		if (req == null)
 			return false;
-		String properties = FeatureKey.PROPERTIES.valueOf();
+		String properties = FeatureKey.PROPERTIES;
 		if (isExcluded(req, properties))
 			return false;
 		if (isIncluded(req, properties))

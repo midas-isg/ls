@@ -1,5 +1,6 @@
 package interactors;
 
+import static models.FeatureKey.asFullPath;
 import static org.fest.assertions.Assertions.assertThat;
 import static suites.Helper.assertAreEqual;
 import static suites.Helper.assertContainsAll;
@@ -14,21 +15,21 @@ import models.Request;
 
 public class TestRequestRule {
 
-	private String properties = FeatureKey.PROPERTIES.valueOf();
-	private String geometry = FeatureKey.GEOMETRY.valueOf();
-	private String gid = FeatureKey.GID.valueOf();
-	private String name = FeatureKey.NAME.valueOf();
-	private String children = FeatureKey.CHILDREN.valueOf();
+	private final static String PROPERTIES = FeatureKey.PROPERTIES;
+	private final static String GEOMETRY = FeatureKey.GEOMETRY;
+	private final static String GID = FeatureKey.GID;
+	private final static String NAME = FeatureKey.NAME;
+	private final static String CHILDREN = FeatureKey.CHILDREN;
 
 	@Test
 	public void toRequestTest() {
 		String onlyFeatureFields = " properties.gid , properties.name ";
-		String excludedFeatureFields = geometry;
+		String excludedFeatureFields = GEOMETRY;
 		Long typeId = 1L;
 		Integer limit = 10;
 		Integer offset = 0;
-		String[] includedFields = new String[] { properties + "." + gid, properties + "." + name };
-		String[] excludedFields = new String[] { geometry };
+		String[] includedFields = new String[] { asFullPath(GID), asFullPath(NAME) };
+		String[] excludedFields = new String[] { GEOMETRY };
 
 		Request req = RequestRule.toRequest(onlyFeatureFields, excludedFeatureFields);
 
@@ -44,25 +45,25 @@ public class TestRequestRule {
 	@Test
 	public void isRequestedFeatureFieldTest() {
 		Request req = new Request();
-		List<String> onlyFeatureFields = Arrays.asList(new String[] { properties });
+		List<String> onlyFeatureFields = Arrays.asList(new String[] { PROPERTIES });
 		req.setOnlyFeatureFields(onlyFeatureFields);
-		boolean isRequested = RequestRule.isRequestedFeatureField(req, properties);
+		boolean isRequested = RequestRule.isRequestedFeatureField(req, PROPERTIES);
 		assertThat(isRequested).isTrue();
-		isRequested = RequestRule.isRequestedFeatureField(req, geometry);
+		isRequested = RequestRule.isRequestedFeatureField(req, GEOMETRY);
 		assertThat(isRequested).isFalse();
 
 		req = new Request();
-		List<String> excludedFeatureFields = Arrays.asList(new String[] { geometry });
+		List<String> excludedFeatureFields = Arrays.asList(new String[] { GEOMETRY });
 		req.setExcludedFeatureFields(excludedFeatureFields);
-		isRequested = RequestRule.isRequestedFeatureField(req, geometry);
+		isRequested = RequestRule.isRequestedFeatureField(req, GEOMETRY);
 		assertThat(isRequested).isFalse();
 
 		req = new Request();
-		excludedFeatureFields = Arrays.asList(new String[] { properties + "." + children });
+		excludedFeatureFields = Arrays.asList(new String[] { asFullPath(CHILDREN) });
 		req.setExcludedFeatureFields(excludedFeatureFields);
-		isRequested = RequestRule.isRequestedFeatureField(req, properties + "." + children);
+		isRequested = RequestRule.isRequestedFeatureField(req, asFullPath(CHILDREN));
 		assertThat(isRequested).isFalse();
-		isRequested = RequestRule.isRequestedFeatureField(req, properties + "." + gid);
+		isRequested = RequestRule.isRequestedFeatureField(req, asFullPath(GID));
 		assertThat(isRequested).isTrue();
 	}
 
@@ -70,31 +71,31 @@ public class TestRequestRule {
 	public void isRequestedFeaturePropertiesTest() {
 		Request req = new Request();
 		List<String> onlyFeatureFields = Arrays
-				.asList(new String[] { properties + "." + name, properties + "." + gid });
+				.asList(new String[] { asFullPath(NAME), asFullPath(GID) });
 		req.setOnlyFeatureFields(onlyFeatureFields);
-		boolean isRequested = RequestRule.isRequestedFeatureProperties(req, properties + "." + gid);
+		boolean isRequested = RequestRule.isRequestedFeatureProperties(req, asFullPath(GID));
 		assertThat(isRequested).isTrue();
-		isRequested = RequestRule.isRequestedFeatureProperties(req, properties + "." + children);
+		isRequested = RequestRule.isRequestedFeatureProperties(req, asFullPath(CHILDREN));
 		assertThat(isRequested).isFalse();
 
 		req = new Request();
-		List<String> excludedFeatureFields = Arrays.asList(new String[] { properties + "." + children, geometry });
+		List<String> excludedFeatureFields = Arrays.asList(new String[] { asFullPath(CHILDREN), GEOMETRY });
 		req.setExcludedFeatureFields(excludedFeatureFields);
-		isRequested = RequestRule.isRequestedFeatureProperties(req, properties + "." + children);
+		isRequested = RequestRule.isRequestedFeatureProperties(req, asFullPath(CHILDREN));
 		assertThat(isRequested).isFalse();
-		isRequested = RequestRule.isRequestedFeatureProperties(req, properties + "." + name);
+		isRequested = RequestRule.isRequestedFeatureProperties(req, asFullPath(NAME));
 		assertThat(isRequested).isTrue();
 
 		req = new Request();
-		onlyFeatureFields = Arrays.asList(new String[] { properties });
+		onlyFeatureFields = Arrays.asList(new String[] { PROPERTIES });
 		req.setOnlyFeatureFields(onlyFeatureFields);
-		isRequested = RequestRule.isRequestedFeatureProperties(req, properties + "." + children);
+		isRequested = RequestRule.isRequestedFeatureProperties(req, asFullPath(CHILDREN));
 		assertThat(isRequested).isTrue();
 
 		req = new Request();
-		excludedFeatureFields = Arrays.asList(new String[] { properties });
+		excludedFeatureFields = Arrays.asList(new String[] { PROPERTIES });
 		req.setExcludedFeatureFields(excludedFeatureFields);
-		isRequested = RequestRule.isRequestedFeatureProperties(req, properties + "." + children);
+		isRequested = RequestRule.isRequestedFeatureProperties(req, asFullPath(CHILDREN));
 		assertThat(isRequested).isFalse();
 
 	}

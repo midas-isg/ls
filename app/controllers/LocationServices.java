@@ -792,7 +792,7 @@ public class LocationServices extends Controller {
 			if(verbose){
 				List<Location> locations = LocationRule.getLocations(gids);
 				Request req = new Request();
-				req.setExcludedFeatureFields(Arrays.asList(new String[] { FeatureKey.GEOMETRY.valueOf()}));
+				req.setExcludedFeatureFields(Arrays.asList(new String[] { FeatureKey.GEOMETRY }));
 				FeatureCollection result = GeoJsonRule.toFeatureCollection(locations, req);
 				putAsStringIfNotNull(properties, "resultSize", locations.size());
 				result.setProperties(properties);				

@@ -72,7 +72,7 @@ public class TopoJsonRule {
 			locations.add(LocationRule.read(gid));
 
 		Request req = new Request();
-		req.setExcludedFeatureFields(Arrays.asList(new String[] { FeatureKey.CHILDREN.valueOf() }));
+		req.setExcludedFeatureFields(Arrays.asList(new String[] { FeatureKey.CHILDREN }));
 		FeatureCollection fc = GeoJsonRule.toFeatureCollection(locations, req);
 		return fc;
 	}
