@@ -540,7 +540,7 @@ public class LocationServices extends Controller {
 	@Deprecated
 	@Transactional
 	public Result findByLocationPoint(double lat, double lon, boolean verbose) {
-		return findByPoint(lat, lon, verbose, null, null, null);
+		return findByPoint(lat, lon, verbose, null, null, OLD_VERSION);
 	}
 
 	@Transactional
