@@ -199,7 +199,7 @@ public class SearchSql {
 	}
 
 	private boolean containsFilters(Request req) {
-		List<Integer> typeIds = req.getLocationTypeIds();
+		List<Long> typeIds = req.getLocationTypeIds();
 		Date start = req.getStartDate();
 		Date end = req.getEndDate();
 		if (typeIds != null && !typeIds.isEmpty())

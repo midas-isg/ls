@@ -14,13 +14,15 @@ public class Request {
 	private Boolean searchCodes;
 	private Date startDate;
 	private Date endDate;
-	private List<Integer> locationTypeIds;
+	private List<Long> locationTypeIds;
 	private Boolean verbose;
 	private Long rootALC;
-	private List<String> includeOnly;
-	private List<String> exclude;
+	private List<String> onlyFeatureFields;
+	private List<String> excludedFeatureFields;
 	private Boolean fuzzyMatch;
 	private Float fuzzyMatchThreshold = 0.3F;
+	private Double latitude;
+	private Double longitude;
 
 	public String getQueryTerm() {
 		return queryTerm;
@@ -94,11 +96,11 @@ public class Request {
 		this.endDate = endDate;
 	}
 
-	public List<Integer> getLocationTypeIds() {
+	public List<Long> getLocationTypeIds() {
 		return locationTypeIds;
 	}
 
-	public void setLocationTypeIds(List<Integer> locationTypeIds) {
+	public void setLocationTypeIds(List<Long> locationTypeIds) {
 		this.locationTypeIds = locationTypeIds;
 	}
 
@@ -118,20 +120,20 @@ public class Request {
 		this.rootALC = rootALC;
 	}
 
-	public List<String> getIncludeOnly() {
-		return includeOnly;
+	public List<String> getOnlyFeatureFields() {
+		return onlyFeatureFields;
 	}
 
-	public void setIncludeOnly(List<String> includeOnly) {
-		this.includeOnly = includeOnly;
+	public void setOnlyFeatureFields(List<String> onlyFeatureFields) {
+		this.onlyFeatureFields = onlyFeatureFields;
 	}
 
-	public List<String> getExclude() {
-		return exclude;
+	public List<String> getExcludedFeatureFields() {
+		return excludedFeatureFields;
 	}
 
-	public void setExclude(List<String> exclude) {
-		this.exclude = exclude;
+	public void setExcludedFeatureFields(List<String> excludedFeatureFields) {
+		this.excludedFeatureFields = excludedFeatureFields;
 	}
 
 	public Boolean isFuzzyMatch() {
@@ -148,5 +150,21 @@ public class Request {
 
 	public void setFuzzyMatchThreshold(Float fuzzyMatchThreshold) {
 		this.fuzzyMatchThreshold = fuzzyMatchThreshold;
+	}
+
+	public Double getLatitude() {
+		return latitude;
+	}
+
+	public void setLatitude(Double latitude) {
+		this.latitude = latitude;
+	}
+
+	public Double getLongitude() {
+		return longitude;
+	}
+
+	public void setLongitude(Double longitude) {
+		this.longitude = longitude;
 	}
 }

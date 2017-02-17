@@ -1,7 +1,7 @@
-package interactors;
+package v1.interactors;
 
-import static interactors.RequestRule.isRequestedFeatureProperties;
-import static interactors.Util.putAsStringIfNotNull;
+import static v1.interactors.RequestRule.isRequestedFeatureProperties;
+import static v1.interactors.Util.putAsStringIfNotNull;
 
 import java.sql.Date;
 import java.util.ArrayList;
@@ -11,6 +11,7 @@ import java.util.Map;
 
 import com.vividsolutions.jts.geom.Point;
 
+import play.Logger;
 import dao.ForestDao;
 import dao.LocationTypeDao;
 import dao.entities.AltName;
@@ -23,11 +24,9 @@ import dao.entities.LocationType;
 import dao.entities.SpewLink;
 import gateways.configuration.ConfReader;
 import models.FeatureKey;
-import static models.FeatureKey.asFullPath;
 import models.Request;
 import models.geo.Feature;
 import models.geo.FeatureCollection;
-import play.Logger;
 
 public class GeoJsonHelperRule {
 	
@@ -217,32 +216,36 @@ public class GeoJsonHelperRule {
 			Logger.warn(gid + " has null data!");
 			return properties;
 		}
-		if (isRequestedFeatureProperties(req, asFullPath(FeatureKey.GID)))
+		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.GID)))
 			putAsStringIfNotNull(properties, FeatureKey.GID, gid);
-		if (isRequestedFeatureProperties(req, asFullPath(FeatureKey.NAME)))
+		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.NAME)))
 			putAsStringIfNotNull(properties, FeatureKey.NAME, data.getName());
-		if (isRequestedFeatureProperties(req, asFullPath(FeatureKey.LOCATION_DESCRIPTION)))
+		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.LOCATION_DESCRIPTION)))
 			putAsStringIfNotNull(properties, FeatureKey.LOCATION_DESCRIPTION, data.getDescription());
-		if (isRequestedFeatureProperties(req, asFullPath(FeatureKey.HEADLINE)))
+		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.HEADLINE)))
 			putAsStringIfNotNull(properties, FeatureKey.HEADLINE, location.getHeadline());
-		if (isRequestedFeatureProperties(req, asFullPath(FeatureKey.RANK)))
+		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.RANK)))
 			putAsStringIfNotNull(properties, FeatureKey.RANK, location.getRank());
-		if (isRequestedFeatureProperties(req, asFullPath(FeatureKey.START_DATE)))
+		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.START_DATE)))
 			putAsStringIfNotNull(properties, FeatureKey.START_DATE, data.getStartDate());
-		if (isRequestedFeatureProperties(req, asFullPath(FeatureKey.END_DATE)))
+		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.END_DATE)))
 			putAsStringIfNotNull(properties, FeatureKey.END_DATE, data.getEndDate());
-		if (isRequestedFeatureProperties(req, asFullPath(FeatureKey.LOCATION_TYPE_NAME))) {
+		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.LOCATION_TYPE_NAME))) {
 			LocationTypeDao locationTypeDao = new LocationTypeDao();
 			String locationTypeName = locationTypeDao.getLocationTypeName(data.getLocationType());
 			putAsStringIfNotNull(properties, FeatureKey.LOCATION_TYPE_NAME, locationTypeName);
 		}
-		if (isRequestedFeatureProperties(req, asFullPath(FeatureKey.PARENT_GID))) {
+		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.PARENT_GID))) {
 			Location parent = location.getParent();
 			putAsStringIfNotNull(properties, FeatureKey.PARENT_GID, getGid(parent));
 		}
-		if (isRequestedFeatureProperties(req, asFullPath(FeatureKey.MATCHED_TERM)))
+		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.MATCHED_TERM)))
 			putAsStringIfNotNull(properties,FeatureKey.MATCHED_TERM, location.getMatchedTerm());
 		return properties;
+	}
+
+	static String toPropertiesPath(String key) {
+		return FeatureKey.PROPERTIES + "." + key;
 	}
 
 	static LocationType findLocationType(FeatureCollection fc) {

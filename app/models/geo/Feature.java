@@ -1,7 +1,6 @@
 package models.geo;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -18,7 +17,7 @@ public class Feature {
 
 	public Feature() {
 		type = Feature.class.getSimpleName();
-		properties = new HashMap<>();
+		// properties = new HashMap<>();
 	}
 	
 	public String getType() {

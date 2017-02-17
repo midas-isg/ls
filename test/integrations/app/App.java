@@ -55,6 +55,10 @@ public class App {
 	@SuppressWarnings("unchecked")
 	private App(String testConfPathname, String uid) {
 		Map<String, Object> configurationMap = readConf(testConfPathname);
+		
+		if(((Map<String, Object>)configurationMap.get("play")).containsKey("modules"))
+			((Map<String, Object>)((Map<String, Object>)configurationMap.get("play")).get("modules")).remove("enabled");
+		
 		if (testConfPathname.equals(IN_MEMO_DB_CONF_PATH))
 			((Map<String, Object>) ((Map<String, Object>) configurationMap.get("db")).get("default")).put("initSQL",
 					"");

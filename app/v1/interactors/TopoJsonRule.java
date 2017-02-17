@@ -1,4 +1,4 @@
-package interactors;
+package v1.interactors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -15,12 +15,12 @@ import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import play.Logger;
+import play.libs.Json;
 import dao.entities.Location;
 import models.FeatureKey;
 import models.Request;
 import models.geo.FeatureCollection;
-import play.Logger;
-import play.libs.Json;
 
 public class TopoJsonRule {
 

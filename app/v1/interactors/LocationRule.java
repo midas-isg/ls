@@ -1,4 +1,4 @@
-package interactors;
+package v1.interactors;
 
 import java.math.BigInteger;
 import java.util.HashMap;
@@ -9,6 +9,8 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Polygon;
 
+import play.Logger;
+import play.Play;
 import dao.LocationDao;
 import dao.LocationTypeDao;
 import dao.entities.CodeType;
@@ -17,8 +19,6 @@ import dao.entities.Location;
 import dao.entities.LocationGeometry;
 import dao.entities.LocationType;
 import models.Request;
-import play.Logger;
-import play.Play;
 
 public class LocationRule {
 	public static final long PUMA_TYPE_ID = 102L;
@@ -148,8 +148,8 @@ public class LocationRule {
 		return LocationDao.getLocations(result);
 	}
 
-	public static List<Location> findByTypeId(long typeId, int limit, int offset) {
-		List<Location> locations = LocationTypeDao.findByType(typeId, limit, offset);
+	public static List<Location> findByTypeId(long typeId) {
+		List<Location> locations = LocationTypeDao.findByType(typeId, 0, 0);
 		return locations;
 	}
 

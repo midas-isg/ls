@@ -15,4 +15,3 @@ dist
 /.settings
 /bin/
 /.cache
-test/test.conf

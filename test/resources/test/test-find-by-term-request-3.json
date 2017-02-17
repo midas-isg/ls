@@ -1,3 +1,8 @@
 {"queryTerm":"ñámé wíth áccéñt", 
-"includeOnly":["name", "gid", "locationTypeName", "lineage", "codes", "otherNames", "related", "rank", "headline", "matchedTerm", "startDate", "endDate", "parentGid", "bbox", "repPoint"]
+"includeOnly":[
+"properties.name", "properties.gid", "properties.locationTypeName", "properties.lineage", "properties.codes", 
+"properties.otherNames", "properties.related", "properties.rank", "properties.headline", 
+"properties.matchedTerm", "properties.startDate", "properties.endDate",
+"properties.parentGid", "properties.bbox", "properties.repPoint"
+]
 }

@@ -1,0 +1,20 @@
+[
+{
+ "queryTerm": "UPSTATE NEW YORK",
+ "startDate": 1975,
+ "endDate": 1985, 
+ "locationTypeIds":[16, 6], 
+ "onlyFeatureFields":[],
+ "excludedFeatureFields": ["geometry", "properties.children"],
+ "fuzzyMatch":true,
+ "fuzzyMatchThreshold":0.3
+ },
+{
+ "queryTerm": "NEW JERSEY",
+ "startDate": 1975,
+ "endDate": 1985,
+ "locationTypeIds":[16, 6],
+ "onlyFeatureFields":[],
+ "excludedFeatureFields": ["geometry", "properties.children"]
+ }
+]

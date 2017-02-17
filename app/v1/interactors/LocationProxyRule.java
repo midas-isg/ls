@@ -1,4 +1,4 @@
-package interactors;
+package v1.interactors;
 
 import java.util.ArrayList;
 import java.util.Collections;

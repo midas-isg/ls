@@ -1,4 +1,4 @@
-package interactors;
+package v1.interactors;
 
 import java.math.BigInteger;
 import java.sql.Date;
@@ -9,11 +9,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 
-import models.exceptions.BadRequest;
-
 import org.joda.time.LocalDate;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
+import models.exceptions.BadRequest;
 
 public class Util {
 
@@ -110,7 +110,7 @@ public class Util {
 		return joiner.toString();
 	}
 
-	static List<Long> toListOfLong(JsonNode jsonNode) {
+	static List<Long> toListOfInt(JsonNode jsonNode) {
 		if (jsonNode == null)
 			return null;
 		List<Long> list = new ArrayList<>();

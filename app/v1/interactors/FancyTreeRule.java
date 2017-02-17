@@ -1,4 +1,4 @@
-package interactors;
+package v1.interactors;
 
 import java.sql.Date;
 import java.util.ArrayList;
