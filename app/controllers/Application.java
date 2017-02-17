@@ -51,8 +51,4 @@ public class Application extends UserController {
 	public Result create() {
 		return ok(views.html.create.render("location creator", info()));
 	}
-
-	public Result swagger() {
-        return ok(views.html.swagger.render());
-    }
 }
