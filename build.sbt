@@ -23,8 +23,11 @@ libraryDependencies ++= Seq(
   "pl.matisoft" %% "swagger-play24" % "1.4",
   "org.easytesting" % "fest-assert" % "1.4" % Test
 )
+
+libraryDependencies += "junit" % "junit" % "4.12" % Test
+
 libraryDependencies += "com.auth0" % "auth0" % "0.2.1"
-										  
+
 
 // Play provides two styles of routers, one expects its actions to be injected, the
 // other, legacy style, accesses its actions statically.
