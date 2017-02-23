@@ -66,7 +66,9 @@ public class Auth0Aid {
     }
 
     String toAuth0AbsoluteGlobalLogoutUrl(String returnToAbsoluteUrl){
-        return toAuthorityUrl() + "/v2/logout?returnTo=" + returnToAbsoluteUrl;
+        return hubWsUrl + "/signoff?returnToUrl=" + returnToAbsoluteUrl
+                + "&title=Apollo LS&message=Logged out successfully"
+                ;
     }
 
     String toAbsoluteLoginUrl(Request req) {
