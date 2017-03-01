@@ -267,9 +267,10 @@ public class SearchSql {
 		q = q.replaceAll(" *\\| *", "|");
 		q = q.replaceAll(" *& *", "&");
 		q = q.replaceAll(" *& *", "&");
-
-		q = q.replaceAll("[\\(\\)',.-]", " ");
+		
+		q = q.replaceAll("[\\[\\]\\(\\)',.-]", " ");
 		String[] tokens = q.trim().split(" +");
+				
 		String del = "";
 		String result = "";
 		for (String t : tokens) {
