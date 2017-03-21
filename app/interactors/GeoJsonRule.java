@@ -1,9 +1,23 @@
 package interactors;
 
-import static interactors.GeoJsonHelperRule.*;
+import static interactors.GeoJsonHelperRule.computeBbox;
+import static interactors.GeoJsonHelperRule.createLocationGeometry;
+import static interactors.GeoJsonHelperRule.findLocationType;
+import static interactors.GeoJsonHelperRule.getRepPoint;
+import static interactors.GeoJsonHelperRule.getString;
+import static interactors.GeoJsonHelperRule.putAsAltNameObjectsIfNotNull;
+import static interactors.GeoJsonHelperRule.putAsCodeObjectsIfNotNull;
+import static interactors.GeoJsonHelperRule.putAsLocationObjectsIfNotNull;
+import static interactors.GeoJsonHelperRule.putAsSpewLinkObjectsIfNotNull;
+import static interactors.GeoJsonHelperRule.wireLocationsIncluded;
 import static interactors.RequestRule.isRequestedFeatureField;
 import static interactors.RequestRule.isRequestedFeatureProperties;
-import static interactors.Util.*;
+import static interactors.Util.getNowDate;
+import static interactors.Util.isTrue;
+import static interactors.Util.listToString;
+import static interactors.Util.newDate;
+import static interactors.Util.putAsStringIfNotNull;
+import static interactors.Util.toStringValue;
 import static models.FeatureKey.asFullPath;
 
 import java.sql.Date;
@@ -18,7 +32,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.vividsolutions.jts.geom.Geometry;
 
-import dao.LocationTypeDao;
 import dao.entities.AltName;
 import dao.entities.Code;
 import dao.entities.Data;
@@ -140,12 +153,11 @@ public class GeoJsonRule {
 
 	private static Map<String, Object> toProperties(Request req, int resultSize) {
 		Map<String, Object> properties = new HashMap<>();
-		LocationTypeDao locationTypeDao = new LocationTypeDao();
 		putAsStringIfNotNull(properties, "queryTerm", req.getQueryTerm());
 		putAsStringIfNotNull(properties, "locationTypeIds",
 				listToString(req.getLocationTypeIds()));
 		putAsStringIfNotNull(properties, "locationTypeNames",
-				listToString(locationTypeDao.getLocationTypeNames(req
+				listToString(LocationTypeRule.getLocationTypeNames(req
 						.getLocationTypeIds())));
 		putAsStringIfNotNull(properties, "startDate",
 				toStringValue(req.getStartDate()));

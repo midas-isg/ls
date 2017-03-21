@@ -6,11 +6,20 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
-import play.db.jpa.JPA;
 import dao.entities.Location;
 import dao.entities.LocationType;
+import gateways.database.jpa.JpaAdaptor;
+import play.db.jpa.JPA;
 
-public class LocationTypeDao {
+public class LocationTypeDao extends DataAccessObject<LocationType>{
+	
+	public LocationTypeDao(EntityManager em) {
+		this(new JpaAdaptor(em));
+	}
+
+	private LocationTypeDao(JpaAdaptor jpaAdaptor) {
+		super(LocationType.class, jpaAdaptor);
+	}
 	
 	public static List<Location> findByType(long typeId, int limit, int offset){
 		EntityManager em = JPA.em();
@@ -24,12 +33,6 @@ public class LocationTypeDao {
 		return result;
 	}
 	
-	public LocationType read(long id){
-		EntityManager em = JPA.em();
-		LocationType result = em.find(LocationType.class, id);
-		return result;
-	}
-
 	public LocationType findByName(String name) {
 		EntityManager em = JPA.em();
 		String q = "from LocationType where name='" + name + "'";
@@ -56,7 +59,12 @@ public class LocationTypeDao {
 		List<String> locationTypeNames = new ArrayList<>();
 		LocationType locationType;
 		for (Long id : locationTypeIds) {
-			locationType = read(id);
+			locationType = null;
+			try {
+				locationType = read(id);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			if(locationType != null)
 				locationTypeNames.add(locationType.getName());
 		}
@@ -66,4 +74,5 @@ public class LocationTypeDao {
 	public String getLocationTypeName(LocationType locationType) {
 		return (locationType == null) ? null : locationType.getName();
 	}
+	
 }

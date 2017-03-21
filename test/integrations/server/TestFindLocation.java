@@ -109,7 +109,7 @@ public class TestFindLocation {
 		assertAreEqual(jsonResp.size(), 3);
 		fieldNames = toArray(jsonResp.fieldNames());
 		assertContainsAll(fieldNames, new String[] { "type", "features", "properties" });
-		assertAreEqual(jsonResp.get("features").size(), 5);
+		assertAreEqual(jsonResp.get("features").size(), 2);
 		fieldNames = toArray(jsonResp.get("features").get(0).fieldNames());
 		assertContainsOnly(fieldNames, new String[] { "type", "properties" });
 		fieldNames = toArray(jsonResp.get("features").get(0).get("properties").fieldNames());
@@ -174,7 +174,7 @@ public class TestFindLocation {
 		response = post(url, body, jsonContentType);
 		assertStatus(response, OK);
 		jsonResp = response.asJson();
-		assertAreEqual(jsonResp.get("features").size(), 2);
+		assertAreEqual(jsonResp.get("features").size(), 1);
 		fieldNames = toArray(jsonResp.get("properties").fieldNames());
 		assertContainsAll(fieldNames, new String[] { "rootALC" });
 

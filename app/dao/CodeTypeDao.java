@@ -2,15 +2,15 @@ package dao;
 
 import javax.persistence.EntityManager;
 
-import play.db.jpa.JPA;
 import dao.entities.CodeType;
+import gateways.database.jpa.JpaAdaptor;
 
-public class CodeTypeDao {
-	public CodeType read(Long id){
-		if(id == null)
-			return null;
-		EntityManager em = JPA.em();
-		CodeType result = em.find(CodeType.class, id);
-		return result;
+public class CodeTypeDao extends DataAccessObject<CodeType>{
+	public CodeTypeDao(EntityManager em) {
+		this(new JpaAdaptor(em));
+	}
+
+	private CodeTypeDao(JpaAdaptor jpaAdaptor) {
+		super(CodeType.class, jpaAdaptor);
 	}
 }

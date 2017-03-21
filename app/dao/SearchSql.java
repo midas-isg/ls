@@ -118,13 +118,13 @@ public class SearchSql {
 					+ rankingStatement + " AS rank, "
 					+ headlineStatement + " AS headline "
 					+ " FROM ("
-					+ " SELECT gid, code FROM location WHERE code_type_id != 2 ";
+					+ " SELECT gid, code FROM {h-schema}location WHERE code_type_id != 2 ";
 			if (containsFilters(req))
 				q += " AND " + toQueryFiltersSql(req);
-			q += " UNION select gid, code FROM alt_code) AS foo"
+			q += " UNION select gid, code FROM {h-schema}alt_code) AS foo"
 				+ " WHERE " + comparisonStatement;
 			if (containsFilters(req))
-				q += " AND gid IN ( SELECT gid FROM location WHERE "
+				q += " AND gid IN ( SELECT gid FROM {h-schema}location WHERE "
 						+ toQueryFiltersSql(req) + " ) ";
 		}
 		return q;
@@ -139,10 +139,10 @@ public class SearchSql {
 			String headlineStatement = toHeadlineStatement(req, qt, "name");
 			q += " SELECT DISTINCT ON(gid) gid, name, " + rankingStatement + " AS rank, "
 			+ headlineStatement + " AS headline "
-			+ " FROM alt_name "
+			+ " FROM {h-schema}alt_name "
 			+ " WHERE " + comparisonStatement;
 			if (containsFilters(req))
-				q += " AND gid IN ( SELECT gid FROM location WHERE "
+				q += " AND gid IN ( SELECT gid FROM {h-schema}location WHERE "
 						+ toQueryFiltersSql(req) + " ) ";
 		}
 		return q;
@@ -157,7 +157,7 @@ public class SearchSql {
 			String headlineStatement = toHeadlineStatement(req, qt, "name");
 			q += " SELECT gid, name, " + rankingStatement + " AS rank, "
 					+ headlineStatement + " AS headline " 
-					+ " FROM location "
+					+ " FROM {h-schema}location "
 					+ " WHERE " + comparisonStatement;
 			if (containsFilters(req))
 				q += " AND " + toQueryFiltersSql(req);
@@ -228,7 +228,7 @@ public class SearchSql {
 	private String toRootGidCond(Request req) {
 		if(req.getRootALC() == null)
 			return null;
-		return " gid in ( SELECT child_gid FROM forest WHERE root_gid = " + req.getRootALC() + " ) ";
+		return " gid in ( SELECT child_gid FROM {h-schema}forest WHERE root_gid = " + req.getRootALC() + " ) ";
 	}
 
 	private String toSelectStatementSql(String column, String qt, String tempTable) {

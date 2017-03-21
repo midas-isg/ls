@@ -1,13 +1,12 @@
 package dao;
 
-import gateways.database.jpa.JpaAdaptor;
-
 import java.util.ArrayList;
 import java.util.List;
 
-import dao.entities.DeficientInterface;
+import dao.entities.Entity;
+import gateways.database.jpa.JpaAdaptor;
 
-public class DataAccessObject<T extends DeficientInterface> {
+public class DataAccessObject<T extends Entity> {
 	private Class<T> clazz;
 	private JpaAdaptor adaptor;
 
