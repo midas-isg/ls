@@ -127,12 +127,14 @@ public class GeoJsonRule {
 		}
 		if(isRequestedFeatureField(req, asFullPath(FeatureKey.BBOX))) {
 			geometry = readGeometryIfNullOrEmpty(location, geometry); //TODO: read only bbox instead of whole record
-			feature.setBbox(GeometryRule.computeBbox(geometry.getShapeGeom()));
+			if(geometry != null)
+				feature.setBbox(GeometryRule.computeBbox(geometry.getShapeGeom()));
 		}
 		
 		if(isRequestedFeatureField(req, asFullPath(FeatureKey.REPPOINT))) {
 			geometry = readGeometryIfNullOrEmpty(location, geometry); //TODO: read only repPoint instead of whole record
-			feature.setRepPoint(getRepPoint(geometry));
+			if(geometry != null)
+				feature.setRepPoint(getRepPoint(geometry));
 		}
 		
 		return feature;

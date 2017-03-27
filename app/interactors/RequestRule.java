@@ -59,6 +59,9 @@ public class RequestRule {
 		req.setFuzzyMatch(value);
 		if (containsKey(node, "fuzzyMatchThreshold"))
 			req.setFuzzyMatchThreshold((float) node.get("fuzzyMatchThreshold").asDouble());
+		
+		if (containsKey(node, "logic"))
+			req.setLogic(node.get("logic").asText().trim().toUpperCase());
 		return req;
 	}
 

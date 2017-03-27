@@ -23,6 +23,7 @@ public class Request {
 	private Float fuzzyMatchThreshold = 0.3F;
 	private Double latitude;
 	private Double longitude;
+	private String logic;
 
 	public String getQueryTerm() {
 		return queryTerm;
@@ -166,5 +167,13 @@ public class Request {
 
 	public void setLongitude(Double longitude) {
 		this.longitude = longitude;
+	}
+
+	public String getLogic() {
+		return logic;
+	}
+
+	public void setLogic(String logic) {
+		this.logic = logic;
 	}
 }
