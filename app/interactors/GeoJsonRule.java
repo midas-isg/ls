@@ -125,13 +125,13 @@ public class GeoJsonRule {
 					.toFeatureGeometry(multiPolygonGeom));
 			feature.setId(location.getGid() + "");
 		}
-		if(isRequestedFeatureField(req, asFullPath(FeatureKey.BBOX))) {
+		if(isRequestedFeatureField(req, FeatureKey.BBOX)) {
 			geometry = readGeometryIfNullOrEmpty(location, geometry); //TODO: read only bbox instead of whole record
 			if(geometry != null)
 				feature.setBbox(GeometryRule.computeBbox(geometry.getShapeGeom()));
 		}
 		
-		if(isRequestedFeatureField(req, asFullPath(FeatureKey.REPPOINT))) {
+		if(isRequestedFeatureField(req, FeatureKey.REPPOINT)) {
 			geometry = readGeometryIfNullOrEmpty(location, geometry); //TODO: read only repPoint instead of whole record
 			if(geometry != null)
 				feature.setRepPoint(getRepPoint(geometry));
