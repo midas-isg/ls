@@ -57,7 +57,7 @@ GET           /api/unique-location-names          controllers.LocationServices.f
 GET           /assets/*file                       controllers.Assets.at(path="/public", file)
 
 # Swagger API documentation
-GET           /api-docs                           controllers.Application.swagger()
+GET           /api-docs                           controllers.ApiDocument.swagger()
 GET     	  /api-docs.json					  @pl.matisoft.swagger.ApiHelpController.getResources
 GET			  /api-docs.json*path				  @pl.matisoft.swagger.ApiHelpController.getResource(path)
 
