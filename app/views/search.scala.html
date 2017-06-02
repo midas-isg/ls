@@ -1,6 +1,7 @@
 @(message: String, version: String)
 
 @imports = {
+<!-- 
 	<script src='@routes.Assets.at("external_packages/fancytree/jquery.fancytree.js")'></script>
 	
 	<script src='@routes.Assets.at("javascripts/map-driver.js")'></script>
@@ -13,9 +14,12 @@
 	
 	<link href='@routes.Assets.at("stylesheets/fancytree-ext.css")' rel='stylesheet'>
 	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'>
+-->
+	
 }
 
 @main(message, imports, version) {
+<!--
 	<div id="map-container" class="container-fluid pull-left no-padding" style="">
 		<div class="no-padding">
 			<em>Place
@@ -43,4 +47,5 @@
 			<div id="parent-tree" style="padding-top: 5px"></div>
 		</div>
 	</div>
+-->
 }

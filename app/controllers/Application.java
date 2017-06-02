@@ -10,28 +10,39 @@ import security.controllers.UserController;
 
 public class Application extends UserController {
 
-   	private static String INFO = null;
+	private static String INFO = null;
 
-    public static String info() {
-    	init();
-        return INFO;
-    }
-
-   	private static void init(){
-   		if (INFO == null){
-	   	    final Configuration cfg = Play.application().configuration();
-			String version = "Version: " + cfg.getString("app.version");
-	   	    String dbName = "Database: " + cfg.getString("db.default.url");
-	   	   	INFO = "Copyright 2014-2016 - University of Pittsburgh, " 
-	   	    + version + ", " + dbName;
-   		}
-   	}
-   	
-	@Transactional
-	public Result index() {
-		return ok(views.html.search.render("location search", info()));
+	public static String info() {
+		init();
+		return INFO;
 	}
 
+	private static void init(){
+		if (INFO == null){
+			final Configuration cfg = Play.application().configuration();
+			String version = "Version: " + cfg.getString("app.version");
+			String dbName = "Database: " + cfg.getString("db.default.url");
+			INFO = "Copyright 2014-2016 - University of Pittsburgh, " 
+				+ version + ", " + dbName;
+		}
+	}
+	
+	public Result index() {
+		return basicSearch();
+	}
+	
+	public Result basicSearch() {
+		return ok(views.html.index.render("location search", info()));
+	}
+	
+	public Result mapSearch() {
+		return ok(views.html.map_search.render("location search", info()));
+	}
+	
+	public Result advancedSearch() {
+		return ok(views.html.advanced_search.render("location search", info()));
+	}
+	
 	@Transactional
 	public Result concept() {
 		return ok(views.html.concept.render("location services", info()));

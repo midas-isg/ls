@@ -1,4 +1,9 @@
-<div class="container-fluid no-padding" style="">
-	<input type="text" id="input" class="pull-left form-control ui-autocomplete-input no-padding" placeholder="Location name" style="max-width: 74%; height: inherit; padding-left: 3px; padding-right: 3px;">
-	<button id="search-button" class="btn btn-default btn-sm no-vertical-padding" style="">Search</button>
+<script src='@routes.Assets.at("javascripts/searchbar.js")'></script>
+
+<div class="input-group">
+	<input type="text" id="input" class="form-control ui-autocomplete-input" placeholder="Location name">
+
+	<span class="input-group-btn">
+		<button id="search-button" class="btn btn-default">Search</button>
+	</span>
 </div>
