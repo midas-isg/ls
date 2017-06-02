@@ -8,7 +8,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "gis_src")
-public class GisSource {
+public class GisSource implements dao.entities.Entity{
 
 	private Long id;
 	private String url;

@@ -1,5 +1,6 @@
 {
- "queryTerm":"sudan", 
+ "queryTerm":"sudan",
+ "logic": "OR", 
  "locationTypeIds":[1,6],
  "startDate":2010,
  "endDate":"2015-01-01",

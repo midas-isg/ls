@@ -56,17 +56,19 @@ public class LocationServices extends Controller {
 	private static final String findBulkExV2 = "find-bulk-v2.json";
 	private static final String findBulkExBody = "Only \"queryTerm\" is required. See an example of body for vesrsion "
 			+ CURRENT_VERSION + " at "
-			+ "<a href='assets/examples/api/" + findBulkExV2 + "'>" + findBulkExV2 + "</a></br>"
-			+ "Vesrion " + OLD_VERSION + " body example: <a href='assets/examples/api/" + findBulkEx + "'>" + findBulkEx + "</a> ";;
+			+ "<a target='_blank' href='assets/examples/api/" + findBulkExV2 + "'>" + findBulkExV2 + "</a></br>"
+			+ "Vesrion " + OLD_VERSION + " body example: "
+					+ "<a target='_blank' href='assets/examples/api/" + findBulkEx + "'>" + findBulkEx + "</a> ";;
 	private static final String findByTermEx = "find-by-term.json";
 	private static final String findByTermExV2 = "find-by-term-v2.json";
 	private static final String findByTermExBody = "Only \"queryTerm\" is required. See a request example for vesrsion "
 			+ CURRENT_VERSION + " at "
-			+ "<a href='assets/examples/api/" + findByTermExV2 + "'>" + findByTermExV2 + "</a></br>"
-			+ "Vesrion " + OLD_VERSION + " request example: <a href='assets/examples/api/" + findByTermEx + "'>" + findByTermEx + "</a> ";
+			+ "<a target='_blank' href='assets/examples/api/" + findByTermExV2 + "'>" + findByTermExV2 + "</a></br>"
+			+ "Vesrion " + OLD_VERSION + " request example: "
+					+ "<a target='_blank' href='assets/examples/api/" + findByTermEx + "'>" + findByTermEx + "</a> ";
 	private static final String findbyGeomEx = "AuMaridiTown.geojson";
 	private static final String findbyGeomExBody = "See an example of body at "
-			+ "<a href='assets/examples/api/" + findbyGeomEx + "'>" + findbyGeomEx + "</a> ";
+			+ "<a target='_blank' href='assets/examples/api/" + findbyGeomEx + "'>" + findbyGeomEx + "</a> ";
 	private static final String superTypeAPI = "/api/super-types";
 	private static final String locationTypeAPI = "/api/location-types";
 
@@ -294,14 +296,20 @@ public class LocationServices extends Controller {
 			httpMethod = "POST", 
 			nickname = "Find", 
 			value = "Finds locations by name, other-names, or code", 
-			notes = "Receives a single query as shown in the example.</br>"
-			+ "Note:</br>"
-			+ "In version 1, response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response).</br>"
-			+ "In version 1, properties.children is excluded from features.</br>"
-			+ "As of version 2, Use _onlyFeatureFields or _excludedFeatureFields for filtering fields.</br>"
-			+ "As of version 2, request filter-key names changed: 'includeOnly' -> 'onlyFeatureFields' & 'exclude' -> 'excludedFeatureFields'.</br>"
-			+ "As of version 2, request filter syntax changed. Refer to <a href='assets/examples/api/" + findByTermExV2 + "'>" + findByTermExV2 + "</a>"
-			+ "As of version 2, \"verbose\" option is not suppoerted. Use \"_onlyFeatureFields\":\"properties.gid\" for non-verbose results.", 
+			notes = "<p>Receives a single query as shown in the example.</p>"
+			+ "<b>in version 1:</b> "
+			+ "<ul> "
+			+ "<li>response is not a valid geoJSON (<i>'geometry'</i> property is removed from FeatureCollection response).</li> "
+			+ "<li><i>\"properties.children\"</i> is excluded from features.</li> "
+			+ "</ul> "
+			+ "<b>as of version 2:</b> "
+			+ "<ul> "
+			+ "<li>use <i>\"_onlyFeatureFields\"</i> or <i>\"_excludedFeatureFields\"</i> for filtering fields.</li>"
+			+ "<li>request filter-key names changed: 'includeOnly' -> <i>'onlyFeatureFields'</i> & 'exclude' -> <i>'excludedFeatureFields'</i>.</li> "
+			+ "<li>request filter syntax changed. Refer to <a href='assets/examples/api/" + findByTermExV2 + "'>" + findByTermExV2 + "</a></li> "
+			+ "<li>\"verbose\" option is not suppoerted. Use <i>\"_onlyFeatureFields\":\"properties.gid\"</i> for non-verbose results.</li> "
+			+ "<li>the default for search logic is <i>\"logic\":\"OR\"</i>. For conjuction between query-terms use <i>\"logic\":\"AND\"</i></li> "
+			+ "</ul>", 
 			response = FeatureCollection.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = OK, message = "Successfully returned", response = FeatureCollection.class),

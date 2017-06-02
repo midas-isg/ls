@@ -8,7 +8,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table (name = "code_type")
-public class CodeType {
+public class CodeType implements dao.entities.Entity{
 
 	private Long id;
 	private String name;

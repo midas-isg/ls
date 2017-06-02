@@ -76,14 +76,28 @@ public class SearchSql {
 
 	private String toQueryTerm(Request req) {
 		String queryText = req.getQueryTerm();
+		queryText = "'" + queryText	+ "'";
 		if(isTrue(req.isFuzzyMatch()))
 			return (isTrue(req.isIgnoreAccent())) ? "unaccent_immutable("
-				+ "'" + queryText + "'" + ")" : "'" + queryText	+ "'";
-		queryText = toQueryText(req.getQueryTerm());
-		String qt = (isTrue(req.isIgnoreAccent())) ? "unaccent_immutable("
-				+ "'" + queryText + "'" + ")\\:\\:tsquery" : "'" + queryText
-				+ "'";
-		return qt;
+				+ queryText + ")" : queryText;
+
+		if(isTrue(req.isIgnoreAccent()))
+			queryText = "unaccent_immutable(" + queryText + ")";
+		
+		String logic = getSearchLogic(req);
+		
+		queryText = "replace(strip(to_tsvector('simple', " + queryText + " ))\\:\\:text, ' ', " + logic + " )\\:\\:tsquery ";
+		
+		return queryText;
+	}
+
+	private String getSearchLogic(Request req) {
+		String logic = " '|' ";
+		if(req.getLogic() != null){
+			String searchLogic = req.getLogic().trim().toUpperCase();
+			logic = (searchLogic.equals("AND")) ? "'&'" : "'|'";
+		}
+		return logic;
 	}
 
 	private String unionTempTablesSql(Request req, String qt, String nameTempTable,
@@ -101,9 +115,9 @@ public class SearchSql {
 		q = " SELECT * FROM ( "
 				+ " SELECT DISTINCT ON (gid) gid, headline, rank, name "
 				+ " FROM ( " + q + " ) AS foo"
-				+ " ORDER BY gid, rank DESC "
+				+ " ORDER BY gid, rank DESC " + " , length(to_tsvector('simple', name)) "
 				+ " ) AS foo ";
-		q += " ORDER BY rank DESC, name ";
+		q += " ORDER BY rank DESC, length(to_tsvector('simple', name)), name ";
 		return q;
 	}
 
@@ -118,14 +132,15 @@ public class SearchSql {
 					+ rankingStatement + " AS rank, "
 					+ headlineStatement + " AS headline "
 					+ " FROM ("
-					+ " SELECT gid, code FROM location WHERE code_type_id != 2 ";
+					+ " SELECT gid, code FROM {h-schema}location WHERE code_type_id != 2 ";
 			if (containsFilters(req))
 				q += " AND " + toQueryFiltersSql(req);
-			q += " UNION select gid, code FROM alt_code) AS foo"
+			q += " UNION select gid, code FROM {h-schema}alt_code) AS foo"
 				+ " WHERE " + comparisonStatement;
 			if (containsFilters(req))
-				q += " AND gid IN ( SELECT gid FROM location WHERE "
+				q += " AND gid IN ( SELECT gid FROM {h-schema}location WHERE "
 						+ toQueryFiltersSql(req) + " ) ";
+			q += " ORDER BY gid, rank DESC, length(to_tsvector('simple', code)), code ";
 		}
 		return q;
 	}
@@ -139,11 +154,12 @@ public class SearchSql {
 			String headlineStatement = toHeadlineStatement(req, qt, "name");
 			q += " SELECT DISTINCT ON(gid) gid, name, " + rankingStatement + " AS rank, "
 			+ headlineStatement + " AS headline "
-			+ " FROM alt_name "
+			+ " FROM {h-schema}alt_name "
 			+ " WHERE " + comparisonStatement;
 			if (containsFilters(req))
-				q += " AND gid IN ( SELECT gid FROM location WHERE "
+				q += " AND gid IN ( SELECT gid FROM {h-schema}location WHERE "
 						+ toQueryFiltersSql(req) + " ) ";
+			q += " ORDER BY gid, rank DESC, length(to_tsvector('simple', name)), name ";
 		}
 		return q;
 	}
@@ -157,7 +173,7 @@ public class SearchSql {
 			String headlineStatement = toHeadlineStatement(req, qt, "name");
 			q += " SELECT gid, name, " + rankingStatement + " AS rank, "
 					+ headlineStatement + " AS headline " 
-					+ " FROM location "
+					+ " FROM {h-schema}location "
 					+ " WHERE " + comparisonStatement;
 			if (containsFilters(req))
 				q += " AND " + toQueryFiltersSql(req);
@@ -195,7 +211,9 @@ public class SearchSql {
 	private String toRankingStatement(Request req, String qt, String actualTerm) {
 		if(isTrue(req.isFuzzyMatch()))
 			return " similarity(" + actualTerm + ", " + qt + ") ";
-		return " ts_rank_cd(" + actualTerm + ", " + qt + ", 8) ";
+		
+		String weights = " '{1.0, 1.0, 1.0, 1.0}' ";
+		return " ts_rank_cd( " + weights + " , " + actualTerm + ", " + qt + " ) ";
 	}
 
 	private boolean containsFilters(Request req) {
@@ -228,7 +246,7 @@ public class SearchSql {
 	private String toRootGidCond(Request req) {
 		if(req.getRootALC() == null)
 			return null;
-		return " gid in ( SELECT child_gid FROM forest WHERE root_gid = " + req.getRootALC() + " ) ";
+		return " gid in ( SELECT child_gid FROM {h-schema}forest WHERE root_gid = " + req.getRootALC() + " ) ";
 	}
 
 	private String toSelectStatementSql(String column, String qt, String tempTable) {
@@ -267,9 +285,10 @@ public class SearchSql {
 		q = q.replaceAll(" *\\| *", "|");
 		q = q.replaceAll(" *& *", "&");
 		q = q.replaceAll(" *& *", "&");
-
-		q = q.replaceAll("[\\(\\)',.-]", " ");
+		
+		q = q.replaceAll("[\\[\\]\\(\\)',.-]", " ");
 		String[] tokens = q.trim().split(" +");
+				
 		String del = "";
 		String result = "";
 		for (String t : tokens) {

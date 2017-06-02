@@ -10,12 +10,14 @@ import static suites.Helper.assertContainsAll;
 import static suites.Helper.assertContainsOnly;
 import static suites.Helper.assertExcludes;
 
-import interactors.KmlRule;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
+import controllers.routes;
+import interactors.KmlRule;
 import play.api.mvc.Call;
 import play.libs.Json;
 import play.libs.ws.WS;
@@ -24,10 +26,6 @@ import play.libs.ws.WSResponse;
 import play.mvc.Http.RequestBuilder;
 import play.mvc.Result;
 import play.test.Helpers;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import controllers.routes;
 
 public class TestFindLocation {
 
@@ -59,6 +57,7 @@ public class TestFindLocation {
 		gidTest1 = createLocationFromFile("test/testLocation1.geojson");
 
 		try {
+			findByQueryTermTest2();
 			findByQueryTermTest();
 			findByIdTest();
 			findByNameTest();
@@ -76,53 +75,85 @@ public class TestFindLocation {
 
 	}
 
-	private void fuzzyMatchTest() {
-		String body = KmlRule.getStringFromFile(fuzzyMatchRequest1);
-		String url = Server.makeTestUrl(findByTermPath);
+	private void findByQueryTermTest2() {
+		
+		String body = "{\"queryTerm\":\"testUnit 123\"," 
+						+ "\"limit\":10,"
+						+ "\"logic\":\"OR\","
+						+ "\"onlyFeatureFields\":"
+							+ "[\"properties.name\", "
+							+ "\"properties.matchedTerm\", "
+							+ "\"properties.rank\", "
+							+ "\"properties.headline\"]"
+						+ "}";
+		String url = Server.makeTestUrl(findByTermPath + "?_v=" + CURRENT_VERSION);
 		WSResponse response = post(url, body, jsonContentType);
 		assertStatus(response, OK);
 		JsonNode jsonResp = response.asJson();
-		assertAreEqual(jsonResp.size(), 4);
-		assertAreEqual(jsonResp.get("features").size(), 1);
-		assertAreEqual(jsonResp.get("features").get(0).get("properties").get("rank").asDouble(), 0.33333334);
-		assertAreEqual(jsonResp.get("features").get(0).get("properties").get("matchedTerm").asText(),
-				"ñámé wíth áccéñt");
-		assertAreEqual(jsonResp.get("properties").get("fuzzyMatchThreshold").asDouble(), 0.32);
-	}
-
-	private void findByTypeId() {
-		String url = Server.makeTestUrl(basePath + "/find-by-type/999999");
-		WSResponse response = get(url);
-		JsonNode jsonResp = response.asJson();
-		assertStatus(response, OK);
 		assertAreEqual(jsonResp.size(), 3);
-		Object[] fieldNames = toArray(jsonResp.fieldNames());
-		assertContainsAll(fieldNames, new String[] { "type", "features", "properties" });
-		fieldNames = toArray(jsonResp.get("properties").fieldNames());
-		assertContainsAll(fieldNames, new String[] { "locationTypeIds", "resultSize" });
-		assertAreEqual(jsonResp.get("properties").get("resultSize").asInt(), jsonResp.get("features").size());
+		assertAreEqual(jsonResp.get("features").size(), 6);
 		
-		url = Server.makeTestUrl(basePath + "/find-by-type/1?_onlyFeatureFields=properties.name&limit=5&offset=1&_v=" + CURRENT_VERSION);
-		response = get(url);
-		jsonResp = response.asJson();
-		assertStatus(response, OK);
-		assertAreEqual(jsonResp.size(), 3);
-		fieldNames = toArray(jsonResp.fieldNames());
-		assertContainsAll(fieldNames, new String[] { "type", "features", "properties" });
-		assertAreEqual(jsonResp.get("features").size(), 5);
-		fieldNames = toArray(jsonResp.get("features").get(0).fieldNames());
-		assertContainsOnly(fieldNames, new String[] { "type", "properties" });
-		fieldNames = toArray(jsonResp.get("features").get(0).get("properties").fieldNames());
-		assertContainsOnly(fieldNames, new String[] { "name" });
+		JsonNode features = jsonResp.get("features");
+		String name = features.get(0).get("properties").get("name").asText();
+		double rank = features.get(0).get("properties").get("rank").asDouble();
+        assertThat(name).isEqualTo("def abc testUnit 123");
+        assertThat(rank).isEqualTo(2.0);
+        
+        name = features.get(features.size()-1).get("properties").get("name").asText();
+		rank = features.get(features.size()-1).get("properties").get("rank").asDouble();
+		assertThat(name).isEqualTo("testUnit abc");
+        assertThat(rank).isEqualTo(1.0);
+        
+        body = "{\"queryTerm\":\"testUnit\"," 
+				+ "\"limit\":10,"
+				+ "\"logic\":\"OR\","
+				+ "\"onlyFeatureFields\":"
+					+ "[\"properties.name\", "
+					+ "\"properties.matchedTerm\", "
+					+ "\"properties.rank\", "
+					+ "\"properties.headline\"]"
+				+ "}";
+        url = Server.makeTestUrl(findByTermPath + "?_v=" + CURRENT_VERSION);
+        response = post(url, body, jsonContentType);
+        assertStatus(response, OK);
+        jsonResp = response.asJson();
+        assertAreEqual(jsonResp.get("features").size(), 6);
+        
+        features = jsonResp.get("features");
+		String matchedTerm = features.get(0).get("properties").get("matchedTerm").asText();
+		rank = features.get(0).get("properties").get("rank").asDouble();
+		assertThat(matchedTerm).isEqualTo("testUnit");
+		assertThat(rank).isEqualTo(1.0);
 		
-		url = Server.makeTestUrl(basePath + "/find-by-type/1?_excludedFeatureFields=properties.children,geometry&limit=2&offset=0&_v=" + CURRENT_VERSION);
-		response = get(url);
-		jsonResp = response.asJson();
-		assertStatus(response, OK);
-		fieldNames = toArray(jsonResp.get("features").get(0).fieldNames());
-		assertExcludes(fieldNames, new String[] { "geometry" });
-		fieldNames = toArray(jsonResp.get("features").get(0).get("properties").fieldNames());
-		assertExcludes(fieldNames, new String[] { "children" });
+	
+        
+        
+        body = "{\"queryTerm\":\"testUnit 123\"," 
+				+ "\"limit\":10,"
+				+ "\"logic\":\"AND\","
+				+ "\"onlyFeatureFields\":"
+					+ "[\"properties.name\", "
+					+ "\"properties.matchedTerm\", "
+					+ "\"properties.rank\", "
+					+ "\"properties.headline\"]"
+				+ "}";
+        url = Server.makeTestUrl(findByTermPath + "?_v=" + CURRENT_VERSION);
+        response = post(url, body, jsonContentType);
+        assertStatus(response, OK);
+        jsonResp = response.asJson();
+        assertAreEqual(jsonResp.get("features").size(), 4);
+        
+        features = jsonResp.get("features");
+		name = features.get(0).get("properties").get("name").asText();
+		rank = features.get(0).get("properties").get("rank").asDouble();
+		assertThat(name).isEqualTo("def abc testUnit 123");
+		assertThat(rank).isEqualTo(1.0);
+		
+		
+		name = features.get(features.size()-1).get("properties").get("name").asText();
+		rank = features.get(features.size()-1).get("properties").get("rank").asDouble();
+		assertThat(name).isEqualTo("testUnit abc def ghi 123");
+		assertThat(rank).isEqualTo(0.25);
 	}
 
 	private void findByQueryTermTest() {
@@ -174,7 +205,7 @@ public class TestFindLocation {
 		response = post(url, body, jsonContentType);
 		assertStatus(response, OK);
 		jsonResp = response.asJson();
-		assertAreEqual(jsonResp.get("features").size(), 2);
+		assertAreEqual(jsonResp.get("features").size(), 1);
 		fieldNames = toArray(jsonResp.get("properties").fieldNames());
 		assertContainsAll(fieldNames, new String[] { "rootALC" });
 
@@ -207,6 +238,55 @@ public class TestFindLocation {
 		assertContainsOnly(fieldNames, new String[] { "gid", "name" });
 	}
 
+	private void fuzzyMatchTest() {
+		String body = KmlRule.getStringFromFile(fuzzyMatchRequest1);
+		String url = Server.makeTestUrl(findByTermPath);
+		WSResponse response = post(url, body, jsonContentType);
+		assertStatus(response, OK);
+		JsonNode jsonResp = response.asJson();
+		assertAreEqual(jsonResp.size(), 4);
+		assertAreEqual(jsonResp.get("features").size(), 1);
+		assertAreEqual(jsonResp.get("features").get(0).get("properties").get("rank").asDouble(), 0.33333334);
+		assertAreEqual(jsonResp.get("features").get(0).get("properties").get("matchedTerm").asText(),
+				"ñámé wíth áccéñt");
+		assertAreEqual(jsonResp.get("properties").get("fuzzyMatchThreshold").asDouble(), 0.32);
+	}
+
+	private void findByTypeId() {
+		String url = Server.makeTestUrl(basePath + "/find-by-type/999999");
+		WSResponse response = get(url);
+		JsonNode jsonResp = response.asJson();
+		assertStatus(response, OK);
+		assertAreEqual(jsonResp.size(), 3);
+		Object[] fieldNames = toArray(jsonResp.fieldNames());
+		assertContainsAll(fieldNames, new String[] { "type", "features", "properties" });
+		fieldNames = toArray(jsonResp.get("properties").fieldNames());
+		assertContainsAll(fieldNames, new String[] { "locationTypeIds", "resultSize" });
+		assertAreEqual(jsonResp.get("properties").get("resultSize").asInt(), jsonResp.get("features").size());
+		
+		url = Server.makeTestUrl(basePath + "/find-by-type/1?_onlyFeatureFields=properties.name&limit=5&offset=1&_v=" + CURRENT_VERSION);
+		response = get(url);
+		jsonResp = response.asJson();
+		assertStatus(response, OK);
+		assertAreEqual(jsonResp.size(), 3);
+		fieldNames = toArray(jsonResp.fieldNames());
+		assertContainsAll(fieldNames, new String[] { "type", "features", "properties" });
+		assertAreEqual(jsonResp.get("features").size(), 5);
+		fieldNames = toArray(jsonResp.get("features").get(0).fieldNames());
+		assertContainsOnly(fieldNames, new String[] { "type", "properties" });
+		fieldNames = toArray(jsonResp.get("features").get(0).get("properties").fieldNames());
+		assertContainsOnly(fieldNames, new String[] { "name" });
+		
+		url = Server.makeTestUrl(basePath + "/find-by-type/1?_excludedFeatureFields=properties.children,geometry&limit=2&offset=0&_v=" + CURRENT_VERSION);
+		response = get(url);
+		jsonResp = response.asJson();
+		assertStatus(response, OK);
+		fieldNames = toArray(jsonResp.get("features").get(0).fieldNames());
+		assertExcludes(fieldNames, new String[] { "geometry" });
+		fieldNames = toArray(jsonResp.get("features").get(0).get("properties").fieldNames());
+		assertExcludes(fieldNames, new String[] { "children" });
+	}
+	
 	private void testHeadLineMatch(JsonNode jsonResp) {
 		JsonNode PropFeature1 = jsonResp.get("features").get(0).get("properties");
 		JsonNode PropFeature2 = jsonResp.get("features").get(1).get("properties");
@@ -246,13 +326,6 @@ public class TestFindLocation {
 		assertContainsAll(fieldNames, new String[] { "gids", "properties" });
 		assertAreEqual(jsonResp.get("gids").size(), 2);
 
-		searchOtherNames = false;
-		url = Server.makeTestUrl(basePath + "?q=an%20otherName%20for%20test&limit=2&offset=0&searchOtherNames="
-				+ searchOtherNames + "&verbose=true");
-		response = get(url);
-		jsonResp = response.asJson();
-		assertAreEqual(jsonResp.get("features").size(), 0);
-		
 		searchOtherNames = true;
 		url = Server.makeTestUrl(basePath + "?q=an%20otherName%20for%20test&limit=2&offset=0&searchOtherNames="
 				+ searchOtherNames + "&_onlyFeatureFields=properties.gid,properties.name&_v=" + CURRENT_VERSION);
@@ -432,4 +505,5 @@ public class TestFindLocation {
 		WSResponse response = req.get().get(timeout);
 		return response;
 	}
+
 }
