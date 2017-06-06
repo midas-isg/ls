@@ -42,6 +42,8 @@ GET           /api/location-types                 controllers.ListServices.findL
 GET           /api/geometry-metadata/:gid         controllers.LocationServices.getGeometryMetadata(gid:Long, tolerance:java.lang.Double?=null)
 GET			  /api/update-cache					  controllers.LocationServices.updateCache()
 
+GET           /api/code-types            		  controllers.LocationCodeService.findCodeTypes()
+
 # Deprecated. Use /api/locations/find-bulk
 POST           /api/find-bulk                	  controllers.LocationServices.findBulk()
 # Deprecated

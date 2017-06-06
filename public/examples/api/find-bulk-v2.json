@@ -16,6 +16,7 @@
  "startDate": 1975,
  "endDate": 1985,
  "locationTypeIds":[16, 6],
+ "codeTypeIds":[],
  "onlyFeatureFields":[],
  "excludedFeatureFields": ["geometry", "properties.children"]
  }

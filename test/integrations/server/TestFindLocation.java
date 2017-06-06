@@ -124,9 +124,6 @@ public class TestFindLocation {
 		rank = features.get(0).get("properties").get("rank").asDouble();
 		assertThat(matchedTerm).isEqualTo("testUnit");
 		assertThat(rank).isEqualTo(1.0);
-		
-	
-        
         
         body = "{\"queryTerm\":\"testUnit 123\"," 
 				+ "\"limit\":10,"

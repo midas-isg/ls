@@ -15,6 +15,7 @@ public class Request {
 	private Date startDate;
 	private Date endDate;
 	private List<Long> locationTypeIds;
+	private List<Long> codeTypeIds;
 	private Boolean verbose;
 	private Long rootALC;
 	private List<String> onlyFeatureFields;
@@ -105,6 +106,15 @@ public class Request {
 		this.locationTypeIds = locationTypeIds;
 	}
 
+	public List<Long> getCodeTypeIds() {
+		return codeTypeIds;
+	}
+
+	public void setCodeTypeIds(List<Long> codeTypeIds) {
+		this.codeTypeIds = codeTypeIds;
+
+	}
+
 	public Boolean getVerbose() {
 		return verbose;
 	}
@@ -176,4 +186,5 @@ public class Request {
 	public void setLogic(String logic) {
 		this.logic = logic;
 	}
+
 }

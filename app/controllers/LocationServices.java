@@ -142,7 +142,7 @@ public class LocationServices extends Controller {
 		if (location == null)
 			return notFound("Location not found");
 		
-		Request req = RequestRule.toRequest(onlyFeatureFields, excludedFeatureFields);
+		Request req = RequestRule.toRequestForCustomizedFeatureFields(onlyFeatureFields, excludedFeatureFields);
 		
 		switch (format.toLowerCase()) {
 		case FORMAT_GEOJSON:

@@ -228,22 +228,38 @@ public class SearchSql {
 	}
 
 	private String toQueryFiltersSql(Request req) {
-		String typeCond = listToSqlFilters( " location_type_id ", req.getLocationTypeIds());
-		String dateCond = dateCond(req.getStartDate(), req.getEndDate());
-		String gidCond = toRootGidCond(req);
-		String qc = "";
-		if (dateCond != null && typeCond != null)
-			qc += typeCond + " AND " + dateCond;
-		else if (typeCond != null)
-			qc += typeCond;
-		else if (dateCond != null)
-			qc += dateCond;
-		if(gidCond != null)
-			qc += qc.isEmpty() ? gidCond : " AND " + gidCond;
+		String typeCond = toLocationTypeCondition(req.getLocationTypeIds());
+		String dateCond = toDateCondition(req.getStartDate(), req.getEndDate());
+		String gidCond = toRootGidCondition(req);
+		String codeTypeCond = toCodeTypeCondition(req.getCodeTypeIds());
+		String[] condList = {typeCond, dateCond, gidCond, codeTypeCond};
+
+		StringJoiner joiner = new StringJoiner(" AND ");
+		for (String c : condList) {
+			if(c != null)
+				joiner.add(c);
+		}
+		String qc = joiner.toString();
 		return qc;
 	}
 
-	private String toRootGidCond(Request req) {
+	private String toLocationTypeCondition(List<Long> typeIds) {
+		return listToSqlFilters( " location_type_id ", typeIds);
+	}
+
+	private String toCodeTypeCondition(List<Long> locationCodeTypeIds) {
+		
+		String condition = listToSqlFilters(" code_type_id ", locationCodeTypeIds);
+		if(condition == null)
+			return null;
+		return " gid in ("
+				+ " SELECT gid FROM {h-schema}alt_code WHERE " + condition
+				+ " UNION "
+				+ " SELECT gid FROM {h-schema}location WHERE " + condition
+				+ " ) ";
+	}
+
+	private String toRootGidCondition(Request req) {
 		if(req.getRootALC() == null)
 			return null;
 		return " gid in ( SELECT child_gid FROM {h-schema}forest WHERE root_gid = " + req.getRootALC() + " ) ";
@@ -270,7 +286,7 @@ public class SearchSql {
 		return columnName + " in " + joiner.toString();
 	}
 
-	private String dateCond(Date startDate, Date endDate) {
+	private String toDateCondition(Date startDate, Date endDate) {
 		if (startDate != null && endDate != null) {
 			return " ( (start_date, COALESCE(end_date, CURRENT_DATE)) "
 					+ "OVERLAPS (:start, :end) ) ";

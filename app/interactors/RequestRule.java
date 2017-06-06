@@ -25,6 +25,8 @@ public class RequestRule {
 		setEndDate(node, req, "endDate");
 		if (containsKey(node, "locationTypeIds"))
 			req.setLocationTypeIds(Util.toListOfLong((JsonNode) node.get("locationTypeIds")));
+		if (containsKey(node, "codeTypeIds"))
+			req.setCodeTypeIds(Util.toListOfLong((JsonNode) node.get("codeTypeIds")));
 		if (containsKey(node, "limit"))
 			req.setLimit(node.get("limit").asInt());
 		if (containsKey(node, "offset"))
@@ -72,7 +74,7 @@ public class RequestRule {
 		return request;
 	}
 
-	public static Request toRequest(String onlyFeatureFields, String excludedFeatureFields) {
+	public static Request toRequestForCustomizedFeatureFields(String onlyFeatureFields, String excludedFeatureFields) {
 		return toRequest(onlyFeatureFields, excludedFeatureFields, null, null);
 	}
 
@@ -86,7 +88,7 @@ public class RequestRule {
 	
 	public static Request toFindByPointRequest(String onlyFeatureFields, String excludedFeatureFields, double latitude,
 			double longitude) {
-		Request req = toRequest(onlyFeatureFields, excludedFeatureFields);
+		Request req = toRequestForCustomizedFeatureFields(onlyFeatureFields, excludedFeatureFields);
 		req.setLatitude(latitude);
 		req.setLongitude(longitude);
 		return req;

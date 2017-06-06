@@ -154,6 +154,7 @@ public class GeoJsonRule {
 	}
 
 	private static Map<String, Object> toProperties(Request req, int resultSize) {
+		
 		Map<String, Object> properties = new HashMap<>();
 		putAsStringIfNotNull(properties, "queryTerm", req.getQueryTerm());
 		putAsStringIfNotNull(properties, "locationTypeIds",
@@ -161,6 +162,9 @@ public class GeoJsonRule {
 		putAsStringIfNotNull(properties, "locationTypeNames",
 				listToString(LocationTypeRule.getLocationTypeNames(req
 						.getLocationTypeIds())));
+		putAsStringIfNotNull(properties, "codeTypeNames",
+				listToString(CodeTypeRule.getCodeTypeNames(req
+						.getCodeTypeIds())));
 		putAsStringIfNotNull(properties, "startDate",
 				toStringValue(req.getStartDate()));
 		putAsStringIfNotNull(properties, "endDate",
