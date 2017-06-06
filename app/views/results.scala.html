@@ -2,8 +2,8 @@
 
 @imports = {
 <!-- External Packages -->
-	<link href='@routes.Assets.at("external_packages/MapBox/mapbox-2.1.6.css")' rel='stylesheet'>
-	<script src='@routes.Assets.at("external_packages/MapBox/mapbox-2.1.6.js")'></script>
+	<link href='@routes.Assets.at("external_packages/MapBox/mapbox-3.1.1.css")' rel='stylesheet'>
+	<script src='@routes.Assets.at("external_packages/MapBox/mapbox-3.1.1.js")'></script>
 	
 	<link href='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet.draw-0.2.3.css")' rel='stylesheet'>
 	<script src='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet.draw-0.2.3.js")'></script>
@@ -14,9 +14,9 @@
 
 <!-- Custom -->
 	<link href='@routes.Assets.at("stylesheets/fancytree-ext.css")' rel='stylesheet'>
-	<link rel='stylesheet' href='@routes.Assets.at("stylesheets/search.css")'>
-	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'>
+	<link href='@routes.Assets.at("stylesheets/results.css")' rel='stylesheet'>
 	
+	<link href='@routes.Assets.at("stylesheets/map.css")' rel='stylesheet'>
 	<script src='@routes.Assets.at("javascripts/map-driver.js")'></script>
 	<script src='@routes.Assets.at("javascripts/search-map.js")'></script>
 	
@@ -25,17 +25,14 @@
 }
 
 @main(message, imports, version) {
-<!-- -->
-	<div id="map-container" class="container-fluid pull-left no-padding" style="">
-		<div class="no-padding">
-			<em>Place
-				<div id="leaflet-draw-marker" class="leaflet-draw-toolbar leaflet-bar leaflet-draw-toolbar-top" style="display: inline-block;">
-					<a class="leaflet-draw-draw-marker"></a>
-				</div> on map to search by coordinates
-			</em>
-		</div>
-
-		<div id="map-one" class="map"></div>
+	<div id="map-container" class="container-fluid no-padding">
+		<em>Place
+			<div id="leaflet-draw-marker" class="leaflet-draw-toolbar leaflet-bar leaflet-draw-toolbar-top" style="display: inline-block;">
+				<a class="leaflet-draw-draw-marker"></a>
+			</div> on map to search by coordinates
+		</em>
+		
+		@map()
 	</div>
 	
 	<div id="results-output" class="container-fluid pull-left no-padding azure" style="">

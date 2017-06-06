@@ -32,39 +32,37 @@ public class Application extends UserController {
 	}
 	
 	public Result basicSearch() {
-		return ok(views.html.index.render("location search", info()));
+		return ok(views.html.index.render("search", info()));
 	}
 	
 	public Result mapSearch() {
-		return ok(views.html.map_search.render("location search", info()));
+		return ok(views.html.map_search.render("map search", info()));
 	}
 	
 	public Result advancedSearch() {
-		return ok(views.html.advanced_search.render("location search", info()));
+		return ok(views.html.advanced_search.render("advanced search", info()));
 	}
 	
-	@Transactional
-	public Result concept() {
-		return ok(views.html.concept.render("location services", info()));
+	public Result results() {
+		return ok(views.html.results.render("results", info()));
 	}
 	
-	@Transactional
 	public Result browser() {
-		return ok(views.html.browser.render("location browser", info()));
+		return ok(views.html.browser.render("browser", info()));
 	}
 	
 	@Transactional
 	public Result resolver() {
-		return ok(views.html.resolver.render("location resolver", info()));
-	}
-	
-	@Transactional
-	public Result results() {
-		return ok(views.html.results.render("location resolver", info()));
+		return ok(views.html.resolver.render("resolver", info()));
 	}
 	
 	@Transactional
 	public Result create() {
-		return ok(views.html.create.render("location creator", info()));
+		return ok(views.html.create.render("creator", info()));
+	}
+	
+	@Transactional
+	public Result concept() {
+		return ok(views.html.concept.render("concept", info()));
 	}
 }

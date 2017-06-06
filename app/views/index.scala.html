@@ -2,20 +2,6 @@
 
 @imports = {
 	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'>
-	
-	<!--
-	<script src='@routes.Assets.at("external_packages/fancytree/jquery.fancytree.js")'></script>
-	
-	<script src='@routes.Assets.at("javascripts/map-driver.js")'></script>
-	<script src='@routes.Assets.at("javascripts/search-map.js")'></script>
-	
-	<script src='@routes.Assets.at("javascripts/search-results.js")' type='text/javascript'></script>
-	<script src='@routes.Assets.at("javascripts/search-rank.js")' type='text/javascript'></script>
-	
-	<link href='@routes.Assets.at("external_packages/fancytree/ui.fancytree.css")' rel='stylesheet'>
-	
-	<link href='@routes.Assets.at("stylesheets/fancytree-ext.css")' rel='stylesheet'>
-	-->
 }
 
 @main(message, imports, version) {
@@ -27,7 +13,9 @@
 		</div>
 		
 		<div id="search-options" class="center-block">
+			@*
 			<button class="btn btn-default" onclick="location.assign(CONTEXT + '/map-search');">Map Search</button>
+			*@
 			<button class="btn btn-default" onclick="location.assign(CONTEXT + '/advanced-search');">Advanced Search</button>
 		</div>
 	</div>

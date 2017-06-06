@@ -1,5 +1,5 @@
-var crudPath = context + "/api/locations",
-	apolloJSONDataPath = context + "/api/locations/",
+var crudPath = CONTEXT + "/api/locations",
+	apolloJSONDataPath = CONTEXT + "/api/locations/",
 	BROWSER_MAP =
 (function() {
 	function BrowserMap() {
@@ -14,13 +14,13 @@ var crudPath = context + "/api/locations",
 		this.mapID = id; //'tps23.k1765f0g';
 
 		if(id) {
-			this.dataSourceURL = context + "/api/locations/" + id;
+			this.dataSourceURL = CONTEXT + "/api/locations/" + id;
 			this.propertiesURL = this.dataSourceURL + "?maxExteriorRings=0";
 			format = "ID";
 		}
 		else if(query) {
 			format = "query";
-			this.dataSourceURL = context + "/api/locations?q=" + query;// + "&limit=" + limit + "&offset=" + offset;
+			this.dataSourceURL = CONTEXT + "/api/locations?q=" + query;// + "&limit=" + limit + "&offset=" + offset;
 		}
 
 		this.geoJSONURL = this.dataSourceURL + ".geojson";

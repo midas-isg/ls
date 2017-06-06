@@ -1,20 +1,29 @@
 @(message: String, version: String)
 
 @imports = {
-	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'>
+	<!-- External Packages -->
+	<link href='@routes.Assets.at("external_packages/MapBox/mapbox-3.1.1.css")' rel='stylesheet'>
+	<script src='@routes.Assets.at("external_packages/MapBox/mapbox-3.1.1.js")'></script>
 	
-	<!--
-	<script src='@routes.Assets.at("external_packages/fancytree/jquery.fancytree.js")'></script>
+	<link href='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet.draw-0.2.3.css")' rel='stylesheet'>
+	<script src='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet.draw-0.2.3.js")'></script>
+	<script src='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet-omnivore-0.2.0.min.js")'></script>
+	
+<!-- Custom -->
+	<link rel='stylesheet' href='@routes.Assets.at("stylesheets/search.css")'>
+	<link href='@routes.Assets.at("stylesheets/map.css")' rel='stylesheet'>
 	
 	<script src='@routes.Assets.at("javascripts/map-driver.js")'></script>
 	<script src='@routes.Assets.at("javascripts/search-map.js")'></script>
 	
-	<script src='@routes.Assets.at("javascripts/search-results.js")' type='text/javascript'></script>
-	<script src='@routes.Assets.at("javascripts/search-rank.js")' type='text/javascript'></script>
-	
-	<link href='@routes.Assets.at("external_packages/fancytree/ui.fancytree.css")' rel='stylesheet'>
-	
-	<link href='@routes.Assets.at("stylesheets/fancytree-ext.css")' rel='stylesheet'>
+	<!--
+		<link href='@routes.Assets.at("external_packages/fancytree/ui.fancytree.css")' rel='stylesheet'>
+		<script src='@routes.Assets.at("external_packages/fancytree/jquery.fancytree.js")'></script>
+		
+		<link href='@routes.Assets.at("stylesheets/fancytree-ext.css")' rel='stylesheet'>
+		
+		<script src='@routes.Assets.at("javascripts/search-results.js")' type='text/javascript'></script>
+		<script src='@routes.Assets.at("javascripts/search-rank.js")' type='text/javascript'></script>
 	-->
 }
 
@@ -22,8 +31,16 @@
 	<div class="center-block">
 		<h1 id="headline" class="center-block">Apollo Location Services</h1>
 		
-		<div class="vertical-spaced">
-			<p>Placeholder</p>
+		<div id="map-container" class="container-fluid vertical-spaced" style="">
+			<div class="no-padding">
+				<em>Place
+					<div id="leaflet-draw-marker" class="leaflet-draw-toolbar leaflet-bar leaflet-draw-toolbar-top" style="display: inline-block;">
+						<a class="leaflet-draw-draw-marker"></a>
+					</div> on map to search by coordinates
+				</em>
+			</div>
+			
+			<div id="map-one" class="map"></div>
 		</div>
 		
 		<div id="search-options" class="center-block">

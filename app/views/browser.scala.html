@@ -1,11 +1,17 @@
 @(message: String, version:String)
 
 @imports = {
-<!--
-	<script src='@routes.Assets.at("javascripts/browser.js")' defer></script>
+<!-- External Packages -->
+	<link href='@routes.Assets.at("external_packages/MapBox/mapbox-3.1.1.css")' rel='stylesheet'>
+	<script src='@routes.Assets.at("external_packages/MapBox/mapbox-3.1.1.js")'></script>
 	
-	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'>
--->
+	<link href='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet.draw-0.2.3.css")' rel='stylesheet'>
+	<script src='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet.draw-0.2.3.js")'></script>
+	<script src='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet-omnivore-0.2.0.min.js")'></script>
+	
+<!-- Custom -->
+	<link href='@routes.Assets.at("stylesheets/map.css")' rel='stylesheet'>
+	<script src='@routes.Assets.at("javascripts/browser.js")' defer></script>
 }
 
 @main(message, imports, version) {

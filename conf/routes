@@ -8,9 +8,9 @@ GET           /map-search                         controllers.Application.mapSea
 GET           /advanced-search                    controllers.Application.advancedSearch()
 GET           /read-only                          controllers.Application.browser()
 GET           /browser                            controllers.Application.browser()
-GET           /create                             controllers.Application.create()
 GET           /resolver                           controllers.Application.resolver()
 GET           /results                            controllers.Application.results()
+GET           /create                             controllers.Application.create()
 
 # Deprecated
 GET           /concept                            controllers.Application.concept()
