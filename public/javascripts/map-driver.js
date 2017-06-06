@@ -1,4 +1,4 @@
-var crudPath = context + '/api/locations';
+var CRUD_PATH = CONTEXT + '/api/locations';
 
 function MapDriver() {
 	var id = '';//'12';
@@ -6,7 +6,7 @@ function MapDriver() {
 	this.mapID = id;//'tps23.k1765f0g';
 
 	if(this.mapID) {
-		this.geoJSONURL = crudPath + "/" + id;
+		this.geoJSONURL = CRUD_PATH + "/" + id;
 		//"http://tps23-nb.univ.pitt.edu/test.json";
 	}
 	
@@ -212,7 +212,7 @@ MapDriver.prototype.saveMap = function() {
 	// CREATE //POST /resources/aus
 	// CREATE //POST /api/locations
 	var httpType = "POST",
-		URL = crudPath,
+		URL = CRUD_PATH,
 		data = this.featureLayer.toGeoJSON();
 
 	data.id = this.mapID;
@@ -265,7 +265,7 @@ MapDriver.prototype.updateMap = function() {
 	// UPDATE //PUT /resources/aus
 	// UPDATE //PUT /api/locations
 	var httpType = "PUT",
-		URL = crudPath,
+		URL = CRUD_PATH,
 		data = this.featureLayer.toGeoJSON();
 
 	data.id = this.mapID;
@@ -316,7 +316,7 @@ MapDriver.prototype.deleteLocation = function() {
 	// DELETE //DELETE /resources/aus
 	// DELETE //DELETE /api/locations
 	var httpType = "DELETE",
-		URL = crudPath;
+		URL = CRUD_PATH;
 	
 	URL = URL + "/" + HELPERS.getValueText("#gid");
 	
@@ -433,7 +433,7 @@ MapDriver.prototype.suggestParents = function() {
 	//POST /api/locations-by-geometry
 	var thisMapDriver = this,
 		httpType = "POST",
-		URL = context + "/api/locations-by-geometry?superTypeId=3",
+		URL = CONTEXT + "/api/locations-by-geometry?superTypeId=3",
 		data = this.featureLayer.toGeoJSON();
 	
 	$.ajax({

@@ -3,6 +3,8 @@ searchbar.js
 */
 
 $(document).ready(function() {
+	var resultsRoute = CONTEXT + "/results";
+	
 	$("#input").keyup(function(event) {
 		switch(event.which)
 		{
@@ -27,7 +29,7 @@ $(document).ready(function() {
 			return location.assign("https://www.youtube.com/watch?v=RfiQYRn7fBg");
 		}
 
-		return location.assign(CONTEXT + "?q=" + $("#input").val());
+		return location.assign(resultsRoute + "?q=" + $("#input").val());
 	}
 
 	function bindSuggestionBox(inputBox, URL) {

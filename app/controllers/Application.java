@@ -59,6 +59,11 @@ public class Application extends UserController {
 	}
 	
 	@Transactional
+	public Result results() {
+		return ok(views.html.results.render("location resolver", info()));
+	}
+	
+	@Transactional
 	public Result create() {
 		return ok(views.html.create.render("location creator", info()));
 	}

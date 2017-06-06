@@ -138,13 +138,13 @@ var HELPERS =
 			i = (lineage.length - 1);
 			auName = lineage[i].name;
 			auGID = lineage[i].gid;
-			$(sectionID).append("<a href='" + context + "/browser?id=" + auGID + "' class='' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
+			$(sectionID).append("<a href='" + CONTEXT + "/browser?id=" + auGID + "' class='' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
 			for(i--; i >= 0; i--) {
 				auName = lineage[i].name;
 				auGID = lineage[i].gid;
 
 				$(sectionID).append(", ");
-				$(sectionID).append("<a href='" + context + "/browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
+				$(sectionID).append("<a href='" + CONTEXT + "/browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
 			}
 		}
 

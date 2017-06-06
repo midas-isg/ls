@@ -2,7 +2,7 @@ var SEARCH_MAP = null;
 var MAP_DRIVER = null;
 
 $(document).ready(function() {
-	var url = context + "/api/au-tree";
+	var url = CONTEXT + "/api/au-tree";
 	
 	//override
 	MapDriver.prototype.loadFeatureLayer = function() {
