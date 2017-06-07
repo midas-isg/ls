@@ -146,14 +146,14 @@ public class GeoJsonRule {
 		return geometry;
 	}
 
-	private static FeatureCollection toFeatureCollection(Request req, List<Location> result) {
+	public static FeatureCollection toFeatureCollection(Request req, List<Location> result) {
 		FeatureCollection geoJSON = toFeatureCollection(result, req);
 		Map<String, Object> properties = toProperties(req, result.size());
 		geoJSON.setProperties(properties);
 		return geoJSON;
 	}
 
-	private static Map<String, Object> toProperties(Request req, int resultSize) {
+	static Map<String, Object> toProperties(Request req, int resultSize) {
 		
 		Map<String, Object> properties = new HashMap<>();
 		putAsStringIfNotNull(properties, "queryTerm", req.getQueryTerm());
@@ -313,6 +313,13 @@ public class GeoJsonRule {
 			result.add(obj);
 		}
 		return result;
+	}
+	
+	public static Object findByFilters(JsonNode jsonReq) {
+		Request req = RequestRule.toFindByFiltersRequest(jsonReq);
+		List<Location> result = LocationRule.findByFilters(req);
+		return toFeatureCollection(req, result);
+				
 	}
 
 	public static Object findByTerm(Request req) {

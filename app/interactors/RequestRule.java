@@ -17,20 +17,12 @@ import models.Request;
 public class RequestRule {
 
 	public static Request toFindByTermRequest(JsonNode node) {
-		Request req = new Request();
 		Boolean value;
+		Request req = toFindByFiltersRequest(node);
+
 		if (containsKey(node, "queryTerm"))
 			req.setQueryTerm(node.get("queryTerm").asText());
-		setStartDate(node, req, "startDate");
-		setEndDate(node, req, "endDate");
-		if (containsKey(node, "locationTypeIds"))
-			req.setLocationTypeIds(Util.toListOfLong((JsonNode) node.get("locationTypeIds")));
-		if (containsKey(node, "codeTypeIds"))
-			req.setCodeTypeIds(Util.toListOfLong((JsonNode) node.get("codeTypeIds")));
-		if (containsKey(node, "limit"))
-			req.setLimit(node.get("limit").asInt());
-		if (containsKey(node, "offset"))
-			req.setOffset(node.get("offset").asInt());
+
 		value = returnDefaultIfKeyNotExists(node, "ignoreAccent", true);
 		req.setIgnoreAccent(value);
 		value = returnDefaultIfKeyNotExists(node, "searchNames", true);
@@ -41,6 +33,29 @@ public class RequestRule {
 		req.setSearchCodes(value);
 		value = returnDefaultIfKeyNotExists(node, "verbose", true);
 		req.setVerbose(value);
+
+		value = returnDefaultIfKeyNotExists(node, "fuzzyMatch", false);
+		req.setFuzzyMatch(value);
+		if (containsKey(node, "fuzzyMatchThreshold"))
+			req.setFuzzyMatchThreshold((float) node.get("fuzzyMatchThreshold").asDouble());
+
+		if (containsKey(node, "logic"))
+			req.setLogic(node.get("logic").asText().trim().toUpperCase());
+		return req;
+	}
+
+	public static Request toFindByFiltersRequest(JsonNode node) {
+		Request req = new Request();
+		setStartDate(node, req, "startDate");
+		setEndDate(node, req, "endDate");
+		if (containsKey(node, "locationTypeIds"))
+			req.setLocationTypeIds(Util.toListOfLong((JsonNode) node.get("locationTypeIds")));
+		if (containsKey(node, "codeTypeIds"))
+			req.setCodeTypeIds(Util.toListOfLong((JsonNode) node.get("codeTypeIds")));
+		if (containsKey(node, "limit"))
+			req.setLimit(node.get("limit").asInt());
+		if (containsKey(node, "offset"))
+			req.setOffset(node.get("offset").asInt());
 		JsonNode rootALC = node.get("rootALC");
 		if (rootALC != null)
 			req.setRootALC(rootALC.asLong());
@@ -57,13 +72,6 @@ public class RequestRule {
 			req.setExcludedFeatureFields(list);
 		}
 
-		value = returnDefaultIfKeyNotExists(node, "fuzzyMatch", false);
-		req.setFuzzyMatch(value);
-		if (containsKey(node, "fuzzyMatchThreshold"))
-			req.setFuzzyMatchThreshold((float) node.get("fuzzyMatchThreshold").asDouble());
-		
-		if (containsKey(node, "logic"))
-			req.setLogic(node.get("logic").asText().trim().toUpperCase());
 		return req;
 	}
 
@@ -85,7 +93,7 @@ public class RequestRule {
 		request.setQueryTerm(queryTerm);
 		return request;
 	}
-	
+
 	public static Request toFindByPointRequest(String onlyFeatureFields, String excludedFeatureFields, double latitude,
 			double longitude) {
 		Request req = toRequestForCustomizedFeatureFields(onlyFeatureFields, excludedFeatureFields);
@@ -182,4 +190,5 @@ public class RequestRule {
 		if (req.getStartDate() == null)
 			req.setStartDate(toDate("0001-01-01"));
 	}
+
 }

@@ -1,7 +1,5 @@
 package dao;
 
-import gateways.database.sql.SQLSanitizer;
-
 import static interactors.Util.isTrue;
 
 import java.sql.Date;
@@ -9,6 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
 
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+
+import gateways.database.sql.SQLSanitizer;
 import models.Request;
 import models.exceptions.BadRequest;
 
@@ -17,7 +19,20 @@ public class SearchSql {
 		verifyQueryTerm(req.getQueryTerm());
 		return toSqlQuery(req);
 	}
+	
+	public String toFindByFiltersSQL(Request req){
+		String query = " SELECT gid "
+						+ " FROM {h-schema}location "
+						+ " WHERE "	+ toQueryConditionSQL(req);
+		return query;
+	}
 
+	public Query toNativeSQL(String stringQuery, Request req, EntityManager em){
+		Query query = em.createNativeQuery(stringQuery);
+		query = setQueryParameters(req, query);
+		return query;
+	}
+	
 	private String toSqlQuery(Request req) {
 		String qt = toQueryTerm(req);
 		
@@ -134,12 +149,12 @@ public class SearchSql {
 					+ " FROM ("
 					+ " SELECT gid, code FROM {h-schema}location WHERE code_type_id != 2 ";
 			if (containsFilters(req))
-				q += " AND " + toQueryFiltersSql(req);
+				q += " AND " + toQueryConditionSQL(req);
 			q += " UNION select gid, code FROM {h-schema}alt_code) AS foo"
 				+ " WHERE " + comparisonStatement;
 			if (containsFilters(req))
 				q += " AND gid IN ( SELECT gid FROM {h-schema}location WHERE "
-						+ toQueryFiltersSql(req) + " ) ";
+						+ toQueryConditionSQL(req) + " ) ";
 			q += " ORDER BY gid, rank DESC, length(to_tsvector('simple', code)), code ";
 		}
 		return q;
@@ -158,7 +173,7 @@ public class SearchSql {
 			+ " WHERE " + comparisonStatement;
 			if (containsFilters(req))
 				q += " AND gid IN ( SELECT gid FROM {h-schema}location WHERE "
-						+ toQueryFiltersSql(req) + " ) ";
+						+ toQueryConditionSQL(req) + " ) ";
 			q += " ORDER BY gid, rank DESC, length(to_tsvector('simple', name)), name ";
 		}
 		return q;
@@ -176,7 +191,7 @@ public class SearchSql {
 					+ " FROM {h-schema}location "
 					+ " WHERE " + comparisonStatement;
 			if (containsFilters(req))
-				q += " AND " + toQueryFiltersSql(req);
+				q += " AND " + toQueryConditionSQL(req);
 		}
 		return q;
 	}
@@ -227,7 +242,7 @@ public class SearchSql {
 		return false;
 	}
 
-	private String toQueryFiltersSql(Request req) {
+	private String toQueryConditionSQL(Request req) {
 		String typeCond = toLocationTypeCondition(req.getLocationTypeIds());
 		String dateCond = toDateCondition(req.getStartDate(), req.getEndDate());
 		String gidCond = toRootGidCondition(req);
@@ -252,7 +267,7 @@ public class SearchSql {
 		String condition = listToSqlFilters(" code_type_id ", locationCodeTypeIds);
 		if(condition == null)
 			return null;
-		return " gid in ("
+		return " gid IN ("
 				+ " SELECT gid FROM {h-schema}alt_code WHERE " + condition
 				+ " UNION "
 				+ " SELECT gid FROM {h-schema}location WHERE " + condition
@@ -262,7 +277,7 @@ public class SearchSql {
 	private String toRootGidCondition(Request req) {
 		if(req.getRootALC() == null)
 			return null;
-		return " gid in ( SELECT child_gid FROM {h-schema}forest WHERE root_gid = " + req.getRootALC() + " ) ";
+		return " gid IN ( SELECT child_gid FROM {h-schema}forest WHERE root_gid = " + req.getRootALC() + " ) ";
 	}
 
 	private String toSelectStatementSql(String column, String qt, String tempTable) {
@@ -283,7 +298,7 @@ public class SearchSql {
 		for (Object o : list) {
 			joiner.add(o.toString());
 		}
-		return columnName + " in " + joiner.toString();
+		return columnName + " IN " + joiner.toString();
 	}
 
 	private String toDateCondition(Date startDate, Date endDate) {
@@ -321,6 +336,18 @@ public class SearchSql {
 			throw new BadRequest("value [ " + value
 					+ " ] contains unsafe character(s)!");
 		}
+	}
+	
+	private Query setQueryParameters(Request req, Query query) {
+		if (req.getStartDate() != null)
+			query = query.setParameter("start", req.getStartDate());
+		if (req.getEndDate() != null)
+			query = query.setParameter("end", req.getEndDate());
+		if (req.getLimit() != null)
+			query.setMaxResults(req.getLimit());
+		if (req.getOffset() != null)
+			query.setFirstResult(req.getOffset());
+		return query;
 	}
 
 }

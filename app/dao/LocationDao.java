@@ -122,24 +122,21 @@ public class LocationDao {
 	public List<?> findByTerm(Request req) {
 		EntityManager em = JPA.em();
 		if(isTrue(req.isFuzzyMatch()) && req.getFuzzyMatchThreshold() != null)
-			em.createNativeQuery("SELECT set_limit(" + req.getFuzzyMatchThreshold() + ")"
-					).getSingleResult();
-		String q = new SearchSql().toQuerySqlString(req);
-		Query query = em.createNativeQuery(q);
-		query = setQueryParameters(req, query);
+			setFuzzyMatchThresholdForSession(req.getFuzzyMatchThreshold(), em);
+		Query query = toNativeSQL(req, em);
 		List<?> resultList = query.getResultList();
 		return resultList;
 	}
 
-	private Query setQueryParameters(Request req, Query query) {
-		if (req.getStartDate() != null)
-			query = query.setParameter("start", req.getStartDate());
-		if (req.getEndDate() != null)
-			query = query.setParameter("end", req.getEndDate());
-		if (req.getLimit() != null)
-			query.setMaxResults(req.getLimit());
-		if (req.getOffset() != null)
-			query.setFirstResult(req.getOffset());
+	private void setFuzzyMatchThresholdForSession(Float fuzzyMatchThreshold, EntityManager em) {
+		em.createNativeQuery("SELECT set_limit(" + fuzzyMatchThreshold + ")"
+				).getSingleResult();
+	}
+
+	private Query toNativeSQL(Request req, EntityManager em) {
+		SearchSql searchSql = new SearchSql();
+		String stringQuery = searchSql.toQuerySqlString(req);
+		Query query = searchSql.toNativeSQL(stringQuery, req, em);
 		return query;
 	}
 
@@ -232,7 +229,7 @@ public class LocationDao {
 		return result;
 	}
 
-	private static List<Location> findAll(List<BigInteger> ids) {
+	public List<Location> findAll(List<BigInteger> ids) {
 		EntityManager em = JPA.em();
 		List<Location> result = new ArrayList<>();
 		if (ids == null || ids.isEmpty())
@@ -246,7 +243,7 @@ public class LocationDao {
 		return query.getResultList();
 	}
 
-	public static List<Location> getLocations(List<BigInteger> ids) {
+	public List<Location> findAllAndSetNameAsHeadline(List<BigInteger> ids) {
 		List<Location> result = new ArrayList<>();
 		result = findAll(ids);
 		for (Location location : result) {
@@ -289,5 +286,15 @@ public class LocationDao {
 		Predicate isParentNull = criteriaBuilder.isNull(location.get("parent"));
 		criteriaQuery.where(isAU, isParentNull);
 		return em.createQuery(criteriaQuery).getResultList();
+	}
+	
+	public List<BigInteger> findByFilters(Request req) {
+		
+		EntityManager em = JPA.em();
+		SearchSql searchSql = new SearchSql();
+		String stringQuery = searchSql.toFindByFiltersSQL(req);
+		Query query = searchSql.toNativeSQL(stringQuery, req, em);
+		List<BigInteger> resultList = query.getResultList();
+		return resultList;
 	}
 }

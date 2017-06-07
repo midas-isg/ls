@@ -66,6 +66,10 @@ public class LocationServices extends Controller {
 			+ "<a target='_blank' href='assets/examples/api/" + findByTermExV2 + "'>" + findByTermExV2 + "</a></br>"
 			+ "Vesrion " + OLD_VERSION + " request example: "
 					+ "<a target='_blank' href='assets/examples/api/" + findByTermEx + "'>" + findByTermEx + "</a> ";
+	private static final String findByFilterEx = "find-by-filter.json";
+	private static final String findByFilterExBody = "Returns locations matched by filters. </br>"
+			+ "See a request example at "
+			+ "<a target='_blank' href='assets/examples/api/" + findByFilterEx + "'>" + findByFilterEx + "</a></br>";
 	private static final String findbyGeomEx = "AuMaridiTown.geojson";
 	private static final String findbyGeomExBody = "See an example of body at "
 			+ "<a target='_blank' href='assets/examples/api/" + findbyGeomEx + "'>" + findbyGeomEx + "</a> ";
@@ -354,6 +358,26 @@ public class LocationServices extends Controller {
 			return ok(Json.newObject());
 		return ok(Json.toJson(result.get(0)));
 		
+	}
+	
+	@Transactional
+	@ApiOperation(httpMethod = "POST", 
+					nickname = "readLocationByFilter", 
+					value = "Returns locations based on input filter", 
+					notes = "This endpoint returns locations matched by input filter",
+					response = FeatureCollection.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = OK, message = "Successful retrieval of location", response = FeatureCollection.class),
+			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"), })
+	@ApiImplicitParams({
+			@ApiImplicitParam(value = findByFilterExBody,
+								required = true, 
+								dataType = "models.Request", 
+								paramType = "body") })
+	public Result findByFilter() {
+		JsonNode req = (JsonNode) request().body().asJson();
+		Object result = GeoJsonRule.findByFilters(req);
+		return ok(Json.toJson(result));
 	}
 
 	private Status badVersion(String version) {
