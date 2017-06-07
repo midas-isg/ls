@@ -6,6 +6,10 @@ footer {
 	//text-align: center;
 }
 
+#page-title {
+	color: #9d9d9d;
+}
+
 .pre-spaced {
 	margin-left: 5px;
 }

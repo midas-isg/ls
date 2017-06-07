@@ -17,7 +17,7 @@ public class Application extends UserController {
 		return INFO;
 	}
 
-	private static void init(){
+	private static void init() {
 		if (INFO == null){
 			final Configuration cfg = Play.application().configuration();
 			String version = "Version: " + cfg.getString("app.version");
@@ -43,8 +43,12 @@ public class Application extends UserController {
 		return ok(views.html.advanced_search.render("advanced search", info()));
 	}
 	
+	public Result translate() {
+		return ok(views.html.translate.render("translater", info()));
+	}
+	
 	public Result results() {
-		return ok(views.html.results.render("results", info()));
+		return ok(views.html.results.render("refine search", info()));
 	}
 	
 	public Result browser() {

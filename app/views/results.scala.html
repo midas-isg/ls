@@ -25,19 +25,18 @@
 }
 
 @main(message, imports, version) {
-	<div id="map-container" class="container-fluid no-padding">
-		<em>Place
-			<div id="leaflet-draw-marker" class="leaflet-draw-toolbar leaflet-bar leaflet-draw-toolbar-top" style="display: inline-block;">
-				<a class="leaflet-draw-draw-marker"></a>
-			</div> on map to search by coordinates
-		</em>
-		
+	<div class="vertical-spaced">
+		@searchbar()
+	</div>
+	
+	<div id="map-div" class="">
 		@map()
 	</div>
 	
-	<div id="results-output" class="container-fluid pull-left no-padding azure" style="">
+	<div id="results-output" class="no-padding azure" style="">
 		<div id="result" class="no-padding" style="clear: both;"></div>
 		
+		<!--
 		<div id="parent-list" class="pull-left" hidden>
 			<div>
 				<legend><em>Parent location ID:</em></legend>
@@ -49,6 +48,7 @@
 			
 			<div id="parent-tree" style="padding-top: 5px"></div>
 		</div>
+		-->
 	</div>
 <!-- -->
 }

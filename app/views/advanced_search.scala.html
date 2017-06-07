@@ -2,6 +2,7 @@
 
 @imports = {
 	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'>
+	<link href='@routes.Assets.at("stylesheets/search.css")' rel='stylesheet'>
 	
 	<!--
 	<script src='@routes.Assets.at("external_packages/fancytree/jquery.fancytree.js")'></script>
@@ -20,15 +21,13 @@
 
 @main(message, imports, version) {
 	<div class="center-block">
-		<h1 id="headline" class="center-block">Apollo Location Services</h1>
-		
 		<div class="vertical-spaced">
 			<p>Placeholder</p>
 		</div>
 		
 		<div id="search-options" class="center-block">
-			<button class="btn btn-default">Visual Search</button>
-			<button class="btn btn-default">Advanced Search</button>
+			<button class="btn btn-default" onclick="location.assign(CONTEXT)">Name Search</button>
+			<button class="btn btn-default" onclick="location.assign(CONTEXT + '/map-search');">Map Search</button>
 		</div>
 	</div>
 }

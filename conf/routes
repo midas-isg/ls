@@ -11,6 +11,7 @@ GET           /browser                            controllers.Application.browse
 GET           /resolver                           controllers.Application.resolver()
 GET           /results                            controllers.Application.results()
 GET           /create                             controllers.Application.create()
+GET           /translate                          controllers.Application.translate()
 
 # Deprecated
 GET           /concept                            controllers.Application.concept()
