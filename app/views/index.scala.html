@@ -7,10 +7,18 @@
 
 @main(message, imports, version) {
 	<div class="center-block">
-		<h1 id="headline" class="center-block">Apollo Location Services</h1>
+		<h1 id="headline" class="centered-text">Apollo Location Services</h1>
 		
-		<div class="vertical-spaced">
-			@searchbar()
+		<div class="vertical-spaced horizontal-padding">
+			<div class="">
+				@searchbar()
+			</div>
+			
+			<h4 class="centered-text vertical-spaced">or</h4>
+			
+			<div class="">
+				@go_bar()
+			</div>
 		</div>
 		
 		<div id="search-options" class="center-block">

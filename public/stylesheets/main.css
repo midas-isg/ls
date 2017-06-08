@@ -10,6 +10,10 @@ footer {
 	color: #9d9d9d;
 }
 
+.centered-text {
+	text-align: center;
+}
+
 .pre-spaced {
 	margin-left: 5px;
 }
@@ -22,9 +26,23 @@ footer {
 	margin-bottom: 10px;
 }
 
+.extra-top-space {
+	margin-bottom: 10px;
+}
+
 .vertical-spaced {
 	margin-top: 5px;
 	margin-bottom: 5px;
+}
+
+.no-vertical-margins {
+	margin-top: 0px;
+	margin-bottom: 0px;
+}
+
+.horizontal-padding {
+	padding-left: 15px;
+	padding-right: 15px;
 }
 
 .no-vertical-padding {

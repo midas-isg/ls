@@ -1,7 +1,7 @@
 @(message: String, version:String)
 
 @imports = {
-<!--
+<!---->
 	<script src='@routes.Assets.at("external_packages/fancytree/jquery.fancytree.js")'></script>
 	
 	<script src='@routes.Assets.at("javascripts/create-map.js")'></script>
@@ -15,15 +15,16 @@
 	
 	<link href='@routes.Assets.at("stylesheets/fancytree-ext.css")' rel='stylesheet'/>
 	<link href='@routes.Assets.at("stylesheets/create.css")' rel='stylesheet'/>
+	<!--
 	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'/>
--->
+	-->
 }
 
 @main(message, imports, version) {
 	<div style="">
-		<div id="creation-dialog" class="pull-left container-fluid no-padding" style="">
+		<div id="creation-dialog" class="pull-left container-fluid no-padding">
 			<div class="extra-bottom-space" style="padding: 2px;">
-				<div class="azure extra-bottom-space" style="">
+				<div class="azure extra-bottom-space">
 					<legend style="">Import from KML file</legend>
 					<input id="file-input" accept=".json, .geojson, .kml" type="file" placeholder="Upload KML file">
 				</div>
@@ -33,16 +34,22 @@
 					<div class="input-group extra-bottom-space">
 						<span id="dropdown-label" class="input-group-addon no-padding">
 							<div class="dropdown">
-								<button class="dropdown-toggle" type="button" id="dropdown-menu" style="padding-top: 6px; padding-bottom: 6px; color: #303030;" data-toggle="dropdown" aria-expanded="true">
+								<button class="dropdown-toggle" type="button" id="dropdown-menu" style="padding-top: 6px; padding-bottom: 6px;" data-toggle="dropdown" aria-expanded="true">
 									Location type <span class="caret"></span>
 								</button>
+								
 								<ul class="dropdown-menu" role="menu" aria-labelledby="dropdown-menu" data-toggle="dropdown" aria-expanded="true">
-									<li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick='$("#au-type").val("Epidemic Zone"); $("#au-type").prop("disabled", true);'>Epidemic Zone</a></li>
-									<li id="au-create" role="presentation" hidden><a role="menuitem" tabindex="-1" href="#" onclick='$("#au-type").prop("disabled", false); $("#au-type").val("");'>Administrative Unit</a></li>
+									<li role="presentation">
+										<a role="menuitem" tabindex="-1" href="#" onclick='$("#au-type").val("Epidemic Zone"); $("#au-type").prop("disabled", true);'>Epidemic Zone</a>
+									</li>
+									
+									<li id="au-create" role="presentation" hidden>
+										<a role="menuitem" tabindex="-1" href="#" onclick='$("#au-type").prop("disabled", false); $("#au-type").val("");'>Administrative Unit</a>
+									</li>
 								</ul>
 							</div>
 						</span>
-						<input type="text" id="au-type" class="form-control" placeholder="Location type" aria-describedby="dropdown-label" style="" disabled>
+						<input type="text" id="au-type" class="form-control" placeholder="Location type" aria-describedby="dropdown-label" disabled>
 					</div>
 
 					<div class="extra-bottom-space input-group">
@@ -74,8 +81,13 @@
 					</div>
 					
 					<div class="" style="margin-top: 10px;">
-						<div><span id="description-label">Description: </span></div>
-						<div><textarea id="description" placeholder="Description" rows="1" style=""></textarea></div>
+						<div>
+							<span id="description-label">Description: </span>
+						</div>
+						
+						<div>
+							<textarea id="description" placeholder="Description" rows="1" style=""></textarea>
+						</div>
 					</div>
 
 					<div class="extra-bottom-space" style="clear:both;">
