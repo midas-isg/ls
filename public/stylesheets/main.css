@@ -10,6 +10,14 @@ footer {
 	color: #9d9d9d;
 }
 
+.soft-border {
+	border-color: #337ab7;
+	border-width: 1px;
+	border-style: solid;
+	border-radius: 5px;
+	padding: 5px;
+}
+
 .centered-text {
 	text-align: center;
 }
