@@ -1,0 +1,10 @@
+{
+ "locationTypeIds":[16,6],
+ "codeTypeIds":[1,3,4],
+ "endDate":"2015-01-01",
+ "rootALC": 1216,
+ "onlyFeatureFields":[],
+ "excludedFeatureFields": ["geometry", "properties.children"] ,
+ "limit":10,
+ "offset":0
+}

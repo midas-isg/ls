@@ -11,7 +11,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table (name = "location_type")
-public class LocationType {
+public class LocationType implements dao.entities.Entity{
 	
 	private long id;
 	private String name;
@@ -22,11 +22,11 @@ public class LocationType {
 	@Id
 	@Column(name = "id", columnDefinition = "serial")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	public long getId() {
+	public Long getId() {
 		return id;
 	}
 	
-	public void setId(long id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 	

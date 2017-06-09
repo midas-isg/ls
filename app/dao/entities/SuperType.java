@@ -9,7 +9,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "super_type")
-public class SuperType {
+public class SuperType implements dao.entities.Entity{
 	private Long id;
 	private String name;
 	private Boolean userDefinable;

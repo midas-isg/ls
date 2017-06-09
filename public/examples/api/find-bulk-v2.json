@@ -1,6 +1,7 @@
 [
 {
  "queryTerm": "UPSTATE NEW YORK",
+ "logic": "AND",
  "startDate": 1975,
  "endDate": 1985, 
  "locationTypeIds":[16, 6], 
@@ -11,9 +12,11 @@
  },
 {
  "queryTerm": "NEW JERSEY",
+ "logic": "AND",
  "startDate": 1975,
  "endDate": 1985,
  "locationTypeIds":[16, 6],
+ "codeTypeIds":[],
  "onlyFeatureFields":[],
  "excludedFeatureFields": ["geometry", "properties.children"]
  }

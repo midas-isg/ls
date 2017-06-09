@@ -60,7 +60,7 @@ public class App {
 			((Map<String, Object>)((Map<String, Object>)configurationMap.get("play")).get("modules")).remove("enabled");
 		
 		if (testConfPathname.equals(IN_MEMO_DB_CONF_PATH))
-			((Map<String, Object>) ((Map<String, Object>) configurationMap.get("db")).get("default")).put("initSQL",
+			((Map<String, Object>) ((Map<String, Object>) configurationMap.get("db")).get("default")).put("bonecp.initSQL",
 					"");
 		keepDatabaseOpen(configurationMap, uid);
 		fakeApp = fakeApplication(configurationMap, new GlobalSettings() {

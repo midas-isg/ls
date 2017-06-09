@@ -145,7 +145,8 @@ public class LocationRule {
 	}
 
 	public static List<Location> getLocations(List<BigInteger> result) {
-		return LocationDao.getLocations(result);
+		LocationDao locDao = new LocationDao();
+		return locDao.findAllAndSetNameAsHeadline(result);
 	}
 
 	public static List<Location> findByTypeId(long typeId, int limit, int offset) {
@@ -200,5 +201,18 @@ public class LocationRule {
 		if (nPoints != numCoordinates)
 			map.put("MISMATCH_numHolePoints+numShellPoints", nPoints);
 		return map;
+	}
+
+	public static List<Location> findByFilters(Request req) {
+		LocationDao locDao = new LocationDao();
+		List<BigInteger> resultList = locDao.findByFilters(req);
+		List<Location> locationList = toLocationList(resultList);
+		return locationList;
+	}
+	
+	private static List<Location> toLocationList(List<BigInteger> resultList) {
+		LocationDao locDao = new LocationDao();
+		List<Location> locationList = locDao.findAll(resultList);
+		return locationList;
 	}
 }

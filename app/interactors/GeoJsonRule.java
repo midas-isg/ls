@@ -1,9 +1,23 @@
 package interactors;
 
-import static interactors.GeoJsonHelperRule.*;
+import static interactors.GeoJsonHelperRule.computeBbox;
+import static interactors.GeoJsonHelperRule.createLocationGeometry;
+import static interactors.GeoJsonHelperRule.findLocationType;
+import static interactors.GeoJsonHelperRule.getRepPoint;
+import static interactors.GeoJsonHelperRule.getString;
+import static interactors.GeoJsonHelperRule.putAsAltNameObjectsIfNotNull;
+import static interactors.GeoJsonHelperRule.putAsCodeObjectsIfNotNull;
+import static interactors.GeoJsonHelperRule.putAsLocationObjectsIfNotNull;
+import static interactors.GeoJsonHelperRule.putAsSpewLinkObjectsIfNotNull;
+import static interactors.GeoJsonHelperRule.wireLocationsIncluded;
 import static interactors.RequestRule.isRequestedFeatureField;
 import static interactors.RequestRule.isRequestedFeatureProperties;
-import static interactors.Util.*;
+import static interactors.Util.getNowDate;
+import static interactors.Util.isTrue;
+import static interactors.Util.listToString;
+import static interactors.Util.newDate;
+import static interactors.Util.putAsStringIfNotNull;
+import static interactors.Util.toStringValue;
 import static models.FeatureKey.asFullPath;
 
 import java.sql.Date;
@@ -18,7 +32,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.vividsolutions.jts.geom.Geometry;
 
-import dao.LocationTypeDao;
 import dao.entities.AltName;
 import dao.entities.Code;
 import dao.entities.Data;
@@ -112,14 +125,16 @@ public class GeoJsonRule {
 					.toFeatureGeometry(multiPolygonGeom));
 			feature.setId(location.getGid() + "");
 		}
-		if(isRequestedFeatureField(req, asFullPath(FeatureKey.BBOX))) {
+		if(isRequestedFeatureField(req, FeatureKey.BBOX)) {
 			geometry = readGeometryIfNullOrEmpty(location, geometry); //TODO: read only bbox instead of whole record
-			feature.setBbox(GeometryRule.computeBbox(geometry.getShapeGeom()));
+			if(geometry != null)
+				feature.setBbox(GeometryRule.computeBbox(geometry.getShapeGeom()));
 		}
 		
-		if(isRequestedFeatureField(req, asFullPath(FeatureKey.REPPOINT))) {
+		if(isRequestedFeatureField(req, FeatureKey.REPPOINT)) {
 			geometry = readGeometryIfNullOrEmpty(location, geometry); //TODO: read only repPoint instead of whole record
-			feature.setRepPoint(getRepPoint(geometry));
+			if(geometry != null)
+				feature.setRepPoint(getRepPoint(geometry));
 		}
 		
 		return feature;
@@ -131,22 +146,25 @@ public class GeoJsonRule {
 		return geometry;
 	}
 
-	private static FeatureCollection toFeatureCollection(Request req, List<Location> result) {
+	public static FeatureCollection toFeatureCollection(Request req, List<Location> result) {
 		FeatureCollection geoJSON = toFeatureCollection(result, req);
 		Map<String, Object> properties = toProperties(req, result.size());
 		geoJSON.setProperties(properties);
 		return geoJSON;
 	}
 
-	private static Map<String, Object> toProperties(Request req, int resultSize) {
+	static Map<String, Object> toProperties(Request req, int resultSize) {
+		
 		Map<String, Object> properties = new HashMap<>();
-		LocationTypeDao locationTypeDao = new LocationTypeDao();
 		putAsStringIfNotNull(properties, "queryTerm", req.getQueryTerm());
 		putAsStringIfNotNull(properties, "locationTypeIds",
 				listToString(req.getLocationTypeIds()));
 		putAsStringIfNotNull(properties, "locationTypeNames",
-				listToString(locationTypeDao.getLocationTypeNames(req
+				listToString(LocationTypeRule.getLocationTypeNames(req
 						.getLocationTypeIds())));
+		putAsStringIfNotNull(properties, "codeTypeNames",
+				listToString(CodeTypeRule.getCodeTypeNames(req
+						.getCodeTypeIds())));
 		putAsStringIfNotNull(properties, "startDate",
 				toStringValue(req.getStartDate()));
 		putAsStringIfNotNull(properties, "endDate",
@@ -295,6 +313,13 @@ public class GeoJsonRule {
 			result.add(obj);
 		}
 		return result;
+	}
+	
+	public static Object findByFilters(JsonNode jsonReq) {
+		Request req = RequestRule.toFindByFiltersRequest(jsonReq);
+		List<Location> result = LocationRule.findByFilters(req);
+		return toFeatureCollection(req, result);
+				
 	}
 
 	public static Object findByTerm(Request req) {

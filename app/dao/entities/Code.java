@@ -10,7 +10,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "alt_code")
-public class Code implements dao.entities.DeficientInterface {
+public class Code implements dao.entities.EntityWithLocation {
 
 	private Long id;
 	private String code;

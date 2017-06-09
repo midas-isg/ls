@@ -11,9 +11,7 @@ import java.util.Map;
 
 import com.vividsolutions.jts.geom.Point;
 
-import play.Logger;
 import dao.ForestDao;
-import dao.LocationTypeDao;
 import dao.entities.AltName;
 import dao.entities.Code;
 import dao.entities.Data;
@@ -27,6 +25,7 @@ import models.FeatureKey;
 import models.Request;
 import models.geo.Feature;
 import models.geo.FeatureCollection;
+import play.Logger;
 
 public class GeoJsonHelperRule {
 	
@@ -231,8 +230,7 @@ public class GeoJsonHelperRule {
 		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.END_DATE)))
 			putAsStringIfNotNull(properties, FeatureKey.END_DATE, data.getEndDate());
 		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.LOCATION_TYPE_NAME))) {
-			LocationTypeDao locationTypeDao = new LocationTypeDao();
-			String locationTypeName = locationTypeDao.getLocationTypeName(data.getLocationType());
+			String locationTypeName = LocationTypeRule.getLocationTypeName(data.getLocationType());
 			putAsStringIfNotNull(properties, FeatureKey.LOCATION_TYPE_NAME, locationTypeName);
 		}
 		if (isRequestedFeatureProperties(req, toPropertiesPath(FeatureKey.PARENT_GID))) {

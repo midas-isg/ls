@@ -2,6 +2,7 @@ package interactors;
 
 import static interactors.RequestRule.isRequestedFeatureProperties;
 import static interactors.Util.putAsStringIfNotNull;
+import static models.FeatureKey.asFullPath;
 
 import java.sql.Date;
 import java.util.ArrayList;
@@ -12,7 +13,6 @@ import java.util.Map;
 import com.vividsolutions.jts.geom.Point;
 
 import dao.ForestDao;
-import dao.LocationTypeDao;
 import dao.entities.AltName;
 import dao.entities.Code;
 import dao.entities.Data;
@@ -23,7 +23,6 @@ import dao.entities.LocationType;
 import dao.entities.SpewLink;
 import gateways.configuration.ConfReader;
 import models.FeatureKey;
-import static models.FeatureKey.asFullPath;
 import models.Request;
 import models.geo.Feature;
 import models.geo.FeatureCollection;
@@ -232,8 +231,7 @@ public class GeoJsonHelperRule {
 		if (isRequestedFeatureProperties(req, asFullPath(FeatureKey.END_DATE)))
 			putAsStringIfNotNull(properties, FeatureKey.END_DATE, data.getEndDate());
 		if (isRequestedFeatureProperties(req, asFullPath(FeatureKey.LOCATION_TYPE_NAME))) {
-			LocationTypeDao locationTypeDao = new LocationTypeDao();
-			String locationTypeName = locationTypeDao.getLocationTypeName(data.getLocationType());
+			String locationTypeName = LocationTypeRule.getLocationTypeName(data.getLocationType());
 			putAsStringIfNotNull(properties, FeatureKey.LOCATION_TYPE_NAME, locationTypeName);
 		}
 		if (isRequestedFeatureProperties(req, asFullPath(FeatureKey.PARENT_GID))) {
@@ -254,7 +252,7 @@ public class GeoJsonHelperRule {
 
 		try {
 			if (id != null)
-				type = LocationTypeRule.findById(Long.parseLong(id));
+				type = LocationTypeRule.read(Long.parseLong(id));
 		} catch (Exception e) {
 			Logger.info(e.getMessage(), e);
 		}
