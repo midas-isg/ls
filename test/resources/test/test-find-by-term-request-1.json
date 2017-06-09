@@ -1,5 +1,6 @@
 {"queryTerm":"ñámé wíth áccéñt", 
 "locationTypeIds":[1,16],
+"codeTypeIds":[],
 "startDate":"2010",
 "endDate":"2016-01-01",
 "searchNames":true,

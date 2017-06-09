@@ -145,7 +145,8 @@ public class LocationRule {
 	}
 
 	public static List<Location> getLocations(List<BigInteger> result) {
-		return LocationDao.getLocations(result);
+		LocationDao locDao = new LocationDao();
+		return locDao.findAllAndSetNameAsHeadline(result);
 	}
 
 	public static List<Location> findByTypeId(long typeId) {

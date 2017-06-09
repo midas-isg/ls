@@ -1,7 +1,5 @@
 package dao;
 
-import gateways.database.sql.SQLSanitizer;
-
 import static interactors.Util.isTrue;
 
 import java.sql.Date;
@@ -9,6 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
 
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+
+import gateways.database.sql.SQLSanitizer;
 import models.Request;
 import models.exceptions.BadRequest;
 
@@ -17,7 +19,20 @@ public class SearchSql {
 		verifyQueryTerm(req.getQueryTerm());
 		return toSqlQuery(req);
 	}
+	
+	public String toFindByFiltersSQL(Request req){
+		String query = " SELECT gid "
+						+ " FROM {h-schema}location "
+						+ " WHERE "	+ toQueryConditionSQL(req);
+		return query;
+	}
 
+	public Query toNativeSQL(String stringQuery, Request req, EntityManager em){
+		Query query = em.createNativeQuery(stringQuery);
+		query = setQueryParameters(req, query);
+		return query;
+	}
+	
 	private String toSqlQuery(Request req) {
 		String qt = toQueryTerm(req);
 		
@@ -76,14 +91,28 @@ public class SearchSql {
 
 	private String toQueryTerm(Request req) {
 		String queryText = req.getQueryTerm();
+		queryText = "'" + queryText	+ "'";
 		if(isTrue(req.isFuzzyMatch()))
 			return (isTrue(req.isIgnoreAccent())) ? "unaccent_immutable("
-				+ "'" + queryText + "'" + ")" : "'" + queryText	+ "'";
-		queryText = toQueryText(req.getQueryTerm());
-		String qt = (isTrue(req.isIgnoreAccent())) ? "unaccent_immutable("
-				+ "'" + queryText + "'" + ")\\:\\:tsquery" : "'" + queryText
-				+ "'";
-		return qt;
+				+ queryText + ")" : queryText;
+
+		if(isTrue(req.isIgnoreAccent()))
+			queryText = "unaccent_immutable(" + queryText + ")";
+		
+		String logic = getSearchLogic(req);
+		
+		queryText = "replace(strip(to_tsvector('simple', " + queryText + " ))\\:\\:text, ' ', " + logic + " )\\:\\:tsquery ";
+		
+		return queryText;
+	}
+
+	private String getSearchLogic(Request req) {
+		String logic = " '|' ";
+		if(req.getLogic() != null){
+			String searchLogic = req.getLogic().trim().toUpperCase();
+			logic = (searchLogic.equals("AND")) ? "'&'" : "'|'";
+		}
+		return logic;
 	}
 
 	private String unionTempTablesSql(Request req, String qt, String nameTempTable,
@@ -101,9 +130,9 @@ public class SearchSql {
 		q = " SELECT * FROM ( "
 				+ " SELECT DISTINCT ON (gid) gid, headline, rank, name "
 				+ " FROM ( " + q + " ) AS foo"
-				+ " ORDER BY gid, rank DESC "
+				+ " ORDER BY gid, rank DESC " + " , length(to_tsvector('simple', name)) "
 				+ " ) AS foo ";
-		q += " ORDER BY rank DESC, name ";
+		q += " ORDER BY rank DESC, length(to_tsvector('simple', name)), name ";
 		return q;
 	}
 
@@ -118,14 +147,15 @@ public class SearchSql {
 					+ rankingStatement + " AS rank, "
 					+ headlineStatement + " AS headline "
 					+ " FROM ("
-					+ " SELECT gid, code FROM location WHERE code_type_id != 2 ";
+					+ " SELECT gid, code FROM {h-schema}location WHERE code_type_id != 2 ";
 			if (containsFilters(req))
-				q += " AND " + toQueryFiltersSql(req);
-			q += " UNION select gid, code FROM alt_code) AS foo"
+				q += " AND " + toQueryConditionSQL(req);
+			q += " UNION select gid, code FROM {h-schema}alt_code) AS foo"
 				+ " WHERE " + comparisonStatement;
 			if (containsFilters(req))
-				q += " AND gid IN ( SELECT gid FROM location WHERE "
-						+ toQueryFiltersSql(req) + " ) ";
+				q += " AND gid IN ( SELECT gid FROM {h-schema}location WHERE "
+						+ toQueryConditionSQL(req) + " ) ";
+			q += " ORDER BY gid, rank DESC, length(to_tsvector('simple', code)), code ";
 		}
 		return q;
 	}
@@ -139,11 +169,12 @@ public class SearchSql {
 			String headlineStatement = toHeadlineStatement(req, qt, "name");
 			q += " SELECT DISTINCT ON(gid) gid, name, " + rankingStatement + " AS rank, "
 			+ headlineStatement + " AS headline "
-			+ " FROM alt_name "
+			+ " FROM {h-schema}alt_name "
 			+ " WHERE " + comparisonStatement;
 			if (containsFilters(req))
-				q += " AND gid IN ( SELECT gid FROM location WHERE "
-						+ toQueryFiltersSql(req) + " ) ";
+				q += " AND gid IN ( SELECT gid FROM {h-schema}location WHERE "
+						+ toQueryConditionSQL(req) + " ) ";
+			q += " ORDER BY gid, rank DESC, length(to_tsvector('simple', name)), name ";
 		}
 		return q;
 	}
@@ -157,10 +188,10 @@ public class SearchSql {
 			String headlineStatement = toHeadlineStatement(req, qt, "name");
 			q += " SELECT gid, name, " + rankingStatement + " AS rank, "
 					+ headlineStatement + " AS headline " 
-					+ " FROM location "
+					+ " FROM {h-schema}location "
 					+ " WHERE " + comparisonStatement;
 			if (containsFilters(req))
-				q += " AND " + toQueryFiltersSql(req);
+				q += " AND " + toQueryConditionSQL(req);
 		}
 		return q;
 	}
@@ -195,7 +226,9 @@ public class SearchSql {
 	private String toRankingStatement(Request req, String qt, String actualTerm) {
 		if(isTrue(req.isFuzzyMatch()))
 			return " similarity(" + actualTerm + ", " + qt + ") ";
-		return " ts_rank_cd(" + actualTerm + ", " + qt + ", 8) ";
+		
+		String weights = " '{1.0, 1.0, 1.0, 1.0}' ";
+		return " ts_rank_cd( " + weights + " , " + actualTerm + ", " + qt + " ) ";
 	}
 
 	private boolean containsFilters(Request req) {
@@ -209,26 +242,42 @@ public class SearchSql {
 		return false;
 	}
 
-	private String toQueryFiltersSql(Request req) {
-		String typeCond = listToSqlFilters( " location_type_id ", req.getLocationTypeIds());
-		String dateCond = dateCond(req.getStartDate(), req.getEndDate());
-		String gidCond = toRootGidCond(req);
-		String qc = "";
-		if (dateCond != null && typeCond != null)
-			qc += typeCond + " AND " + dateCond;
-		else if (typeCond != null)
-			qc += typeCond;
-		else if (dateCond != null)
-			qc += dateCond;
-		if(gidCond != null)
-			qc += qc.isEmpty() ? gidCond : " AND " + gidCond;
+	private String toQueryConditionSQL(Request req) {
+		String typeCond = toLocationTypeCondition(req.getLocationTypeIds());
+		String dateCond = toDateCondition(req.getStartDate(), req.getEndDate());
+		String gidCond = toRootGidCondition(req);
+		String codeTypeCond = toCodeTypeCondition(req.getCodeTypeIds());
+		String[] condList = {typeCond, dateCond, gidCond, codeTypeCond};
+
+		StringJoiner joiner = new StringJoiner(" AND ");
+		for (String c : condList) {
+			if(c != null)
+				joiner.add(c);
+		}
+		String qc = joiner.toString();
 		return qc;
 	}
 
-	private String toRootGidCond(Request req) {
+	private String toLocationTypeCondition(List<Long> typeIds) {
+		return listToSqlFilters( " location_type_id ", typeIds);
+	}
+
+	private String toCodeTypeCondition(List<Long> locationCodeTypeIds) {
+		
+		String condition = listToSqlFilters(" code_type_id ", locationCodeTypeIds);
+		if(condition == null)
+			return null;
+		return " gid IN ("
+				+ " SELECT gid FROM {h-schema}alt_code WHERE " + condition
+				+ " UNION "
+				+ " SELECT gid FROM {h-schema}location WHERE " + condition
+				+ " ) ";
+	}
+
+	private String toRootGidCondition(Request req) {
 		if(req.getRootALC() == null)
 			return null;
-		return " gid in ( SELECT child_gid FROM forest WHERE root_gid = " + req.getRootALC() + " ) ";
+		return " gid IN ( SELECT child_gid FROM {h-schema}forest WHERE root_gid = " + req.getRootALC() + " ) ";
 	}
 
 	private String toSelectStatementSql(String column, String qt, String tempTable) {
@@ -249,10 +298,10 @@ public class SearchSql {
 		for (Object o : list) {
 			joiner.add(o.toString());
 		}
-		return columnName + " in " + joiner.toString();
+		return columnName + " IN " + joiner.toString();
 	}
 
-	private String dateCond(Date startDate, Date endDate) {
+	private String toDateCondition(Date startDate, Date endDate) {
 		if (startDate != null && endDate != null) {
 			return " ( (start_date, COALESCE(end_date, CURRENT_DATE)) "
 					+ "OVERLAPS (:start, :end) ) ";
@@ -267,9 +316,10 @@ public class SearchSql {
 		q = q.replaceAll(" *\\| *", "|");
 		q = q.replaceAll(" *& *", "&");
 		q = q.replaceAll(" *& *", "&");
-
-		q = q.replaceAll("[\\(\\)',.-]", " ");
+		
+		q = q.replaceAll("[\\[\\]\\(\\)',.-]", " ");
 		String[] tokens = q.trim().split(" +");
+				
 		String del = "";
 		String result = "";
 		for (String t : tokens) {
@@ -286,6 +336,18 @@ public class SearchSql {
 			throw new BadRequest("value [ " + value
 					+ " ] contains unsafe character(s)!");
 		}
+	}
+	
+	private Query setQueryParameters(Request req, Query query) {
+		if (req.getStartDate() != null)
+			query = query.setParameter("start", req.getStartDate());
+		if (req.getEndDate() != null)
+			query = query.setParameter("end", req.getEndDate());
+		if (req.getLimit() != null)
+			query.setMaxResults(req.getLimit());
+		if (req.getOffset() != null)
+			query.setFirstResult(req.getOffset());
+		return query;
 	}
 
 }

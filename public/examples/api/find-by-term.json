@@ -8,7 +8,7 @@
  "searchOtherNames":true,
  "searchCodes":true,
  "ignoreAccent":true,
- "includeOnly":[],
+ "includeOnly":["properties.name", "properties.gid"],
  "fuzzyMatch":false,
  "fuzzyMatchThreshold":0.3,
  "limit":10,

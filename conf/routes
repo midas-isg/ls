@@ -31,6 +31,7 @@ DELETE        /api/locations/$gid<[0-9]+>         controllers.LocationServices.d
 GET           /api/locations              		  controllers.LocationServices.filterByTerm(queryTerm?=null, limit:Int?=10, offset:Int?=0, searchOtherNames:Boolean?=true, _onlyFeatureFields:String ?= null, _excludedFeatureFields:String ?= null, q?=null, verbose:Boolean?=true, _v:String ?= "1")
 POST          /api/locations/find-bulk            controllers.LocationServices.findBulkLocations(_v:String ?= "1")
 POST          /api/locations/find-by-term         controllers.LocationServices.findByTerm(_v:String ?= "1")
+POST		  /api/locations/find-by-filter		  controllers.LocationServices.findByFilter()
 GET           /api/locations/find-by-coordinate   controllers.LocationServices.findByPoint(lat:Double, long:Double, verbose:Boolean?=true, _onlyFeatureFields:String ?= null, _excludedFeatureFields:String?=null, _v:String ?= "1")
 POST          /api/locations/find-by-geometry     controllers.LocationServices.findByFeatureCollection(superTypeId:java.lang.Long ?= null, typeId:java.lang.Long ?= null, verbose:Boolean?=true)
 GET			  /api/locations/find-by-type/:id	  controllers.LocationServices.findByTypeId(id:Long, _onlyFeatureFields:String ?= null, _excludedFeatureFields:String ?= null, limit:Int?=10, offset:Int?=0, _v:String ?= "1")
@@ -41,6 +42,8 @@ GET           /api/location-types                 controllers.ListServices.findL
 
 GET           /api/geometry-metadata/:gid         controllers.LocationServices.getGeometryMetadata(gid:Long, tolerance:java.lang.Double?=null)
 GET			  /api/update-cache					  controllers.LocationServices.updateCache()
+
+GET           /api/code-types            		  controllers.LocationCodeService.findCodeTypes()
 
 # Deprecated. Use /api/locations/find-bulk
 POST           /api/find-bulk                	  controllers.LocationServices.findBulk()

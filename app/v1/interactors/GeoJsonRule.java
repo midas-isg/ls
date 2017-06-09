@@ -1,9 +1,26 @@
 package v1.interactors;
 
-import static v1.interactors.GeoJsonHelperRule.*;
+import static v1.interactors.GeoJsonHelperRule.computeBbox;
+import static v1.interactors.GeoJsonHelperRule.createLocationGeometry;
+import static v1.interactors.GeoJsonHelperRule.findLocationType;
+import static v1.interactors.GeoJsonHelperRule.getRepPoint;
+import static v1.interactors.GeoJsonHelperRule.getString;
+import static v1.interactors.GeoJsonHelperRule.putAsAltNameObjectsIfNotNull;
+import static v1.interactors.GeoJsonHelperRule.putAsCodeObjectsIfNotNull;
+import static v1.interactors.GeoJsonHelperRule.putAsLocationObjectsIfNotNull;
+import static v1.interactors.GeoJsonHelperRule.putAsSpewLinkObjectsIfNotNull;
+import static v1.interactors.GeoJsonHelperRule.toPropertiesPath;
+import static v1.interactors.GeoJsonHelperRule.wireLocationsIncluded;
 import static v1.interactors.RequestRule.isRequestedFeatureField;
 import static v1.interactors.RequestRule.isRequestedFeatureProperties;
-import static v1.interactors.Util.*;
+import static v1.interactors.Util.containsKey;
+import static v1.interactors.Util.getNowDate;
+import static v1.interactors.Util.isTrue;
+import static v1.interactors.Util.listToString;
+import static v1.interactors.Util.newDate;
+import static v1.interactors.Util.putAsStringIfNotNull;
+import static v1.interactors.Util.toDate;
+import static v1.interactors.Util.toStringValue;
 
 import java.math.BigInteger;
 import java.sql.Date;
@@ -18,8 +35,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.vividsolutions.jts.geom.Geometry;
 
-import play.Logger;
-import dao.LocationTypeDao;
 import dao.entities.AltName;
 import dao.entities.Code;
 import dao.entities.Data;
@@ -32,6 +47,7 @@ import models.exceptions.BadRequest;
 import models.geo.Feature;
 import models.geo.FeatureCollection;
 import models.geo.FeatureGeometry;
+import play.Logger;
 
 public class GeoJsonRule {
 
@@ -114,12 +130,14 @@ public class GeoJsonRule {
 		}
 		if(isRequestedFeatureField(req, toPropertiesPath(FeatureKey.BBOX))) {
 			geometry = readGeometryIfNullOrEmpty(location, geometry); //TODO: read only bbox instead of whole record
-			feature.setBbox(GeometryRule.computeBbox(geometry.getShapeGeom()));
+			if(geometry != null)
+				feature.setBbox(GeometryRule.computeBbox(geometry.getShapeGeom()));
 		}
 		
 		if(isRequestedFeatureField(req, toPropertiesPath(FeatureKey.REPPOINT))) {
 			geometry = readGeometryIfNullOrEmpty(location, geometry); //TODO: read only repPoint instead of whole record
-			feature.setRepPoint(getRepPoint(geometry));
+			if(geometry != null)
+				feature.setRepPoint(getRepPoint(geometry));
 		}
 		
 		return feature;
@@ -140,12 +158,11 @@ public class GeoJsonRule {
 
 	private static Map<String, Object> toProperties(Request req, int resultSize) {
 		Map<String, Object> properties = new HashMap<>();
-		LocationTypeDao locationTypeDao = new LocationTypeDao();
 		putAsStringIfNotNull(properties, "queryTerm", req.getQueryTerm());
 		putAsStringIfNotNull(properties, "locationTypeIds",
 				listToString(req.getLocationTypeIds()));
 		putAsStringIfNotNull(properties, "locationTypeNames",
-				listToString(locationTypeDao.getLocationTypeNames(req
+				listToString(LocationTypeRule.getLocationTypeNames(req
 						.getLocationTypeIds())));
 		putAsStringIfNotNull(properties, "startDate",
 				toStringValue(req.getStartDate()));

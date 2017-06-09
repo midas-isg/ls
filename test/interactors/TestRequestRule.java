@@ -5,13 +5,19 @@ import static org.fest.assertions.Assertions.assertThat;
 import static suites.Helper.assertAreEqual;
 import static suites.Helper.assertContainsAll;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import models.FeatureKey;
 import models.Request;
+import play.libs.Json;
 
 public class TestRequestRule {
 
@@ -20,6 +26,7 @@ public class TestRequestRule {
 	private final static String GID = FeatureKey.GID;
 	private final static String NAME = FeatureKey.NAME;
 	private final static String CHILDREN = FeatureKey.CHILDREN;
+	private final String findByTermRequestExample = "test/resources/test/find-by-term-v2-example.json";
 
 	@Test
 	public void toRequestTest() {
@@ -31,7 +38,7 @@ public class TestRequestRule {
 		String[] includedFields = new String[] { asFullPath(GID), asFullPath(NAME) };
 		String[] excludedFields = new String[] { GEOMETRY };
 
-		Request req = RequestRule.toRequest(onlyFeatureFields, excludedFeatureFields);
+		Request req = RequestRule.toRequestForCustomizedFeatureFields(onlyFeatureFields, excludedFeatureFields);
 
 		assertContainsAll(req.getOnlyFeatureFields().toArray(), includedFields);
 		assertContainsAll(req.getExcludedFeatureFields().toArray(), excludedFields);
@@ -40,6 +47,27 @@ public class TestRequestRule {
 		assertAreEqual(req.getLimit(), limit);
 		assertAreEqual(req.getOffset(), offset);
 		assertThat(req.getLocationTypeIds()).contains(typeId);		
+	}
+	
+	@Test
+	public void toFindByTermRequestTest() throws IOException{
+		JsonNode jsonNode = asJsonNode(findByTermRequestExample);
+		Request req = RequestRule.toFindByTermRequest(jsonNode);
+		assertThat(req.getCodeTypeIds()).contains(1L);
+		assertAreEqual(req.getLimit(), 10);
+		assertAreEqual(req.getOffset(), 0);
+		assertThat(req.getLocationTypeIds()).contains(1L);
+	}
+
+	private JsonNode asJsonNode(String filePath) throws IOException {
+		String string = asString(filePath);
+		JsonNode jsonNode = Json.parse(string);
+		return jsonNode;
+	}
+
+	private String asString(String filePath) throws IOException {
+		String string = String.join("", Files.readAllLines(Paths.get(filePath)));
+		return string;
 	}
 
 	@Test
