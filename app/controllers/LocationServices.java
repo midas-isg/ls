@@ -40,6 +40,7 @@ import play.libs.Json;
 import play.libs.Jsonp;
 import play.mvc.Controller;
 import play.mvc.Result;
+import play.mvc.Http.Context;
 
 @Api(value = "/api/locations", description = "Endpoint for locations")
 public class LocationServices extends Controller {
@@ -447,6 +448,8 @@ public class LocationServices extends Controller {
 	@Deprecated
 	@Transactional
 	public Result findBulk() {
+		Logger.warn("WARNING! " + Context.current().request().uri() + " is deprecated and may stop being available in the future!");
+		
 		List<Object> result = v1.interactors.GeoJsonRule.findBulk((ArrayNode)request().body().asJson());
 		return ok(toJson(result));
 	}
@@ -499,6 +502,8 @@ public class LocationServices extends Controller {
 	@Deprecated
 	@Transactional
 	public Result findLocationNames(String q, Integer limit){
+		Logger.warn("WARNING! " + Context.current().request().uri() + " is deprecated and may stop being available in the future!");
+		
 		return listUniqueNames(q, limit);
 	}
 
@@ -572,6 +577,8 @@ public class LocationServices extends Controller {
 	@Deprecated
 	@Transactional
 	public Result findByLocationPoint(double lat, double lon, boolean verbose) {
+		Logger.warn("WARNING! " + Context.current().request().uri() + " is deprecated and may stop being available in the future!");
+		
 		return findByPoint(lat, lon, verbose, null, null, OLD_VERSION);
 	}
 
@@ -773,6 +780,8 @@ public class LocationServices extends Controller {
 	@Deprecated
 	@Transactional
 	public Result findByLocationFeatureCollection(Long superTypeId,	Long typeId, boolean verbose) throws Exception {
+		Logger.warn("WARNING! " + Context.current().request().uri() + " is deprecated and may stop being available in the future!");
+		
 		return findByFeatureCollection(superTypeId, typeId, verbose);
 	}
 

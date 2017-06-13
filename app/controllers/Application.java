@@ -1,9 +1,11 @@
 package controllers;
 
 import play.Configuration;
+import play.Logger;
 import play.Play;
 import play.db.jpa.Transactional;
 import play.mvc.Controller;
+import play.mvc.Http.Context;
 import play.mvc.Result;
 import security.controllers.UserController;
 
@@ -67,6 +69,7 @@ public class Application extends UserController {
 	
 	@Transactional
 	public Result concept() {
+		Logger.warn("\nWARNING! " + Context.current().request().uri() + " is deprecated and may stop being available in the future!\n");
 		return ok(views.html.concept.render("concept", info()));
 	}
 }

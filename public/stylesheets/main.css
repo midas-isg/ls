@@ -10,6 +10,12 @@ footer {
 	color: #9d9d9d;
 }
 
+.no-click,
+.no-click:hover,
+.no-click[class*="leaflet-draw-draw-"]:hover {
+	cursor: default;
+}
+
 .soft-border {
 	border-color: #337ab7;
 	border-width: 1px;

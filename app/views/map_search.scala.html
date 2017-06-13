@@ -2,6 +2,7 @@
 
 @imports = {
 	<!-- External Packages -->
+	
 	<link href='@routes.Assets.at("external_packages/MapBox/mapbox-3.1.1.css")' rel='stylesheet'>
 	<script src='@routes.Assets.at("external_packages/MapBox/mapbox-3.1.1.js")'></script>
 	
@@ -13,7 +14,6 @@
 	<link rel='stylesheet' href='@routes.Assets.at("stylesheets/search.css")'>
 	<link href='@routes.Assets.at("stylesheets/map.css")' rel='stylesheet'>
 	
-	<script src='@routes.Assets.at("javascripts/map-driver.js")'></script>
 	<script src='@routes.Assets.at("javascripts/search-map.js")'></script>
 	
 	<!--
@@ -30,6 +30,22 @@
 @main(message, imports, version) {
 	<div class="center-block">
 		<div id="map-div" class="vertical-spaced">
+			<div class="no-padding">
+				<em>Use
+					<div id="" class="leaflet-draw-toolbar leaflet-bar leaflet-draw-toolbar-top" style="display: inline-block;">
+						<a class="no-click leaflet-draw-draw-polygon"></a>
+					</div> to search map within polygon
+				</em>
+			</div>
+			
+			<div class="no-padding">
+				<em>Use
+					<div id="" class="leaflet-draw-toolbar leaflet-bar leaflet-draw-toolbar-top" style="display: inline-block;">
+						<a class="no-click leaflet-draw-draw-marker"></a>
+					</div> to search map by coordinates
+				</em>
+			</div>
+			
 			@map()
 		</div>
 		

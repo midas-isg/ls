@@ -183,7 +183,7 @@ $(document).ready(function() {
 				});
 				
 				function loadFromDatabase(mapID) {
-					MAP_DRIVER.geoJSONURL = crudPath + "/" + mapID;
+					MAP_DRIVER.geoJSONURL = CRUD_PATH + "/" + mapID;
 					
 					if(MAP_DRIVER.geoJSONURL) {
 						MAP_DRIVER.featureLayer.loadURL(MAP_DRIVER.geoJSONURL);
@@ -275,12 +275,12 @@ $(document).ready(function() {
 					compositeJSON.features = [];
 					
 					currentAUGID = MAP_DRIVER.auComponents[0];
-					currentAU = L.mapbox.featureLayer().loadURL(crudPath + "/" + currentAUGID);
+					currentAU = L.mapbox.featureLayer().loadURL(CRUD_PATH + "/" + currentAUGID);
 					//currentAU.on('ready', function(){
 						//TODO: Load JSON via call-back
 						for(i = 1; i < MAP_DRIVER.auComponents.length; i++) {
 							currentAUGID = MAP_DRIVER.auComponents[i];
-							currentAU = L.mapbox.featureLayer().loadURL(crudPath + "/" + currentAUGID);
+							currentAU = L.mapbox.featureLayer().loadURL(CRUD_PATH + "/" + currentAUGID);
 							
 							console.log(currentAU);
 

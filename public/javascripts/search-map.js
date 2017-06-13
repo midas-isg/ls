@@ -1,13 +1,13 @@
-var SEARCH_MAP = null;
-var MAP_DRIVER = null;
+var SEARCH_MAP = null,
+	MAP_DRIVER = null;
 
 $(document).ready(function() {
-	var url = CONTEXT + "/api/au-tree";
+	var resultsURL = CONTEXT + "/results";
 	
 	//override
 	MapDriver.prototype.loadFeatureLayer = function() {
-		var thisMapDriver = this;
-		var noLoad = false;
+		var thisMapDriver = this,
+			noLoad = false;
 		
 		if(this.geoJSONURL) {
 			this.featureLayer = L.mapbox.featureLayer().loadURL(this.geoJSONURL);
@@ -89,15 +89,29 @@ $(document).ready(function() {
 			
 			thisMapDriver.map.on('draw:created', function(e) {
 				thisMapDriver.featureLayer.addLayer(e.layer);
-				var geoJSON = e.layer.toGeoJSON();
+				var i,
+					coordinates,
+					geoJSON = e.layer.toGeoJSON(),
+					urlParameters = "";
 				
 				if(geoJSON.geometry.type === "Point") {
-					SEARCH_RESULTS.searchPoint(e.layer._latlng.lat, e.layer._latlng.lng);
+					urlParameters = "@" + e.layer._latlng.lat + "," + e.layer._latlng.lng;
 				}
 				else {
-					geoJSON = { features:[geoJSON], type: "FeatureCollection" };
-					SEARCH_RESULTS.searchByGeoJSON(geoJSON);
+					//geoJSON = { features:[geoJSON], type: "FeatureCollection" };
+					//SEARCH_RESULTS.searchByGeoJSON(geoJSON);
+					
+					//TODO: send collection of points from map via url parameters
+					coordinates = geoJSON.geometry.coordinates[0];
+					urlParameters += "[";
+					urlParameters += "(" + coordinates[0][0] + "," + coordinates[0][1] + ")";
+					for(i = 1; i < coordinates.length; i++) {
+						urlParameters += ",(" + coordinates[i][0] + "," + coordinates[i][1] + ")";
+					}
+					urlParameters += "]";
 				}
+				
+				location.assign(resultsURL + "?q=" + urlParameters);
 				
 				//console.log(e);
 				

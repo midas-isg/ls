@@ -22,7 +22,6 @@
 	<script src='@routes.Assets.at("javascripts/au-composite-tree.js")'></script>
 	<script src='@routes.Assets.at("javascripts/fancytree-ext-filter.js")'></script>
 	
-	<script src='@routes.Assets.at("javascripts/map-driver.js")'></script>
 	<script src='@routes.Assets.at("javascripts/create-map.js")'></script>
 	
 	<!--
@@ -126,12 +125,12 @@
 			</div>
 
 			<div>
-				<div id="map-one" class="map"></div>
+				@map()
 				<button id="download-button" hidden>Download as GeoJSON</button>
 			</div>
 		</div>
 		
-		<div id="parent-wizard" class="no-padding soft-border">
+		<div id="parent-wizard" class="soft-border">
 			<div id="parent-list">
 					<div>
 						<legend>Select encompassing location</legend>
