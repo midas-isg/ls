@@ -46,7 +46,7 @@ public class Application extends UserController {
 	}
 	
 	public Result translate() {
-		return ok(views.html.translate.render("translater", info()));
+		return ok(views.html.translate.render("translator", info()));
 	}
 	
 	public Result results() {

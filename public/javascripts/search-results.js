@@ -5,7 +5,7 @@ search-results.js
 var SEARCH_RESULTS =
 (function() {
 	function SearchResults() {
-		this.geometrySearchURL = "/api/locations/find-by-geometry"; //?superTypeId=3";
+		this.geometrySearchURL = CONTEXT + "/api/locations/find-by-geometry"; //?superTypeId=3";
 		this.searchURL = CONTEXT + "/api/locations/find-by-term",
 		this.pointURL = CONTEXT + "/api/locations/find-by-coordinate",
 		this.browserURL = CONTEXT + "/browser",
@@ -352,22 +352,23 @@ var SEARCH_RESULTS =
 								coordinates: [
 									coordinateArray
 								]
-							},
-							properties: {}
+							}
 						}
 					]
 				};
 				
-				SEARCH_RESULTS.searchByGeoJSON(geoJSON);
+				return SEARCH_RESULTS.searchByGeoJSON(geoJSON);
 			}
 			
 			if(thisQuery.originalInput !== thisQuery.inputComponent[0]) {
 				getQueryResults(thisQuery.originalInput);
 			}
-
+			
+			/*
 			for(i = 0; i < thisQuery.inputComponent.length; i++) {
 				getQueryResults(thisQuery.inputComponent[i]);
 			}
+			*/
 
 			return;
 		}
