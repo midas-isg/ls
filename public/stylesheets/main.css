@@ -75,3 +75,7 @@ footer {
 	padding-left: 0px;
 	padding-right: 0px;
 }
+
+.top-aligned {
+	vertical-align: top;
+}

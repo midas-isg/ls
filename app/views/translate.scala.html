@@ -1,39 +1,44 @@
 @(message: String, version: String)
 
 @imports = {
-	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'>
+	<link href='@routes.Assets.at("stylesheets/translate.css")' rel='stylesheet'>
+	
+	<script src='@routes.Assets.at("javascripts/translator.js")'></script>
 }
 
 @main(message, imports, version) {
 	<div class="center-block horizontal-padding">
 		<div class="form-group">
-			<label for="location-codes-list">Location Codes List*</label>
-			<textarea id="location-codes-list" class="form-control"></textarea>
+			<label for="location-codes-list">Location Codes List</label>
+			<textarea id="location-codes-list" class="form-control" placeholder="ex: '1216' or '1423, 1600, 1900, ...' or (leave empty to query by country)"></textarea>
 		</div>
 		
 		<div class="form-group">
 			<label for="code-type">Input code type</label>
 			<select id="code-type">
-				<option selected>(not selected)</option>
+				<option disabled selected value="-1">(not selected)</option>
 			</select>
 		</div>
 		
 		<div class="form-group">
-			<label for="location-types">Location type(s)</label>
+			<label for="location-types" class="top-aligned">Location type(s)</label>
 			<select id="location-types" multiple>
-				<option selected>(not selected)</option>
+				<option disabled selected value="-1">(not selected)</option>
 			</select>
 		</div>
 		
 		<div class="form-group">
 			<label for="country">Country</label>
 			<select id="country">
-				<option selected>(not selected)</option>
+				<option disabled selected value="-1">(not selected)</option>
 			</select>
 		</div>
 		
 		<div class="text-center">
 			<button id="submit-button" class="btn btn-default">Submit</button>
 		</div>
+	</div>
+	
+	<div id="query-results" class="center-block horizontal-padding">
 	</div>
 }
