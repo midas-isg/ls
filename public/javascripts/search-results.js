@@ -154,13 +154,14 @@ var SEARCH_RESULTS =
 				else {
 					getFeatures(locationTypeList[this.value]);
 				}
-
+				
+				/*
 				features.sort(function determineRelevance(currentFeature, oldFeature) {
 					var currentScore = parseFloat(currentFeature.properties.rank),
 						oldScore = parseFloat(oldFeature.properties.rank),
 						currentName = currentFeature.properties.name.toLowerCase(),
 						oldName = oldFeature.properties.name.toLowerCase();
-
+					
 					if(currentScore === oldScore) {
 						 if(currentName < oldName) {
 							currentScore += 0.001;
@@ -169,10 +170,11 @@ var SEARCH_RESULTS =
 							oldScore += 0.001;
 						 }
 					}
-
+					
 					return oldScore - currentScore;
 				});
-
+				*/
+				
 				SEARCH_RESULTS.updateTable(features);
 			});
 		}
@@ -360,16 +362,9 @@ var SEARCH_RESULTS =
 				return SEARCH_RESULTS.searchByGeoJSON(geoJSON);
 			}
 			
-			if(thisQuery.originalInput !== thisQuery.inputComponent[0]) {
-				getQueryResults(thisQuery.originalInput);
-			}
+			getQueryResults(thisQuery.originalInput);
 			
-			/*
-			for(i = 0; i < thisQuery.inputComponent.length; i++) {
-				getQueryResults(thisQuery.inputComponent[i]);
-			}
-			*/
-
+			
 			return;
 		}
 

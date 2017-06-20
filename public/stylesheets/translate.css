@@ -1,0 +1,21 @@
+.roundbox {
+	border-radius: 5px;
+	border-color: #d0d0d0;
+	border-style: solid;
+	border-width: 1px;
+	padding: 2px;
+}
+
+#query-results tr {
+	border-top-width: 0px;
+	border-left-width: 0px;
+	border-right-width: 0px;
+	border-bottom-width: 1px;
+	border-style: solid;
+	border-color: #d0d0d0;
+}
+
+#query-results th,
+#query-results td {
+	border: none;
+}

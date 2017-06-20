@@ -7,38 +7,41 @@
 }
 
 @main(message, imports, version) {
-	<div class="center-block horizontal-padding">
-		<div class="form-group">
-			<label for="location-codes-list">Location Codes List</label>
-			<textarea id="location-codes-list" class="form-control" placeholder="ex: '1216' or '1423, 1600, 1900, ...' or (leave empty to query by country)"></textarea>
+	<div class="center-block horizontal-padding extra-bottom-space">
+		<div class="roundbox extra-bottom-space">
+			<div class="form-group horizontal-padding">
+				<label for="location-codes-list">Location codes list</label>
+				<textarea id="location-codes-list" class="form-control" placeholder="ex: '1216' or '1423, 1600, 1900, ...' or (leave empty to query by country)"></textarea>
+			</div>
+			
+			<div class="form-group horizontal-padding">
+				<label for="code-type">Input code type</label>
+				<select id="code-type">
+					<option disabled selected value="-1">(not selected)</option>
+				</select>
+			</div>
 		</div>
 		
-		<div class="form-group">
-			<label for="code-type">Input code type</label>
-			<select id="code-type">
-				<option disabled selected value="-1">(not selected)</option>
-			</select>
+		<h4 class="text-center">or</h4>
+		
+		<div class="roundbox extra-bottom-space">
+			<div class="form-group horizontal-padding">
+				<label for="country">Country</label>
+				<select id="country">
+					<option disabled selected value="-1">(not selected)</option>
+				</select>
+			</div>
 		</div>
 		
-		<div class="form-group">
-			<label for="location-types" class="top-aligned">Location type(s)</label>
-			<select id="location-types" multiple>
-				<option disabled selected value="-1">(not selected)</option>
-			</select>
-		</div>
-		
-		<div class="form-group">
-			<label for="country">Country</label>
-			<select id="country">
-				<option disabled selected value="-1">(not selected)</option>
-			</select>
-		</div>
-		
-		<div class="text-center">
+		<div class="text-center extra-bottom-space">
 			<button id="submit-button" class="btn btn-default">Submit</button>
 		</div>
 	</div>
 	
-	<div id="query-results" class="center-block horizontal-padding">
+	<div class="center-block horizontal-padding">
+		<table id="query-results" class="table">
+			<thead><th>Name</th><th>Codes</th></thead>
+			<tbody></tbody>
+		</table>
 	</div>
 }

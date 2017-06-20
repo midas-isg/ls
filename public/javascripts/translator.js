@@ -2,9 +2,8 @@
 
 $(document).ready(function() {
 	var codeTypesURL = CONTEXT + "/api/code-types",
-		locationTypesURL = CONTEXT + "/api/location-types",
 		countriesURL = CONTEXT + "/api/locations/find-by-type/1",
-		locationsFilterURL = CONTEXT + "/api/locations/find-by-filter",
+		gidURL = CONTEXT + "/api/locations/",
 		findBulkURL = CONTEXT + "/api/locations/find-bulk?_v=2",
 		codeTypes,
 		locationTypes,
@@ -42,23 +41,6 @@ $(document).ready(function() {
 		return;
 	});
 	
-	$.get(locationTypesURL, function(data, status, xhr) {
-		var locationTypesInput = document.getElementById("location-types"),
-			locationTypeOption,
-			i;
-		
-		locationTypes = data;
-		
-		for(i = 0; i < locationTypes.length; i++) {
-			locationTypeOption = document.createElement("option");
-			locationTypeOption.value = locationTypes[i].id;
-			locationTypeOption.innerHTML = locationTypes[i].name;
-			locationTypesInput.appendChild(locationTypeOption);
-		}
-		
-		return;
-	});
-	
 	$.get(countriesURL, function(data, status, xhr) {
 		var countryInput = document.getElementById("country"),
 			countryOption,
@@ -86,17 +68,6 @@ $(document).ready(function() {
 		return;
 	});
 	
-	function getLocationTypes() {
-		var i,
-			selectedLocationTypes = [];
-		
-		for(i = 0; i < $("#location-types")[0].selectedOptions.length; i++) {
-			selectedLocationTypes.push(parseInt($("#location-types")[0].selectedOptions[i].value));
-		}
-		
-		return selectedLocationTypes;
-	}
-	
 	function getLocationCodes() {
 		var i,
 			locationCodes = [],
@@ -114,11 +85,23 @@ $(document).ready(function() {
 		return locationCodes;
 	}
 	
+	$("#location-codes-list").change(function() {
+		$("#country").val(-1);
+		
+		return;
+	});
+	
+	$("#country").change(function() {
+		$("#location-codes-list").val("");
+		$("#code-type").val(-1);
+		
+		return;
+	});
+	
 	$("#submit-button").click(function() {
 		var i,
-			postURL = findBulkURL,
+			ajaxURL = findBulkURL,
 			codeType = parseInt($("#code-type")[0].value),
-			selectedLocationTypes = getLocationTypes(),
 			locationCodes = getLocationCodes(),
 			postData = [],
 			rootALC = parseInt($("#country")[0].value);
@@ -136,15 +119,34 @@ $(document).ready(function() {
 		}
 		
 		if(locationCodes.length < 1) {
-			postURL = locationsFilterURL;
+			ajaxURL = gidURL;
 			
-			postData = {
-				rootALC: rootALC,
-				"onlyFeatureFields": [
-					"properties.codes",
-					"properties.gid"
-				]
-			};
+			$.ajax({
+				url: ajaxURL + rootALC + "?_onlyFeatureFields=properties.codes%2Cproperties.name",
+				type: "GET",
+				beforeSend: function(xhr) {
+					$("#query-results tbody").empty();
+					$("#query-results tbody").append("<tr><th>PLEASE</th><th>WAIT...</th></tr>");
+					
+					return;
+				},
+				success: function(responseData, status, xhr) {
+					console.info(responseData);
+					
+					$("#query-results tbody").empty();
+					processResult(responseData.features[0].properties);
+					
+					return;
+				},
+				error: function(xhr,status,error) {
+					console.error(xhr);
+					console.error(status);
+					console.error(error);
+					
+					return;
+				},
+				contentType: "application/json"
+			});
 		}
 		else {
 			for(i = 0; i < locationCodes.length; i++) {
@@ -158,28 +160,72 @@ $(document).ready(function() {
 					"logic": "AND",
 					"onlyFeatureFields": [
 						"properties.codes",
-						"properties.gid"
+						"properties.name"
 					]
 				});
-				
-				if(rootALC) {
-					postData[i].rootALC = rootALC;
-				}
 			}
+			
+			$.ajax({
+				url: ajaxURL,
+				data: JSON.stringify(postData),
+				type: "POST",
+				beforeSend: function(xhr) {
+					$("#query-results tbody").empty();
+					$("#query-results tbody").append("<tr><th>PLEASE</th><th>WAIT...</th></tr>");
+					
+					return;
+				},
+				success: function(responseData, status, xhr) {
+					var i;
+					
+					console.info(responseData);
+					
+					$("#query-results tbody").empty();
+					
+					for(i = 0; i < responseData.length; i++) {
+						if(responseData[i].features[0]) {
+							processResult(responseData[i].features[0].properties);
+						}
+						else {
+							processResult({name: responseData[i].properties.queryTerm, codes: [{codeTypeName: "Error", code: "Not Found"}]});
+						}
+					}
+				},
+				error: function(xhr,status,error) {
+					console.error(xhr);
+					console.error(status);
+					console.error(error);
+					
+					return;
+				},
+				contentType: "application/json"
+			});
 		}
-		
-		$.ajax({
-			url: postURL,
-			data: JSON.stringify(postData),
-			type: "POST",
-			success: function(responseData, status, xhr) {
-				console.log(responseData);
-			},
-			contentType: "application/json"
-		});
 		
 		return;
 	});
+	
+	function processResult(properties) {
+		var name = properties.name,
+			codes = properties.codes,
+			row = document.createElement("tr"),
+			th = document.createElement("th"),
+			td,
+			i;
+		
+		th.innerHTML = name;
+		row.appendChild(th);
+		
+		for(i = 0; i < codes.length; i++) {
+			td = document.createElement("td");
+			td.innerHTML = codes[i].codeTypeName + ": " + codes[i].code;
+			row.appendChild(td);
+		}
+		
+		$("#query-results tbody").append(row);
+		
+		return;
+	}
 	
 	return;
 });
