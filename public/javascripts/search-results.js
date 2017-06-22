@@ -16,7 +16,6 @@ var SEARCH_RESULTS =
 	}
 
 	SearchResults.prototype.searchByGeoJSON = function(geoJSON) {
-		//POST /api/locations-by-geometry
 		var geometrySearchURL = this.geometrySearchURL,
 			httpType = "POST",
 			data = geoJSON,
@@ -69,7 +68,7 @@ var SEARCH_RESULTS =
 	}
 
 	SearchResults.prototype.searchPoint = function(latitude, longitude) {
-		var url = SEARCH_RESULTS.pointURL + "?lat=" + latitude + "&long=" + longitude,
+		var url = SEARCH_RESULTS.pointURL + "?_v=2&_onlyFeatureFields=properties&lat=" + latitude + "&long=" + longitude,
 			result = $("#result"),
 			thisSearch = this;
 		this.totalCount = 0;
@@ -154,26 +153,6 @@ var SEARCH_RESULTS =
 				else {
 					getFeatures(locationTypeList[this.value]);
 				}
-				
-				/*
-				features.sort(function determineRelevance(currentFeature, oldFeature) {
-					var currentScore = parseFloat(currentFeature.properties.rank),
-						oldScore = parseFloat(oldFeature.properties.rank),
-						currentName = currentFeature.properties.name.toLowerCase(),
-						oldName = oldFeature.properties.name.toLowerCase();
-					
-					if(currentScore === oldScore) {
-						 if(currentName < oldName) {
-							currentScore += 0.001;
-						 }
-						 else {
-							oldScore += 0.001;
-						 }
-					}
-					
-					return oldScore - currentScore;
-				});
-				*/
 				
 				SEARCH_RESULTS.updateTable(features);
 			});
@@ -286,11 +265,8 @@ var SEARCH_RESULTS =
 				var url = SEARCH_RESULTS.searchURL,
 					data = {
 						"queryTerm": input,
-						"searchNames":true,
-						"searchOtherNames":true,
-						"searchCodes":true,
-						"ignoreAccent":true,
-						"limit":0
+						"limit": 0,
+						"_v": 2
 					};
 
 				$.ajax({
@@ -351,9 +327,7 @@ var SEARCH_RESULTS =
 							type: "Feature",
 							geometry: {
 								type: "Polygon",
-								coordinates: [
-									coordinateArray
-								]
+								coordinates: [coordinateArray]
 							}
 						}
 					]

@@ -1,0 +1,17 @@
+@(search_type: String)
+
+<div id="advanced-options-tab">
+	<div class="extra-bottom-space pull-right">
+		<button id="advanced-options-toggle" class="btn btn-xs btn-default">
+			<span class="glyphicon glyphicon-menu-hamburger"></span>
+		</button>
+	</div>
+	
+	<div id="advanced-options" class="clear-both" style="display: none;">
+		@if(search_type == "index") {
+			@advanced_index()
+		}
+	</div>
+</div>
+
+<script src='@routes.Assets.at("javascripts/advanced-options.js")'></script>

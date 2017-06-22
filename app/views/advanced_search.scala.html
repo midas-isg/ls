@@ -20,8 +20,37 @@
 
 @main(message, imports, version) {
 	<div class="center-block">
-		<div class="vertical-spaced">
-			<p>Placeholder</p>
+		<div class="vertical-spaced center-block">
+			<!-- POST /api/locations/find-bulk -->
+			<div class="roundbox extra-bottom-space">
+				<div class="form-group horizontal-padding">
+					<label for="location-codes-list">Location codes list</label>
+					<textarea id="location-codes-list" class="form-control" placeholder="ex: '1216' or '1423, 1600, 1900, ...' or (leave empty to query by country)"></textarea>
+				</div>
+				
+				<div class="form-group horizontal-padding">
+					<label for="code-type">Input code type</label>
+					<select id="code-type" class="form-control">
+						<option disabled selected value="-1">(not selected)</option>
+					</select>
+				</div>
+			</div>
+			
+			<!-- GET /api/locations/find-by-coordinate -->
+			<div class="roundbox extra-bottom-space">
+				<div class="form-group horizontal-padding">
+					<label for="location-codes-list">Location codes list</label>
+					<textarea id="location-codes-list" class="form-control" placeholder="ex: '1216' or '1423, 1600, 1900, ...' or (leave empty to query by country)"></textarea>
+				</div>
+				
+				<div class="form-group horizontal-padding">
+					<label for="code-type">Input code type</label>
+					<select id="code-type" class="form-control">
+						<option disabled selected value="-1">(not selected)</option>
+					</select>
+				</div>
+			</div>
+			
 		</div>
 		
 		<div id="search-options" class="center-block">

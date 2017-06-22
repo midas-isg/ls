@@ -24,6 +24,10 @@ footer {
 	padding: 5px;
 }
 
+.clear-both {
+	clear: both;
+}
+
 .centered-text {
 	text-align: center;
 }

@@ -2,15 +2,14 @@
 
 $(document).ready(function() {
 	var codeTypesURL = CONTEXT + "/api/code-types",
-		countriesURL = CONTEXT + "/api/locations/find-by-type/1",
+		countriesURL = CONTEXT + "/api/locations/find-by-type/1?_v=2&_onlyFeatureFields=properties.name%2Cproperties.gid&limit=0",
 		gidURL = CONTEXT + "/api/locations/",
 		findBulkURL = CONTEXT + "/api/locations/find-bulk?_v=2",
 		codeTypes,
 		locationTypes,
-		countries,
-		nameCompare;
+		countries;
 	
-	nameCompare = function(a, b) {
+	function nameCompare(a, b) {
 			var aName = a.name.toLowerCase(),
 				bName = b.name.toLowerCase(),
 				i,
@@ -22,6 +21,51 @@ $(document).ready(function() {
 				}
 			}
 	};
+	
+	function getLocationCodes() {
+		var i,
+			locationCodes = [],
+			inputArray = $("#location-codes-list")[0].value.split(","),
+			location;
+		
+		for(i = 0; i < inputArray.length; i++) {
+			location = inputArray[i].trim();
+			
+			if(location.length > 0) {
+				locationCodes.push(location);
+			}
+		}
+		
+		return locationCodes;
+	}
+	
+	function processResult(properties, maxCodesLength) {
+		var name = properties.name,
+			codes = properties.codes,
+			row = document.createElement("tr"),
+			th = document.createElement("th"),
+			td,
+			i;
+		
+		th.innerHTML = name;
+		th.headers = "results-names";
+		row.appendChild(th);
+		
+		for(i = 0; i < maxCodesLength; i++) {
+			td = document.createElement("td");
+			
+			if(codes[i]) {
+				td.innerHTML = codes[i].codeTypeName + ": " + codes[i].code;
+			}
+			
+			td.headers = "results-codes";
+			row.appendChild(td);
+		}
+		
+		$("#query-results tbody").append(row);
+		
+		return;
+	}
 	
 	$.get(codeTypesURL, function(data, status, xhr) {
 		var codeTypesInput = document.getElementById("code-type"),
@@ -68,23 +112,6 @@ $(document).ready(function() {
 		return;
 	});
 	
-	function getLocationCodes() {
-		var i,
-			locationCodes = [],
-			inputArray = $("#location-codes-list")[0].value.split(","),
-			location;
-		
-		for(i = 0; i < inputArray.length; i++) {
-			location = inputArray[i].trim();
-			
-			if(location.length > 0) {
-				locationCodes.push(location);
-			}
-		}
-		
-		return locationCodes;
-	}
-	
 	$("#location-codes-list").change(function() {
 		$("#country").val(-1);
 		
@@ -100,7 +127,6 @@ $(document).ready(function() {
 	
 	$("#submit-button").click(function() {
 		var i,
-			ajaxURL = findBulkURL,
 			codeType = parseInt($("#code-type")[0].value),
 			locationCodes = getLocationCodes(),
 			postData = [],
@@ -119,10 +145,8 @@ $(document).ready(function() {
 		}
 		
 		if(locationCodes.length < 1) {
-			ajaxURL = gidURL;
-			
 			$.ajax({
-				url: ajaxURL + rootALC + "?_onlyFeatureFields=properties.codes%2Cproperties.name",
+				url: gidURL + rootALC + "?_v=2&_onlyFeatureFields=properties.codes%2Cproperties.name",
 				type: "GET",
 				beforeSend: function(xhr) {
 					$("#query-results tbody").empty();
@@ -134,7 +158,7 @@ $(document).ready(function() {
 					console.info(responseData);
 					
 					$("#query-results tbody").empty();
-					processResult(responseData.features[0].properties);
+					processResult(responseData.features[0].properties, responseData.features[0].properties.codes.length);
 					
 					return;
 				},
@@ -166,7 +190,7 @@ $(document).ready(function() {
 			}
 			
 			$.ajax({
-				url: ajaxURL,
+				url: findBulkURL,
 				data: JSON.stringify(postData),
 				type: "POST",
 				beforeSend: function(xhr) {
@@ -176,7 +200,9 @@ $(document).ready(function() {
 					return;
 				},
 				success: function(responseData, status, xhr) {
-					var i;
+					var i,
+						codesLength,
+						maxCodesLength = 0;
 					
 					console.info(responseData);
 					
@@ -184,11 +210,26 @@ $(document).ready(function() {
 					
 					for(i = 0; i < responseData.length; i++) {
 						if(responseData[i].features[0]) {
-							processResult(responseData[i].features[0].properties);
+							codesLength = responseData[i].features[0].properties.codes.length;
 						}
 						else {
-							processResult({name: responseData[i].properties.queryTerm, codes: [{codeTypeName: "Error", code: "Not Found"}]});
+							responseData[i].features.push({
+								properties: {
+									name: responseData[i].properties.queryTerm,
+									codes: [{codeTypeName: "Error", code: "Not Found"}]
+								}
+							});
+							
+							codesLength = 1;
 						}
+						
+						if(codesLength > maxCodesLength) {
+							maxCodesLength = codesLength;
+						}
+					}
+					
+					for(i = 0; i < responseData.length; i++) {
+						processResult(responseData[i].features[0].properties, maxCodesLength);
 					}
 				},
 				error: function(xhr,status,error) {
@@ -204,28 +245,6 @@ $(document).ready(function() {
 		
 		return;
 	});
-	
-	function processResult(properties) {
-		var name = properties.name,
-			codes = properties.codes,
-			row = document.createElement("tr"),
-			th = document.createElement("th"),
-			td,
-			i;
-		
-		th.innerHTML = name;
-		row.appendChild(th);
-		
-		for(i = 0; i < codes.length; i++) {
-			td = document.createElement("td");
-			td.innerHTML = codes[i].codeTypeName + ": " + codes[i].code;
-			row.appendChild(td);
-		}
-		
-		$("#query-results tbody").append(row);
-		
-		return;
-	}
 	
 	return;
 });
