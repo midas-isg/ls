@@ -10,13 +10,13 @@
 		<h1 id="headline" class="centered-text">Apollo Location Services</h1>
 		
 		<div class="vertical-spaced horizontal-padding">
-			<div class="">
+			<div class="roundbox extra-bottom-space">
 				@searchbar()
 			</div>
 			
 			<h4 class="centered-text vertical-spaced">or</h4>
 			
-			<div class="">
+			<div class="roundbox">
 				@go_bar()
 			</div>
 		</div>
@@ -24,10 +24,6 @@
 		<div id="search-options" class="center-block">
 			<button class="btn btn-default" onclick="location.assign(CONTEXT + '/map-search');">Map Search</button>
 			<button class="btn btn-default" onclick="location.assign(CONTEXT + '/advanced-search');">Advanced Search</button>
-		</div>
-		
-		<div class="center-block horizontal-padding">
-			@advanced_options("index")
 		</div>
 	</div>
 }
