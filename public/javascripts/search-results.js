@@ -253,22 +253,80 @@ var SEARCH_RESULTS =
 		
 		function searchQuery() {
 			var i,
+				j,
 				latitude,
 				longitude,
 				geoJSON,
-				coordinateArray;
+				coordinateArray,
+				tempArray;
 
 			$("#result").text("Please wait ...");
 			SEARCH_MAP.featureLayer.clearLayers();
 			
 			function getQueryResults(input) {
-				var url = SEARCH_RESULTS.searchURL,
+				var parameter,
+					url = SEARCH_RESULTS.searchURL,
 					data = {
 						"queryTerm": input,
 						"limit": 0,
 						"_v": 2
 					};
-
+				
+				for(parameter in localStorage) {
+					if(localStorage.hasOwnProperty(parameter)) {
+						if(localStorage[parameter] !== "") {
+							switch(parameter) {
+								case "ignoreAccent":
+								case "searchNames":
+								case "searchOtherNames":
+								case "searchCodes":
+								case "verbose":
+								case "fuzzyMatch":
+									data[parameter] = (localStorage[parameter] === "true");
+								break;
+								
+								//case "offset":
+								case "limit":
+								case "rootALC":
+								case "fuzzyMatchThreshold":
+									data[parameter] = parseInt(localStorage[parameter]);
+								break;
+								
+								case "latitude":
+								case "longitude":
+									data[parameter] = parseFloat(localStorage[parameter]);
+								break;
+								
+								case "locationTypeIds":
+								case "codeTypeIds":
+									data[parameter] = [];
+									tempArray = localStorage[parameter].split(",");
+									
+									for(j = 0; j < tempArray.length; j++) {
+										data[parameter][j] = parseInt(tempArray[j].trim());
+									}
+								break;
+								case "onlyFeatureFields":
+								case "excludedFeatureFields":
+									data[parameter] = [];
+									tempArray = localStorage[parameter].split(",");
+									
+									for(j = 0; j < tempArray.length; j++) {
+										data[parameter][j] = tempArray[j].trim();
+									}
+								break;
+								
+								default:
+									data[parameter] = localStorage[parameter];
+								break;
+							}
+						}
+						
+						localStorage.removeItem(parameter);
+					}
+				}
+				
+				
 				$.ajax({
 					url: url,
 					type: 'POST',

@@ -8,10 +8,10 @@
 
 <div class="clear-both"></div>
 
-<div id="advanced-options" class="extra-top-space" style="display: none;">
+<div id="advanced-options" style="display: none; margin-top: 2px;">
 	@{
 		if(search_type == "searchbar") {
-			advanced_index()
+			advanced_searchbar()
 		}
 		else if(search_type == "map") {
 			advanced_map()

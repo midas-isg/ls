@@ -1,4 +1,4 @@
-<div id="advanced-index-form">
+<div id="advanced-searchbar-form">
 	<div class="roundbox">
 		<div class="form-inline">
 			<div class="form-group horizontal-padding">
@@ -46,14 +46,17 @@
 			</div>
 			
 			<div class="form-group horizontal-padding">
-				<label for="offset">offset</label>
-				<input id="offset" class="form-control" type="number" min="0" value="0">
-			</div>
-			
-			<div class="form-group horizontal-padding">
 				<label for="logic">logic</label>
 				<input id="logic" class="form-control" type="string" value="AND">
 			</div>
+			
+			@* this is only used for pagination in results page *@
+			@*
+			<div class="form-group horizontal-padding">
+				<label for="offset">offset</label>
+				<input id="offset" class="form-control" type="number" min="0" value="0">
+			</div>
+			*@
 		</div>
 		
 		<div class="form-inline extra-bottom-space">
@@ -104,10 +107,12 @@
 			<label for="excluded-feature-fields">excludedFeatureFields</label>
 			<textarea id="excluded-feature-fields" class="form-control" placeholder="ex: geometry, bbox"></textarea>
 		</div>
+		
+		<div class="clear-both horizontal-padding extra-bottom-space">
+			<button id="advanced-search-button" class="btn btn-primary">Advanced Search</button>
+		</div>
 	</div>
-	
-	<!--
-	<h4>find-by-geometry</h4>
-	<pre></pre>
-	-->
 </div>
+
+<script src='@routes.Assets.at("javascripts/advanced-searchbar.js")'></script>
+
