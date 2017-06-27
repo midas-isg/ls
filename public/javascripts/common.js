@@ -172,6 +172,21 @@ var HELPERS =
 		output = input.replace("(", "\\(");
 		return output.replace(")", "\\)");
 	}
-
+	
+	Helpers.prototype.nameCompare = function(a, b) {
+			var aName = a.name.toLowerCase(),
+				bName = b.name.toLowerCase(),
+				i,
+				length = (aName.length - bName.length > 0) ? bName.length : aName.length;
+			
+			for(i = 0; i < length; i++) {
+				if(aName.charAt(i) !== bName.charAt(i)) {
+					return (aName.charCodeAt(i) - bName.charCodeAt(i));
+				}
+			}
+			
+			return 0;
+	};
+	
 	return new Helpers();
 })();

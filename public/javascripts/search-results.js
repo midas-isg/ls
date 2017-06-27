@@ -265,11 +265,10 @@ var SEARCH_RESULTS =
 			
 			function getQueryResults(input) {
 				var parameter,
-					url = SEARCH_RESULTS.searchURL,
+					url = SEARCH_RESULTS.searchURL + "?_v=2",
 					data = {
 						"queryTerm": input,
-						"limit": 0,
-						"_v": 2
+						"limit": 0
 					};
 				
 				for(parameter in localStorage) {

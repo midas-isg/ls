@@ -1,10 +1,20 @@
 $(document).ready(function() {
+	$("#fuzzy-match").change(function() {
+		if(this.checked) {
+			$("#fuzzy-match-option").show();
+		}
+		else {
+			$("#fuzzy-match-option").hide();
+		}
+		
+		return;
+	});
+	
 	$("#advanced-search-button").click(function() {
 		localStorage.setItem("ignoreAccent", document.getElementById("ignore-accent").checked);
 		localStorage.setItem("searchNames", document.getElementById("search-names").checked);
 		localStorage.setItem("searchOtherNames", document.getElementById("search-other-names").checked);
 		localStorage.setItem("searchCodes", document.getElementById("search-codes").checked);
-		localStorage.setItem("verbose", document.getElementById("verbose").checked);
 		localStorage.setItem("fuzzyMatch", document.getElementById("fuzzy-match").checked);
 		
 		localStorage.setItem("fuzzyMatchThreshold", document.getElementById("fuzzy-match-threshold").value);
@@ -12,8 +22,8 @@ $(document).ready(function() {
 		localStorage.setItem("logic", document.getElementById("logic").value);
 		localStorage.setItem("startDate", document.getElementById("start-date").value);
 		localStorage.setItem("endDate", document.getElementById("end-date").value);
-		localStorage.setItem("latitude", document.getElementById("latitude").value);
-		localStorage.setItem("longitude", document.getElementById("longitude").value);
+		//localStorage.setItem("latitude", document.getElementById("latitude").value);
+		//localStorage.setItem("longitude", document.getElementById("longitude").value);
 		
 		localStorage.setItem("rootALC", document.getElementById("root-alc").value);
 		

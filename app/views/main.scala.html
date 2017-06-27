@@ -67,7 +67,22 @@
 					
 					<div id="navigator" class="collapse navbar-collapse">
 						<ul class="nav navbar-nav navbar-right">
-							<li><a href="@http_context()">Search</a></li>
+							<li>
+								<a class="dropdown-toggle" data-toggle="dropdown" role="button"
+									aria-haspopup="true" aria-expanded="false">
+									Search <span class="caret"></span>
+								</a>
+								
+								<ul class="dropdown-menu">
+									<li>
+										<a href="@http_context()">Search by name</a>
+									</li>
+									
+									<li>
+										<a href="@http_context()/map-search">Search by map</a>
+									</li>
+								</ul>
+							</li>
 							<li><a href="@http_context()/translate">Translate</a></li>
 							<li><a href="@http_context()/create">Create</a></li>
 							<li><a href="@http_context()/logout">Log out</a></li>

@@ -30,28 +30,27 @@
 @main(message, imports, version) {
 	<div class="center-block">
 		<div id="map-div" class="vertical-spaced">
-			<div class="no-padding">
-				<em>Use
-					<div id="" class="leaflet-draw-toolbar leaflet-bar leaflet-draw-toolbar-top" style="display: inline-block;">
-						<a class="no-click leaflet-draw-draw-polygon"></a>
-					</div> to search map within polygon
-				</em>
+			<div class="pull-left" style="width: calc(100% - 38px);">
+				<div class="no-padding">
+					<em>Use
+						<div id="" class="leaflet-draw-toolbar leaflet-bar leaflet-draw-toolbar-top" style="display: inline-block;">
+							<a class="no-click leaflet-draw-draw-polygon"></a>
+						</div> to search map within polygon
+					</em>
+				</div>
+				
+				<div class="no-padding">
+					<em>Use
+						<div id="" class="leaflet-draw-toolbar leaflet-bar leaflet-draw-toolbar-top" style="display: inline-block;">
+							<a class="no-click leaflet-draw-draw-marker"></a>
+						</div> to search map by coordinates
+					</em>
+				</div>
 			</div>
 			
-			<div class="no-padding">
-				<em>Use
-					<div id="" class="leaflet-draw-toolbar leaflet-bar leaflet-draw-toolbar-top" style="display: inline-block;">
-						<a class="no-click leaflet-draw-draw-marker"></a>
-					</div> to search map by coordinates
-				</em>
-			</div>
+			@advanced_options("map")
 			
 			@map()
-		</div>
-		
-		<div id="search-options" class="center-block">
-			<button class="btn btn-default" onclick="location.assign(CONTEXT)">Name Search</button>
-			<button class="btn btn-default" onclick="location.assign(CONTEXT + '/advanced-search');">Advanced Search</button>
 		</div>
 	</div>
 }
