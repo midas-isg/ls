@@ -33,9 +33,9 @@ MapDriver.prototype.initialize = function() {
 	this.map = L.mapbox.map('map-one', 'examples.map-i86l3621', {
 		worldCopyJump: true,
 		bounceAtZoomLimits: false,
-		zoom: 1,
-		minZoom: 1,
-		maxBounds: mapBounds /*crs: L.CRS.EPSG385*/
+		zoom: 1.6,
+		minZoom: 1.5,
+		maxBounds: mapBounds
 	});
 	this.map.legendControl.addLegend(this.title);
 	

@@ -74,7 +74,7 @@ var SEARCH_RESULTS =
 		this.totalCount = 0;
 		this.typeList = {};
 		result.text("Please wait...");
-
+		
 		$.ajax({
 			url: url,
 			type: 'GET',

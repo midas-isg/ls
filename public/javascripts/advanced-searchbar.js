@@ -1,4 +1,13 @@
 $(document).ready(function() {
+	var disabled = false;
+	
+	ADVANCED_OPTIONS_TOGGLE_EFFECTS = function() {
+		disabled = !disabled;
+		document.getElementById("search-button").disabled = disabled;
+		
+		return;
+	};
+	
 	$("#fuzzy-match").change(function() {
 		if(this.checked) {
 			$("#fuzzy-match-option").show();
@@ -33,7 +42,7 @@ $(document).ready(function() {
 		localStorage.setItem("excludedFeatureFields", document.getElementById("excluded-feature-fields").value);
 		
 		if(document.getElementById("input").value === "") {
-			alert("Please enter query term!");
+			alert("Please enter location name!");
 			$("#input").focus();
 			
 			return;
