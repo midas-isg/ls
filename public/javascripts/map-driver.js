@@ -31,11 +31,11 @@ MapDriver.prototype.initialize = function() {
 		mapBounds = L.latLngBounds(southWest, northEast);
 	
 	this.map = L.mapbox.map('map-one', 'examples.map-i86l3621', {
+		//maxBounds: mapBounds,
 		worldCopyJump: true,
 		bounceAtZoomLimits: false,
 		zoom: 1.6,
-		minZoom: 1.5,
-		maxBounds: mapBounds
+		minZoom: 1.6
 	});
 	this.map.legendControl.addLegend(this.title);
 	
