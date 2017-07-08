@@ -38,37 +38,47 @@ public class LocationDao {
 
 	public Long create(Location location) {
 		EntityManager em = JPA.em();
-		LocationGeometry geometry = prepareGeometry(location);
-		try {
-			em.persist(geometry);
-			em.persist(location);
-			em.flush();
-		} catch (Exception e) {
-			PSQLException pe = getPSQLException(e);
-			if (pe != null) {
-				throw new PostgreSQLException(pe, pe.getSQLState());
-			} else
-				throw new RuntimeException(e);
-		}
-		AltNameDao altNameDao = new AltNameDao(em);
-		CodeDao codeDao = new CodeDao(em);
-		altNameDao.createAll(location.getAltNames());
-		codeDao.createAll(location.getOtherCodes());
-		LocationProxyRule.scheduleCacheUpdate(location);
+		createLocation(location, em);
+		createGeometry(location, em);
+		createAlternativeNames(location, em);
+		createAlternativeCodes(location, em);
+
+		LocationProxyRule.scheduleCacheUpdate(location); //TODO: decouple
+
+
 		Long gid = location.getGid();
 		Logger.info("persisted " + gid);
 
 		return gid;
 	}
 
-	private PSQLException getPSQLException(Exception e) {
-		Throwable cause = e.getCause();
-		while (cause != null) {
-			if (cause instanceof PSQLException)
-				return (PSQLException) cause;
-			cause = cause.getCause();
+	private void createAlternativeCodes(Location location, EntityManager em) {
+		CodeDao codeDao = new CodeDao(em);
+		codeDao.createAll(location.getOtherCodes());
+	}
+
+	private void createAlternativeNames(Location location, EntityManager em) {
+		AltNameDao altNameDao = new AltNameDao(em);
+		altNameDao.createAll(location.getAltNames());
+	}
+
+	private void createLocation(Location location, EntityManager em) {
+		try {
+			em.persist(location);
+			em.flush();
+		} catch (Exception e) {
+			PSQLException pe = PostgreSQLException.toPSQLException(e);
+			if (pe != null) {
+				throw new PostgreSQLException(pe, pe.getSQLState());
+			} else
+				throw new RuntimeException(e);
 		}
-		return null;
+	}
+
+	private void createGeometry(Location location, EntityManager em) {
+		LocationGeometry geometry = prepareGeometry(location);
+		GeometryDao dao = new GeometryDao();
+		dao.create(geometry, em);
 	}
 
 	public Location read(long gid) {
@@ -82,8 +92,10 @@ public class LocationDao {
 		EntityManager em = JPA.em();
 		LocationGeometry geometry = prepareGeometry(location);
 		em.merge(geometry);
+		if(geometry.getCircleGeometry() != null)
+			em.merge(geometry.getCircleGeometry());
 		em.merge(location);
-		LocationProxyRule.scheduleCacheUpdate(location);
+		LocationProxyRule.scheduleCacheUpdate(location); //TODO: decouple
 		Long gid = location.getGid();
 		Logger.info("merged " + gid);
 
@@ -121,7 +133,7 @@ public class LocationDao {
 
 	public List<?> findByTerm(Request req) {
 		EntityManager em = JPA.em();
-		if(isTrue(req.isFuzzyMatch()) && req.getFuzzyMatchThreshold() != null)
+		if (isTrue(req.isFuzzyMatch()) && req.getFuzzyMatchThreshold() != null)
 			setFuzzyMatchThresholdForSession(req.getFuzzyMatchThreshold(), em);
 		Query query = toNativeSQL(req, em);
 		List<?> resultList = query.getResultList();
@@ -129,8 +141,7 @@ public class LocationDao {
 	}
 
 	private void setFuzzyMatchThresholdForSession(Float fuzzyMatchThreshold, EntityManager em) {
-		em.createNativeQuery("SELECT set_limit(" + fuzzyMatchThreshold + ")"
-				).getSingleResult();
+		em.createNativeQuery("SELECT set_limit(" + fuzzyMatchThreshold + ")").getSingleResult();
 	}
 
 	private Query toNativeSQL(Request req, EntityManager em) {
@@ -287,13 +298,14 @@ public class LocationDao {
 		criteriaQuery.where(isAU, isParentNull);
 		return em.createQuery(criteriaQuery).getResultList();
 	}
-	
+
 	public List<BigInteger> findByFilters(Request req) {
-		
+
 		EntityManager em = JPA.em();
 		SearchSql searchSql = new SearchSql();
 		String stringQuery = searchSql.toFindByFiltersSQL(req);
 		Query query = searchSql.toNativeSQL(stringQuery, req, em);
+		@SuppressWarnings("unchecked")
 		List<BigInteger> resultList = query.getResultList();
 		return resultList;
 	}

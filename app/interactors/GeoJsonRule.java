@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.vividsolutions.jts.geom.Geometry;
 
 import dao.entities.AltName;
+import dao.entities.CircleGeometry;
 import dao.entities.Code;
 import dao.entities.Data;
 import dao.entities.Location;
@@ -219,6 +220,15 @@ public class GeoJsonRule {
 		if(isRequestedFeatureProperties(req, asFullPath(FeatureKey.SYNTHETIC_POPULATION)))
 			putAsSpewLinkObjectsIfNotNull(properties, FeatureKey.SYNTHETIC_POPULATION, location);
 		
+		if(location.getGeometry() != null){
+			CircleGeometry circleGeometry = location.getGeometry().getCircleGeometry();
+			if(circleGeometry != null){
+				properties.put("center", new Double[] {circleGeometry.getCenter().getX(), circleGeometry.getCenter().getY()});
+				properties.put("radius", circleGeometry.getRadius());
+				properties.put("quadSegs", circleGeometry.getQuarterSegments());
+			}
+		}
+		
 		return properties;
 	}
 
@@ -288,7 +298,7 @@ public class GeoJsonRule {
 		location.setAltNames(altNames);
 	}
 
-	public static FeatureGeometry asFetureGeometry(FeatureCollection fc) {
+	public static FeatureGeometry asFeatureGeometry(FeatureCollection fc) {
 		Geometry geometry = GeoInputRule.toGeometry(fc);
 		return GeoOutputRule.toFeatureGeometry(geometry);
 	}

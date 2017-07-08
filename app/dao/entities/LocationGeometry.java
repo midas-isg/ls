@@ -3,6 +3,7 @@ package dao.entities;
 import java.sql.Date;
 
 import javax.persistence.Basic;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.ConstraintMode;
 import javax.persistence.Entity;
@@ -34,6 +35,7 @@ public class LocationGeometry {
 	private Double area;
 	private Date updateDate;
 	private Point repPoint;
+	private CircleGeometry circleGeometry;
 
 	@GenericGenerator(name = "generator", strategy = "foreign", 
 			parameters = @Parameter(name = "property", value = "location")
@@ -87,6 +89,15 @@ public class LocationGeometry {
 
 	public void setArea(Double area) {
 		this.area = area;
+	}
+	
+	@OneToOne(fetch = FetchType.LAZY, mappedBy = "locationGeometry", cascade = {CascadeType.ALL})
+	public CircleGeometry getCircleGeometry() {
+		return circleGeometry;
+	}
+	
+	public void setCircleGeometry(CircleGeometry circleGeometry) {
+		this.circleGeometry = circleGeometry;
 	}
 
 	@Override

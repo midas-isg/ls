@@ -13,8 +13,23 @@
                 <property name="hibernate.format_sql" value="true" />  
                 <property name="hibernate.max_fetch_depth" value="5" />
                 <property name="hibernate.hbm2ddl.auto" value="update" />
-                <property name="hibernate.default_schema" value="public" />
-<!-- NEVER USE create, it will truncate all data  <property name="hibernate.hbm2ddl.auto" value="create" /> -->
+                <property name="hibernate.default_schema" value="public" /> 
            </properties>  
-      </persistence-unit>  
+      </persistence-unit> 
+      <!-- NEVER USE create, it will truncate all data  <property name="hibernate.hbm2ddl.auto" value="create" /> -->
+      
+       <persistence-unit name="testPersistenceUnit" transaction-type="RESOURCE_LOCAL">  
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>  
+           <non-jta-data-source>DefaultDS</non-jta-data-source>  
+           <properties>  
+                <property name="hibernate.dialect" value="org.hibernate.spatial.dialect.postgis.PostgisDialect" />  
+                <property name="hibernate.connection.driver_class" value="org.postgresql.Driver" />  
+                <property name="hibernate.connection.pool_size" value="5" />  
+                <property name="hibernate.show_sql" value="false" />  
+                <property name="hibernate.format_sql" value="true" />  
+                <property name="hibernate.max_fetch_depth" value="5" />
+                <property name="hibernate.hbm2ddl.auto" value="update" /> 
+                <property name="hibernate.default_schema" value="test" />
+           </properties>  
+      </persistence-unit>   
  </persistence>  

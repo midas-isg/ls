@@ -14,6 +14,7 @@ import com.vividsolutions.jts.geom.Point;
 
 import dao.ForestDao;
 import dao.entities.AltName;
+import dao.entities.CircleGeometry;
 import dao.entities.Code;
 import dao.entities.Data;
 import dao.entities.Forest;
@@ -24,8 +25,10 @@ import dao.entities.SpewLink;
 import gateways.configuration.ConfReader;
 import models.FeatureKey;
 import models.Request;
+import models.geo.Circle;
 import models.geo.Feature;
 import models.geo.FeatureCollection;
+import models.geo.FeatureGeometry;
 import play.Logger;
 
 public class GeoJsonHelperRule {
@@ -263,7 +266,7 @@ public class GeoJsonHelperRule {
 			throw new RuntimeException(
 					"Requested location type not found: " + FeatureKey.LOCATION_TYPE_ID + "=" 
 							+ id + ", " + FeatureKey.LOCATION_TYPE_NAME + "=" + name);
-		}
+			}
 		return type;
 	}
 
@@ -273,7 +276,25 @@ public class GeoJsonHelperRule {
 		lg.setLocation(l);
 		Date now = l.getData().getUpdateDate();
 		lg.setUpdateDate(now);
+		setCircleGeometryIfIsCircle(fc, lg);
 		return lg;
+	}
+
+	private static void setCircleGeometryIfIsCircle(FeatureCollection fc, LocationGeometry lg) {
+		FeatureGeometry geometry = fc.getFeatures().get(0).getGeometry();
+		if (geometry instanceof Circle){
+			CircleGeometry cg = toCircleGeometry((Circle) geometry);
+			cg.setLocationGeometry(lg);
+			lg.setCircleGeometry(cg);
+		}
+	}
+
+	private static CircleGeometry toCircleGeometry(Circle circle) {
+		CircleGeometry cg = new CircleGeometry();
+		cg.setCenter(circle.getCenter());
+		cg.setRadius(circle.getRadius());
+		cg.setQuarterSegments(circle.getQuarterSegments());
+		return cg;
 	}
 
 	static String getString(FeatureCollection fc, String key) {

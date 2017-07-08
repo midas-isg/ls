@@ -8,7 +8,6 @@ import static play.test.Helpers.running;
 import static play.test.Helpers.testServer;
 
 import java.math.BigInteger;
-import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -26,32 +25,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.MultiPolygon;
-import com.vividsolutions.jts.geom.Polygon;
 
 import controllers.ApolloLocationServices;
 import controllers.LocationServices;
 import controllers.routes;
-import dao.CodeTypeDao;
-import dao.SuperTypeDao;
-import dao.entities.CodeType;
-import dao.entities.Data;
-import dao.entities.GisSource;
+import dao.entities.CircleGeometry;
 import dao.entities.Location;
-import dao.entities.LocationGeometry;
 import dao.entities.LocationType;
-import dao.entities.SuperType;
 import integrations.app.App;
 import interactors.GeoJSONParser;
 import interactors.GeoJsonRule;
 import interactors.GeometryRule;
-import interactors.GisSourceRule;
 import interactors.KmlRule;
 import interactors.LocationRule;
 import interactors.LocationTypeRule;
 import interactors.XmlRule;
-import models.FeatureKey;
+import models.geo.Circle;
 import models.geo.Feature;
 import models.geo.FeatureCollection;
 import models.geo.FeatureGeometry;
@@ -104,6 +94,7 @@ public class IntegrationTest {
 				tesCrudEz();
 				tesCreateAuWithInvalidGeom();
 				tesCrudAuWithDuplication();
+				tesCrudcircle();
 				
 				transaction.rollback();
             }
@@ -115,10 +106,7 @@ public class IntegrationTest {
 		FeatureCollection fc = readFeatureCollectionFromFile(fileName);
 		Feature f0 = fc.getFeatures().get(0);
 		assertThat(f0.getId()).isEqualTo("72676");
-//		createLocations(fc);
-//		LocationType fcType = createType(fc);
-//		fc.getProperties().put(FeatureKey.LOCATION_TYPE_ID, fcType.getId());
-//		fc.getProperties().put(FeatureKey.PARENT_GID, null);
+
 		Location l = GeoJsonRule.asLocation(fc);
 		Geometry geometry = l.getGeometry().getShapeGeom();
 		String type = geometry.getGeometryType();
@@ -146,115 +134,6 @@ public class IntegrationTest {
         Result deleteResult = request(routes.LocationServices.delete(gid), node);
         assertThat(deleteResult.status()).isEqualTo(Status.NO_CONTENT);
 		assertThat(deleteResult.header(LOCATION)).endsWith(deletePath);
-	}
-
-	private LocationType createType(FeatureCollection fc) {
-		
-		Map<String, Object> properties = fc.getProperties();
-		String typeId = (String) properties.get(FeatureKey.LOCATION_TYPE_ID);
-		String typeName = (String) properties.get(FeatureKey.LOCATION_TYPE_NAME);
-		
-		LocationType type = createLocationType(Long.parseLong(typeId), typeName, 1L);
-		return type;
-	}
-
-	private void createLocations(FeatureCollection fc) {
-		fc.getProperties();
-		for(Feature f : fc.getFeatures()){
-			createLocation(f);
-		}
-		
-	}
-
-	private Long createLocation(Feature f) {
-		Location l = new Location();
-		
-		String date = "2017-01-01";
-		EntityManager em = JPA.em();
-		long id = 1L;
-
-		CodeType codeType = createCodeType(em, id);
-
-		String typeName = "";
-		long superId = 1L;
-		LocationType locationType = createLocationType(id, typeName, superId);//new LocationType();
-		
-		GisSource gisSource = createGisSource(em, id);
-
-		Data d = new Data();
-		d.setStartDate(Date.valueOf(date));
-		d.setUpdateDate(Date.valueOf(date));
-		
-		d.setCodeType(codeType);
-		d.setGisSource(gisSource);
-		d.setLocationType(locationType);
-
-		l.setData(d);
-		
-		LocationGeometry lg = new LocationGeometry();
-		List<Geometry> polygons = new ArrayList<>();
-		Polygon [] polygonArray = polygons.toArray(new Polygon[polygons.size()]);
-		GeometryFactory factory = new GeometryFactory();
-		Geometry shapeGeom = new MultiPolygon(polygonArray , factory );
-		lg.setShapeGeom(shapeGeom );
-		l.setGeometry(lg);
-		
-		return LocationRule.create(l);
-		
-		
-	}
-
-	private GisSource createGisSource(EntityManager em, long id) {
-		GisSource s = new GisSource();
-		try{
-			s = GisSourceRule.read(id);
-		} catch(Exception e){
-			id = GisSourceRule.create(s);
-			s.setId(id);
-		}
-		
-		return s;
-	}
-
-	private LocationType createLocationType(long id, String name, long superId) {
-		LocationType type = new LocationType();
-		try{
-			type = LocationTypeRule.read(id);
-		} catch(Exception e){
-			SuperType superType = createSuperType(superId);
-			type.setSuperType(superType);
-			type.setUserDefinable(false);
-			type.setName(name);
-			id = LocationTypeRule.create(type);
-			type.setId(id);
-		}
-		
-		return type;
-	}
-
-	private SuperType createSuperType(long id) {
-		SuperType type = new SuperType();
-		SuperTypeDao ctd = new SuperTypeDao(JPA.em());
-		try {
-			type = ctd.read(id);
-		} catch(Exception e){
-			type.setUserDefinable(false);
-			id = ctd.create(type);
-			type.setId(id);
-		}
-		return type;
-	}
-
-	private CodeType createCodeType(EntityManager em, long id) {
-		CodeType codeType = new CodeType();
-		CodeTypeDao ctd = new CodeTypeDao(em);
-		try {
-			codeType = ctd.read(id);
-		} catch(Exception e){
-			id = ctd.create(codeType);
-			codeType.setId(id);
-		}
-		return codeType;
 	}
 
 	private Result request(final Call call, JsonNode body) {
@@ -643,6 +522,61 @@ public class IntegrationTest {
         assertThat(deleteResult.status()).isEqualTo(Status.NO_CONTENT);
         String deletePath = path + "/" + gid;
 		assertThat(deleteResult.header(LOCATION)).endsWith(deletePath);
+	}
+	
+	private void tesCrudcircle() throws Exception {
+    	String fileName = "test/circle.json";
+		FeatureCollection fc = readFeatureCollectionFromFile(fileName);
+    	
+    	long gid = LocationServices.Wire.create(fc);
+		assertThat(gid).isPositive();
+		Location circle = assertRead(fc, gid);
+		assertCircle(fc, gid, circle);
+		assertCircleProperties(circle);
+		
+		((Circle)fc.getFeatures().get(0).getGeometry()).setRadius(12345.0);
+    	long updatedGid = LocationServices.Wire.update(gid, fc);
+		assertThat(updatedGid).isEqualTo(gid);
+		Location updatedCircle = assertRead(fc, updatedGid);
+		assertCircle(fc, gid, updatedCircle);
+		
+		Long deletedGid = LocationServices.Wire.delete(gid);
+		assertThat(deletedGid).isEqualTo(gid);
+		Location deletedLocation = LocationRule.read(gid);
+		assertThat(deletedLocation).isNull();
+
+		
+		String json = KmlRule.getStringFromFile(fileName);
+        JsonNode node = Json.parse(json);
+        String path = "/api/locations";
+
+        Result result = request(routes.LocationServices.create(), node);
+        assertThat(result.status()).isEqualTo(Status.CREATED);
+        String location = result.header(LOCATION);
+        assertThat(location).containsIgnoringCase(path);
+        gid = toGid(location);
+		testRead(gid, null);
+        Result deleteResult = request(routes.LocationServices.delete(gid));
+        assertThat(deleteResult.status()).isEqualTo(Status.NO_CONTENT);
+        String deletePath = path + "/" + gid;
+		assertThat(deleteResult.header(LOCATION)).endsWith(deletePath);
+	}
+
+	private void assertCircleProperties(Location circle) {
+		FeatureCollection fc2 = LocationServices.Wire.asFeatureCollection(circle);
+		Map<String, Object> properties = fc2.getFeatures().get(0).getProperties();
+		assertThat(properties.get("center")).isNotNull();
+		assertThat(properties.get("radius")).isNotNull();
+		assertThat(properties.get("quadSegs")).isNotNull();
+	}
+
+	private void assertCircle(FeatureCollection fc, long gid, Location circle) {
+		CircleGeometry circleGeometry = circle.getGeometry().getCircleGeometry();
+		Circle fcGeom = (Circle)fc.getFeatures().get(0).getGeometry();
+		assertThat(circleGeometry.getLocationGeometry().getGid()).isEqualTo(gid);
+		assertThat(circleGeometry.getRadius()).isEqualTo(fcGeom.getRadius());
+		assertThat(circleGeometry.getCenter()).isEqualTo(fcGeom.getCenter());
+		assertThat(circleGeometry.getQuarterSegments()).isEqualTo(fcGeom.getQuarterSegments());
 	}
 	
 	private void tesCreateAuWithInvalidGeom() throws Exception {

@@ -6,9 +6,14 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
+import org.postgresql.util.PSQLException;
+
+import com.vividsolutions.jts.geom.Geometry;
+
 import play.Logger;
 import play.db.jpa.JPA;
 import dao.entities.LocationGeometry;
+import models.exceptions.PostgreSQLException;
 
 public class GeometryDao {
 
@@ -23,7 +28,6 @@ public class GeometryDao {
 
 	public LocationGeometry read(EntityManager em, long gid,
 			Class<LocationGeometry> geometryClass) {
-		//Logger.debug("Find " + geometry.getSimpleName() +  " where gid=" + gid);
 		return em.find(geometryClass, gid);
 	}		
 
@@ -116,5 +120,36 @@ public class GeometryDao {
 		+ " st_intersects(a.envelope,b) = true "
 		;
 		return q;
+	}
+	
+	public static Geometry toBufferGeometry(double x, double y, double radius) {
+		EntityManager em = JPA.em();
+		String q = "SELECT 0 as clazz_, 0 as gid, 0 as area, CURRENT_DATE as update_date, "
+				+ " ST_Buffer(Geography((ST_MakePoint(?1, ?2))), ?3)\\:\\:geometry as multipolygon, "
+				+ " ST_MakePoint(?1, ?2) as rep_point ";
+		
+		Query query = em.createNativeQuery(q, LocationGeometry.class);
+		query.setParameter(1, x);
+		query.setParameter(2, y);
+		query.setParameter(3, radius);
+		LocationGeometry lg = (LocationGeometry) query.getSingleResult();
+		Geometry geometry = lg.getShapeGeom();
+		return geometry;
+	}
+	
+	public void create(LocationGeometry geometry, EntityManager em) {
+		try {
+			em.persist(geometry);	
+			if (geometry.getCircleGeometry() != null) {
+				em.persist(geometry.getCircleGeometry());
+			}
+			em.flush();
+		} catch (Exception e) {
+			PSQLException pe = PostgreSQLException.toPSQLException(e);
+			if (pe != null) {
+				throw new PostgreSQLException(pe, pe.getSQLState());
+			} else
+				throw new RuntimeException(e);
+		}
 	}
 }
