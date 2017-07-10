@@ -37,7 +37,7 @@ public class GeometryDao {
 		String q = "select 0 as clazz_, 0 as gid, area, update_date, "
 				+ "  ST_Simplify(multipolygon,?2) multipolygon, "
 				+ "  rep_point "
-				+ " from location_geometry "
+				+ " from {h-schema}location_geometry "
 				+ " where gid=?1";
 		//@formatter:on
 		Query query = em.createNativeQuery(q, LocationGeometry.class);
@@ -61,7 +61,7 @@ public class GeometryDao {
 
 	public String readAsKml(long gid) {
 		EntityManager em = JPA.em();
-		String query = "select ST_AsKML(multipolygon) from location_geometry"
+		String query = "select ST_AsKML(multipolygon) from {h-schema}location_geometry"
 				+ " where gid = " + gid;
 		Object singleResult = em.createNativeQuery(query).getSingleResult();
 		return singleResult.toString();
@@ -73,7 +73,7 @@ public class GeometryDao {
 		String point = "ST_MakePoint(" + longitude + ", " + latitude +")";
 		String geometry = "ST_SetSRID("+ point+", "+ LocationDao.SRID + ")";
 		String q = "SELECT gid " 
-			+ "  FROM location_geometry "
+			+ "  FROM {h-schema}location_geometry "
 			+ "  WHERE ST_Contains(multipolygon, " + geometry + ")"
 			+ "  ORDER BY ST_Area(multipolygon);";
 		//@formatter:on
@@ -88,7 +88,7 @@ public class GeometryDao {
 		EntityManager em = JPA.em();
 		//@formatter:off
 		String q = "select ST_numGeometries(ST_Simplify(multipolygon,?2)) "
-		+ " from location_geometry where gid=?1";
+		+ " from {h-schema}location_geometry where gid=?1";
 		//@formatter:on
 		Query query = em.createNativeQuery(q);
 		query.setParameter(1, gid);
@@ -112,7 +112,7 @@ public class GeometryDao {
 		String q = 
 		"select a.gid "
 		+ "from "
-		+ " location_geometry a, location l, location_type t, "
+		+ " {h-schema}location_geometry a, {h-schema}location l, {h-schema}location_type t, "
 		+ " ST_SetSRID(ST_GeomFromGeoJSON('" + geojsonGeometry + "'), 4326) as b "
 		+ "where "
 		+ " l.gid = a.gid and l.location_type_id = t.id and "
