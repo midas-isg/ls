@@ -74,6 +74,7 @@ public class LocationServices extends Controller {
 	private static final String findbyGeomExBody = "See an example of body at "
 			+ "<a target='_blank' href='assets/examples/api/" + findbyGeomEx + "'>" + findbyGeomEx + "</a> ";
 	private static final String circleExample = "circle.json";
+	private static final String featureFields = "featureFields.txt";
 	private static final String superTypeAPI = "/api/super-types";
 	private static final String locationTypeAPI = "/api/location-types";
 
@@ -117,14 +118,20 @@ public class LocationServices extends Controller {
 			String format,
 			
 			@ApiParam(
-					value = "Includes only the given fields in feature objects", 
+					value = "Comma separated values</br>"
+							+ "Includes only the given fields in the response feature</br>"
+							+ "See "
+							+ "<a target='_blank' href='assets/examples/api/" + featureFields + "'>possible values</a> ", 
 					required = false
 			) 
 			@QueryParam("_onlyFeatureFields")
 			String onlyFeatureFields,
 			
 			@ApiParam(
-					value = "Excludes the given fields from feature objects", 
+					value = "Comma separated values</br>"
+							+ "Excludes the given fields from the response feature</br>"
+							+ "See "
+							+ "<a target='_blank' href='assets/examples/api/" + featureFields + "'>possible values</a> ", 
 					required = false
 			) 
 			@QueryParam("_excludedFeatureFields")
@@ -302,16 +309,16 @@ public class LocationServices extends Controller {
 			nickname = "Find", 
 			value = "Finds locations by name, other-names, or code", 
 			notes = "<p>Receives a single query as shown in the example.</p>"
-			+ "<b>in version 1:</b> "
+			+ "<b>In version 1:</b> "
 			+ "<ul> "
 			+ "<li>response is not a valid geoJSON (<i>'geometry'</i> property is removed from FeatureCollection response).</li> "
 			+ "<li><i>\"properties.children\"</i> is excluded from features.</li> "
 			+ "</ul> "
-			+ "<b>as of version 2:</b> "
+			+ "<b>As of version 2:</b> "
 			+ "<ul> "
-			+ "<li>use <i>\"_onlyFeatureFields\"</i> or <i>\"_excludedFeatureFields\"</i> for filtering fields.</li>"
-			+ "<li>request filter-key names changed: 'includeOnly' -> <i>'onlyFeatureFields'</i> & 'exclude' -> <i>'excludedFeatureFields'</i>.</li> "
-			+ "<li>request filter syntax changed. Refer to <a href='assets/examples/api/" + findByTermExV2 + "'>" + findByTermExV2 + "</a></li> "
+			+ "<li>use <i>\"onlyFeatureFields\"</i> or <i>\"excludedFeatureFields\"</i> for filtering fields.</li> See "
+				+ "<a target='_blank' href='assets/examples/api/" + featureFields + "'>here</a> for possible values</li>. "
+			+ "<li>request filter syntax changed. See <a href='assets/examples/api/" + findByTermExV2 + "'>" + findByTermExV2 + "</a></li> "
 			+ "<li>\"verbose\" option is not suppoerted. Use <i>\"_onlyFeatureFields\":\"properties.gid\"</i> for non-verbose results.</li> "
 			+ "<li>the default for search logic is <i>\"logic\":\"OR\"</i>. For conjuction between query-terms use <i>\"logic\":\"AND\"</i></li> "
 			+ "</ul>", 
@@ -870,18 +877,24 @@ public class LocationServices extends Controller {
 		Long typeId,
 		
 		@ApiParam(
-			value = "Includes only the given fields in feature objects (as of version 2)", 
-			required = false
+				value = "Comma separated values</br>"
+						+ "Includes only the given fields in the response feature <b>(as of version 2)</b></br>"
+						+ "See "
+						+ "<a target='_blank' href='assets/examples/api/" + featureFields + "'>possible values</a> ", 
+				required = false
 		) 
 		@QueryParam("_onlyFeatureFields")
-			String onlyFeatureFields,
-			
+		String onlyFeatureFields,
+		
 		@ApiParam(
-			value = "Excludes the given fields from feature objects (as of version 2)", 
-			required = false
+				value = "Comma separated values</br>"
+						+ "Excludes the given fields from the response feature <b>(as of version 2)</b></br>"
+						+ "See "
+						+ "<a target='_blank' href='assets/examples/api/" + featureFields + "'>possible values</a> ", 
+				required = false
 		) 
 		@QueryParam("_excludedFeatureFields")
-			String excludedFeatureFields,
+		String excludedFeatureFields,
 			
 		@ApiParam(
 			value = "Maximum number of locations to return (as of version 2)", 
