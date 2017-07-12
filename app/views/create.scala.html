@@ -35,7 +35,16 @@
 			<div class="extra-bottom-space">
 				<div class="extra-bottom-space roundbox">
 					<legend>Import from KML file</legend>
-					<input id="file-input" accept=".json, .geojson, .kml" type="file" placeholder="Upload KML file">
+					
+					<div class="input-group">
+						<label class="input-group-btn">
+							<span class="btn btn-default">
+								Upload KML file <input id="file-input" accept=".json, .geojson, .kml" type="file" style="display: none;">
+							</span>
+						</label>
+						
+						<input id="file-name" type="text" class="form-control" readonly="">
+					</div>
 				</div>
 				
 				<div class="vertical-spaced roundbox">
@@ -43,7 +52,7 @@
 					<div class="input-group extra-bottom-space">
 						<span id="dropdown-label" class="input-group-addon no-padding">
 							<div class="dropdown">
-								<button id="dropdown-menu" class="dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true">
+								<button id="dropdown-menu" class="btn btn-sm btn-default" type="button" data-toggle="dropdown" aria-expanded="true">
 									Location type <span class="caret"></span>
 								</button>
 								
@@ -116,9 +125,9 @@
 					</div>
 
 					<div class="">
-						<button id="save-button" class="">Save new entry to database</button>
-						<button id="update-button" hidden>Update entry in database</button>
-						<button id="new-button" class="pull-right">Reset page</button>
+						<button id="save-button" class="btn btn-sm btn-default">Save new entry to database</button>
+						<button id="update-button" class="btn btn-sm btn-default hidden" hidden>Update entry in database</button>
+						<button id="new-button" class="pull-right btn btn-sm btn-default">Reset page</button>
 						<span id="server-result"></span>
 					</div>
 				</div>
@@ -126,7 +135,7 @@
 
 			<div>
 				@map()
-				<button id="download-button" hidden>Download as GeoJSON</button>
+				<button id="download-button" class="btn btn-sm btn-default hidden" hidden>Download as GeoJSON</button>
 			</div>
 		</div>
 		
@@ -137,8 +146,8 @@
 						<div style="padding-left: 5px; padding-right: 5px;">
 							<label>Filter:</label>
 							<input id="parent" type="text" name="search" placeholder="Filter...">
-							<button id="resetParentSearchButton" class="">Show all</button>
-							<button id="suggestion-button" class="">Get suggestions</button>
+							<button id="resetParentSearchButton" class="btn btn-sm btn-default">Show all</button>
+							<button id="suggestion-button" class="btn btn-sm btn-default">Get suggestions</button>
 							<span id="parent-matches"></span>
 						</div>
 					</div>

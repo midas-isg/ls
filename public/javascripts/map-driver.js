@@ -383,54 +383,57 @@ MapDriver.prototype.download = function() {
 MapDriver.prototype.upload = function() {
 	var file = $('#file-input').get(0).files[0],
 		fileReader = new FileReader(),
-		thisMapDriver = this;
+		thisMapDriver = this,
+		fileString;
 	
-	fileReader.onload = (function() {
-		var kmlData = fileReader['result'],
-			kmlDOM = (new DOMParser()).parseFromString(kmlData, 'text/xml'),
-			jsonData = toGeoJSON.kml(kmlDOM),
-			properties,
-			i,
-			parentGID;
+	if(file) {
+		fileReader.onload = (function() {
+			var kmlData = fileReader['result'],
+				kmlDOM = (new DOMParser()).parseFromString(kmlData, 'text/xml'),
+				jsonData = toGeoJSON.kml(kmlDOM),
+				properties,
+				i,
+				parentGID;
 
-		thisMapDriver.kml = kmlData;
+			thisMapDriver.kml = kmlData;
 
-		if(jsonData.features.length == 0) {
-			jsonData = JSON.parse(kmlData);
-		}
+			if(jsonData.features.length == 0) {
+				jsonData = JSON.parse(kmlData);
+			}
+			
+			properties = jsonData.features[0].properties;
+			
+			if(properties.name) {
+				HELPERS.setTextValue("#au-name", properties.name);
+			}
 		
-		properties = jsonData.features[0].properties;
-		
-		if(properties.name) {
-			HELPERS.setTextValue("#au-name", properties.name);
-		}
-	
-		if(properties.description) {
-			HELPERS.setTextValue("#description", properties.description);
-		}
-		
-		if(properties.startDate) {
-			HELPERS.setTextValue("#start-date", properties.startDate);
-		}
-		
-		if(properties.endDate) {
-			HELPERS.setTextValue("#end-date", properties.endDate);
-		}
+			if(properties.description) {
+				HELPERS.setTextValue("#description", properties.description);
+			}
+			
+			if(properties.startDate) {
+				HELPERS.setTextValue("#start-date", properties.startDate);
+			}
+			
+			if(properties.endDate) {
+				HELPERS.setTextValue("#end-date", properties.endDate);
+			}
 
-		for(i = 0; i < jsonData.features.length; i++) {
-			jsonData.features[i].properties.description = jsonData.features[i].properties.name;
-		}
-		
-		parentGID = properties.parentGid;
-		console.log("parent GID: " + parentGID);
-		
-		thisMapDriver.loadJSON(jsonData);
-		thisMapDriver.suggestParents();
+			for(i = 0; i < jsonData.features.length; i++) {
+				jsonData.features[i].properties.description = jsonData.features[i].properties.name;
+			}
+			
+			parentGID = properties.parentGid;
+			console.log("parent GID: " + parentGID);
+			
+			thisMapDriver.loadJSON(jsonData);
+			thisMapDriver.suggestParents();
 
-		return;
-	});
-	
-	var fileString = fileReader.readAsText(file);
+			return;
+		});
+		
+		fileString = fileReader.readAsText(file);
+	}
 	
 	return;
 }
