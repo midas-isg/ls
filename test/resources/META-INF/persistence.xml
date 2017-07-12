@@ -2,7 +2,7 @@
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
       xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"  
       version="2.0">  
-      <persistence-unit name="testPersistenceUnit" transaction-type="RESOURCE_LOCAL">  
+      <persistence-unit name="defaultPersistenceUnit" transaction-type="RESOURCE_LOCAL">  
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>  
            <non-jta-data-source>DefaultDS</non-jta-data-source>  
            <properties>  
@@ -13,7 +13,7 @@
                 <property name="hibernate.format_sql" value="true" />  
                 <property name="hibernate.max_fetch_depth" value="5" />
                 <property name="hibernate.hbm2ddl.auto" value="update" /> 
-                <property name="hibernate.default_schema" value="test" />
+                <property name="hibernate.default_schema" value="public" />
 <!-- NEVER USE create, it will truncate all data  <property name="hibernate.hbm2ddl.auto" value="create" /> -->
            </properties>  
       </persistence-unit>  

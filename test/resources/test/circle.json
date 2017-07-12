@@ -1,0 +1,23 @@
+{
+	"type": "FeatureCollection",
+	"properties":
+	{
+		"name": "Circle TEST",
+		"locationTypeName": "Town",
+		"locationDescription": "test",
+		"startDate": "2015-01-01",
+		"endDate": "2015-01-02"
+	},
+	"features":
+	[
+		{
+			"type": "Feature",
+			"geometry":
+			{
+				"type": "Circle", 
+				"center": [10, 0],
+				"radius": 50000				
+			}
+		}
+	]
+}

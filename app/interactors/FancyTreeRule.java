@@ -20,13 +20,10 @@ public class FancyTreeRule {
 	private List<FancyTreeNode> toFancyTree(List<Location> roots) {
 		List<FancyTreeNode> newTree = new ArrayList<>();
 		for (Location root : roots) {
-			// start = System.nanoTime();
 			FancyTreeNode node = toNode(root, "");
 			newTree.add(node);
 			node.expanded = false;
-			// end = System.nanoTime();
-			// Logger.info("root " + count++ + " of " + roots.size() + " ( name= " + root.getData().getName() + " ,gid = "
-			//		+ root.getGid() + " ) time = " + (end - start) * 1e-6);
+
 		}
 		Collections.sort(newTree);
 		return newTree;

@@ -34,10 +34,8 @@ public class LocationProxyRule {
 				new Runnable() {
 					@Override
 					public void run() {
-						Logger.info("updating cache ...");
 						JPA.withTransaction(() -> {
-							LocationProxyRule.updateCache(location);
-							Logger.info("cache updated!");
+							updateCache(location);
 						});
 					}
 				}, Akka.system().dispatcher());
@@ -46,14 +44,19 @@ public class LocationProxyRule {
 	private static synchronized void updateCache(Location location) {
 
 		if (location != null) {
+			// DOES NOT UPDATE AUTREE
+			// ONLY EPIDEMIC ZONES ARE ALLOWED TO BE CREATED AT THIS MOMEMNT
 			updateUniqueSortedLocationNames(location);
-			return;
+			Logger.info("added names of location with gid = " + location.getGid()
+					+ " to UniqueSortedLocationNames cache ...");
+		} else {
+			Logger.info("initializing cache for AUtree and UniqueSortedLocationNames ...");
+			notifyChange();
+			uniqueSortedLocationNames = getUniqueSortedLocationNames();
+			roots = getHierarchy();
+			auTree = getAuTree();
+			Logger.info("cache updated!");
 		}
-
-		notifyChange();
-		uniqueSortedLocationNames = getUniqueSortedLocationNames();
-		roots = getHierarchy();
-		auTree = getAuTree();
 	}
 
 	private static void notifyChange() {
@@ -117,8 +120,10 @@ public class LocationProxyRule {
 		if (uniqueSortedLocationNames == null) {
 			uniqueSortedLocationNames = new ArrayList<>();
 			synchronized (uniqueSortedLocationNames) {
+				Logger.info("loading uniqueSortedLocationNames ...");
 				uniqueSortedLocationNames = new LocationDao().readUniqueNames();
 				Collections.sort(uniqueSortedLocationNames, String.CASE_INSENSITIVE_ORDER);
+				Logger.info("uniqueSortedLocationNames updated!");
 			}
 		}
 		return uniqueSortedLocationNames;
@@ -145,7 +150,7 @@ public class LocationProxyRule {
 		Map<String, String> map;
 		String cleanedInputString = removeNonWordCharacters(prefixName);
 		String cleanedCompareString;
-		
+
 		while (!names.isEmpty()) {
 			remainingNames = new ArrayList<>();
 
@@ -164,10 +169,10 @@ public class LocationProxyRule {
 					Logger.debug("Yes, the regex didn't work right!");
 					Logger.debug(exception.toString());
 				}
-				
-				for(int i = 0; i < tokens.length; i++) {
+
+				for (int i = 0; i < tokens.length; i++) {
 					cleanedCompareString = removeNonWordCharacters(tokens[i]);
-					if(cleanedCompareString.equalsIgnoreCase(cleanedInputString)) {
+					if (cleanedCompareString.equalsIgnoreCase(cleanedInputString)) {
 						tokenMatches.add(originalName);
 						break;
 					}
@@ -215,35 +220,34 @@ public class LocationProxyRule {
 
 		return result;
 	}
-	
+
 	public static String removeNonWordCharacters(String input) {
 		Pattern nonWordPattern = Pattern.compile("[^\\p{L}0-9]+", Pattern.UNICODE_CHARACTER_CLASS);
 		return input.replaceAll(nonWordPattern.toString(), "");
 	}
-	
-	private static void updateUniqueSortedLocationNames(Location location) {
-		if (uniqueSortedLocationNames == null)
-			uniqueSortedLocationNames = new ArrayList<>();
-		List<String> names = getNames(location);
-		insertIntoUniqueSortedLocationNames(names);
-	}
 
-	private static void insertIntoUniqueSortedLocationNames(List<String> names) {
-		if (uniqueSortedLocationNames == null || names == null)
-			return;
-		int insertPoint;
-		for (String name : names) {
-			insertPoint = Collections.binarySearch(uniqueSortedLocationNames, name, String.CASE_INSENSITIVE_ORDER);
-			if (insertPoint < 0) {
-				uniqueSortedLocationNames.add(-insertPoint - 1, name);
+	private static void updateUniqueSortedLocationNames(Location location) {
+		List<String> names = getNames(location);
+		if (uniqueSortedLocationNames == null)
+			uniqueSortedLocationNames = getUniqueSortedLocationNames();
+		else {
+			synchronized (uniqueSortedLocationNames) {
+				for (String name : names)
+					insert(uniqueSortedLocationNames, name);
 			}
 		}
+	}
+
+	private static void insert(List<String> uniqueSortedNames, String name) {
+		int insertPoint = Collections.binarySearch(uniqueSortedNames, name, String.CASE_INSENSITIVE_ORDER);
+		if (insertPoint < 0)
+			uniqueSortedNames.add(-insertPoint - 1, name);
 	}
 
 	private static List<String> getNames(Location location) {
 		if (location == null)
 			return null;
-		
+
 		List<String> names = new ArrayList<>();
 		names.add(location.getData().getName());
 		List<AltName> altNames = location.getAltNames();
