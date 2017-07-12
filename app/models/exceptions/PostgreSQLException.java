@@ -1,5 +1,6 @@
 package models.exceptions;
 
+import org.postgresql.util.PSQLException;
 
 public class PostgreSQLException extends RuntimeException {
 
@@ -34,5 +35,18 @@ public class PostgreSQLException extends RuntimeException {
 
 	public void setSQLState(String sqlState) {
 		this.sqlState = sqlState;
+	}
+
+	public static PSQLException toPSQLException(Exception e) {
+		PSQLException pe = null;
+		Throwable cause = e.getCause();
+		while (cause != null) {
+			if (cause instanceof PSQLException){
+				pe = (PSQLException) cause;
+				break;
+			}
+			cause = cause.getCause();
+		}
+		return pe;
 	}
 }

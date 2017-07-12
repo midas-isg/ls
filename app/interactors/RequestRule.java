@@ -133,9 +133,9 @@ public class RequestRule {
 	private static Request toRequest(String onlyFeatureFields, String excludedFeatureFields, Integer limit,
 			Integer offset) {
 		Request request = new Request();
-		List<String> list = parse(onlyFeatureFields);
+		List<String> list = csv2List(onlyFeatureFields);
 		request.setOnlyFeatureFields(list);
-		list = parse(excludedFeatureFields);
+		list = csv2List(excludedFeatureFields);
 		request.setExcludedFeatureFields(list);
 		request.setLimit(limit);
 		request.setOffset(offset);
@@ -163,7 +163,7 @@ public class RequestRule {
 		return false;
 	}
 
-	private static List<String> parse(String fields) {
+	private static List<String> csv2List(String fields) {
 		if (fields == null || fields.isEmpty())
 			return null;
 		String[] strArr = fields.replaceAll("[\"\'\\s]", "").split("[\\[,\\]]");

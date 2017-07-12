@@ -20,12 +20,12 @@ public class Application extends UserController {
 	}
 
 	private static void init() {
-		if (INFO == null){
+		if (INFO == null) {
 			final Configuration cfg = Play.application().configuration();
 			String version = "Version: " + cfg.getString("app.version");
 			String dbName = "Database: " + cfg.getString("db.default.url");
 			INFO = "Copyright 2014-2016 - University of Pittsburgh, " 
-				+ version + ", " + dbName;
+			+ version + ", " + dbName;
 		}
 	}
 	

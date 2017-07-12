@@ -268,6 +268,7 @@ var SEARCH_RESULTS =
 					url = SEARCH_RESULTS.searchURL + "?_v=2",
 					data = {
 						"queryTerm": input,
+						"excludedFeatureFields": ["geometry", "type", "properties.children", "properties.codes", "properties.matchedTerm"],
 						"limit": 0
 					};
 				

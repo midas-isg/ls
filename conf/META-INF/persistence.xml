@@ -13,8 +13,9 @@
                 <property name="hibernate.format_sql" value="true" />  
                 <property name="hibernate.max_fetch_depth" value="5" />
                 <property name="hibernate.hbm2ddl.auto" value="update" />
-                <property name="hibernate.default_schema" value="public" />
-<!-- NEVER USE create, it will truncate all data  <property name="hibernate.hbm2ddl.auto" value="create" /> -->
+                <property name="hibernate.default_schema" value="public" /> 
            </properties>  
-      </persistence-unit>  
+      </persistence-unit> 
+      <!-- NEVER USE create, it will truncate all data  <property name="hibernate.hbm2ddl.auto" value="create" /> -->
+       
  </persistence>  

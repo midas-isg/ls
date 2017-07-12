@@ -55,17 +55,17 @@ public class LocationServices extends Controller {
 	private static final String UNIQUE_VIOLATION = "23505";
 	private static final String findBulkEx = "find-bulk.json";
 	private static final String findBulkExV2 = "find-bulk-v2.json";
-	private static final String findBulkExBody = "Only \"queryTerm\" is required. See an example of body for vesrsion "
+	private static final String findBulkExBody = "Only \"queryTerm\" is required. See an example of body for version "
 			+ CURRENT_VERSION + " at "
 			+ "<a target='_blank' href='assets/examples/api/" + findBulkExV2 + "'>" + findBulkExV2 + "</a></br>"
-			+ "Vesrion " + OLD_VERSION + " body example: "
+			+ "Version " + OLD_VERSION + " body example: "
 					+ "<a target='_blank' href='assets/examples/api/" + findBulkEx + "'>" + findBulkEx + "</a> ";;
 	private static final String findByTermEx = "find-by-term.json";
 	private static final String findByTermExV2 = "find-by-term-v2.json";
-	private static final String findByTermExBody = "Only \"queryTerm\" is required. See a request example for vesrsion "
+	private static final String findByTermExBody = "Only \"queryTerm\" is required. See a request example for version "
 			+ CURRENT_VERSION + " at "
 			+ "<a target='_blank' href='assets/examples/api/" + findByTermExV2 + "'>" + findByTermExV2 + "</a></br>"
-			+ "Vesrion " + OLD_VERSION + " request example: "
+			+ "Version " + OLD_VERSION + " request example: "
 					+ "<a target='_blank' href='assets/examples/api/" + findByTermEx + "'>" + findByTermEx + "</a> ";
 	private static final String findByFilterEx = "find-by-filter.json";
 	private static final String findByFilterExBody = "Returns locations matched by filters. </br>"
@@ -74,6 +74,8 @@ public class LocationServices extends Controller {
 	private static final String findbyGeomEx = "AuMaridiTown.geojson";
 	private static final String findbyGeomExBody = "See an example of body at "
 			+ "<a target='_blank' href='assets/examples/api/" + findbyGeomEx + "'>" + findbyGeomEx + "</a> ";
+	private static final String circleExample = "circle.json";
+	private static final String featureFields = "featureFields.txt";
 	private static final String superTypeAPI = "/api/super-types";
 	private static final String locationTypeAPI = "/api/location-types";
 
@@ -117,14 +119,20 @@ public class LocationServices extends Controller {
 			String format,
 			
 			@ApiParam(
-					value = "Includes only the given fields in feature objects", 
+					value = "Comma separated values</br>"
+							+ "Includes only the given fields in the response feature</br>"
+							+ "See "
+							+ "<a target='_blank' href='assets/examples/api/" + featureFields + "'>possible values</a> ", 
 					required = false
 			) 
 			@QueryParam("_onlyFeatureFields")
 			String onlyFeatureFields,
 			
 			@ApiParam(
-					value = "Excludes the given fields from feature objects", 
+					value = "Comma separated values</br>"
+							+ "Excludes the given fields from the response feature</br>"
+							+ "See "
+							+ "<a target='_blank' href='assets/examples/api/" + featureFields + "'>possible values</a> ", 
 					required = false
 			) 
 			@QueryParam("_excludedFeatureFields")
@@ -302,16 +310,16 @@ public class LocationServices extends Controller {
 			nickname = "Find", 
 			value = "Finds locations by name, other-names, or code", 
 			notes = "<p>Receives a single query as shown in the example.</p>"
-			+ "<b>in version 1:</b> "
+			+ "<b>In version 1:</b> "
 			+ "<ul> "
 			+ "<li>response is not a valid geoJSON (<i>'geometry'</i> property is removed from FeatureCollection response).</li> "
 			+ "<li><i>\"properties.children\"</i> is excluded from features.</li> "
 			+ "</ul> "
-			+ "<b>as of version 2:</b> "
+			+ "<b>As of version 2:</b> "
 			+ "<ul> "
-			+ "<li>use <i>\"_onlyFeatureFields\"</i> or <i>\"_excludedFeatureFields\"</i> for filtering fields.</li>"
-			+ "<li>request filter-key names changed: 'includeOnly' -> <i>'onlyFeatureFields'</i> & 'exclude' -> <i>'excludedFeatureFields'</i>.</li> "
-			+ "<li>request filter syntax changed. Refer to <a href='assets/examples/api/" + findByTermExV2 + "'>" + findByTermExV2 + "</a></li> "
+			+ "<li>use <i>\"onlyFeatureFields\"</i> or <i>\"excludedFeatureFields\"</i> for filtering fields.</li> See "
+				+ "<a target='_blank' href='assets/examples/api/" + featureFields + "'>here</a> for possible values</li>. "
+			+ "<li>request filter syntax changed. See <a href='assets/examples/api/" + findByTermExV2 + "'>" + findByTermExV2 + "</a></li> "
 			+ "<li>\"verbose\" option is not suppoerted. Use <i>\"_onlyFeatureFields\":\"properties.gid\"</i> for non-verbose results.</li> "
 			+ "<li>the default for search logic is <i>\"logic\":\"OR\"</i>. For conjuction between query-terms use <i>\"logic\":\"AND\"</i></li> "
 			+ "</ul>", 
@@ -587,9 +595,10 @@ public class LocationServices extends Controller {
 			httpMethod = "POST", 
 			nickname = "createLocation", 
 			value = "Creates a location", 
-			notes = "This endpoint creates a location using submitted GeoJSON FeatureCollection object "
-					+ "in body and return the URI via the 'Location' Header in the response. "
-					+ "Currently, no content returns in the body. ", 
+			notes = "<p>This endpoint creates a location using submitted GeoJSON FeatureCollection object "
+					+ "in body (with an exception of a 'circle' which is not a GeoJSON) and returns the URI via the 'Location' Header in the response. "
+					+ "Currently, no content is returned in the body. </p>"
+					+ "<p>Circle is created using ST_Buffer(geography g1, float radius_of_buffer_in_meters) in postGIS 2.1.5.</p>", 
 			response = Void.class
 	)
 	@ApiResponses(value = { 
@@ -601,7 +610,12 @@ public class LocationServices extends Controller {
 	})
     @ApiImplicitParams( { 
     	@ApiImplicitParam(
-    			value = "GeoJSON FeatureCollection", 
+    			value = "<p>FeatureCollection</p>"
+    					+ "<p>See examples:</p>"
+    					+ "<p><a target='_blank' href='assets/examples/api/"
+    					+ findbyGeomEx + "'>MuliPolygon</a></p>"
+    					+ "<p><a target='_blank' href='assets/examples/api/"
+    					+ circleExample + "'>Circle</a></p>", 
     			required = true, 
     			dataType = "models.geo.FeatureCollection", 
     			paramType = "body"
@@ -823,7 +837,7 @@ public class LocationServices extends Controller {
 
 		public static Result findByFeatureCollection(FeatureCollection fc, Long superTypeId, Long typeId, 
 				boolean verbose) {
-			FeatureGeometry geometry = GeoJsonRule.asFetureGeometry(fc);
+			FeatureGeometry geometry = GeoJsonRule.asFeatureGeometry(fc);
 			String geo = Json.toJson(geometry).toString();
 			List<BigInteger> gids = GeometryRule.findGidsByGeometry(geo, superTypeId, typeId);
 			Map<String, Object> properties = new HashMap<>();
@@ -872,18 +886,24 @@ public class LocationServices extends Controller {
 		Long typeId,
 		
 		@ApiParam(
-			value = "Includes only the given fields in feature objects (as of version 2)", 
-			required = false
+				value = "Comma separated values</br>"
+						+ "Includes only the given fields in the response feature <b>(as of version 2)</b></br>"
+						+ "See "
+						+ "<a target='_blank' href='assets/examples/api/" + featureFields + "'>possible values</a> ", 
+				required = false
 		) 
 		@QueryParam("_onlyFeatureFields")
-			String onlyFeatureFields,
-			
+		String onlyFeatureFields,
+		
 		@ApiParam(
-			value = "Excludes the given fields from feature objects (as of version 2)", 
-			required = false
+				value = "Comma separated values</br>"
+						+ "Excludes the given fields from the response feature <b>(as of version 2)</b></br>"
+						+ "See "
+						+ "<a target='_blank' href='assets/examples/api/" + featureFields + "'>possible values</a> ", 
+				required = false
 		) 
 		@QueryParam("_excludedFeatureFields")
-			String excludedFeatureFields,
+		String excludedFeatureFields,
 			
 		@ApiParam(
 			value = "Maximum number of locations to return (as of version 2)", 
