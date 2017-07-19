@@ -9,21 +9,21 @@ var HELPERS =
 	}
 
 	Helpers.prototype.getIDFromURI = function(URI) {
-		var components = URI.split('/');
-		var id = components[components.length - 1];
+		var components = URI.split('/'),
+			id = components[components.length - 1];
 
 		return id;
 	}
 
 	Helpers.prototype.multiPolygonsToPolygons = function(geoJSON) {
 		if(geoJSON) {
-			var features = geoJSON.features;
-			var count = features.length;
-
-			var i;
-			var j;
-			var properties = null;
-			var addedFeature = null;
+			var features = geoJSON.features,
+				count = features.length,
+				properties = null,
+				addedFeature = null,
+				i,
+				j;
+			
 			for(i = 0; i < count; i++) {
 				if(features[i].geometry.type == "MultiPolygon") {
 					properties = features[i].properties;
@@ -144,7 +144,7 @@ var HELPERS =
 				auGID = lineage[i].gid;
 
 				$(sectionID).append(", ");
-				$(sectionID).append("<a href='" + CONTEXT + "/browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
+				$(sectionID).append("<a href='" + CONTEXT + "/browser?id=" + auGID + "' class='' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
 			}
 		}
 

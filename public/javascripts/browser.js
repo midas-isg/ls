@@ -124,7 +124,7 @@ var crudPath = CONTEXT + "/api/locations",
 					properties.description = properties.name;
 
 					$("#au-name").append("<strong>" + properties.name + "</strong>");
-					$("#au-location-type").append("<div class=''>" + properties.locationTypeName + "</div>");
+					$("#au-location-type").append("<span class=''>" + properties.locationTypeName + "</span>");
 
 					if(properties.locationDescription) {
 						$("#description").append("<div class='pull-left pre-spaced'>" + properties.locationDescription + "</div>");

@@ -11,21 +11,23 @@
 	
 <!-- Custom -->
 	<link href='@routes.Assets.at("stylesheets/map.css")' rel='stylesheet'>
+	
+	<link href='@routes.Assets.at("stylesheets/browser.css")' rel='stylesheet'>
 	<script src='@routes.Assets.at("javascripts/browser.js")' defer></script>
 }
 
 @main(message, imports, version) {
 	<div>
 		<div id="header-data" hidden>
-			<div class="azure">
+			<div>
 				<h2 style="clear: both; margin-top: 0px;">
 					<div id="error" class="data-container" style="color : red; font-weight:bold;"></div>
-					<div id="au-name" class="pull-left"></div>
-					<div id="au-location-type" class="data-container"></div>
+					<div id="au-name" class="inline-block"></div>
+					<div id="au-location-type" class="inline-block data-container"></div>
 				</h2>
 
 				<div id="au-lineage" class="data-container extra-bottom-space" hidden>
-					<em class="pull-left post-spaced">Located within:</em>
+					<em>Located within:</em>
 				</div>
 
 				<div id="otherNames" class="data-container" hidden>
@@ -41,7 +43,7 @@
 				</div>
 			</div>
 
-			<div class="data-container" style="z-index: 0;">
+			<div class="data-container">
 				<div id="historical-note" hidden>
 					<strong style="color: red;">*Historical data overlayed on current world map*</strong>
 				</div>
@@ -53,18 +55,18 @@
 			</div>
 			
 			<div class="data-container extra-bottom-space">
-				<em class="pull-left">This code references this location</em>
+				<em>This code references this location</em>
 				
-				<div id="founding-date-div" class="pre-spaced pull-left">
-					<em class="pull-left">from:</em> <div id="start-date" class="pull-left pre-spaced"></div>
+				<div id="founding-date-div" class="inline-block">
+					<em>from <span id="start-date"></span></em>
 				</div>
 				
-				<div class="pre-spaced pull-left">
-					<em class="pull-left">to</em> <div id="end-date" class="pull-left pre-spaced">present</div>
+				<div class="inline-block">
+					<em>to <span id="end-date">present</span></em>
 				</div>
 			</div>
 
-			<div id="codes" class="data-container extra-bottom-space" hidden>
+			<div id="codes" class="data-container extra-bottom-space clear-both" hidden>
 				<em id="codes-toggle">Known codes for this location in other standards:</em>
 			</div>
 

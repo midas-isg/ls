@@ -10,6 +10,10 @@ footer {
 	color: #9d9d9d;
 }
 
+.inline-block {
+	display: inline-block;
+}
+
 .roundbox {
 	border-radius: 5px;
 	border-color: #d0d0d0;
