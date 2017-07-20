@@ -41,6 +41,9 @@ public class RequestRule {
 
 		if (containsKey(node, "logic"))
 			req.setLogic(node.get("logic").asText().trim().toUpperCase());
+		else
+			req.setLogic("OR");
+		
 		return req;
 	}
 
@@ -180,15 +183,11 @@ public class RequestRule {
 	private static void setEndDate(JsonNode node, Request req, String endDate) {
 		if (containsKey(node, endDate))
 			req.setEndDate(toDate(node.get(endDate).asText()));
-		if (req.getEndDate() == null)
-			req.setEndDate(getNowDate());
 	}
 
 	private static void setStartDate(JsonNode node, Request req, String startDate) {
 		if (containsKey(node, startDate))
 			req.setStartDate(toDate(node.get(startDate).asText()));
-		if (req.getStartDate() == null)
-			req.setStartDate(toDate("0001-01-01"));
 	}
 
 }
