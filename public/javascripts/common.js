@@ -188,5 +188,9 @@ var HELPERS =
 			return 0;
 	};
 	
+	Helpers.prototype.toggle = function(elementID) {
+		return $("#" + elementID).toggle();
+	}
+	
 	return new Helpers();
 })();
