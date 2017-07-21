@@ -202,11 +202,11 @@ var crudPath = CONTEXT + "/api/locations",
 							locationType = children[i].locationTypeName;
 							locationDivID = locationType.replace(unsupportedCharactersRegExp, "-").toLowerCase();
 
-							if($("#" + locationDivID).children().length > 1) {
+							if($("#" + locationDivID).children().length > 0) {
 								$("#" + locationDivID).append("<span>, </span>");
 							}
 
-							$("#" + locationDivID).append("<a href='./browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
+							$("#" + locationDivID).append("<a href='./browser?id=" + auGID + "' class='' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
 						}
 
 						$("#au-children").show();
