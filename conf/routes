@@ -9,6 +9,7 @@ GET           /logout                             security.auth0.Auth0Controller
 GET           /callback                           security.auth0.Auth0Controller.callback(code)
 
 # Deprecated
+GET           /about                              controllers.UnsecuredApplication.about()
 GET           /concept                            controllers.Application.concept()
 GET           /read-only                          controllers.Application.browser()
 GET           /browser                            controllers.Application.browser()

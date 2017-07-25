@@ -1,0 +1,14 @@
+@(message: String, version:String)
+
+@imports = {
+	<!-- <script src='@routes.Assets.at("javascripts/browser.js")' defer></script> -->
+	
+	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'>
+}
+
+@main(message, imports, version) {
+	<div>
+		<h1>LS stands for "Location Service"</h1>
+		<p>LS is a service to provide information about locations.</p>
+	</div>
+}
