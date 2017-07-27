@@ -1,3 +1,28 @@
+@media only screen and (min-height: 1024px) {
+	.full-height {
+		height: 800px;
+	}
+}
+
+@media only screen and (max-height: 944px) {
+	.full-height {
+		height: 700px;
+	}
+}
+
+@media only screen and (max-height: 700px) {
+	.full-height {
+		height: 400px;
+	}
+}
+
+@media only screen and (max-height: 412px) {
+	.full-height {
+		height: 200px;
+	}
+}
+
+
 body {
 	background-color: rgb(237, 238, 247);
 }
@@ -27,6 +52,10 @@ legend {
 	border-radius: 5px 5px 0px 0px;
 	margin-bottom: 0px;
 	text-indent: 5px;
+}
+
+.full-width {
+	width: 100%;
 }
 
 .azure {
