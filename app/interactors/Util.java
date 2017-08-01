@@ -9,25 +9,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 
-import models.exceptions.BadRequest;
-
 import org.joda.time.LocalDate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import models.exceptions.BadRequest;
+
 public class Util {
 
 	static boolean containsKey(JsonNode node, String key) {
-		return getKeyList(node).contains(key);
-	}
-
-	static List<String> getKeyList(JsonNode node) {
-		List<String> keys = new ArrayList<>();
-		Iterator<String> l = node.fieldNames();
-		while (l.hasNext()) {
-			keys.add(l.next());
+		Iterator<String> names = node.fieldNames();
+		while (names.hasNext()) {
+			if (names.next().equals(key))
+				return true;
 		}
-		return keys;
+		return false;
 	}
 
 	public static Date getDate(Map<String, Object> m, String key) {
@@ -67,8 +63,7 @@ public class Util {
 			LocalDate localDt = new LocalDate(dateString);
 			date = Date.valueOf(localDt.toString());
 		} catch (Exception e) {
-			String msg = (e.getMessage() != null) ? e.getMessage()
-					: "Invalid date: " + dateString;
+			String msg = (e.getMessage() != null) ? e.getMessage() : "Invalid date: " + dateString;
 			throw new BadRequest(msg);
 		}
 		return date;
@@ -84,8 +79,7 @@ public class Util {
 			LocalDate localDt = new LocalDate(dateString);
 			date = Date.valueOf(localDt.toString());
 		} catch (Exception e) {
-			String msg = (e.getMessage() != null) ? e.getMessage()
-					: "Invalid date: " + dateString;
+			String msg = (e.getMessage() != null) ? e.getMessage() : "Invalid date: " + dateString;
 			throw new BadRequest(msg);
 		}
 		return date;
@@ -145,8 +139,7 @@ public class Util {
 		return String.valueOf(object);
 	}
 
-	public static void putAsStringIfNotNull(Map<String, Object> properties,
-			String key, Object value) {
+	public static void putAsStringIfNotNull(Map<String, Object> properties, String key, Object value) {
 		if (value == null)
 			return;
 		properties.put(key, toString(value));
@@ -164,17 +157,17 @@ public class Util {
 	}
 
 	public static boolean containsOrIsEmpty(List<String> list, Object item) {
-		if(list == null || list.isEmpty() || list.contains(item))
+		if (list == null || list.isEmpty() || list.contains(item))
 			return true;
 		return false;
 	}
 
 	public static boolean contains(List<String> list, String item) {
-		if(list == null)
+		if (list == null)
 			return false;
 		return list.contains(item);
 	}
-	
+
 	public static Boolean isTrue(Boolean param) {
 		return (param == null) ? false : param;
 	}

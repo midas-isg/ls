@@ -74,6 +74,7 @@ public class LocationServices extends Controller {
 	private static final String findbyGeomExBody = "See an example of body at "
 			+ "<a target='_blank' href='assets/examples/api/" + findbyGeomEx + "'>" + findbyGeomEx + "</a> ";
 	private static final String circleExample = "circle.json";
+	private static final String relativeLocationsEx = "relative-locations.json";
 	private static final String featureFields = "featureFields.txt";
 	private static final String superTypeAPI = "/api/super-types";
 	private static final String locationTypeAPI = "/api/location-types";
@@ -934,5 +935,29 @@ public class LocationServices extends Controller {
 	public Result updateCache(){
 		LocationProxyRule.scheduleCacheUpdate();
 		return ok("An update-cache request was scheduled.");
+	}
+	
+	@Transactional
+	@ApiOperation(httpMethod = "POST", 
+					nickname = "readRelativeLocations", 
+					value = "Returns ALCs for ancestors and descendants of given ALC", 
+					notes = "<p>This endpoint returns a list of Apollo Location Codes (ALCs) from the locations' hierarchy, which consists of ancestors "
+							+ "and descendants of a given ALC.</p>"
+							+ "<p>Returned ALCs can be constrained to a list of given ALCs using "
+							+ "'onlyALCs' parameter.</p>"
+							+ "<a target='_blank' href='assets/examples/api/" + relativeLocationsEx + "'>request body example</a>",
+					response = List.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = OK, message = "Successful retrieval of ALCs", response = List.class),
+			@ApiResponse(code = INTERNAL_SERVER_ERROR, message = "Internal server error"),
+			@ApiResponse(code = BAD_REQUEST, message = "Format is not supported") })
+	@ApiImplicitParams({
+		@ApiImplicitParam(value = "<a target='_blank' href='assets/examples/api/" + relativeLocationsEx + "'>request body example</a>",
+				required = true,
+				paramType = "body") })
+	public Result relativeLocations(){
+		JsonNode req = request().body().asJson();
+		List<Long> result = LocationRule.getRelative(req);
+		return ok(Json.toJson(result));
 	}
 }

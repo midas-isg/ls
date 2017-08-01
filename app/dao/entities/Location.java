@@ -20,7 +20,7 @@ import javax.persistence.Transient;
 import org.hibernate.annotations.Check;
 
 @Entity
-@Check(constraints = "end_date > start_date")
+@Check(constraints = "end_date >= start_date")
 @Table(name = "location")
 public class Location implements Comparable<Location> {
 
