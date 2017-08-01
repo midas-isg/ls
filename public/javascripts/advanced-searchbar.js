@@ -1,5 +1,49 @@
 $(document).ready(function() {
-	var disabled = false;
+	var locationTypesURL = CONTEXT + "/api/location-types",
+		codeTypesURL = CONTEXT + "/api/code-types",
+		disabled = false;
+	
+	$.ajax( {
+		url: locationTypesURL,
+		type: "GET",
+		success: function(result, status, xhr) {
+			var i,
+				selector = document.getElementById("location-type-selector"),
+				option;
+			
+//console.info(result);
+			
+			for(i = 0; i < result.length; i++) {
+				option = document.createElement("option");
+				option.innerHTML = result[i].name + " (" + result[i].id +")";
+				option.value = result[i].id;
+				selector.appendChild(option);
+			}
+			
+			return;
+		}
+	});
+	
+	$.ajax( {
+		url: codeTypesURL,
+		type: "GET",
+		success: function(result, status, xhr) {
+			var i,
+				selector = document.getElementById("code-type-selector"),
+				option;
+			
+//console.info(result);
+			
+			for(i = 0; i < result.length; i++) {
+				option = document.createElement("option");
+				option.innerHTML = result[i].name + " (" + result[i].id +")";
+				option.value = result[i].id;
+				selector.appendChild(option);
+			}
+			
+			return;
+		}
+	});
 	
 	ADVANCED_OPTIONS_TOGGLE_EFFECTS = function() {
 		disabled = !disabled;
@@ -7,6 +51,40 @@ $(document).ready(function() {
 		
 		return;
 	};
+	
+	$("#location-type-adder").click(function() {
+		var locationTypesInput = document.getElementById("location-type-ids"),
+			locationTypesQuery = locationTypesInput.value,
+			locationTypeSelector = document.getElementById("location-type-selector");
+		
+		if((locationTypesQuery.search(locationTypeSelector.value) !== 0) && (locationTypesQuery.search(" " + locationTypeSelector.value) === -1)) {
+			if(locationTypesQuery.length > 0) {
+				locationTypesQuery += ", ";
+			}
+			
+			locationTypesQuery += locationTypeSelector.value;
+			locationTypesInput.value = locationTypesQuery;
+		}
+		
+		return;
+	});
+	
+	$("#code-type-adder").click(function() {
+		var codeTypesInput = document.getElementById("code-type-ids"),
+			codeTypesQuery = codeTypesInput.value,
+			codeTypeSelector = document.getElementById("code-type-selector");
+		
+		if((codeTypesQuery.search(codeTypeSelector.value) !== 0) && (codeTypesQuery.search(" " + codeTypeSelector.value) === -1)) {
+			if(codeTypesQuery.length > 0) {
+				codeTypesQuery += ", ";
+			}
+			
+			codeTypesQuery += codeTypeSelector.value;
+			codeTypesInput.value = codeTypesQuery;
+		}
+		
+		return;
+	});
 	
 	$("#fuzzy-match").change(function() {
 		if(this.checked) {
