@@ -1,10 +1,15 @@
 package interactors;
 
+import static interactors.Util.containsKey;
+import static interactors.Util.toListOfLong;
+
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Polygon;
@@ -17,6 +22,7 @@ import dao.entities.Location;
 import dao.entities.LocationGeometry;
 import dao.entities.LocationType;
 import models.Request;
+import models.exceptions.BadRequest;
 import play.Logger;
 import play.Play;
 
@@ -214,5 +220,28 @@ public class LocationRule {
 		LocationDao locDao = new LocationDao();
 		List<Location> locationList = locDao.findAll(resultList);
 		return locationList;
+	}
+
+	public static List<Long> getRelative(JsonNode req) {
+		LocationDao locDao = new LocationDao();
+		Long alc;
+		List<Long> constraintList = null;
+		if(containsKey(req, "ALC"))
+			alc = req.get("ALC").asLong();
+		else
+			throw new BadRequest("ALC is required!");
+		if(containsKey(req, "onlyALCs"))
+			constraintList = toListOfLong((JsonNode)req.get("onlyALCs"));
+		
+		List<Long> related = locDao.getDescendants(alc, constraintList);
+		List<Location> lineage = LocationProxyRule.getLineage(alc);
+		if(lineage != null){
+			List<Long> ancestors = lineage.stream().map(Location::getGid).collect(Collectors.toList());
+			if(constraintList != null)
+				ancestors.retainAll(constraintList);
+			related.addAll(ancestors);
+		}
+		
+		return related;
 	}
 }

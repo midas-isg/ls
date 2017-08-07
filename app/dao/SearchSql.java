@@ -19,21 +19,20 @@ public class SearchSql {
 		verifyQueryTerm(req.getQueryTerm());
 		return toSqlQuery(req);
 	}
-	
-	public String toFindByFiltersSQL(Request req){
-		String query = " SELECT gid "
-						+ " FROM {h-schema}location "
-						+ " WHERE "	+ toQueryConditionSQL(req);
+
+	public String toFindByFiltersSQL(Request req) {
+		String query = " SELECT gid " + " FROM {h-schema}location " + " WHERE " + toQueryConditionSQL(req);
 		return query;
 	}
 
-	public Query toNativeSQL(String stringQuery, Request req, EntityManager em){
+	public Query toNativeSQL(String stringQuery, Request req, EntityManager em) {
 		Query query = em.createNativeQuery(stringQuery);
 		query = setQueryParameters(req, query);
 		return query;
 	}
-	
+
 	private String toSqlQuery(Request req) {
+
 		String queryTerm = toQueryTerm(req);
 		
 		String nameTempTable = isTrue(req.isSearchNames()) ? "name_temp_table"
@@ -78,11 +77,11 @@ public class SearchSql {
 			return q;
 		return " WITH " + q;
 	}
-	
+
 	private String joinStringList(List<String> list, String delimiter) {
 		StringJoiner joiner = new StringJoiner(delimiter);
 		for (String sql : list) {
-			if(!sql.isEmpty())
+			if (!sql.isEmpty())
 				joiner.add(sql);
 		}
 		String q = joiner.toString();
@@ -90,6 +89,7 @@ public class SearchSql {
 	}
 
 	private String toQueryTerm(Request req) {
+
 		String queryTerm = req.getQueryTerm();
 		queryTerm = "'" + queryTerm	+ "'";
 		if(isTrue(req.isFuzzyMatch()))
@@ -135,15 +135,14 @@ public class SearchSql {
 		return searchLogic.equals("AND");
 	}
 
-	private String unionTempTablesSql(Request req, String qt, String nameTempTable,
-			String otherNamesTempTable, String codesTempTable) {
-		String nameCol = isTrue(req.isIgnoreAccent()) ? "unaccent_immutable(name)"
-				: "name";
+	private String unionTempTablesSql(Request req, String qt, String nameTempTable, String otherNamesTempTable,
+			String codesTempTable) {
+		String nameCol = isTrue(req.isIgnoreAccent()) ? "unaccent_immutable(name)" : "name";
 		List<String> sqlQueries = new ArrayList<>();
 		sqlQueries.add(toSelectStatementSql(nameCol, qt, nameTempTable));
 		sqlQueries.add(toSelectStatementSql(nameCol, qt, otherNamesTempTable));
 		sqlQueries.add(toSelectStatementSql(nameCol, qt, codesTempTable));
-		
+
 		String q = joinStringList(sqlQueries, " UNION ");
 		if (q.isEmpty())
 			return q;
@@ -210,8 +209,7 @@ public class SearchSql {
 				q += " ) AS matches "
 					+ " GROUP BY matches.gid, code ";
 				q += toOrderByStatementWhenDistictGids(colName);
-			}
-			
+			}	
 		}
 		return q;
 	}
@@ -253,7 +251,6 @@ public class SearchSql {
 						+ " GROUP BY matches.gid, name ";
 				q += toOrderByStatementWhenDistictGids(colName);
 			}
-			
 		}
 		return q;
 	}
@@ -318,33 +315,31 @@ public class SearchSql {
 	}
 
 	private String toHeadlineStatement(Request req, String qt, String columnName) {
-		String actualTerm = isTrue(req.isIgnoreAccent()) ? 
-				"unaccent_immutable(" + columnName + ")" : columnName;
-		if(isTrue(req.isFuzzyMatch())){
-			qt = isTrue(req.isIgnoreAccent()) ? 
-					"unaccent_immutable('" + toQueryText(req.getQueryTerm()) + "')" : 
-						"'" + toQueryText(req.getQueryTerm()) + "'";
+		String actualTerm = isTrue(req.isIgnoreAccent()) ? "unaccent_immutable(" + columnName + ")" : columnName;
+		if (isTrue(req.isFuzzyMatch())) {
+			qt = isTrue(req.isIgnoreAccent()) ? "unaccent_immutable('" + toQueryText(req.getQueryTerm()) + "')"
+					: "'" + toQueryText(req.getQueryTerm()) + "'";
 			qt = " to_tsquery(" + qt + ") ";
 		}
 		return " ts_headline('simple', " + actualTerm + ", " + qt + " ) ";
 	}
 
 	private String toComparisonStatement(Request req, String qt, String actualTerm) {
-		if(isTrue(req.isFuzzyMatch()))
+		if (isTrue(req.isFuzzyMatch()))
 			return actualTerm + " % " + qt;
 		return actualTerm + " @@ " + qt;
 	}
 
 	private String toActualTerm(Request req, String columnName) {
-		String actualTerm = isTrue(req.isIgnoreAccent()) ? "unaccent_immutable("
-				+ columnName + ")" : columnName;
-		if(isTrue(req.isFuzzyMatch()))
+		String actualTerm = isTrue(req.isIgnoreAccent()) ? "unaccent_immutable(" + columnName + ")" : columnName;
+		if (isTrue(req.isFuzzyMatch()))
 			return actualTerm;
 		String tsVector = toTSVector(actualTerm);
 		return tsVector;
 	}
 
 	private String toRankingStatement(Request req, String qt, String actualTerm) {
+
 		String rankingStatement;
 		if(isTrue(req.isFuzzyMatch()))
 			rankingStatement = " similarity(" + actualTerm + ", " + qt + ") ";
@@ -369,11 +364,11 @@ public class SearchSql {
 		String dateCond = toDateCondition(req.getStartDate(), req.getEndDate());
 		String gidCond = toRootGidCondition(req);
 		String codeTypeCond = toCodeTypeCondition(req.getCodeTypeIds());
-		String[] condList = {typeCond, dateCond, gidCond, codeTypeCond};
+		String[] condList = { typeCond, dateCond, gidCond, codeTypeCond };
 
 		StringJoiner joiner = new StringJoiner(" AND ");
 		for (String c : condList) {
-			if(c != null)
+			if (c != null)
 				joiner.add(c);
 		}
 		String qc = joiner.toString();
@@ -381,25 +376,30 @@ public class SearchSql {
 	}
 
 	private String toLocationTypeCondition(List<Long> typeIds) {
-		return listToSqlFilters( " location_type_id ", typeIds);
+		return listToSqlFilters(" location_type_id ", typeIds);
 	}
 
 	private String toCodeTypeCondition(List<Long> locationCodeTypeIds) {
-		
+
 		String condition = listToSqlFilters(" code_type_id ", locationCodeTypeIds);
-		if(condition == null)
+		if (condition == null)
 			return null;
+		//@formatter:off
 		return " gid IN ("
 				+ " SELECT gid FROM {h-schema}alt_code WHERE " + condition
 				+ " UNION "
 				+ " SELECT gid FROM {h-schema}location WHERE " + condition
 				+ " ) ";
+		//@formatter:on
+
 	}
 
 	private String toRootGidCondition(Request req) {
-		if(req.getRootALC() == null)
+		if (req.getRootALC() == null)
 			return null;
+		//@formatter:off
 		return " gid IN ( SELECT child_gid FROM {h-schema}forest WHERE root_gid = " + req.getRootALC() + " ) ";
+		//@formatter:on
 	}
 
 	private String toSelectStatementSql(String column, String qt, String tempTable) {
@@ -410,8 +410,7 @@ public class SearchSql {
 		return q;
 	}
 
-	private String listToSqlFilters(String columnName,
-			@SuppressWarnings("rawtypes") List list) {
+	static String listToSqlFilters(String columnName, @SuppressWarnings("rawtypes") List list) {
 		if (list == null)
 			return null;
 		if (list.isEmpty())
@@ -444,10 +443,10 @@ public class SearchSql {
 		q = q.replaceAll(" *\\| *", "|");
 		q = q.replaceAll(" *& *", "&");
 		q = q.replaceAll(" *& *", "&");
-		
+
 		q = q.replaceAll("[\\[\\]\\(\\)',.-]", " ");
 		String[] tokens = q.trim().split(" +");
-				
+
 		String del = "";
 		String result = "";
 		for (String t : tokens) {
@@ -461,11 +460,10 @@ public class SearchSql {
 	private void verifyQueryTerm(String value) {
 		String tokenized = SQLSanitizer.tokenize(value);
 		if (SQLSanitizer.isUnsafe(tokenized)) {
-			throw new BadRequest("value [ " + value
-					+ " ] contains unsafe character(s)!");
+			throw new BadRequest("value [ " + value + " ] contains unsafe character(s)!");
 		}
 	}
-	
+
 	private Query setQueryParameters(Request req, Query query) {
 		if (req.getStartDate() != null)
 			query = query.setParameter("start", req.getStartDate());

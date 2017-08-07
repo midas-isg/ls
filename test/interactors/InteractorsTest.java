@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import models.geo.Feature;
 import models.geo.FeatureCollection;
@@ -21,8 +20,6 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-
-import play.Logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -147,6 +144,7 @@ public class InteractorsTest {
 		spLinks.add(sp);
 		GeoJsonHelperRule.putSpewLinkObjects(properties, key, spewBaseUrl, spLinks);
 		assertThat(properties.keySet()).contains(key);
+		@SuppressWarnings("unchecked")
 		List<Map<String, Object>> links = (List<Map<String, Object>>) properties.get(key);
 		assertThat(links.size()).isEqualTo(spLinks.size());
 		assertThat(links.get(0).keySet()).contains(new Object[] { "url", "gid" });
