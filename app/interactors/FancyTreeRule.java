@@ -2,6 +2,7 @@ package interactors;
 
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -41,10 +42,11 @@ public class FancyTreeRule {
 		node.hideCheckbox = isHideCheckbox;
 		node.unselectable = false;
 		node.children = new ArrayList<>();
+		List<Long> superTypes = Arrays.asList(3L, 6L);
 		List<Location> children = au.getChildren();
 		if (children != null) {
 			for (Location child : children) {
-				if (child.getData().getLocationType().getSuperType().getId() != 3)
+				if (!superTypes.contains( child.getData().getLocationType().getSuperType().getId()))
 					continue;
 				node.folder = true;
 				node.expanded = false;

@@ -34,7 +34,6 @@ import play.db.jpa.JPA;
 
 public class LocationDao {
 	static final int SRID = 4326;
-	private static final int AU_SUPERTYPE_ID = 3;
 
 	public Long create(Location location) {
 		EntityManager em = JPA.em();
@@ -292,7 +291,7 @@ public class LocationDao {
 		CriteriaQuery<Location> criteriaQuery = criteriaBuilder.createQuery(Location.class);
 		Root<Location> location = criteriaQuery.from(Location.class);
 		Expression<String> superType = location.get("data").get("locationType").get("superType").get("id");
-		Predicate isAU = criteriaBuilder.equal(superType, AU_SUPERTYPE_ID);
+		Predicate isAU = criteriaBuilder.equal(superType, 6);
 		Predicate isParentNull = criteriaBuilder.isNull(location.get("parent"));
 		criteriaQuery.where(isAU, isParentNull);
 		return em.createQuery(criteriaQuery).getResultList();
