@@ -101,7 +101,7 @@ public class TestFindLocation {
         
         name = features.get(features.size()-1).get("properties").get("name").asText();
 		rank = features.get(features.size()-1).get("properties").get("rank").asDouble();
-		assertThat(name).isEqualTo("testUnit abc");
+		assertThat(name).isEqualTo("testUnit abc testUnit testUnit");
         assertThat(rank).isEqualTo(1.0);
         
         body = "{\"queryTerm\":\"testUnit\"," 
@@ -150,7 +150,7 @@ public class TestFindLocation {
 		name = features.get(features.size()-1).get("properties").get("name").asText();
 		rank = features.get(features.size()-1).get("properties").get("rank").asDouble();
 		assertThat(name).isEqualTo("testUnit abc def ghi 123");
-		assertThat(rank).isEqualTo(0.25);
+		assertThat(rank).isEqualTo(1.0);
 	}
 
 	private void findByQueryTermTest() {

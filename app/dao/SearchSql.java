@@ -34,7 +34,7 @@ public class SearchSql {
 	}
 	
 	private String toSqlQuery(Request req) {
-		String qt = toQueryTerm(req);
+		String queryTerm = toQueryTerm(req);
 		
 		String nameTempTable = isTrue(req.isSearchNames()) ? "name_temp_table"
 				: null;
@@ -43,28 +43,28 @@ public class SearchSql {
 		String codeTempTable = isTrue(req.isSearchCodes()) ? "code_temp_table"
 				: null;
 
-		String q = toTempTablesSql(req, qt, nameTempTable, otherNameTempTable,
+		String q = toTempTablesSql(req, queryTerm, nameTempTable, otherNameTempTable,
 				codeTempTable);
-		q += unionTempTablesSql(req, qt, nameTempTable, otherNameTempTable,
+		q += unionTempTablesSql(req, queryTerm, nameTempTable, otherNameTempTable,
 				codeTempTable);
 		
 		return q;
 	}
 
-	private String toTempTablesSql(Request req, String qt,
+	private String toTempTablesSql(Request req, String queryTerm,
 			String nameTempTable, String otherNameTempTable,
 			String codeTempTable) {
 		List<String> searchSqls = new ArrayList<>();
 				
-		String names = toNameSearchSql(req, qt);
+		String names = toNameSearchSql(req, queryTerm);
 		names = (names.isEmpty()) ? names : nameTempTable + " AS ( " + names + " ) ";
 		searchSqls.add(names);
 		
-		String otherNames = toOtherNameSearchSql(req, qt);
+		String otherNames = toOtherNameSearchSql(req, queryTerm);
 		otherNames = (otherNames.isEmpty()) ? otherNames : otherNameTempTable + " AS ( " + otherNames + " ) ";
 		searchSqls.add(otherNames);
 		
-		String codes = toCodeSearchSql(req, qt);
+		String codes = toCodeSearchSql(req, queryTerm);
 		codes = (codes.isEmpty()) ? codes : codeTempTable + " AS ( " + codes + " ) ";
 		searchSqls.add(codes);
 
@@ -90,29 +90,49 @@ public class SearchSql {
 	}
 
 	private String toQueryTerm(Request req) {
-		String queryText = req.getQueryTerm();
-		queryText = "'" + queryText	+ "'";
+		String queryTerm = req.getQueryTerm();
+		queryTerm = "'" + queryTerm	+ "'";
 		if(isTrue(req.isFuzzyMatch()))
 			return (isTrue(req.isIgnoreAccent())) ? "unaccent_immutable("
-				+ queryText + ")" : queryText;
+				+ queryTerm + ")" : queryTerm;
 
 		if(isTrue(req.isIgnoreAccent()))
-			queryText = "unaccent_immutable(" + queryText + ")";
+			queryTerm = "unaccent_immutable(" + queryTerm + ")";
 		
-		String logic = getSearchLogic(req);
+		String logic = "'" + getLogicChar(req) + "'";
+		queryTerm = "replace(strip(" + toTSVector(queryTerm) + ")\\:\\:text, ' ', " + logic + " )\\:\\:tsquery ";
 		
-		queryText = "replace(strip(to_tsvector('simple', " + queryText + " ))\\:\\:text, ' ', " + logic + " )\\:\\:tsquery ";
-		
-		return queryText;
+		return queryTerm;
 	}
 
-	private String getSearchLogic(Request req) {
-		String logic = " '|' ";
-		if(req.getLogic() != null){
-			String searchLogic = req.getLogic().trim().toUpperCase();
-			logic = (searchLogic.equals("AND")) ? "'&'" : "'|'";
+	private Character getLogicChar(Request req) {
+		String searchLogic = getLogic(req);
+		Character logicChar = null;
+		if(isConjunction(searchLogic))
+			logicChar = '&';
+		else if(isDisjunction(searchLogic))
+			logicChar = '|';
+		return logicChar;
+	}
+
+	private String getLogic(Request req) {
+		String searchLogic;
+		if(req.getLogic() == null)
+			searchLogic = "OR";
+		else {
+			searchLogic = req.getLogic().trim().toUpperCase();
+			if(!(isConjunction(searchLogic) || isDisjunction(searchLogic)))
+				throw new BadRequest("Invalid 'logic': " + req.getLogic() + ". expected 'AND' or 'OR'");
 		}
-		return logic;
+		return searchLogic;
+	}
+
+	private boolean isDisjunction(String searchLogic) {
+		return searchLogic.equals("OR");
+	}
+
+	private boolean isConjunction(String searchLogic) {
+		return searchLogic.equals("AND");
 	}
 
 	private String unionTempTablesSql(Request req, String qt, String nameTempTable,
@@ -127,73 +147,174 @@ public class SearchSql {
 		String q = joinStringList(sqlQueries, " UNION ");
 		if (q.isEmpty())
 			return q;
-		q = " SELECT * FROM ( "
+		q = " SELECT unionTables.*, area FROM ( "
 				+ " SELECT DISTINCT ON (gid) gid, headline, rank, name "
 				+ " FROM ( " + q + " ) AS foo"
-				+ " ORDER BY gid, rank DESC " + " , length(to_tsvector('simple', name)) "
-				+ " ) AS foo ";
-		q += " ORDER BY rank DESC, length(to_tsvector('simple', name)), name ";
+				+ toOrderByStatementWhenDistictGids("name")
+				+ " ) AS unionTables "
+				+ " JOIN {h-schema}location_geometry USING (gid) ";
+		q += toOrderByAreaStatement();
 		return q;
+	}
+
+	private String toOrderByAreaStatement() {
+		return toOrderByStatement(false, true, "name");
 	}
 
 	private String toCodeSearchSql(Request req, String qt) {
 		String q = "";
-		String actualTerm = toActualTerm(req, "code");
+		String colName = "code";
+		String actualTerm = toActualTerm(req, colName);
 		if (isTrue(req.isSearchCodes())) {
 			String rankingStatement = toRankingStatement(req, qt, actualTerm);
 			String comparisonStatement = toComparisonStatement(req, qt, actualTerm);
-			String headlineStatement = toHeadlineStatement(req, qt, "code");
-			q += " SELECT DISTINCT ON(gid) gid, code AS name, "
-					+ rankingStatement + " AS rank, "
-					+ headlineStatement + " AS headline "
-					+ " FROM ("
-					+ " SELECT gid, code FROM {h-schema}location WHERE code_type_id != 2 ";
-			if (containsFilters(req))
-				q += " AND " + toQueryConditionSQL(req);
-			q += " UNION select gid, code FROM {h-schema}alt_code) AS foo"
-				+ " WHERE " + comparisonStatement;
-			if (containsFilters(req))
-				q += " AND gid IN ( SELECT gid FROM {h-schema}location WHERE "
-						+ toQueryConditionSQL(req) + " ) ";
-			q += " ORDER BY gid, rank DESC, length(to_tsvector('simple', code)), code ";
+			String headlineStatement = toHeadlineStatement(req, qt, colName);
+			String unionAllCodes = " SELECT gid, code FROM {h-schema}location WHERE code_type_id != 2 "
+									+ " UNION ALL "
+									+ " SELECT gid, code FROM {h-schema}alt_code) AS all_codes ";
+			if(isConjunction(getLogic(req)) || isTrue(req.isFuzzyMatch())){
+				q += " SELECT DISTINCT ON(gid) gid, code AS name, "
+						+ rankingStatement + " AS rank, "
+						+ headlineStatement + " AS headline "
+						+ " FROM ( "
+						+ unionAllCodes
+						+ " WHERE " + comparisonStatement;
+				if (containsFilters(req))
+					q += " AND gid IN ( SELECT gid FROM {h-schema}location WHERE "
+							+ toQueryConditionSQL(req) + " ) ";
+				q += toOrderByStatementWhenDistictGids(colName);
+			}
+			else if(isDisjunction(getLogic(req))){
+				
+				String queryTerms2TableSQL = " ( SELECT term "
+											+ " FROM " + splitQueryTermsSQL(req.getQueryTerm()) + " AS term "
+											+ " ) AS terms ";
+				String textComparisonSQL = toTSVector(colName) + " @@ terms.term\\:\\:tsquery ";
+				
+				q += " SELECT DISTINCT ON(matches.gid) matches.gid, code AS name, sum(match) AS rank, "
+						+ headlineStatement + " AS headline "
+						+ " FROM ( "
+							+ " SELECT gid, code, 1 AS match FROM {h-schema}location, "
+							+ queryTerms2TableSQL
+							+ " WHERE code_type_id != 2 "
+							+ " AND " + textComparisonSQL;
+							if (containsFilters(req))
+								q += " AND " + toQueryConditionSQL(req);
+							q += " UNION ALL "
+							+ " SELECT gid, code, 1 AS match FROM {h-schema}alt_code, "
+							+ queryTerms2TableSQL
+							+ " WHERE " + textComparisonSQL;
+							if (containsFilters(req))
+								q += " AND gid IN ( SELECT gid FROM {h-schema}location WHERE "
+										+ toQueryConditionSQL(req) + " ) ";
+				q += " ) AS matches "
+					+ " GROUP BY matches.gid, code ";
+				q += toOrderByStatementWhenDistictGids(colName);
+			}
+			
 		}
 		return q;
 	}
 
 	private String toOtherNameSearchSql(Request req, String qt) {
 		String q = "";
-		String actualTerm = toActualTerm(req, "name");
+		String colName = "name";
+		String actualTerm = toActualTerm(req, colName);
 		if (isTrue(req.isSearchOtherNames())) {
 			String rankingStatement = toRankingStatement(req, qt, actualTerm);
 			String comparisonStatement = toComparisonStatement(req, qt, actualTerm);
-			String headlineStatement = toHeadlineStatement(req, qt, "name");
-			q += " SELECT DISTINCT ON(gid) gid, name, " + rankingStatement + " AS rank, "
-			+ headlineStatement + " AS headline "
-			+ " FROM {h-schema}alt_name "
-			+ " WHERE " + comparisonStatement;
-			if (containsFilters(req))
-				q += " AND gid IN ( SELECT gid FROM {h-schema}location WHERE "
-						+ toQueryConditionSQL(req) + " ) ";
-			q += " ORDER BY gid, rank DESC, length(to_tsvector('simple', name)), name ";
+			String headlineStatement = toHeadlineStatement(req, qt, colName);
+			
+			if(isConjunction(getLogic(req)) || isTrue(req.isFuzzyMatch())){
+				q += " SELECT DISTINCT ON(gid) gid, name, " + rankingStatement + " AS rank, "
+						+ headlineStatement + " AS headline "
+						+ " FROM {h-schema}alt_name "
+						+ " WHERE " + comparisonStatement;
+						if (containsFilters(req))
+							q += " AND gid IN ( SELECT gid FROM {h-schema}location WHERE "
+									+ toQueryConditionSQL(req) + " ) ";
+						q += toOrderByStatementWhenDistictGids(colName);
+			}
+			else if(isDisjunction(getLogic(req))){
+				q += " SELECT DISTINCT ON(matches.gid) matches.gid, name, sum(match) AS rank, "
+						+ headlineStatement + " AS headline "
+						+ " FROM "
+							+ " ( SELECT gid, name, 1 AS match "
+							+ " FROM {h-schema}alt_name, "
+								+ " ( SELECT term "
+								+ " FROM " + splitQueryTermsSQL(req.getQueryTerm()) + " AS term "
+								+ " ) AS terms "
+								+ " WHERE " + toTSVector(colName) + " @@ terms.term\\:\\:tsquery ";
+				if (containsFilters(req))
+					q += " AND gid IN ( SELECT gid FROM {h-schema}location WHERE "
+							+ toQueryConditionSQL(req) + " ) ";
+				
+				q += " ) AS matches"
+						+ " GROUP BY matches.gid, name ";
+				q += toOrderByStatementWhenDistictGids(colName);
+			}
+			
+		}
+		return q;
+	}
+	
+	private String toOrderByStatementWhenDistictGids(String nameOrCode){
+		return toOrderByStatement(true, false, nameOrCode);
+	}
+	
+	private String toOrderByStatement(boolean withinDistinctQuery, boolean byArea, String nameOrCode){
+		String q = " ORDER BY ";
+		if (withinDistinctQuery)
+			q += " gid, ";
+		q += " rank DESC, length(" + toTSVector(nameOrCode) + "), ";
+		q += (byArea) ? " area DESC, " : "";
+		q += nameOrCode + " ";
+		return q;
+	}
+
+	private String toNameSearchSql(Request req, String queryTerm) {
+		String q = "";
+		String colName = "name";
+		String actualTerm = toActualTerm(req, colName);
+		if (isTrue(req.isSearchNames())) {
+			String rankingStatement = toRankingStatement(req, queryTerm, actualTerm);
+			String comparisonStatement = toComparisonStatement(req, queryTerm, actualTerm);
+			String headlineStatement = toHeadlineStatement(req, queryTerm, colName);
+			if(isConjunction(getLogic(req)) || isTrue(req.isFuzzyMatch())){
+				q += " SELECT gid, name, " + rankingStatement + " AS rank, "
+						+ headlineStatement + " AS headline " 
+						+ " FROM {h-schema}location "
+						//+ joinLocGeomStatement
+						+ " WHERE " + comparisonStatement;
+				if (containsFilters(req))
+					q += " AND " + toQueryConditionSQL(req);
+			}
+			else if(isDisjunction(getLogic(req))){
+				q += " SELECT matches.gid, name, sum(match) AS rank , "
+						+ headlineStatement + " AS headline "
+						+ " FROM "
+							+ " ( SELECT gid, name, 1 AS match "
+							+ " FROM {h-schema}location, "
+								+ " ( SELECT term "
+								+ " FROM " + splitQueryTermsSQL(req.getQueryTerm()) + " as term "
+								+ " ) AS terms "
+								+ " WHERE " + toTSVector(colName) + " @@ terms.term\\:\\:tsquery ";
+				if (containsFilters(req))
+					q += " AND " + toQueryConditionSQL(req);
+				q += " ) AS matches"
+				+ " GROUP BY matches.gid, name ";
+			}
 		}
 		return q;
 	}
 
-	private String toNameSearchSql(Request req, String qt) {
-		String q = "";
-		String actualTerm = toActualTerm(req, "name");
-		if (isTrue(req.isSearchNames())) {
-			String rankingStatement = toRankingStatement(req, qt, actualTerm);
-			String comparisonStatement = toComparisonStatement(req, qt, actualTerm);
-			String headlineStatement = toHeadlineStatement(req, qt, "name");
-			q += " SELECT gid, name, " + rankingStatement + " AS rank, "
-					+ headlineStatement + " AS headline " 
-					+ " FROM {h-schema}location "
-					+ " WHERE " + comparisonStatement;
-			if (containsFilters(req))
-				q += " AND " + toQueryConditionSQL(req);
-		}
-		return q;
+	private String splitQueryTermsSQL(String queryTerm) {
+		String tsvector = toTSVector("'" + queryTerm	+ "'");
+		return "regexp_split_to_table(strip(" + tsvector + ")\\:\\:text, E'\\\\s+')";
+	}
+
+	private String toTSVector(String queryTerm) {
+		return "to_tsvector('simple', " + queryTerm + ")";
 	}
 
 	private String toHeadlineStatement(Request req, String qt, String columnName) {
@@ -219,16 +340,17 @@ public class SearchSql {
 				+ columnName + ")" : columnName;
 		if(isTrue(req.isFuzzyMatch()))
 			return actualTerm;
-		String tsVector = "to_tsvector('simple', " + actualTerm + ")";
+		String tsVector = toTSVector(actualTerm);
 		return tsVector;
 	}
 
 	private String toRankingStatement(Request req, String qt, String actualTerm) {
+		String rankingStatement;
 		if(isTrue(req.isFuzzyMatch()))
-			return " similarity(" + actualTerm + ", " + qt + ") ";
-		
-		String weights = " '{1.0, 1.0, 1.0, 1.0}' ";
-		return " ts_rank_cd( " + weights + " , " + actualTerm + ", " + qt + " ) ";
+			rankingStatement = " similarity(" + actualTerm + ", " + qt + ") ";
+		else 
+			rankingStatement = " 1 ";
+		return rankingStatement;
 	}
 
 	private boolean containsFilters(Request req) {
@@ -302,10 +424,16 @@ public class SearchSql {
 	}
 
 	private String toDateCondition(Date startDate, Date endDate) {
-		if (startDate != null && endDate != null) {
+		if (startDate != null && endDate != null)
 			return " ( (start_date, COALESCE(end_date, CURRENT_DATE)) "
 					+ "OVERLAPS (:start, :end) ) ";
-		}
+		
+		else if(startDate != null)
+			return " start_date >= :start ";
+		
+		else if(endDate != null)
+			return " end_date <= :end ";
+		
 		return null;
 	}
 
