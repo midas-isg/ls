@@ -322,7 +322,14 @@ public class LocationServices extends Controller {
 			+ "<li>request filter syntax changed. See <a href='assets/examples/api/" + findByTermExV2 + "'>" + findByTermExV2 + "</a></li> "
 			+ "<li>\"verbose\" option is not suppoerted. Use <i>\"_onlyFeatureFields\":\"properties.gid\"</i> for non-verbose results.</li> "
 			+ "<li>the default for search logic is <i>\"logic\":\"OR\"</i>. For conjuction between query-terms use <i>\"logic\":\"AND\"</i></li> "
-			+ "</ul>", 
+			+ "</ul>"
+			+ "<b>Results are sorted by:</b>"
+			+ "<ul>"
+			+ "<li><i>#unique matches</i> in the location name/code (<i>rank</i>) in descending order</li>"
+			+ "<li><i>#unique terms</i> in location name/code in ascending order</li>"
+			+ "<li>location <em>area</em> in descending order</li>"
+			+ "<li><i>alphabetical order</i> of location name/code ascendingly."
+			+ "</ul>",
 			response = FeatureCollection.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = OK, message = "Successfully returned", response = FeatureCollection.class),
