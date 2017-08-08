@@ -34,7 +34,6 @@ import play.db.jpa.JPA;
 
 public class LocationDao {
 	static final int SRID = 4326;
-	private static final int AU_SUPERTYPE_ID = 3;
 
 	public Long create(Location location) {
 		EntityManager em = JPA.em();
@@ -43,8 +42,7 @@ public class LocationDao {
 		createAlternativeNames(location, em);
 		createAlternativeCodes(location, em);
 
-		LocationProxyRule.scheduleCacheUpdate(location); //TODO: decouple
-
+		LocationProxyRule.scheduleCacheUpdate(location); // TODO: decouple
 
 		Long gid = location.getGid();
 		Logger.info("persisted " + gid);
@@ -92,10 +90,10 @@ public class LocationDao {
 		EntityManager em = JPA.em();
 		LocationGeometry geometry = prepareGeometry(location);
 		em.merge(geometry);
-		if(geometry.getCircleGeometry() != null)
+		if (geometry.getCircleGeometry() != null)
 			em.merge(geometry.getCircleGeometry());
 		em.merge(location);
-		LocationProxyRule.scheduleCacheUpdate(location); //TODO: decouple
+		LocationProxyRule.scheduleCacheUpdate(location); // TODO: decouple
 		Long gid = location.getGid();
 		Logger.info("merged " + gid);
 
@@ -293,7 +291,7 @@ public class LocationDao {
 		CriteriaQuery<Location> criteriaQuery = criteriaBuilder.createQuery(Location.class);
 		Root<Location> location = criteriaQuery.from(Location.class);
 		Expression<String> superType = location.get("data").get("locationType").get("superType").get("id");
-		Predicate isAU = criteriaBuilder.equal(superType, AU_SUPERTYPE_ID);
+		Predicate isAU = criteriaBuilder.equal(superType, 6);
 		Predicate isParentNull = criteriaBuilder.isNull(location.get("parent"));
 		criteriaQuery.where(isAU, isParentNull);
 		return em.createQuery(criteriaQuery).getResultList();
@@ -308,5 +306,27 @@ public class LocationDao {
 		@SuppressWarnings("unchecked")
 		List<BigInteger> resultList = query.getResultList();
 		return resultList;
+	}
+
+	public List<Long> getDescendants(Long alc, List<Long> constaintList) {
+		//@formatter:off
+		String q = " WITH RECURSIVE descendants(gid) AS ( "
+					+ " SELECT gid FROM location "
+					+ " WHERE gid = ?1 "
+					+ "	UNION "
+					+ " SELECT l.gid FROM location l, descendants d "
+					+ "	WHERE l.parent_gid = d.gid"
+					+ "	) "
+					+ "	SELECT gid FROM descendants WHERE gid != ?1 ";
+		//@formatter:on
+		String constraint = SearchSql.listToSqlFilters("gid", constaintList);
+		if (constraint != null)
+			q += " AND " + constraint;
+		EntityManager em = JPA.em();
+		Query query = em.createNativeQuery(q);
+		query.setParameter(1, alc);
+		@SuppressWarnings("unchecked")
+		List<BigInteger> resultList = query.getResultList();
+		return resultList.stream().map(BigInteger::longValue).collect(Collectors.toList());
 	}
 }

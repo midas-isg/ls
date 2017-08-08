@@ -43,6 +43,7 @@ GET           /api/locations/find-by-coordinate   controllers.LocationServices.f
 POST          /api/locations/find-by-geometry     controllers.LocationServices.findByFeatureCollection(superTypeId:java.lang.Long ?= null, typeId:java.lang.Long ?= null, verbose:Boolean?=true)
 GET			  /api/locations/find-by-type/:id	  controllers.LocationServices.findByTypeId(id:Long, _onlyFeatureFields:String ?= null, _excludedFeatureFields:String ?= null, limit:Int?=10, offset:Int?=0, _v:String ?= "1")
 GET           /api/locations/unique-names    	  controllers.LocationServices.listUniqueNames(queryTerm, limit:Int?=10)
+POST          /api/locations/relative     		  controllers.LocationServices.relativeLocations()
 
 GET           /api/super-types                    controllers.ListServices.findSuperTypes()
 GET           /api/location-types                 controllers.ListServices.findLocationTypes(superTypeId:java.lang.Long ?= null)

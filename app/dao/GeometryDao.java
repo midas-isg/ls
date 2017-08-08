@@ -26,10 +26,9 @@ public class GeometryDao {
 		return read(em, gid, geometryClass);
 	}
 
-	public LocationGeometry read(EntityManager em, long gid,
-			Class<LocationGeometry> geometryClass) {
+	public LocationGeometry read(EntityManager em, long gid, Class<LocationGeometry> geometryClass) {
 		return em.find(geometryClass, gid);
-	}		
+	}
 
 	public LocationGeometry simplify(long gid, Double tolerance) {
 		EntityManager em = JPA.em();
@@ -43,15 +42,15 @@ public class GeometryDao {
 		Query query = em.createNativeQuery(q, LocationGeometry.class);
 		query.setParameter(1, gid);
 		query.setParameter(2, tolerance);
-		LocationGeometry geo = (LocationGeometry)query.getSingleResult();
+		LocationGeometry geo = (LocationGeometry) query.getSingleResult();
 		em.detach(geo);
 		return geo;
 	}
-	
+
 	public Long delete(LocationGeometry lg) {
 		EntityManager em = JPA.em();
 		Long gid = null;
-		if (lg != null){
+		if (lg != null) {
 			gid = lg.getGid();
 			em.remove(lg);
 			Logger.info(lg.getClass().getSimpleName() + " removed with gid=" + gid);
@@ -61,12 +60,11 @@ public class GeometryDao {
 
 	public String readAsKml(long gid) {
 		EntityManager em = JPA.em();
-		String query = "select ST_AsKML(multipolygon) from {h-schema}location_geometry"
-				+ " where gid = " + gid;
+		String query = "select ST_AsKML(multipolygon) from {h-schema}location_geometry" + " where gid = " + gid;
 		Object singleResult = em.createNativeQuery(query).getSingleResult();
 		return singleResult.toString();
 	}
-	
+
 	public List<BigInteger> findGidsByPoint(double latitude, double longitude) {
 		EntityManager em = JPA.em();
 		//@formatter:off
@@ -80,10 +78,10 @@ public class GeometryDao {
 		Query query = em.createNativeQuery(q);
 		List<?> resultList = query.getResultList();
 		@SuppressWarnings("unchecked")
-		List<BigInteger> result = (List<BigInteger>)resultList;
+		List<BigInteger> result = (List<BigInteger>) resultList;
 		return result;
 	}
-	
+
 	public int numGeometriesAfterSimplified(long gid, Double tolerance) {
 		EntityManager em = JPA.em();
 		//@formatter:off
@@ -96,19 +94,20 @@ public class GeometryDao {
 		String text = query.getSingleResult().toString();
 		return Integer.parseInt(text);
 	}
-	
+
 	public List<BigInteger> findGidsByGeometry(String geojsonGeometry, Long superTypeId, Long typeId) {
 		String q = toQuery(geojsonGeometry, superTypeId, typeId);
 
 		EntityManager em = JPA.em();
 		Query query = em.createNativeQuery(q);
 		@SuppressWarnings("unchecked")
-		List<BigInteger> list = (List<BigInteger>)query.getResultList();
+		List<BigInteger> list = (List<BigInteger>) query.getResultList();
 
 		return list;
 	}
-	
+
 	private String toQuery(String geojsonGeometry, Long superTypeId, Long typeId) {
+		//@formatter:off
 		String q = 
 		"select a.gid "
 		+ "from "
@@ -117,17 +116,19 @@ public class GeometryDao {
 		+ "where "
 		+ " l.gid = a.gid and l.location_type_id = t.id and "
 		+ (superTypeId == null ? "" : " t.super_type_id = " + superTypeId + " and ")
-		+ " st_intersects(a.envelope,b) = true "
-		;
+		+ " st_intersects(a.envelope,b) = true ";
+		//@formatter:on
 		return q;
 	}
-	
+
 	public static Geometry toBufferGeometry(double x, double y, double radius) {
 		EntityManager em = JPA.em();
+		//@formatter:off
 		String q = "SELECT 0 as clazz_, 0 as gid, 0 as area, CURRENT_DATE as update_date, "
 				+ " ST_Buffer(Geography((ST_MakePoint(?1, ?2))), ?3)\\:\\:geometry as multipolygon, "
 				+ " ST_MakePoint(?1, ?2) as rep_point ";
-		
+		//@formatter:on
+
 		Query query = em.createNativeQuery(q, LocationGeometry.class);
 		query.setParameter(1, x);
 		query.setParameter(2, y);
@@ -136,10 +137,10 @@ public class GeometryDao {
 		Geometry geometry = lg.getShapeGeom();
 		return geometry;
 	}
-	
+
 	public void create(LocationGeometry geometry, EntityManager em) {
 		try {
-			em.persist(geometry);	
+			em.persist(geometry);
 			if (geometry.getCircleGeometry() != null) {
 				em.persist(geometry.getCircleGeometry());
 			}
