@@ -14,7 +14,49 @@ var HELPERS =
 
 		return id;
 	}
-
+	
+	Helpers.prototype.findIsolatedNumberString = function(numberString, toSearch) {
+		var index = toSearch.search(numberString),
+			found,
+			i = numberString.length;
+		
+		if(index < 0) {
+			return false;
+		}
+		else if(index === 0) {
+			if(((index + i) === toSearch.length) ||
+				((toSearch[index + i] < '0') || (toSearch[index + i] > '9'))) {
+				return true;
+			}
+			
+			index++;
+		}
+		
+		for(; index < toSearch.length; index++) {
+			found = true;
+			
+			for(i = 0; i < numberString.length; i++) {
+				if((index + i) >= toSearch.length) {
+					return false;
+				}
+				
+				if(toSearch[index + i] !== numberString[i]) {
+					found = false;
+					break;
+				}
+			}
+			
+			if(found && ((toSearch[index - 1] < '0') || (toSearch[index - i] > '9'))) {
+				if(((index + i) === toSearch.length) ||
+					(toSearch[index + i] < '0') || (toSearch[index + i] > '9')) {
+					return true;
+				}
+			}
+		}
+		
+		return false;
+	}
+	
 	Helpers.prototype.multiPolygonsToPolygons = function(geoJSON) {
 		if(geoJSON) {
 			var features = geoJSON.features,
