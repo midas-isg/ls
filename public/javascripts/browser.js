@@ -119,6 +119,8 @@ var crudPath = CONTEXT + "/api/locations",
 						delimiter,
 						OtherNames,
 						temp,
+						row,
+						button,
 						unsupportedCharactersRegExp = /([^a-zA-Z0-9À-öø-ÿ])/g;
 
 					thisBrowserMap.mapID = properties.gid;
@@ -173,7 +175,21 @@ var crudPath = CONTEXT + "/api/locations",
 							}
 						}
 					}
-
+					
+					function toggleSublocations(locationDivID) {
+						var button = document.getElementById(locationDivID + "-button");
+						HELPERS.toggle(locationDivID);
+						
+						if(button.innerHTML === "+") {
+							button.innerHTML = "-";
+						}
+						else {
+							button.innerHTML = "+";
+						}
+						
+						return;
+					}
+					
 					children = properties.children;
 					if(children && (children.length > 0)) {
 						for(i = 0; i < children.length; i++) {
@@ -189,8 +205,22 @@ var crudPath = CONTEXT + "/api/locations",
 								temp.attributes.setNamedItem(document.createAttribute("class"));
 								temp.attributes.class.value = "roundbox extra-bottom-space";
 								
+								button = document.createElement("button");
+								button.id = locationDivID + "-button";
+								button.attributes.setNamedItem(document.createAttribute("class"));
+								button.attributes.class.value = "btn btn-xs btn-default";
+								button.innerHTML = "+";
+								(function(locationDivID) {
+									$(button).click(function() {
+										toggleSublocations(locationDivID);
+									});
+									
+									return;
+								})(locationDivID);
+								
 								$("#au-children").append(temp);
-								$(temp).append("<button class='btn btn-default' onclick='HELPERS.toggle(\"" + locationDivID + "\");'>" + buckets[i] + " sub-locations</button>");
+								$(temp).append("<label class='post-spaced'>" + locationDivID + " sub-locations</label>");
+								$(temp).append(button);
 								$(temp).append("<div id='" + locationDivID + "' style='display: none;'></div>");
 							}
 						}
@@ -201,12 +231,15 @@ var crudPath = CONTEXT + "/api/locations",
 
 							locationType = children[i].locationTypeName;
 							locationDivID = locationType.replace(unsupportedCharactersRegExp, "-").toLowerCase();
-
-							if($("#" + locationDivID).children().length > 0) {
-								$("#" + locationDivID).append("<span>, </span>");
+							
+							if((i % 4) === 0) {
+								row = document.createElement("div");
+								row.attributes.setNamedItem(document.createAttribute("class"));
+								row.attributes.class.value = "row light-padded";
+								$("#" + locationDivID).append(row);
 							}
-
-							$("#" + locationDivID).append("<a href='./browser?id=" + auGID + "' class='' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
+							
+							$(row).append("<div class='col-xs-3'><a href='./browser?id=" + auGID + "' class='' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a></div>");
 						}
 
 						$("#au-children").show();
