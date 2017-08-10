@@ -652,125 +652,15 @@ MapDriver.prototype.formatGeoJSON = function(geoJSON) {
 
 /* Helper Functions */
 function centerMap(geoJSON, thisMapDriver) {
-		var geometryCount,
-			geometry = geoJSON.features[0].geometry,
-			latitude,
-			longitude,
-			minLat,
-			maxLat,
-			minLng,
-			maxLng,
-			a,
-			geo,
-			i,
-			j,
-			coordinates,
-			coordinate,
-			coordinatesCount,
-			coordinateGroup,
-			coordinateGroupCount,
-			vertices,
-			coordinatesBody,
-			southWest,
-			northEast,
-			bounds;
+	var minLng = geoJSON.bbox[0],
+		minLat = geoJSON.bbox[1],
+		maxLng = geoJSON.bbox[2],
+		maxLat = geoJSON.bbox[3],
+		southWest = L.latLng(minLat, minLng),
+		northEast = L.latLng(maxLat, maxLng),
+		bounds = L.latLngBounds(southWest, northEast);
 	
-	for(a = 0; a < geoJSON.features.length; a++) {
-		geometry = geoJSON.features[a].geometry;
-		
-		if((!geometry) ||  (geometry.type == "Point")) {
-			return;
-		}
-		
-		if(geometry.geometries) {
-			geometryCount = geometry.geometries.length;
-			
-			if(a == 0) {
-				latitude = geometry.geometries[0].coordinates[0][0][1];
-				longitude = geometry.geometries[0].coordinates[0][0][0];
-				minLat = latitude;
-				maxLat = minLat;
-				minLng = longitude;
-				maxLng = minLng;
-			}
-			
-			for(geo = 0; geo < geometryCount; geo++) {
-				coordinates = geometry.geometries[geo].coordinates;
-				coordinatesCount = coordinates.length;
-				
-				for(i = 0; i < coordinatesCount; i++) {
-					coordinateGroupCount = coordinates[i].length;
-					coordinateGroup = coordinates[i];
-					
-					coordinate = null;
-					for(j = 0; j < coordinateGroupCount; j++) {
-						coordinate = coordinateGroup[j];
-						
-						latitude = coordinate[1];
-						longitude = coordinate[0];
-						
-						if(latitude < minLat) {
-							minLat = latitude;
-						}
-						else if(latitude > maxLat) {
-							maxLat = latitude;
-						}
-						
-						if(longitude < minLng) {
-							minLng = longitude;
-						}
-						else if(longitude > maxLng) {
-							maxLng = longitude;
-						}
-					}
-				}
-			}
-		}
-		else /*if(geometry.coordinates)*/ {
-			geometryCount = geometry.coordinates.length;
-			
-			if(a == 0) {
-				latitude = geometry.coordinates[0][0][1];
-				longitude = geometry.coordinates[0][0][0];
-				minLat = latitude;
-				maxLat = minLat;
-				minLng = longitude;
-				maxLng = minLng;
-			}
-			
-			vertices;
-			coordinatesBody;
-			for(i = 0; i < geometryCount; i++) {
-				coordinatesBody = geometry.coordinates[i];
-				vertices = geometry.coordinates[i].length;
-				
-				for(j = 0; j < vertices; j++) {
-					latitude = geometry.coordinates[i][j][1];
-					longitude = geometry.coordinates[i][j][0];
-					
-					if(latitude < minLat) {
-						minLat = latitude;
-					}
-					else if(latitude > maxLat) {
-						maxLat = latitude;
-					}
-					
-					if(longitude < minLng) {
-						minLng = longitude;
-					}
-					else if(longitude > maxLng) {
-						maxLng = longitude;
-					}
-				}
-			}
-		}
-	}
-	
-	southWest = L.latLng(minLat, minLng);
-	northEast = L.latLng(maxLat, maxLng);
-	bounds = L.latLngBounds(southWest, northEast);
-	
-	console.log(bounds);
+//console.log(bounds);
 	
 	return thisMapDriver.map.fitBounds(bounds);
 }
