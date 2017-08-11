@@ -85,7 +85,7 @@ public class LocationServices extends Controller {
 			nickname = "readLocation", 
 			value = "Returns a location by ID", 
 			notes = "This endpoint returns a location in the requested format (format) by ID (gid). "
-			+ "The ID is usaully called as GID by Geographic Information System (GIS) "
+			+ "The ID is usually called as GID by Geographic Information System (GIS) "
 			+ "and we refer to as 'Apollo Location Code'. "
 			+ "For some locations, "
 			+ "their geometry information is too big to use in other services. "
@@ -210,7 +210,7 @@ public class LocationServices extends Controller {
 			notes = "This endpoint returns locations whose name matches the requested search term (queryTerm or q). "
 			+ "To do pagination, use 'limit' and 'offset'.</br>"
 			+ "Note: In vestion 1, response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response).</br>"
-			+ "As of version 2, no response fields is excluded by default. Use _onlyFeatureFields or _excludedFeatureFields for filtering fields.</br>"
+			+ "As of version 2, no response field is excluded by default. Use _onlyFeatureFields or _excludedFeatureFields for filtering fields.</br>"
 			+ "Some parameters are only available in version 2 and later. See parameter descriptions.",
 			response = FeatureCollection.class)
 	@ApiResponses(value = {
@@ -220,8 +220,8 @@ public class LocationServices extends Controller {
 	})
 	public Result filterByTerm(
 			@ApiParam(
-					value = "Search terms delimited by a space charactor. "
-					+ "The search terms are combined together with conjunction. ",
+					value = "Search terms delimited by a space character. "
+					+ "The search terms are combined together with disjunction by default. ",
 					required = true, defaultValue = ""
 			) 
 			@QueryParam("queryTerm") 
@@ -320,8 +320,8 @@ public class LocationServices extends Controller {
 			+ "<li>use <i>\"onlyFeatureFields\"</i> or <i>\"excludedFeatureFields\"</i> for filtering fields.</li> See "
 				+ "<a target='_blank' href='assets/examples/api/" + featureFields + "'>here</a> for possible values</li>. "
 			+ "<li>request filter syntax changed. See <a href='assets/examples/api/" + findByTermExV2 + "'>" + findByTermExV2 + "</a></li> "
-			+ "<li>\"verbose\" option is not suppoerted. Use <i>\"_onlyFeatureFields\":\"properties.gid\"</i> for non-verbose results.</li> "
-			+ "<li>the default for search logic is <i>\"logic\":\"OR\"</i>. For conjuction between query-terms use <i>\"logic\":\"AND\"</i></li> "
+			+ "<li>\"verbose\" option is not supported. Use <i>\"_onlyFeatureFields\":\"properties.gid\"</i> for non-verbose results.</li> "
+			+ "<li>the default for search logic is <i>\"logic\":\"OR\"</i>. For conjunction between query-terms use <i>\"logic\":\"AND\"</i></li> "
 			+ "</ul>"
 			+ "<b>Results are sorted by:</b>"
 			+ "<ul>"
@@ -380,7 +380,7 @@ public class LocationServices extends Controller {
 	@ApiOperation(httpMethod = "POST", 
 					nickname = "readLocationByFilter", 
 					value = "Returns locations based on input filter", 
-					notes = "This endpoint returns locations matched by input filter",
+					notes = "This endpoint returns locations matched by the input filter.",
 					response = FeatureCollection.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = OK, message = "Successful retrieval of location", response = FeatureCollection.class),
@@ -415,7 +415,7 @@ public class LocationServices extends Controller {
 			+ "(queryTerm[required], start, end, locationTypeIds, etc. (see example file)).</br>"
 			+ "Note: In version 1, response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response).</br>"
 			+ "In version 1, properties.children is excluded from features.</br>"
-			+ "As of version 2, no response fields is excluded by default.</br>"
+			+ "As of version 2, no response fields are excluded by default.</br>"
 			+ "As of version 2, request filter-key names changed: 'includeOnly' -> 'onlyFeatureFields' & 'exclude' -> 'excludedFeatureFields'.</br>"
 			+ "As of version 2, request filter syntax changed. Refer to <a href='assets/examples/api/" + findBulkExV2 + "'>" + findBulkExV2 + "</a>",
 			response = FeatureCollection.class)
@@ -480,7 +480,7 @@ public class LocationServices extends Controller {
 			httpMethod = "GET", 
 			nickname = "findUniqueLocationNames", 
 			value = "Returns unique location-names", 
-			notes = "This endpoint returns uniqure location-names which match the requested search terms (queryTerm). "
+			notes = "This endpoint returns unique location-names which match the requested search terms (queryTerm). "
 			+ "Use 'limit' to set the maximum number to return (default is 10). ",
 			response = List.class,
 			produces = "application/json",
@@ -492,8 +492,8 @@ public class LocationServices extends Controller {
 	})
 	public Result listUniqueNames(
 			@ApiParam(
-					value = "Search terms delimited by a space charactor. "
-					+ "The search terms are combined together with conjunction. ",
+					value = "Search terms delimited by a space character. "
+					+ "The search terms are combined together with a conjunction. ",
 					required = true
 			) 
 			@QueryParam("queryTerm") 
@@ -524,7 +524,7 @@ public class LocationServices extends Controller {
 			nickname = "findLocationsByPoint", 
 			value = "Returns locations by coordinate search", 
 			notes = "This endpoint returns locations whose geometry encompasses the submitting coordinate. "
-			+ "The coordinate is defined by latitude (lat) and longtitude (long). "
+			+ "The coordinate is defined by longitude (long) and latitude (lat). "
 			+ "</br>Note:</br>"
 			+ " In version 1, response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response).</br>"
 			+ " As of version 2, no response field is excluded by default. Use _onlyFeatureFields or _excludedFeatureFields to include/remove fields.</br>"
@@ -597,7 +597,7 @@ public class LocationServices extends Controller {
 			nickname = "createLocation", 
 			value = "Creates a location", 
 			notes = "<p>This endpoint creates a location using submitted GeoJSON FeatureCollection object "
-					+ "in body (with an exception of a 'circle' which is not a GeoJSON) and returns the URI via the 'Location' Header in the response. "
+					+ "in the body (with an exception of a 'circle' which is not a GeoJSON) and returns the URI via the 'Location' Header in the response. "
 					+ "Currently, no content is returned in the body. </p>"
 					+ "<p>Circle is created using ST_Buffer(geography g1, float radius_of_buffer_in_meters) in postGIS 2.1.5.</p>", 
 			response = Void.class
@@ -668,7 +668,7 @@ public class LocationServices extends Controller {
 			nickname = "updateLocation", 
 			value = "Updates a location", 
 			notes = "This endpoint does full update the given location "
-					+ "idientified by 'gid' with submitted GeoJSON "
+					+ "identified by 'gid' with submitted GeoJSON "
 					+ "FeatureCollection object in body "
 					+ "and returns the URI via the 'Location' Header in the response. "
 					+ "Currently, no content in the body. ",
@@ -744,7 +744,7 @@ public class LocationServices extends Controller {
 			httpMethod = "POST", 
 			nickname = "findLocationByFeatureCollection", 
 			value = "Returns locations by featureCollection", 
-			notes = "This endpoint returns locations which intersect the submitted Geometry in body. "
+			notes = "This endpoint returns locations which intersect the submitted Geometry in the body. "
 			+ "Note: response is not a valid geoJSON ('geometry' property is removed from FeatureCollection response). ",
 			response = FeatureCollection.class
 	)

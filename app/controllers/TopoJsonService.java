@@ -24,9 +24,11 @@ public class TopoJsonService extends Controller {
 	@Transactional
 	@ApiOperation(
 			httpMethod = "POST", 
-			nickname = "topojson", 
-			value = "generates a topojson from input gids", 
-			notes = ""
+			nickname = "TopoJson", 
+			value = "generates a TopoJson from input gids", 
+			notes = "This endpoint returns a "
+					+ "<a target='_blank' href='https://github.com/topojson/topojson/wiki'> TopoJson </a> "
+					+ "created from geometries of the input location-ids."
 			)
 	@ApiResponses(value = {
 			@ApiResponse(code = OK, message = "Successfully returned"),
