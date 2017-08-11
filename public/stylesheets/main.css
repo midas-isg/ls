@@ -1,69 +1,47 @@
-@media only screen and (min-height: 1024px) {
-	.full-height {
-		height: 800px;
-	}
-}
-
-@media only screen and (max-height: 944px) {
-	.full-height {
-		height: 700px;
-	}
-}
-
-@media only screen and (max-height: 700px) {
-	.full-height {
-		height: 400px;
-	}
-}
-
-@media only screen and (max-height: 412px) {
-	.full-height {
-		height: 200px;
-	}
-}
-
-
 body {
-	background-color: rgb(237, 238, 247);
-}
-
-a {
-	text-decoration: none;
-	color: #3366FF;
-}
-
-a:hover {
-	color: #FF6633;
-}
-
-div {
-	border: 0px;
-	border-radius: 5px;
+	background-color: rgb(247, 247, 247);
 }
 
 footer {
+	//text-align: center;
+}
+
+#page-title {
+	color: #9d9d9d;
+}
+
+.inline-block {
+	display: inline-block;
+}
+
+.roundbox {
 	border-radius: 5px;
-	//background-color: #F0FFFF;
+	border-color: #d0d0d0;
+	border-style: solid;
+	border-width: 1px;
+	padding: 2px;
 }
 
-legend {
-	color: #00FFFF;
-	background-color: #000000;
-	border-radius: 5px 5px 0px 0px;
-	margin-bottom: 0px;
-	text-indent: 5px;
+.no-click,
+.no-click:hover,
+.no-click[class*="leaflet-draw-draw-"]:hover {
+	cursor: default;
 }
 
-.full-width {
-	width: 100%;
+.soft-border {
+	border-color: #337ab7;
+	border-width: 1px;
+	border-style: solid;
+	border-radius: 5px;
+	padding: 5px;
 }
 
-.azure {
-	background-color: #F0FFFF;
+.clear-both {
+	clear: both;
 }
 
-.white {
-	background-color: #FFFFFF;
+.centered-text {
+	text-align: center;
 }
 
 .pre-spaced {
@@ -75,12 +53,26 @@ legend {
 }
 
 .extra-bottom-space {
-	margin-bottom: 5px;
+	margin-bottom: 10px;
+}
+
+.extra-top-space {
+	margin-top: 10px;
 }
 
 .vertical-spaced {
 	margin-top: 5px;
 	margin-bottom: 5px;
+}
+
+.no-vertical-margins {
+	margin-top: 0px;
+	margin-bottom: 0px;
+}
+
+.horizontal-padding {
+	padding-left: 15px;
+	padding-right: 15px;
 }
 
 .no-vertical-padding {
@@ -100,7 +92,6 @@ legend {
 	padding-right: 0px;
 }
 
-.nabbar-inverse .navbar-brand,
-.navbar .navbar-brand {
-	color: #ffffff;
+.top-aligned {
+	vertical-align: top;
 }

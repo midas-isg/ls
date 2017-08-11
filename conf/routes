@@ -4,17 +4,23 @@
 
 # Home page
 GET           /                                   controllers.Application.index()
+GET           /about                              controllers.UnsecuredApplication.about()
+GET           /map-search                         controllers.Application.mapSearch()
+GET           /advanced-search                    controllers.Application.advancedSearch()
+GET           /read-only                          controllers.Application.browser()
+GET           /browser                            controllers.Application.browser()
+GET           /resolver                           controllers.Application.resolver()
+GET           /results                            controllers.Application.results()
+GET           /create                             controllers.Application.create()
+GET           /translate                          controllers.Application.translate()
+
+# Deprecated
+GET           /concept                            controllers.Application.concept()
+
+
 GET           /login                              security.auth0.Auth0Controller.login(targetPath?=null)
 GET           /logout                             security.auth0.Auth0Controller.logout
 GET           /callback                           security.auth0.Auth0Controller.callback(code)
-
-# Deprecated
-GET           /about                              controllers.UnsecuredApplication.about()
-GET           /concept                            controllers.Application.concept()
-GET           /read-only                          controllers.Application.browser()
-GET           /browser                            controllers.Application.browser()
-GET           /create                             controllers.Application.create()
-GET           /resolver                           controllers.Application.resolver()
 
 GET           /api/au-tree                        controllers.TreeView.tree()
 

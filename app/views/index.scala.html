@@ -1,0 +1,24 @@
+@(message: String, version: String)
+
+@imports = {
+	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'>
+	<link href='@routes.Assets.at("stylesheets/search.css")' rel='stylesheet'>
+}
+
+@main(message, imports, version) {
+	<div class="center-block">
+		<h1 id="headline" class="centered-text">Apollo Location Services</h1>
+		
+		<div class="vertical-spaced horizontal-padding">
+			<div class="roundbox extra-bottom-space">
+				@searchbar()
+			</div>
+			
+			<h4 class="centered-text vertical-spaced">or</h4>
+			
+			<div class="roundbox">
+				@go_bar()
+			</div>
+		</div>
+	</div>
+}

@@ -9,21 +9,63 @@ var HELPERS =
 	}
 
 	Helpers.prototype.getIDFromURI = function(URI) {
-		var components = URI.split('/');
-		var id = components[components.length - 1];
+		var components = URI.split('/'),
+			id = components[components.length - 1];
 
 		return id;
 	}
-
+	
+	Helpers.prototype.findIsolatedNumberString = function(numberString, toSearch) {
+		var index = toSearch.search(numberString),
+			found,
+			i = numberString.length;
+		
+		if(index < 0) {
+			return false;
+		}
+		else if(index === 0) {
+			if(((index + i) === toSearch.length) ||
+				((toSearch[index + i] < '0') || (toSearch[index + i] > '9'))) {
+				return true;
+			}
+			
+			index++;
+		}
+		
+		for(; index < toSearch.length; index++) {
+			found = true;
+			
+			for(i = 0; i < numberString.length; i++) {
+				if((index + i) >= toSearch.length) {
+					return false;
+				}
+				
+				if(toSearch[index + i] !== numberString[i]) {
+					found = false;
+					break;
+				}
+			}
+			
+			if(found && ((toSearch[index - 1] < '0') || (toSearch[index - i] > '9'))) {
+				if(((index + i) === toSearch.length) ||
+					(toSearch[index + i] < '0') || (toSearch[index + i] > '9')) {
+					return true;
+				}
+			}
+		}
+		
+		return false;
+	}
+	
 	Helpers.prototype.multiPolygonsToPolygons = function(geoJSON) {
 		if(geoJSON) {
-			var features = geoJSON.features;
-			var count = features.length;
-
-			var i;
-			var j;
-			var properties = null;
-			var addedFeature = null;
+			var features = geoJSON.features,
+				count = features.length,
+				properties = null,
+				addedFeature = null,
+				i,
+				j;
+			
 			for(i = 0; i < count; i++) {
 				if(features[i].geometry.type == "MultiPolygon") {
 					properties = features[i].properties;
@@ -138,13 +180,13 @@ var HELPERS =
 			i = (lineage.length - 1);
 			auName = lineage[i].name;
 			auGID = lineage[i].gid;
-			$(sectionID).append("<a href='" + context + "/browser?id=" + auGID + "' class='' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
+			$(sectionID).append("<a href='" + CONTEXT + "/browser?id=" + auGID + "' class='' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
 			for(i--; i >= 0; i--) {
 				auName = lineage[i].name;
 				auGID = lineage[i].gid;
 
 				$(sectionID).append(", ");
-				$(sectionID).append("<a href='" + context + "/browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
+				$(sectionID).append("<a href='" + CONTEXT + "/browser?id=" + auGID + "' class='' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
 			}
 		}
 
@@ -172,6 +214,25 @@ var HELPERS =
 		output = input.replace("(", "\\(");
 		return output.replace(")", "\\)");
 	}
-
+	
+	Helpers.prototype.nameCompare = function(a, b) {
+			var aName = a.name.toLowerCase(),
+				bName = b.name.toLowerCase(),
+				i,
+				length = (aName.length - bName.length > 0) ? bName.length : aName.length;
+			
+			for(i = 0; i < length; i++) {
+				if(aName.charAt(i) !== bName.charAt(i)) {
+					return (aName.charCodeAt(i) - bName.charCodeAt(i));
+				}
+			}
+			
+			return 0;
+	};
+	
+	Helpers.prototype.toggle = function(elementID) {
+		return $("#" + elementID).toggle();
+	}
+	
 	return new Helpers();
 })();

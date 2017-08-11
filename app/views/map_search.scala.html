@@ -1,0 +1,56 @@
+@(message: String, version: String)
+
+@imports = {
+	<!-- External Packages -->
+	
+	<link href='@routes.Assets.at("external_packages/MapBox/mapbox-3.1.1.css")' rel='stylesheet'>
+	<script src='@routes.Assets.at("external_packages/MapBox/mapbox-3.1.1.js")'></script>
+	
+	<link href='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet.draw-0.2.3.css")' rel='stylesheet'>
+	<script src='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet.draw-0.2.3.js")'></script>
+	<script src='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet-omnivore-0.2.0.min.js")'></script>
+	
+<!-- Custom -->
+	<link rel='stylesheet' href='@routes.Assets.at("stylesheets/search.css")'>
+	<link href='@routes.Assets.at("stylesheets/map.css")' rel='stylesheet'>
+	
+	<script src='@routes.Assets.at("javascripts/search-map.js")'></script>
+	
+	<!--
+		<link href='@routes.Assets.at("external_packages/fancytree/ui.fancytree.css")' rel='stylesheet'>
+		<script src='@routes.Assets.at("external_packages/fancytree/jquery.fancytree.js")'></script>
+		
+		<link href='@routes.Assets.at("stylesheets/fancytree-ext.css")' rel='stylesheet'>
+		
+		<script src='@routes.Assets.at("javascripts/search-results.js")' type='text/javascript'></script>
+		<script src='@routes.Assets.at("javascripts/search-rank.js")' type='text/javascript'></script>
+	-->
+}
+
+@main(message, imports, version) {
+	<div class="center-block">
+		<div id="map-div" class="vertical-spaced">
+			<div class="pull-left" style="width: calc(100% - 38px);">
+				<div class="no-padding">
+					<em>Use
+						<div id="" class="leaflet-draw-toolbar leaflet-bar leaflet-draw-toolbar-top" style="display: inline-block;">
+							<a class="no-click leaflet-draw-draw-polygon"></a>
+						</div> to search map within polygon
+					</em>
+				</div>
+				
+				<div class="no-padding">
+					<em>Use
+						<div id="" class="leaflet-draw-toolbar leaflet-bar leaflet-draw-toolbar-top" style="display: inline-block;">
+							<a class="no-click leaflet-draw-draw-marker"></a>
+						</div> to search map by coordinates
+					</em>
+				</div>
+			</div>
+			
+			@advanced_options("map")
+			
+			@map()
+		</div>
+	</div>
+}

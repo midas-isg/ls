@@ -6,58 +6,56 @@
 	<head>
 		<title>@title</title>
 		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<!-- BEGIN: EXTERNAL PACKAGES -->
+		<script src='@routes.Assets.at("external_packages/jquery-3.2.1.min.js")'></script>
+		
+		<script src='@routes.Assets.at("external_packages/jquery-ui-1.12.1/jquery-ui.min.js")'></script>
+		<link rel='stylesheet' href='@routes.Assets.at("external_packages/jquery-ui-1.12.1/jquery-ui.min.css")'>
+		
+		<script src='@routes.Assets.at("external_packages/bootstrap-3.3.7/js/bootstrap.min.js")'></script>
+		<link rel='stylesheet' href='@routes.Assets.at("external_packages/bootstrap-3.3.7/css/bootstrap.min.css")' media='screen'>
+		
+		<!-- END: EXTERNAL PACKAGES -->
+		
 		<script type="application/javascript">
-			var context = '@http_context()',
-				CONTEXT = context;
+			var CONTEXT = '@http_context()';
 		</script>
-		
-		<script src='@routes.Assets.at("external_packages/jquery-1.11.1.min.js")'></script>
-		<script src='@routes.Assets.at("external_packages/jquery-ui.min.js")'></script>
-		<link rel='stylesheet' href='@routes.Assets.at("external_packages/jqGrid-4.6.0/css/jquery-ui-1.11.1.custom/jquery-ui.min.css")'>
-		
-		<script src='@routes.Assets.at("external_packages/bootstrap-3.3.1/js/bootstrap.min.js")'></script>
-		<link rel='stylesheet' href='@routes.Assets.at("external_packages/bootstrap-3.3.1/css/bootstrap.min.css")' media='screen'>
-		
-		<script src='@routes.Assets.at("external_packages/MapBox/mapbox-2.1.6.js")'></script>
-		<link href='@routes.Assets.at("external_packages/MapBox/mapbox-2.1.6.css")' rel='stylesheet'>
-		
-		<!--<script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-draw/v0.2.2/leaflet.draw.js'></script>-->
-		<script src='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet.draw-0.2.3.js")'></script>
-		<link href='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet.draw-0.2.3.css")' rel='stylesheet'>
-		<script src='@routes.Assets.at("external_packages/Leaflet_Plugins/leaflet-omnivore-0.2.0.min.js")'></script>
-		
-		<script src='@routes.Assets.at("javascripts/searchbar.js")'></script>
-		<script src='@routes.Assets.at("javascripts/common.js")'></script>
 		
 		<!-- BEGIN: GOOGLE ANALYTICS TRACKING -->
 		<script>
-			  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-			  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-			  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-			  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+			(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+			(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+			m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+			})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
 			
-			  ga('create', 'UA-55618146-5', 'auto');
-			  ga('send', 'pageview');
+			ga('create', 'UA-55618146-5', 'auto');
+			ga('send', 'pageview');
 		</script>
 		<!-- END: GOOGLE ANALYTICS TRACKING -->
 		
-		<link rel='stylesheet' href='@routes.Assets.at("stylesheets/main.css")' media='screen'>
-		<link rel='stylesheet' href='@routes.Assets.at("stylesheets/search.css")'>
-		
+		<!-- view-specific -->
 		<link rel='shortcut icon' href='@routes.Assets.at("images/favicon.png")' type='image/png'>
+		<link rel='stylesheet' href='@routes.Assets.at("stylesheets/main.css")'>
 		
-		<!-- page-specific -->
+		<script src='@routes.Assets.at("javascripts/common.js")'></script>
+		
 		@imports
+		
+	<!--
+		<link rel='stylesheet' href='@routes.Assets.at("external_packages/jqGrid-4.6.0/css/jquery-ui-1.11.1.custom/jquery-ui.min.css")'>
+	-->
 	</head>
 	
 	<body>
 		<div class="header">
-			<nav class="navbar navbar-inverse" style="margin-bottom: 10px;">
+			<nav class="navbar navbar-inverse">
 				<div class="container-fluid">
 					<div class="navbar-header">
 						<span class="navbar-brand">
-							<a href="@routes.Application.index" style="color:#00ffff;">apollo location services</a> @title
+							<a href="@routes.Application.index">apollo location services</a> <span id="page-title">@title</span>
 						</span>
 
 						<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navigator">
@@ -66,16 +64,26 @@
 							<span class="icon-bar"></span>
 						</button>
 					</div>
-
-					<ul class="nav navbar-nav" style="padding: 15px;">
-						<li style="width: 100%;">
-							@searchbar()
-						</li>
-					</ul>
-
+					
 					<div id="navigator" class="collapse navbar-collapse">
 						<ul class="nav navbar-nav navbar-right">
-							<li><a href="@http_context()">Search</a></li>
+							<li>
+								<a class="dropdown-toggle" data-toggle="dropdown" role="button"
+									aria-haspopup="true" aria-expanded="false">
+									Search <span class="caret"></span>
+								</a>
+								
+								<ul class="dropdown-menu">
+									<li>
+										<a href="@http_context()">Search by name</a>
+									</li>
+									
+									<li>
+										<a href="@http_context()/map-search">Search by map</a>
+									</li>
+								</ul>
+							</li>
+							<li><a href="@http_context()/translate">Translate</a></li>
 							<li><a href="@http_context()/create">Create</a></li>
 							<li><a href="@http_context()/logout">Log out</a></li>
 						</ul>
@@ -84,14 +92,14 @@
 			</nav>
 		</div>
 		
-		<div id="main-container" class="container-fluid extra-bottom-space" style="margin-left: auto; margin-right: auto;">
+		<div id="main-container" class="container-fluid extra-bottom-space center-block">
 			@content
 		</div>
 		
-		<footer id="footer" class="container-fluid" style="clear: both; margin-left: auto; margin-right: auto; text-align: center;">
+		<footer id="footer" class="container-fluid center-block">
 			@version
 			
-			<div style="margin-left: auto; margin-right: auto;">
+			<div>
 				<p>This work was funded by awards R01GM101151 and U24GM110707 from the National Institute for General Medical Sciences (NIGMS). The work does not represent the view of NIGMS.</p>
 				<p>BY USING THE Apollo Location Services YOU AGREE THAT NO WARRANTIES OF ANY KIND ARE MADE BY THE UNIVERSITY OF PITTSBURGH (UNIVERSITY) WITH RESPECT TO THE DATA PROVIDED IN THE Apollo Location Services OR ANY USE THEREOF, AND THE UNIVERSITY HEREBY DISCLAIM THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. THE UNIVERSITY SHALL NOT BE LIABLE FOR ANY CLAIMS, LOSSES OR DAMAGES OF ANY KIND ARISING FROM THE DATA PROVIDED IN THE Apollo Location Services OR ANY USE THEREOF.</p>
 			</div>

@@ -1,5 +1,5 @@
-var ausPath = context;
-var treeData;
+var ausPath = CONTEXT,
+	treeData;
 
 function IndexingTermsTree() {
 	this.tree = null;

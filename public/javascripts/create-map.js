@@ -3,6 +3,85 @@ var MAP_DRIVER;
 $(document).ready(function() {
 	var url = ausPath + "/api/au-tree";
 	
+	(function setup() {
+		var tildeKey = false,
+			altKey = false;
+		
+		MAP_DRIVER = new MapDriver();
+
+		MAP_DRIVER.map.whenReady(function() {
+			return MAP_DRIVER.map.setZoom(1.6, {minZoom: 1.6});
+		});
+		
+		$("#file-input").change(function() {
+			$("#file-name").val(this.value);
+			
+			MAP_DRIVER.upload();
+			
+			return;
+		});
+		
+		$("#suggestion-button").click(function() {
+			MAP_DRIVER.populateSuggestions();
+			
+			return;
+		});
+		
+		$("#download-button").click(function() {
+			MAP_DRIVER.download();
+			
+			return;
+		});
+		
+		$("#save-button").click(function() {
+			MAP_DRIVER.saveMap();
+			
+			return;
+		});
+		
+		$("#update-button").click(function() {
+			MAP_DRIVER.updateMap();
+			
+			return;
+		});
+		
+		$(document).keydown(function(event) {
+			//console.log("Key: " + event.which);
+			
+			if(event.which == 192) {
+				tildeKey = true;
+			}
+			
+			if(event.which == 18) {
+				altKey = true;
+			}
+			
+			if(tildeKey && altKey) {
+				$("#au-create").show();
+			}
+			
+			return;
+		});
+		
+		$(document).keyup(function(event) {
+			if(event.which == 192) {
+				tildeKey = false;
+			}
+			
+			if(event.which == 18) {
+				altKey = false;
+			}
+			
+			return;
+		});
+		
+		$("#new-button").click(function() {
+			return location.assign(CONTEXT + "/create");
+		});
+		
+		return;
+	})();
+	
 	$.get(url, function(data, status) {
 		treeData = data;
 		//console.log(data);
@@ -11,9 +90,8 @@ $(document).ready(function() {
 			AU_COMPOSITE_TREE.initInteractBetweenTreeAndTable("au-list", initialize());
 			
 			function initialize() {
-				var tildeKey = false,
-					altKey = false;
-
+				var id;
+				
 				MapDriver.prototype.loadFeatureLayer = function() {
 					var noLoad = false,
 						thisMapDriver = this;
@@ -175,15 +253,9 @@ $(document).ready(function() {
 					
 					return;
 				}
-
-				MAP_DRIVER = new MapDriver();
-
-				MAP_DRIVER.map.whenReady(function() {
-					return MAP_DRIVER.map.setZoom(1, {minZoom: 1});
-				});
 				
 				function loadFromDatabase(mapID) {
-					MAP_DRIVER.geoJSONURL = crudPath + "/" + mapID;
+					MAP_DRIVER.geoJSONURL = CRUD_PATH + "/" + mapID;
 					
 					if(MAP_DRIVER.geoJSONURL) {
 						MAP_DRIVER.featureLayer.loadURL(MAP_DRIVER.geoJSONURL);
@@ -212,11 +284,14 @@ $(document).ready(function() {
 						}
 						
 						$("#save-button").hide();
+						$("#save-button").addClass("hidden");
 						if(feature.properties.locationTypeName == "Epidemic Zone") {
 							$("#update-button").show();
+							$("#update-button").removeClass("hidden");
 						}
 						
 						$("#new-button").show();
+						$("#new-button").removeClass("hidden");
 					});
 					
 					return;
@@ -226,40 +301,6 @@ $(document).ready(function() {
 				if(id) {
 					loadFromDatabase(id);
 				}
-				
-				$("#new-button").click(function() {
-					return location.assign(context + "/create");
-				});
-				
-				$("#file-input").change(function() {
-					MAP_DRIVER.upload();
-					
-					return;
-				});
-				
-				$("#suggestion-button").click(function() {
-					MAP_DRIVER.populateSuggestions();
-					
-					return;
-				});
-				
-				$("#download-button").click(function() {
-					MAP_DRIVER.download();
-					
-					return;
-				});
-				
-				$("#save-button").click(function() {
-					MAP_DRIVER.saveMap();
-					
-					return;
-				});
-				
-				$("#update-button").click(function() {
-					MAP_DRIVER.updateMap();
-					
-					return;
-				});
 				
 				$("#composite-button").click(function() {
 					console.log(MAP_DRIVER.getAUComponents());
@@ -275,12 +316,12 @@ $(document).ready(function() {
 					compositeJSON.features = [];
 					
 					currentAUGID = MAP_DRIVER.auComponents[0];
-					currentAU = L.mapbox.featureLayer().loadURL(crudPath + "/" + currentAUGID);
+					currentAU = L.mapbox.featureLayer().loadURL(CRUD_PATH + "/" + currentAUGID);
 					//currentAU.on('ready', function(){
 						//TODO: Load JSON via call-back
 						for(i = 1; i < MAP_DRIVER.auComponents.length; i++) {
 							currentAUGID = MAP_DRIVER.auComponents[i];
-							currentAU = L.mapbox.featureLayer().loadURL(crudPath + "/" + currentAUGID);
+							currentAU = L.mapbox.featureLayer().loadURL(CRUD_PATH + "/" + currentAUGID);
 							
 							console.log(currentAU);
 
@@ -291,36 +332,6 @@ $(document).ready(function() {
 						
 						MAP_DRIVER.loadJSON(compositeJSON);
 					//});
-				});
-				
-				$(document).keydown(function(event) {
-					//console.log("Key: " + event.which);
-					
-					if(event.which == 192) {
-						tildeKey = true;
-					}
-					
-					if(event.which == 18) {
-						altKey = true;
-					}
-					
-					if(tildeKey && altKey) {
-						$("#au-create").show();
-					}
-					
-					return;
-				});
-				
-				$(document).keyup(function(event) {
-					if(event.which == 192) {
-						tildeKey = false;
-					}
-					
-					if(event.which == 18) {
-						altKey = false;
-					}
-					
-					return;
 				});
 				
 				return;

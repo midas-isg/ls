@@ -3,6 +3,8 @@ searchbar.js
 */
 
 $(document).ready(function() {
+	var resultsRoute = CONTEXT + "/results";
+	
 	$("#input").keyup(function(event) {
 		switch(event.which)
 		{
@@ -27,7 +29,7 @@ $(document).ready(function() {
 			return location.assign("https://www.youtube.com/watch?v=RfiQYRn7fBg");
 		}
 
-		return location.assign(context + "?q=" + $("#input").val());
+		return location.assign(resultsRoute + "?q=" + $("#input").val());
 	}
 
 	function bindSuggestionBox(inputBox, URL) {
@@ -56,7 +58,7 @@ $(document).ready(function() {
 	}
 
 	var limit = 5;
-	bindSuggestionBox("#input", context + "/api/locations/unique-names?limit=" + limit + "&queryTerm=");
+	bindSuggestionBox("#input", CONTEXT + "/api/locations/unique-names?limit=" + limit + "&queryTerm=");
 	
 	return;
 });

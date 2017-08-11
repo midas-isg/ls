@@ -3,10 +3,11 @@ search-results.js
 */
 
 var SEARCH_RESULTS =
-(function(){
+(function() {
 	function SearchResults() {
+		this.geometrySearchURL = CONTEXT + "/api/locations/find-by-geometry"; //?superTypeId=3";
 		this.searchURL = CONTEXT + "/api/locations/find-by-term",
-		this.pointURL = CONTEXT + "/api/locations-by-coordinate",
+		this.pointURL = CONTEXT + "/api/locations/find-by-coordinate",
 		this.browserURL = CONTEXT + "/browser",
 		this.typeList = {},
 		this.totalCount = 0;
@@ -15,19 +16,19 @@ var SEARCH_RESULTS =
 	}
 
 	SearchResults.prototype.searchByGeoJSON = function(geoJSON) {
-		//POST /api/locations-by-geometry
-		var httpType = "POST",
-			URL = CONTEXT + "/api/locations-by-geometry?superTypeId=3",
+		var geometrySearchURL = this.geometrySearchURL,
+			httpType = "POST",
 			data = geoJSON,
 			result = $("#result"),
 			thisSearch = this;
+		
 		this.totalCount = 0;
 		this.typeList = {};
 		result.text("Please wait...");
 
 		$.ajax({
 			type: httpType,
-			url: URL,
+			url: geometrySearchURL,
 			data: JSON.stringify(data),
 			contentType: "application/json; charset=UTF-8",
 			//dataType: "json",
@@ -67,13 +68,13 @@ var SEARCH_RESULTS =
 	}
 
 	SearchResults.prototype.searchPoint = function(latitude, longitude) {
-		var url = SEARCH_RESULTS.pointURL + "?lat=" + latitude + "&long=" + longitude,
+		var url = SEARCH_RESULTS.pointURL + "?_v=2&_onlyFeatureFields=properties&lat=" + latitude + "&long=" + longitude,
 			result = $("#result"),
 			thisSearch = this;
 		this.totalCount = 0;
 		this.typeList = {};
 		result.text("Please wait...");
-
+		
 		$.ajax({
 			url: url,
 			type: 'GET',
@@ -152,25 +153,7 @@ var SEARCH_RESULTS =
 				else {
 					getFeatures(locationTypeList[this.value]);
 				}
-
-				features.sort(function determineRelevance(currentFeature, oldFeature) {
-					var currentScore = parseFloat(currentFeature.properties.rank),
-						oldScore = parseFloat(oldFeature.properties.rank),
-						currentName = currentFeature.properties.name.toLowerCase(),
-						oldName = oldFeature.properties.name.toLowerCase();
-
-					if(currentScore === oldScore) {
-						 if(currentName < oldName) {
-							currentScore += 0.001;
-						 }
-						 else {
-							oldScore += 0.001;
-						 }
-					}
-
-					return oldScore - currentScore;
-				});
-
+				
 				SEARCH_RESULTS.updateTable(features);
 			});
 		}
@@ -264,26 +247,86 @@ var SEARCH_RESULTS =
 
 	SearchResults.prototype.runQuery = function(queryInput) {
 		var thisQuery = this;
+		
 		this.originalInput = queryInput;
 		this.inputComponent = this.originalInput.replace(',', '').split(' ');
-
+		
 		function searchQuery() {
-			var i;
+			var i,
+				j,
+				latitude,
+				longitude,
+				geoJSON,
+				coordinateArray,
+				tempArray;
 
 			$("#result").text("Please wait ...");
 			SEARCH_MAP.featureLayer.clearLayers();
-
+			
 			function getQueryResults(input) {
-				var url = SEARCH_RESULTS.searchURL,
+				var parameter,
+					url = SEARCH_RESULTS.searchURL + "?_v=2",
 					data = {
 						"queryTerm": input,
-						"searchNames":true,
-						"searchOtherNames":true,
-						"searchCodes":true,
-						"ignoreAccent":true,
-						"limit":0
+						"excludedFeatureFields": ["geometry", "type", "properties.children", "properties.codes", "properties.matchedTerm"],
+						"limit": 0
 					};
-
+				
+				for(parameter in localStorage) {
+					if(localStorage.hasOwnProperty(parameter)) {
+						if(localStorage[parameter] !== "") {
+							switch(parameter) {
+								case "ignoreAccent":
+								case "searchNames":
+								case "searchOtherNames":
+								case "searchCodes":
+								case "verbose":
+								case "fuzzyMatch":
+									data[parameter] = (localStorage[parameter] === "true");
+								break;
+								
+								//case "offset":
+								case "limit":
+								case "rootALC":
+								case "fuzzyMatchThreshold":
+									data[parameter] = parseInt(localStorage[parameter]);
+								break;
+								
+								case "latitude":
+								case "longitude":
+									data[parameter] = parseFloat(localStorage[parameter]);
+								break;
+								
+								case "locationTypeIds":
+								case "codeTypeIds":
+									data[parameter] = [];
+									tempArray = localStorage[parameter].split(",");
+									
+									for(j = 0; j < tempArray.length; j++) {
+										data[parameter][j] = parseInt(tempArray[j].trim());
+									}
+								break;
+								case "onlyFeatureFields":
+								case "excludedFeatureFields":
+									data[parameter] = [];
+									tempArray = localStorage[parameter].split(",");
+									
+									for(j = 0; j < tempArray.length; j++) {
+										data[parameter][j] = tempArray[j].trim();
+									}
+								break;
+								
+								default:
+									data[parameter] = localStorage[parameter];
+								break;
+							}
+						}
+						
+						localStorage.removeItem(parameter);
+					}
+				}
+				
+				
 				$.ajax({
 					url: url,
 					type: 'POST',
@@ -317,14 +360,43 @@ var SEARCH_RESULTS =
 				return;
 			}
 
-			if(thisQuery.originalInput !== thisQuery.inputComponent[0]) {
-				getQueryResults(thisQuery.originalInput);
+			if(thisQuery.originalInput.charAt(0) === "@") {
+				thisQuery.inputComponent = thisQuery.originalInput.substring(1).split(',');
+				latitude = thisQuery.inputComponent[0];
+				longitude = thisQuery.inputComponent[1];
+				
+				return SEARCH_RESULTS.searchPoint(latitude, longitude);
 			}
-
-			for(i = 0; i < thisQuery.inputComponent.length; i++) {
-				getQueryResults(thisQuery.inputComponent[i]);
+			
+			if(thisQuery.originalInput.charAt(0) === "[" &&
+				thisQuery.originalInput.charAt(1) === "(") {
+				coordinateArray = [];
+				thisQuery.inputComponent = thisQuery.originalInput.substring(1, thisQuery.originalInput.length - 1)
+					.replace(/[\(\)]/g, "").split(",");
+				
+				for(i = 0; i < thisQuery.inputComponent.length; i += 2) {
+					coordinateArray.push([parseFloat(thisQuery.inputComponent[i]), parseFloat(thisQuery.inputComponent[i + 1])]);
+				}
+				
+				geoJSON = {
+					type: "FeatureCollection",
+					features: [
+						{
+							type: "Feature",
+							geometry: {
+								type: "Polygon",
+								coordinates: [coordinateArray]
+							}
+						}
+					]
+				};
+				
+				return SEARCH_RESULTS.searchByGeoJSON(geoJSON);
 			}
-
+			
+			getQueryResults(thisQuery.originalInput);
+			
+			
 			return;
 		}
 

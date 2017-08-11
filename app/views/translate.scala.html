@@ -1,0 +1,40 @@
+@(message: String, version: String)
+
+@imports = {
+	<link href='@routes.Assets.at("stylesheets/translate.css")' rel='stylesheet'>
+	
+	<script src='@routes.Assets.at("javascripts/translator.js")'></script>
+}
+
+@main(message, imports, version) {
+	<div class="center-block horizontal-padding extra-bottom-space">
+		<div class="roundbox extra-bottom-space">
+			<div class="form-group horizontal-padding">
+				<label for="location-codes-list">Location codes list</label>
+				<textarea id="location-codes-list" class="form-control" placeholder="ex: '1216' or '1423, 1600, 1900, ...' or (leave empty to query by country)"></textarea>
+			</div>
+			
+			@code_type_selector()
+		</div>
+		
+		<h4 class="text-center">or</h4>
+		
+		<div class="roundbox extra-bottom-space">
+			@country_selector()
+		</div>
+		
+		<div class="text-center extra-bottom-space">
+			<button id="submit-button" class="btn btn-default">Submit</button>
+		</div>
+	</div>
+	
+	<div class="center-block horizontal-padding">
+		<table id="query-results" class="table table-hover">
+			<thead>
+				<th id="results-names">Name</th>
+				<th id="results-codes">Codes</th>
+			</thead>
+			<tbody></tbody>
+		</table>
+	</div>
+}

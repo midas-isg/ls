@@ -1,5 +1,5 @@
-var crudPath = context + "/api/locations",
-	apolloJSONDataPath = context + "/api/locations/",
+var crudPath = CONTEXT + "/api/locations",
+	apolloJSONDataPath = CONTEXT + "/api/locations/",
 	BROWSER_MAP =
 (function() {
 	function BrowserMap() {
@@ -14,13 +14,13 @@ var crudPath = context + "/api/locations",
 		this.mapID = id; //'tps23.k1765f0g';
 
 		if(id) {
-			this.dataSourceURL = context + "/api/locations/" + id;
+			this.dataSourceURL = CONTEXT + "/api/locations/" + id;
 			this.propertiesURL = this.dataSourceURL + "?maxExteriorRings=0";
 			format = "ID";
 		}
 		else if(query) {
 			format = "query";
-			this.dataSourceURL = context + "/api/locations?q=" + query;// + "&limit=" + limit + "&offset=" + offset;
+			this.dataSourceURL = CONTEXT + "/api/locations?q=" + query;// + "&limit=" + limit + "&offset=" + offset;
 		}
 
 		this.geoJSONURL = this.dataSourceURL + ".geojson";
@@ -118,16 +118,19 @@ var crudPath = context + "/api/locations",
 						i,
 						delimiter,
 						OtherNames,
+						temp,
+						row,
+						button,
 						unsupportedCharactersRegExp = /([^a-zA-Z0-9À-öø-ÿ])/g;
 
 					thisBrowserMap.mapID = properties.gid;
 					properties.description = properties.name;
 
 					$("#au-name").append("<strong>" + properties.name + "</strong>");
-					$("#au-location-type").append("<div class=''>" + properties.locationTypeName + "</div>");
+					$("#au-location-type").append("<span class=''>" + properties.locationTypeName + "</span>");
 
 					if(properties.locationDescription) {
-						$("#description").append("<div class='pull-left pre-spaced'>" + properties.locationDescription + "</div>");
+						$("#description").append("<span>" + properties.locationDescription + "</span>");
 						$("#description").show();
 					}
 
@@ -158,21 +161,35 @@ var crudPath = context + "/api/locations",
 						$("#au-apollojson").css("text-decoration", "underline");
 					}
 
-                    HELPERS.listLineageRefs(properties.lineage, "#au-lineage");
+					HELPERS.listLineageRefs(properties.lineage, "#au-lineage");
 
 					related = properties.related;
 					if(related && (related.length > 0)){
 						$("#au-related").show();
 
 						for(i = 0; i < related.length; i++) {
-							$("#au-related").append("<a href='./browser?id=" + related[i].gid + "' class='pre-spaced'>" + related[i].name + "</a>");
+							$("#au-related").append("<a href='./browser?id=" + related[i].gid + "'>" + related[i].name + "</a>");
 
 							if(i < (related.length - 1)){
 								$("#au-related").append("; ");
 							}
 						}
 					}
-
+					
+					function toggleSublocations(locationDivID) {
+						var button = document.getElementById(locationDivID + "-button");
+						HELPERS.toggle(locationDivID);
+						
+						if(button.innerHTML === "+") {
+							button.innerHTML = "-";
+						}
+						else {
+							button.innerHTML = "+";
+						}
+						
+						return;
+					}
+					
 					children = properties.children;
 					if(children && (children.length > 0)) {
 						for(i = 0; i < children.length; i++) {
@@ -184,7 +201,27 @@ var crudPath = context + "/api/locations",
 							locationDivID = buckets[i].replace(unsupportedCharactersRegExp, "-").toLowerCase();
 
 							if($("#" + locationDivID).length == 0) {
-								$("#au-children").append("<div id='" + locationDivID + "' class='extra-bottom-space'><em class='pull-left'>" + buckets[i] + " sub-locations:</em></div>");
+								temp = document.createElement("div");
+								temp.attributes.setNamedItem(document.createAttribute("class"));
+								temp.attributes.class.value = "roundbox extra-bottom-space";
+								
+								button = document.createElement("button");
+								button.id = locationDivID + "-button";
+								button.attributes.setNamedItem(document.createAttribute("class"));
+								button.attributes.class.value = "btn btn-xs btn-default";
+								button.innerHTML = "+";
+								(function(locationDivID) {
+									$(button).click(function() {
+										toggleSublocations(locationDivID);
+									});
+									
+									return;
+								})(locationDivID);
+								
+								$("#au-children").append(temp);
+								$(temp).append("<label class='post-spaced'>" + locationDivID + " sub-locations</label>");
+								$(temp).append(button);
+								$(temp).append("<div id='" + locationDivID + "' style='display: none;'></div>");
 							}
 						}
 
@@ -194,12 +231,15 @@ var crudPath = context + "/api/locations",
 
 							locationType = children[i].locationTypeName;
 							locationDivID = locationType.replace(unsupportedCharactersRegExp, "-").toLowerCase();
-
-							if($("#" + locationDivID).children().length > 1) {
-								$("#" + locationDivID).append(", ");
+							
+							if((i % 4) === 0) {
+								row = document.createElement("div");
+								row.attributes.setNamedItem(document.createAttribute("class"));
+								row.attributes.class.value = "row light-padded";
+								$("#" + locationDivID).append(row);
 							}
-
-							$("#" + locationDivID).append("<a href='./browser?id=" + auGID + "' class='pre-spaced' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a>");
+							
+							$(row).append("<div class='col-xs-3'><a href='./browser?id=" + auGID + "' class='' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a></div>");
 						}
 
 						$("#au-children").show();
@@ -235,7 +275,7 @@ var crudPath = context + "/api/locations",
 						}
 
 						for(i = 0; i < OtherNames.length; i++) {
-							name = "<strong class='pull-left pre-spaced'>" + OtherNames[i].name;
+							name = "<strong class='pre-spaced'>" + OtherNames[i].name;
 
 							if(i < OtherNames.length - 1){
 								name += delimiter;

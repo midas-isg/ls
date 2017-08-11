@@ -1,0 +1,111 @@
+<div id="advanced-searchbar-form">
+	<div class="roundbox">
+		<div class="form-inline">
+			<div class="form-group horizontal-padding">
+				<label for="ignore-accent">Ignore accent</label>
+				<input id="ignore-accent" class="form-control" type="checkbox" checked>
+			</div>
+			
+			<div class="form-group horizontal-padding">
+				<label for="search-names">Search names</label>
+				<input id="search-names" class="form-control" type="checkbox" checked>
+			</div>
+			
+			<div class="form-group horizontal-padding">
+				<label for="search-other-names">Search other names</label>
+				<input id="search-other-names" class="form-control" type="checkbox" checked>
+			</div>
+			
+			<div class="form-group horizontal-padding">
+				<label for="search-codes">Search codes</label>
+				<input id="search-codes" class="form-control" type="checkbox" checked>
+			</div>
+		</div>
+		
+		<div class="form-inline extra-bottom-space">
+			<div class="form-group horizontal-padding">
+				<label for="fuzzy-match">Fuzzy match</label>
+				<input id="fuzzy-match" class="form-control" type="checkbox">
+			</div>
+			
+			<div id="fuzzy-match-option" class="form-group horizontal-padding" style="display: none;">
+				<label for="fuzzy-match-threshold">Fuzzy match threshold</label>
+				<input id="fuzzy-match-threshold" class="form-control" type="number" min="0" value="0">
+			</div>
+		</div>
+		
+		<div class="form-inline extra-bottom-space">
+			<div class="form-group horizontal-padding">
+				<label for="limit">Limit</label>
+				<input id="limit" class="form-control" type="number" min="0" value="50">
+			</div>
+			
+			<div class="form-group horizontal-padding">
+				<label for="logic">Logic</label>
+				<select id="logic" class="form-control">
+					<option selected>OR</option>
+					<option>AND</option>
+				</select>
+			</div>
+		</div>
+		
+		<div class="form-inline extra-bottom-space">
+			<div class="form-group horizontal-padding">
+				<label for="start-date">Start date</label>
+				<input id="start-date" class="form-control" type="date">
+			</div>
+			
+			<div class="form-group horizontal-padding">
+				<label for="end-date">End date</label>
+				<input id="end-date" class="form-control" type="date">
+			</div>
+		</div>
+		
+		<div class="form-group horizontal-padding">
+			<label for="root-alc">Root ALC</label>
+			<input id="root-alc" class="form-control" type="number" min="0" placeholder="ex: '1216' for the United States of America">
+		</div>
+		
+		<div class="form-group horizontal-padding">
+			<label for="location-type-ids">Location type IDs</label>
+			
+			<select id="location-type-selector"></select>
+			<button id="location-type-adder" class="btn btn-xs btn-default">+</button>
+			@*<button id="location-type-remover" class="btn btn-xs btn-default">+</button>*@
+			
+			<textarea id="location-type-ids" class="form-control"></textarea>
+		</div>
+		
+		<div class="form-group horizontal-padding">
+			<label for="code-type-ids">Code type IDs</label>
+			
+			<select id="code-type-selector"></select>
+			<button id="code-type-adder" class="btn btn-xs btn-default">+</button>
+			@*<button id="code-type-remover" class="btn btn-xs btn-default">+</button>*@
+			
+			<textarea id="code-type-ids" class="form-control"></textarea>
+		</div>
+		
+		<div class="form-group horizontal-padding">
+			<label for="only-feature-fields">Only feature fields</label>
+			<textarea id="only-feature-fields" class="form-control" placeholder="ex: properties.name, properties.codes"></textarea>
+		</div>
+		
+		<div class="form-group horizontal-padding">
+			<label for="excluded-feature-fields">Excluded feature fields</label>
+			<textarea id="excluded-feature-fields" class="form-control" placeholder="ex: geometry, bbox"></textarea>
+		</div>
+		
+		<div class="form-group horizontal-padding">
+			<label for="json-query">JSON Query</label>
+			<textarea id="json-query" class="form-control" readonly></textarea>
+		</div>
+		
+		<div class="clear-both horizontal-padding extra-bottom-space">
+			<button id="advanced-search-button" class="btn btn-primary">Advanced Search</button>
+		</div>
+	</div>
+</div>
+
+<script src='@routes.Assets.at("javascripts/advanced-searchbar.js")'></script>
+

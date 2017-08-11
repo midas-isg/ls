@@ -1,13 +1,13 @@
-var crudPath = context + '/api/locations';
+var CRUD_PATH = CONTEXT + '/api/locations';
 
 function MapDriver() {
 	var id = '';//'12';
-	this.title = "";//"<strong>Sierra Leone</strong> 0001-01-01 to now";
-	this.mapID = id;//'tps23.k1765f0g';
+	
+	this.title = "";
+	this.mapID = id;
 
 	if(this.mapID) {
-		this.geoJSONURL = crudPath + "/" + id;
-		//"http://tps23-nb.univ.pitt.edu/test.json";
+		this.geoJSONURL = CRUD_PATH + "/" + id;
 	}
 	
 	this.accessToken = 'pk.eyJ1IjoidHBzMjMiLCJhIjoiVHEzc0tVWSJ9.0oYZqcggp29zNZlCcb2esA';
@@ -26,11 +26,17 @@ function MapDriver() {
 MapDriver.prototype.initialize = function() {
 	L.mapbox.accessToken = this.accessToken;
 	
-	var southWest = L.latLng(-90, -180);
-	var northEast = L.latLng(90, 180);
-	var mapBounds = L.latLngBounds(southWest, northEast);
+	var southWest = L.latLng(-90, -180),
+		northEast = L.latLng(90, 180),
+		mapBounds = L.latLngBounds(southWest, northEast);
 	
-	this.map = L.mapbox.map('map-one', 'examples.map-i86l3621', { worldCopyJump: true, bounceAtZoomLimits: false, zoom: 1, minZoom: 1, maxBounds: mapBounds /*crs: L.CRS.EPSG385*/});
+	this.map = L.mapbox.map('map-one', 'examples.map-i86l3621', {
+		//maxBounds: mapBounds,
+		worldCopyJump: true,
+		bounceAtZoomLimits: false,
+		zoom: 1.6,
+		minZoom: 1.6
+	});
 	this.map.legendControl.addLegend(this.title);
 	
 	this.drawControl = null;
@@ -212,7 +218,7 @@ MapDriver.prototype.saveMap = function() {
 	// CREATE //POST /resources/aus
 	// CREATE //POST /api/locations
 	var httpType = "POST",
-		URL = crudPath,
+		URL = CRUD_PATH,
 		data = this.featureLayer.toGeoJSON();
 
 	data.id = this.mapID;
@@ -265,7 +271,7 @@ MapDriver.prototype.updateMap = function() {
 	// UPDATE //PUT /resources/aus
 	// UPDATE //PUT /api/locations
 	var httpType = "PUT",
-		URL = crudPath,
+		URL = CRUD_PATH,
 		data = this.featureLayer.toGeoJSON();
 
 	data.id = this.mapID;
@@ -316,7 +322,7 @@ MapDriver.prototype.deleteLocation = function() {
 	// DELETE //DELETE /resources/aus
 	// DELETE //DELETE /api/locations
 	var httpType = "DELETE",
-		URL = crudPath;
+		URL = CRUD_PATH;
 	
 	URL = URL + "/" + HELPERS.getValueText("#gid");
 	
@@ -377,54 +383,57 @@ MapDriver.prototype.download = function() {
 MapDriver.prototype.upload = function() {
 	var file = $('#file-input').get(0).files[0],
 		fileReader = new FileReader(),
-		thisMapDriver = this;
+		thisMapDriver = this,
+		fileString;
 	
-	fileReader.onload = (function() {
-		var kmlData = fileReader['result'],
-			kmlDOM = (new DOMParser()).parseFromString(kmlData, 'text/xml'),
-			jsonData = toGeoJSON.kml(kmlDOM),
-			properties,
-			i,
-			parentGID;
+	if(file) {
+		fileReader.onload = (function() {
+			var kmlData = fileReader['result'],
+				kmlDOM = (new DOMParser()).parseFromString(kmlData, 'text/xml'),
+				jsonData = toGeoJSON.kml(kmlDOM),
+				properties,
+				i,
+				parentGID;
 
-		thisMapDriver.kml = kmlData;
+			thisMapDriver.kml = kmlData;
 
-		if(jsonData.features.length == 0) {
-			jsonData = JSON.parse(kmlData);
-		}
+			if(jsonData.features.length == 0) {
+				jsonData = JSON.parse(kmlData);
+			}
+			
+			properties = jsonData.features[0].properties;
+			
+			if(properties.name) {
+				HELPERS.setTextValue("#au-name", properties.name);
+			}
 		
-		properties = jsonData.features[0].properties;
-		
-		if(properties.name) {
-			HELPERS.setTextValue("#au-name", properties.name);
-		}
-	
-		if(properties.description) {
-			HELPERS.setTextValue("#description", properties.description);
-		}
-		
-		if(properties.startDate) {
-			HELPERS.setTextValue("#start-date", properties.startDate);
-		}
-		
-		if(properties.endDate) {
-			HELPERS.setTextValue("#end-date", properties.endDate);
-		}
+			if(properties.description) {
+				HELPERS.setTextValue("#description", properties.description);
+			}
+			
+			if(properties.startDate) {
+				HELPERS.setTextValue("#start-date", properties.startDate);
+			}
+			
+			if(properties.endDate) {
+				HELPERS.setTextValue("#end-date", properties.endDate);
+			}
 
-		for(i = 0; i < jsonData.features.length; i++) {
-			jsonData.features[i].properties.description = jsonData.features[i].properties.name;
-		}
-		
-		parentGID = properties.parentGid;
-		console.log("parent GID: " + parentGID);
-		
-		thisMapDriver.loadJSON(jsonData);
-		thisMapDriver.suggestParents();
+			for(i = 0; i < jsonData.features.length; i++) {
+				jsonData.features[i].properties.description = jsonData.features[i].properties.name;
+			}
+			
+			parentGID = properties.parentGid;
+			console.log("parent GID: " + parentGID);
+			
+			thisMapDriver.loadJSON(jsonData);
+			thisMapDriver.suggestParents();
 
-		return;
-	});
-	
-	var fileString = fileReader.readAsText(file);
+			return;
+		});
+		
+		fileString = fileReader.readAsText(file);
+	}
 	
 	return;
 }
@@ -433,7 +442,7 @@ MapDriver.prototype.suggestParents = function() {
 	//POST /api/locations-by-geometry
 	var thisMapDriver = this,
 		httpType = "POST",
-		URL = context + "/api/locations-by-geometry?superTypeId=3",
+		URL = CONTEXT + "/api/locations-by-geometry?superTypeId=3",
 		data = this.featureLayer.toGeoJSON();
 	
 	$.ajax({
@@ -643,125 +652,15 @@ MapDriver.prototype.formatGeoJSON = function(geoJSON) {
 
 /* Helper Functions */
 function centerMap(geoJSON, thisMapDriver) {
-		var geometryCount,
-			geometry = geoJSON.features[0].geometry,
-			latitude,
-			longitude,
-			minLat,
-			maxLat,
-			minLng,
-			maxLng,
-			a,
-			geo,
-			i,
-			j,
-			coordinates,
-			coordinate,
-			coordinatesCount,
-			coordinateGroup,
-			coordinateGroupCount,
-			vertices,
-			coordinatesBody,
-			southWest,
-			northEast,
-			bounds;
+	var minLng = geoJSON.bbox[0],
+		minLat = geoJSON.bbox[1],
+		maxLng = geoJSON.bbox[2],
+		maxLat = geoJSON.bbox[3],
+		southWest = L.latLng(minLat, minLng),
+		northEast = L.latLng(maxLat, maxLng),
+		bounds = L.latLngBounds(southWest, northEast);
 	
-	for(a = 0; a < geoJSON.features.length; a++) {
-		geometry = geoJSON.features[a].geometry;
-		
-		if((!geometry) ||  (geometry.type == "Point")) {
-			return;
-		}
-		
-		if(geometry.geometries) {
-			geometryCount = geometry.geometries.length;
-			
-			if(a == 0) {
-				latitude = geometry.geometries[0].coordinates[0][0][1];
-				longitude = geometry.geometries[0].coordinates[0][0][0];
-				minLat = latitude;
-				maxLat = minLat;
-				minLng = longitude;
-				maxLng = minLng;
-			}
-			
-			for(geo = 0; geo < geometryCount; geo++) {
-				coordinates = geometry.geometries[geo].coordinates;
-				coordinatesCount = coordinates.length;
-				
-				for(i = 0; i < coordinatesCount; i++) {
-					coordinateGroupCount = coordinates[i].length;
-					coordinateGroup = coordinates[i];
-					
-					coordinate = null;
-					for(j = 0; j < coordinateGroupCount; j++) {
-						coordinate = coordinateGroup[j];
-						
-						latitude = coordinate[1];
-						longitude = coordinate[0];
-						
-						if(latitude < minLat) {
-							minLat = latitude;
-						}
-						else if(latitude > maxLat) {
-							maxLat = latitude;
-						}
-						
-						if(longitude < minLng) {
-							minLng = longitude;
-						}
-						else if(longitude > maxLng) {
-							maxLng = longitude;
-						}
-					}
-				}
-			}
-		}
-		else /*if(geometry.coordinates)*/ {
-			geometryCount = geometry.coordinates.length;
-			
-			if(a == 0) {
-				latitude = geometry.coordinates[0][0][1];
-				longitude = geometry.coordinates[0][0][0];
-				minLat = latitude;
-				maxLat = minLat;
-				minLng = longitude;
-				maxLng = minLng;
-			}
-			
-			vertices;
-			coordinatesBody;
-			for(i = 0; i < geometryCount; i++) {
-				coordinatesBody = geometry.coordinates[i];
-				vertices = geometry.coordinates[i].length;
-				
-				for(j = 0; j < vertices; j++) {
-					latitude = geometry.coordinates[i][j][1];
-					longitude = geometry.coordinates[i][j][0];
-					
-					if(latitude < minLat) {
-						minLat = latitude;
-					}
-					else if(latitude > maxLat) {
-						maxLat = latitude;
-					}
-					
-					if(longitude < minLng) {
-						minLng = longitude;
-					}
-					else if(longitude > maxLng) {
-						maxLng = longitude;
-					}
-				}
-			}
-		}
-	}
-	
-	southWest = L.latLng(minLat, minLng);
-	northEast = L.latLng(maxLat, maxLng);
-	bounds = L.latLngBounds(southWest, northEast);
-	
-	console.log(bounds);
+//console.log(bounds);
 	
 	return thisMapDriver.map.fitBounds(bounds);
 }

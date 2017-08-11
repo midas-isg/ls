@@ -1,4 +1,15 @@
-<div class="container-fluid no-padding" style="">
-	<input type="text" id="input" class="pull-left form-control ui-autocomplete-input no-padding" placeholder="Location name" style="max-width: 74%; height: inherit; padding-left: 3px; padding-right: 3px;">
-	<button id="search-button" class="btn btn-default btn-sm no-vertical-padding" style="">Search</button>
+<div class="pull-left" style="width: calc(100% - 38px);">
+	<div id="searchbar" class="input-group">
+		<div class="input-group-addon">Search by name</div>
+		
+		<input type="text" id="input" class="form-control ui-autocomplete-input" placeholder="ex: 'Texas'" title="can also search by latitude, longitude (ex: '@@4.0, 20.0'), or set of coordinates (ex: '[(8.0,6.0),(7.0,5.0),(3,0.09),(8.0,6.0)]')">
+	
+		<span class="input-group-btn">
+			<button id="search-button" class="btn btn-default">Search</button>
+		</span>
+	</div>
 </div>
+
+@advanced_options("searchbar")
+
+<script src='@routes.Assets.at("javascripts/searchbar.js")'></script>

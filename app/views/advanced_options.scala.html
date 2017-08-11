@@ -1,0 +1,25 @@
+@(search_type: String)
+
+<div style="display: inline-block; padding: 2px;">
+	<button id="advanced-options-toggle" class="btn btn-sm btn-default">
+		<span class="glyphicon glyphicon-menu-hamburger"></span>
+	</button>
+</div>
+
+<div class="clear-both"></div>
+
+<div id="advanced-options" style="display: none; margin-top: 2px;">
+	@{
+		if(search_type == "searchbar") {
+			advanced_searchbar()
+		}
+		else if(search_type == "map") {
+			advanced_map()
+		}
+		else {
+			<h1>DOGS RULE!</h1>
+		}
+	}
+</div>
+
+<script src='@routes.Assets.at("javascripts/advanced-options.js")'></script>
