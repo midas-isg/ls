@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.junit.Test;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import controllers.routes;
@@ -43,8 +45,9 @@ public class TestFindLocation {
 	private final String findBulkRequestFile1 = "test/test-find-bulk-request-1.json";
 	private final String CURRENT_VERSION = "2";
 
-	public static Runnable test() {
-		return () -> newInstance().testFindLocation();
+	@Test
+	public void test() {
+		Server.run(() -> newInstance().testFindLocation());
 	}
 
 	private static TestFindLocation newInstance() {
