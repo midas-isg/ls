@@ -249,7 +249,15 @@ public class LocationDao {
 		Expression<String> exp = location.get("gid");
 		criteriaQuery.where(exp.in(ids));
 		TypedQuery<Location> query = em.createQuery(criteriaQuery);
-		return query.getResultList();
+		List<Location> resultList = query.getResultList();
+		return sortLocationsByListOfGids(resultList, ids);
+	}
+
+	private List<Location> sortLocationsByListOfGids(List<Location> locations, List<BigInteger> ids) {
+		List<Location> sortedAsInputGids = new ArrayList<>();
+		Map<Long, Location> map = locations.stream().collect(Collectors.toMap(Location::getGid, l -> l));
+		ids.forEach(id -> sortedAsInputGids.add(map.get(id.longValue())));
+		return sortedAsInputGids;
 	}
 
 	public List<Location> findAllAndSetNameAsHeadline(List<BigInteger> ids) {
