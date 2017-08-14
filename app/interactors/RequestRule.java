@@ -2,7 +2,6 @@ package interactors;
 
 import static interactors.Util.containsKey;
 import static interactors.Util.containsOrIsEmpty;
-import static interactors.Util.getNowDate;
 import static interactors.Util.toDate;
 import static interactors.Util.toListOfString;
 

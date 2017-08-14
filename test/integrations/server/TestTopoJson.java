@@ -1,14 +1,19 @@
 package integrations.server;
 
+import static org.junit.Assume.assumeTrue;
 import static play.mvc.Http.HeaderNames.LOCATION;
 import static play.mvc.Http.Status.OK;
 import static play.test.Helpers.route;
 import static suites.Helper.assertAreEqual;
+import static suites.Helper.isTopoJsonInstalled;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import org.junit.Before;
+import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -31,8 +36,14 @@ public class TestTopoJson {
 	private String jsonContentType = "application/json; charset=utf-8";
 	private Path testTopoJsonFile = Paths.get("test/resources/test/testLocation1.topojson");
 
-	public static Runnable test() {
-		return () -> newInstance().testTopoJson();
+	@Before
+	public void checkAssumptions() {
+		assumeTrue(isTopoJsonInstalled());
+	}
+
+	@Test
+	public void test() {
+		Server.run(() -> newInstance().testTopoJson());
 	}
 
 	private static TestTopoJson newInstance() {
