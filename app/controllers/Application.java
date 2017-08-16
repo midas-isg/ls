@@ -24,7 +24,7 @@ public class Application extends UserController {
 			final Configuration cfg = Play.application().configuration();
 			String version = "Version: " + cfg.getString("app.version");
 			String dbName = "Database: " + cfg.getString("db.default.url");
-			INFO = "Copyright 2014-2016 - University of Pittsburgh, " 
+			INFO = "Copyright 2014-2017 - University of Pittsburgh, " 
 			+ version + ", " + dbName;
 		}
 	}

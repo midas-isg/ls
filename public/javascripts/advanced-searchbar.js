@@ -1,6 +1,8 @@
 $(document).ready(function() {
 	var locationTypesURL = CONTEXT + "/api/location-types",
 		codeTypesURL = CONTEXT + "/api/code-types",
+		locationTypes = {},
+		codeTypes = {},
 		disabled = false,
 		jsonQuery = {
 			ignoreAccent: document.getElementById("ignore-accent").checked,
@@ -37,6 +39,8 @@ $(document).ready(function() {
 				option.innerHTML = result[i].name + " (" + result[i].id +")";
 				option.value = result[i].id;
 				selector.appendChild(option);
+				
+				locationTypes[option.value] = option.innerHTML;
 			}
 			
 			return;
@@ -58,6 +62,8 @@ $(document).ready(function() {
 				option.innerHTML = result[i].name + " (" + result[i].id +")";
 				option.value = result[i].id;
 				selector.appendChild(option);
+				
+				codeTypes[option.value] = option.innerHTML;
 			}
 			
 			return;
@@ -76,6 +82,7 @@ $(document).ready(function() {
 			locationTypesQuery = locationTypesInput.value,
 			locationTypeSelector = document.getElementById("location-type-selector");
 		
+		//TODO: change output to include location names instead of just IDs
 		if(!HELPERS.findIsolatedNumberString(locationTypeSelector.value, locationTypesQuery)) {
 			if(locationTypesQuery.length > 0) {
 				locationTypesQuery += ", ";
