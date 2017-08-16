@@ -330,7 +330,8 @@ public class LocationServices extends Controller {
 			+ "<li><i>#unique terms</i> in location name/code in ascending order</li>"
 			+ "<li>location <em>area</em> in descending order</li>"
 			+ "<li><i>alphabetical order</i> of location name/code ascendingly."
-			+ "</ul>",
+			+ "</ul>"
+			+ "For details of 'fuzzyMatch' feature refer to: https://www.postgresql.org/docs/9.3/static/pgtrgm.html",
 			response = FeatureCollection.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = OK, message = "Successfully returned", response = FeatureCollection.class),
