@@ -38,20 +38,29 @@ $(document).ready(function() {
 				jQuery.get(URL + $(inputBox).val(), {
 					name: request.name
 				}, function (data) {
-					var index = 0;
-					var locations = [];
-
+					var index = 0,
+						locations = [];
+					
 					locations[0] = "No search results found...";
-
+					
 					for(index = 0; index < data.length; index++) {
 						locations[index] = data[index]['name'];
 					}
-
+					
 					response(locations);
+					
+					return;
 				});
 			},
 			minLength: 3,
-			delay: 500
+			delay: 500,
+			select: function(event, ui) {
+				$("input").val(ui.item.value);
+				localStorage.setItem("logic", "AND");
+				searchClick();
+				
+				return;
+			}
 		});
 
 		return;

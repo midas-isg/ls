@@ -230,13 +230,17 @@ var crudPath = CONTEXT + "/api/locations",
 							auGID = children[i].gid;
 
 							locationType = children[i].locationTypeName;
-							locationDivID = locationType.replace(unsupportedCharactersRegExp, "-").toLowerCase();
+							locationDivID = "#" + locationType.replace(unsupportedCharactersRegExp, "-").toLowerCase();
+							temp = $(locationDivID).children().length;
 							
-							if((i % 4) === 0) {
+							if((temp === 0) || (($(locationDivID).children()[temp - 1].childElementCount % 4) === 0)) {
 								row = document.createElement("div");
 								row.attributes.setNamedItem(document.createAttribute("class"));
 								row.attributes.class.value = "row light-padded";
-								$("#" + locationDivID).append(row);
+								$(locationDivID).append(row);
+							}
+							else {
+								row = $(locationDivID).children()[temp - 1];
 							}
 							
 							$(row).append("<div class='col-xs-3'><a href='./browser?id=" + auGID + "' class='' style='text-decoration: underline;' title='ID: "+ auGID +"'>" + auName + "</a></div>");

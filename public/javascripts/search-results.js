@@ -200,7 +200,7 @@ var SEARCH_RESULTS =
 
 			aliasesString = "Aliases: " + properties.name;
 			for(j = 0; j < properties.otherNames.length; j++) {
-				aliasesString += ", " + properties.otherNames[j].name;
+				aliasesString += ", " + properties.otherNames[j].name.replace(/'/g, "&#x27;").replace(/"/g, "&#39;");
 			}
 
 			appendString = "<tr><td class='location-col'><a href='"+ url +"' title='" + aliasesString + "'>"+ properties.headline  + "</a> from " + properties.startDate + to + "</td>";
