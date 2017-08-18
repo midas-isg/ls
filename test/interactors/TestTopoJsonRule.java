@@ -1,12 +1,15 @@
 package interactors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assume.assumeTrue;
+import static suites.Helper.isTopoJsonInstalled;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class TestTopoJsonRule {
@@ -15,6 +18,12 @@ public class TestTopoJsonRule {
 	private Path testFeatureCollectionFile = Paths.get("test/resources/test/FeatureCollection.geojson");
 	private Path tempTopoJsonFile = Paths.get(System.getProperty("java.io.tmpdir") + "tempTopoJson.topojson");
 
+	
+	@BeforeClass
+	public static void checkAssumptions(){
+		assumeTrue(isTopoJsonInstalled());
+	}
+	
 	@Test
 	public void testGeoJsonFile2TopoJson() {
 		TopoJsonRule tjRule = new TopoJsonRule();

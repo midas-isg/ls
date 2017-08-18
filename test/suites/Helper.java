@@ -5,22 +5,23 @@ import static com.fasterxml.jackson.databind.node.JsonNodeType.NULL;
 import static com.fasterxml.jackson.databind.node.JsonNodeType.OBJECT;
 import static org.fest.assertions.Assertions.assertThat;
 import static play.mvc.Http.Status.OK;
-import gateways.configuration.ConfReader;
-import interactors.ConfRule;
 
 import java.util.List;
 
 import javax.persistence.EntityManager;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
+
+import _imperfactcoverage.Detour;
+import gateways.configuration.ConfReader;
+import interactors.ConfRule;
+import interactors.TopoJsonRule;
 import play.db.jpa.JPA;
 import play.libs.F.Function0;
 import play.libs.Json;
 import play.libs.ws.WS;
 import play.libs.ws.WSResponse;
-import _imperfactcoverage.Detour;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeType;
 
 public class Helper {
 	public static WSResponse get(String url) {
@@ -139,5 +140,11 @@ public class Helper {
 		final Class<T> clazz = (Class<T>) expected.getClass();
 		final T found = em.find(clazz, id);
 		assertAreEqual(found, expected);
+	}
+	
+	public static boolean isTopoJsonInstalled(){
+		String [] cmdArr = TopoJsonRule.toCommandArray("topojson --help");
+		String result = TopoJsonRule.execute(cmdArr, null);
+		return(result.contains("Usage:"));
 	}
 }
