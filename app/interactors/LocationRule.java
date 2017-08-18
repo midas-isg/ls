@@ -4,6 +4,7 @@ import static interactors.Util.containsKey;
 import static interactors.Util.toListOfLong;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import com.vividsolutions.jts.geom.Polygon;
 
 import dao.LocationDao;
 import dao.LocationTypeDao;
+import dao.entities.Code;
 import dao.entities.CodeType;
 import dao.entities.GisSource;
 import dao.entities.Location;
@@ -58,7 +60,7 @@ public class LocationRule {
 	public static GisSource getAlsGisSource() {
 		if (alsGisSource == null) {
 			alsGisSource = new GisSource();
-			alsGisSource.setId(8L);
+			alsGisSource.setId(1L);
 			alsGisSource.setUrl("ALS");
 		}
 		return alsGisSource;
@@ -243,5 +245,14 @@ public class LocationRule {
 		}
 		
 		return related;
+	}
+	
+	public static void addApolloLocationCode(Location location) {
+		List<Code> otherCodes = location.getOtherCodes();
+		if(otherCodes == null)
+			otherCodes = new ArrayList<Code>();
+		Code apolloLocationCode = CodeTypeRule.createApolloLocationCode(location);
+		otherCodes.add(apolloLocationCode);
+		location.setOtherCodes(otherCodes);
 	}
 }

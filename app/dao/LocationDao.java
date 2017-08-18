@@ -27,6 +27,7 @@ import dao.entities.AltName;
 import dao.entities.Location;
 import dao.entities.LocationGeometry;
 import interactors.LocationProxyRule;
+import interactors.LocationRule;
 import models.Request;
 import models.exceptions.PostgreSQLException;
 import play.Logger;
@@ -42,7 +43,8 @@ public class LocationDao {
 		createAlternativeNames(location, em);
 		createAlternativeCodes(location, em);
 
-		LocationProxyRule.scheduleCacheUpdate(location); // TODO: decouple
+		// TODO: decouple
+		LocationProxyRule.scheduleCacheUpdate(location);
 
 		Long gid = location.getGid();
 		Logger.info("persisted " + gid);
@@ -52,6 +54,7 @@ public class LocationDao {
 
 	private void createAlternativeCodes(Location location, EntityManager em) {
 		CodeDao codeDao = new CodeDao(em);
+		LocationRule.addApolloLocationCode(location);
 		codeDao.createAll(location.getOtherCodes());
 	}
 
