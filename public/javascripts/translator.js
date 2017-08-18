@@ -2,7 +2,8 @@
 
 (function(HELPERS) {
 	$(document).ready(function() {
-		var gidURL = CONTEXT + "/api/locations/",
+		var apolloLocationCodeTypeID = 14,
+			gidURL = CONTEXT + "/api/locations/",
 			findBulkURL = CONTEXT + "/api/locations/find-bulk?_v=2",
 			codeTypes,
 			locationTypes,
@@ -25,7 +26,83 @@
 			return locationCodes;
 		}
 		
-		function processResult(properties, maxCodesLength) {
+		function postLocationQuery(codeType, locationCodes) {
+			var i,
+				postData = [];
+			
+			for(i = 0; i < locationCodes.length; i++) {
+				postData.push({
+					"queryTerm": locationCodes[i],
+					"ignoreAccent": true,
+					"searchNames": false,
+					"searchOtherNames": false,
+					"searchCodes": true,
+					"codeTypeIds": [parseInt(codeType)],
+					"logic": "AND",
+					"onlyFeatureFields": [
+						"properties.codes",
+						"properties.name"
+					]
+				});
+			}
+			
+			$.ajax({
+				url: findBulkURL,
+				data: JSON.stringify(postData),
+				type: "POST",
+				beforeSend: function(xhr) {
+					$("#query-results tbody").empty();
+					$("#query-results tbody").append("<tr><th>PLEASE</th><th>WAIT...</th></tr>");
+					
+					return;
+				},
+				success: function(responseData, status, xhr) {
+					var i,
+						codesLength,
+						maxCodesLength = 0;
+					
+					console.info(responseData);
+					
+					$("#query-results tbody").empty();
+					
+					for(i = 0; i < responseData.length; i++) {
+						if(responseData[i].features[0]) {
+							codesLength = responseData[i].features[0].properties.codes.length;
+						}
+						else {
+							responseData[i].features.push({
+								properties: {
+									name: responseData[i].properties.queryTerm,
+									codes: [{codeTypeName: "Error", code: "Not Found"}]
+								}
+							});
+							
+							codesLength = 1;
+						}
+						
+						if(codesLength > maxCodesLength) {
+							maxCodesLength = codesLength;
+						}
+					}
+					
+					for(i = 0; i < responseData.length; i++) {
+						displayResult(responseData[i].features[0].properties, maxCodesLength);
+					}
+				},
+				error: function(xhr,status,error) {
+					console.error(xhr);
+					console.error(status);
+					console.error(error);
+					
+					return;
+				},
+				contentType: "application/json"
+			});
+			
+			return;
+		}
+		
+		function displayResult(properties, maxCodesLength) {
 			var name = properties.name,
 				codes = properties.codes,
 				row = document.createElement("tr"),
@@ -67,18 +144,16 @@
 		});
 		
 		$("#submit-button").click(function() {
-			var i,
-				codeType = parseInt($("#code-type")[0].value),
+			var codeType = parseInt($("#code-type")[0].value),
 				locationCodes = getLocationCodes(),
-				postData = [],
 				rootALC = parseInt($("#country")[0].value);
-			
-			if(rootALC === -1) {
-				rootALC = null;
-			}
 			
 			if(codeType === -1) {
 				codeType = null;
+			}
+			
+			if(rootALC === -1) {
+				rootALC = null;
 			}
 			
 			if((!codeType) && (!rootALC)) {
@@ -86,8 +161,11 @@
 			}
 			
 			if(locationCodes.length < 1) {
+				codeType = apolloLocationCodeTypeID;
+				locationCodes = [rootALC];
+				
 				$.ajax({
-					url: gidURL + rootALC + "?_v=2&_onlyFeatureFields=properties.codes%2Cproperties.name",
+					url: gidURL + rootALC + "?_v=2&_onlyFeatureFields=properties.children",
 					type: "GET",
 					beforeSend: function(xhr) {
 						$("#query-results tbody").empty();
@@ -96,10 +174,16 @@
 						return;
 					},
 					success: function(responseData, status, xhr) {
-						console.info(responseData);
+						var i,
+							children = responseData.features[0].properties.children;
 						
-						$("#query-results tbody").empty();
-						processResult(responseData.features[0].properties, responseData.features[0].properties.codes.length);
+						//console.info(responseData);
+						
+						for(i = 0; i < children.length; i++) {
+							locationCodes.push(parseInt(children[i].gid));
+						}
+						
+						postLocationQuery(codeType, locationCodes);
 						
 						return;
 					},
@@ -114,74 +198,7 @@
 				});
 			}
 			else {
-				for(i = 0; i < locationCodes.length; i++) {
-					postData.push({
-						"queryTerm": locationCodes[i],
-						"ignoreAccent": true,
-						"searchNames": false,
-						"searchOtherNames": false,
-						"searchCodes": true,
-						"codeTypeIds": [parseInt(codeType)],
-						"logic": "AND",
-						"onlyFeatureFields": [
-							"properties.codes",
-							"properties.name"
-						]
-					});
-				}
-				
-				$.ajax({
-					url: findBulkURL,
-					data: JSON.stringify(postData),
-					type: "POST",
-					beforeSend: function(xhr) {
-						$("#query-results tbody").empty();
-						$("#query-results tbody").append("<tr><th>PLEASE</th><th>WAIT...</th></tr>");
-						
-						return;
-					},
-					success: function(responseData, status, xhr) {
-						var i,
-							codesLength,
-							maxCodesLength = 0;
-						
-						console.info(responseData);
-						
-						$("#query-results tbody").empty();
-						
-						for(i = 0; i < responseData.length; i++) {
-							if(responseData[i].features[0]) {
-								codesLength = responseData[i].features[0].properties.codes.length;
-							}
-							else {
-								responseData[i].features.push({
-									properties: {
-										name: responseData[i].properties.queryTerm,
-										codes: [{codeTypeName: "Error", code: "Not Found"}]
-									}
-								});
-								
-								codesLength = 1;
-							}
-							
-							if(codesLength > maxCodesLength) {
-								maxCodesLength = codesLength;
-							}
-						}
-						
-						for(i = 0; i < responseData.length; i++) {
-							processResult(responseData[i].features[0].properties, maxCodesLength);
-						}
-					},
-					error: function(xhr,status,error) {
-						console.error(xhr);
-						console.error(status);
-						console.error(error);
-						
-						return;
-					},
-					contentType: "application/json"
-				});
+				postLocationQuery(codeType, locationCodes);
 			}
 			
 			return;
