@@ -181,11 +181,13 @@ id := (SELECT gid FROM LOCATION
 	WHERE 
             NEW.gid <> gid --No self comparison on updates
             AND
-            NEW.name ILIKE name
+            lower(trim(NEW.name)) = lower(trim(name))
             AND
             NEW.location_type_id = location_type_id
             AND
             NEW.parent_gid IS NOT DISTINCT FROM parent_gid
+            AND
+            NEW.code IS NOT DISTINCT FROM code
             AND
             (
             NEW.start_date BETWEEN start_date AND LEAST(end_date,CURRENT_DATE)

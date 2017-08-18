@@ -91,6 +91,7 @@ public class Data {
 		this.locationType = locationType;
 	}
 
+	@Column(nullable = true)
 	public String getCode() {
 		return code;
 	}
@@ -100,7 +101,7 @@ public class Data {
 	}
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "code_type_id", nullable = false)
+	@JoinColumn(name = "code_type_id", nullable = true)
 	public CodeType getCodeType() {
 		return codeType;
 	}

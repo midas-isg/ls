@@ -7,11 +7,15 @@
     "startDate": "2014-01-01",
     "endDate": "2014-01-02",
     "code": "test-code 2",
-    "otherCodes": [{"code": "code1 2"},
-    				{"code": "code2 2"} ],
-    "otherNames": [ {"name": "ñámé wíth áccéñt 2", "language": "spa"},
-    				{"name": "name without accent 2", "language": "eng"},
-    				{"name": "an otherName for test 2"}
+    "codeTypeId": 999,
+    "gisSourceId": 999,
+    "otherCodes": [{"code": "code1 2",
+    				"codeTypeId": 999},
+    				{"code": "code2 2",
+    				  "codeTypeId": 999} ],
+    "otherNames": [ {"name": "ñámé wíth áccéñt 2", "language": "spa", "gisSourceId": 999},
+    				{"name": "name without accent 2", "language": "eng", "gisSourceId": 999},
+    				{"name": "an otherName for test 2", "gisSourceId": 999}
     				]
   },
     "features": [

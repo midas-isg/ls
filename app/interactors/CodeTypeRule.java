@@ -15,4 +15,12 @@ public class CodeTypeRule {
 		CodeTypeDao codeTypeDao = new CodeTypeDao(JPA.em());
 		return codeTypeDao.getCodeTypeNames(codeTypeIds);
 	}
+
+	public static CodeType read(long id) {
+		return new CodeTypeDao(JPA.em()).read(id);
+	}
+
+	public static CodeType findByName(String name) {
+		return new CodeTypeDao(JPA.em()).findByName(name);
+	}
 }

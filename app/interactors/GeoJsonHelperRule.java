@@ -1,5 +1,6 @@
 package interactors;
 
+import static interactors.GeoJsonHelperRule.getString;
 import static interactors.RequestRule.isRequestedFeatureProperties;
 import static interactors.Util.putAsStringIfNotNull;
 import static models.FeatureKey.asFullPath;
@@ -10,14 +11,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.vividsolutions.jts.geom.Point;
 
 import dao.ForestDao;
 import dao.entities.AltName;
 import dao.entities.CircleGeometry;
 import dao.entities.Code;
+import dao.entities.CodeType;
 import dao.entities.Data;
 import dao.entities.Forest;
+import dao.entities.GisSource;
 import dao.entities.Location;
 import dao.entities.LocationGeometry;
 import dao.entities.LocationType;
@@ -32,10 +36,10 @@ import models.geo.FeatureGeometry;
 import play.Logger;
 
 public class GeoJsonHelperRule {
-	
+
 	private static final String KEY_SPEW_URL = "url";
 	private static final String SPEW_BASE_URL_CONF_KEY = "spew.base.url";
-	
+
 	static List<Location> wireLocationsIncluded(FeatureCollection fc, LocationType type) {
 		LocationType allowType = type.getComposedOf();
 		List<Location> locations = new ArrayList<>();
@@ -175,22 +179,39 @@ public class GeoJsonHelperRule {
 			return;
 
 		List<Map<String, String>> codes = new ArrayList<>();
-		Map<String, String> code = new HashMap<>();
-		code.put(FeatureKey.CODE, location.getData().getCode());
-		code.put(FeatureKey.CODE_TYPE_NAME, location.getData().getCodeType().getName());
-		codes.add(code);
-		properties.put(string, codes);
+		if (location.getData().getCode() != null)
+			codes.add(getCodeAsMap(location));
 
 		List<Code> otherCodes = location.getOtherCodes();
-		if (otherCodes == null)
-			return;
-		for (Code c : otherCodes) {
-			Map<String, String> anotherCode = new HashMap<>();
-			anotherCode.put(FeatureKey.CODE, c.getCode());
-			if (c.getCodeType() != null)
-				anotherCode.put(FeatureKey.CODE_TYPE_NAME, c.getCodeType().getName());
-			codes.add(anotherCode);
-		}
+		if (otherCodes != null)
+			for (Code c : otherCodes)
+				codes.add(asMap(c));
+
+		if (!codes.isEmpty())
+			properties.put(string, codes);
+
+	}
+
+	private static Map<String, String> asMap(Code c) {
+		Map<String, String> code = new HashMap<>();
+		code.put(FeatureKey.CODE, c.getCode());
+		String codeTypeName = null;
+		if (c.getCodeType() != null)
+			codeTypeName = c.getCodeType().getName();
+		code.put(FeatureKey.CODE_TYPE_NAME, codeTypeName);
+		return code;
+	}
+
+	private static Map<String, String> getCodeAsMap(Location location) {
+		Map<String, String> code = new HashMap<>();
+		code.put(FeatureKey.CODE, location.getData().getCode());
+		CodeType codeType = location.getData().getCodeType();
+		String codeTypeName = null;
+		if (codeType != null)
+			codeTypeName = codeType.getName();
+		code.put(FeatureKey.CODE_TYPE_NAME, codeTypeName);
+
+		return code;
 	}
 
 	static void putAsLocationObjectsIfNotNull(Map<String, Object> properties, String key, List<Location> locations) {
@@ -242,7 +263,7 @@ public class GeoJsonHelperRule {
 			putAsStringIfNotNull(properties, FeatureKey.PARENT_GID, getGid(parent));
 		}
 		if (isRequestedFeatureProperties(req, asFullPath(FeatureKey.MATCHED_TERM)))
-			putAsStringIfNotNull(properties,FeatureKey.MATCHED_TERM, location.getMatchedTerm());
+			putAsStringIfNotNull(properties, FeatureKey.MATCHED_TERM, location.getMatchedTerm());
 		return properties;
 	}
 
@@ -263,11 +284,59 @@ public class GeoJsonHelperRule {
 			if (type == null)
 				type = LocationTypeRule.findByName(name);
 		} catch (Exception e2) {
-			throw new RuntimeException(
-					"Requested location type not found: " + FeatureKey.LOCATION_TYPE_ID + "=" 
-							+ id + ", " + FeatureKey.LOCATION_TYPE_NAME + "=" + name);
-			}
+			throw new RuntimeException("Requested location type not found: " + FeatureKey.LOCATION_TYPE_ID + "=" + id
+					+ ", " + FeatureKey.LOCATION_TYPE_NAME + "=" + name);
+		}
 		return type;
+	}
+
+	static CodeType findCodeType(String id, String name) {
+		if (id == null && name == null)
+			return null;
+
+		CodeType type = null;
+		try {
+			if (id != null)
+				type = CodeTypeRule.read(Long.parseLong(id));
+		} catch (Exception e) {
+			Logger.info(e.getMessage(), e);
+		}
+		try {
+			if (type == null)
+				type = CodeTypeRule.findByName(name);
+		} catch (Exception e) {
+			throw new RuntimeException("Requested code type not found: " + FeatureKey.CODE_TYPE_ID + "=" + id + ", "
+					+ FeatureKey.CODE_TYPE_NAME + "=" + name);
+		}
+		return type;
+	}
+
+	static GisSource findOrCreateGisSource(String id, String url) {
+		if (id == null && url == null)
+			throw new RuntimeException(FeatureKey.GIS_SOURCE_URL + " or " + FeatureKey.GIS_SOURCE_ID + " is required.");
+
+		GisSource source = null;
+		try {
+			if (id != null)
+				source = GisSourceRule.read(Long.parseLong(id));
+		} catch (Exception e) {
+			Logger.info(e.getMessage(), e);
+		}
+
+		if (source == null)
+			source = GisSourceRule.findByUrl(url);
+		if (source == null) {
+			source = createGisSource(url);
+		}
+		return source;
+	}
+
+	private static GisSource createGisSource(String url) {
+		GisSource source;
+		source = new GisSource();
+		source.setUrl(url);
+		source.setId(GisSourceRule.create(source));
+		return source;
 	}
 
 	static LocationGeometry createLocationGeometry(FeatureCollection fc, Location l) {
@@ -282,7 +351,7 @@ public class GeoJsonHelperRule {
 
 	private static void setCircleGeometryIfIsCircle(FeatureCollection fc, LocationGeometry lg) {
 		FeatureGeometry geometry = fc.getFeatures().get(0).getGeometry();
-		if (geometry instanceof Circle){
+		if (geometry instanceof Circle) {
 			CircleGeometry cg = toCircleGeometry((Circle) geometry);
 			cg.setLocationGeometry(lg);
 			lg.setCircleGeometry(cg);
@@ -304,9 +373,22 @@ public class GeoJsonHelperRule {
 		return object.toString();
 	}
 
+	static String getStringValue(JsonNode node, String fieldName) {
+		JsonNode value = node.get(fieldName);
+		if (value == null)
+			return null;
+		return value.asText();
+	}
+
 	private static String getGid(Location location) {
 		if (location == null)
 			return null;
 		return String.valueOf(location.getGid());
+	}
+
+	public static String getLocationCode(FeatureCollection fc) {
+		String code = getString(fc, "code");
+
+		return null;
 	}
 }
