@@ -7,7 +7,6 @@ import static interactors.GeoJsonHelperRule.findLocationType;
 import static interactors.GeoJsonHelperRule.findOrCreateGisSource;
 import static interactors.GeoJsonHelperRule.getRepPoint;
 import static interactors.GeoJsonHelperRule.getString;
-import static interactors.GeoJsonHelperRule.getStringValue;
 import static interactors.GeoJsonHelperRule.putAsAltNameObjectsIfNotNull;
 import static interactors.GeoJsonHelperRule.putAsCodeObjectsIfNotNull;
 import static interactors.GeoJsonHelperRule.putAsLocationObjectsIfNotNull;
@@ -23,6 +22,7 @@ import static interactors.Util.putAsStringIfNotNull;
 import static interactors.Util.toStringValue;
 import static models.FeatureKey.asFullPath;
 
+import java.math.BigInteger;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,7 +40,6 @@ import dao.entities.CircleGeometry;
 import dao.entities.Code;
 import dao.entities.CodeType;
 import dao.entities.Data;
-import dao.entities.GisSource;
 import dao.entities.Location;
 import dao.entities.LocationGeometry;
 import dao.entities.LocationType;
@@ -286,15 +285,17 @@ public class GeoJsonRule {
 	}
 
 	private static void setOtherCodes(FeatureCollection fc, Location location) {
-		ArrayNode otherCodes = (ArrayNode) fc.getProperties().get(FeatureKey.OTHER_CODES);
+		@SuppressWarnings("unchecked")
+		List<Map<String, Object>> otherCodes = (List<Map<String, Object>>) fc.getProperties()
+				.get(FeatureKey.OTHER_CODES);
 		if (otherCodes == null)
 			return;
 		List<Code> codes = new ArrayList<>();
 
-		for (JsonNode n : otherCodes) {
-			String code = getStringValue(n, FeatureKey.CODE);
-			CodeType codeType = findCodeType(getStringValue(n, FeatureKey.CODE_TYPE_ID),
-					getStringValue(n, FeatureKey.CODE_TYPE_NAME));
+		for (Map<String, Object> e : otherCodes) {
+			String code = (String) e.get(FeatureKey.CODE);
+			CodeType codeType = findCodeType(((BigInteger) e.get(FeatureKey.CODE_TYPE_ID)).toString(),
+					(String) e.get(FeatureKey.CODE_TYPE_NAME));
 			if ((codeType == null && code != null) || (codeType != null && code == null))
 				throw new BadRequest("code type or code is null");
 			Code c = new Code();
@@ -307,19 +308,19 @@ public class GeoJsonRule {
 
 	private static void setOtherNames(FeatureCollection fc, Location location) {
 		@SuppressWarnings("unchecked")
-		List<JsonNode> otherNames =  (List<JsonNode>) fc.getProperties().get(FeatureKey.OTHER_NAMES);
-		//ArrayNode otherNames = (ArrayNode) object;
+		List<Map<String, Object>> otherNames = (List<Map<String, Object>>) fc.getProperties()
+				.get(FeatureKey.OTHER_NAMES);
 		if (otherNames == null)
 			return;
 		List<AltName> names = new ArrayList<>();
-		for (JsonNode n : otherNames) {
+		for (Map<String, Object> n : otherNames) {
 			AltName altName = new AltName();
-			altName.setName(getStringValue(n, FeatureKey.NAME));
-			altName.setLanguage(getStringValue(n, "language"));
-			altName.setDescription(getStringValue(n, "description"));
-			altName.setGisSource(findOrCreateGisSource(getStringValue(n, FeatureKey.GIS_SOURCE_ID),
-					getStringValue(n, FeatureKey.GIS_SOURCE_URL))); 
-			
+			altName.setName((String) n.get(FeatureKey.NAME));
+			altName.setLanguage((String) n.get("language"));
+			altName.setDescription((String) n.get("description"));
+			altName.setGisSource(findOrCreateGisSource(((BigInteger) n.get(FeatureKey.GIS_SOURCE_ID)).toString(),
+					(String) n.get(FeatureKey.GIS_SOURCE_URL)));
+			altName.setLocation(location);
 			names.add(altName);
 		}
 		location.setAltNames(names);

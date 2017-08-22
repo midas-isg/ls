@@ -3,7 +3,6 @@ package dao;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
-import dao.entities.CodeType;
 import dao.entities.GisSource;
 import gateways.database.jpa.JpaAdaptor;
 import play.db.jpa.JPA;

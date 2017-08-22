@@ -1,6 +1,5 @@
 package interactors;
 
-import static interactors.GeoJsonHelperRule.getString;
 import static interactors.RequestRule.isRequestedFeatureProperties;
 import static interactors.Util.putAsStringIfNotNull;
 import static models.FeatureKey.asFullPath;
@@ -11,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.vividsolutions.jts.geom.Point;
 
 import dao.ForestDao;
@@ -373,22 +371,9 @@ public class GeoJsonHelperRule {
 		return object.toString();
 	}
 
-	static String getStringValue(JsonNode node, String fieldName) {
-		JsonNode value = node.get(fieldName);
-		if (value == null)
-			return null;
-		return value.asText();
-	}
-
 	private static String getGid(Location location) {
 		if (location == null)
 			return null;
 		return String.valueOf(location.getGid());
-	}
-
-	public static String getLocationCode(FeatureCollection fc) {
-		String code = getString(fc, "code");
-
-		return null;
 	}
 }

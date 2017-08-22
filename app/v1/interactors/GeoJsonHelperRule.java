@@ -14,6 +14,7 @@ import com.vividsolutions.jts.geom.Point;
 import dao.ForestDao;
 import dao.entities.AltName;
 import dao.entities.Code;
+import dao.entities.CodeType;
 import dao.entities.Data;
 import dao.entities.Forest;
 import dao.entities.Location;
@@ -167,13 +168,19 @@ public class GeoJsonHelperRule {
 	}
 
 	static void putAsCodeObjectsIfNotNull(Map<String, Object> properties, String string, Location location) {
-		if (location == null)
+		if (location == null || location.getData() == null)
 			return;
-
+		
+		String primCode = location.getData().getCode();
+		CodeType codeType = location.getData().getCodeType();
+		
+		if(primCode == null || codeType == null)
+			return;
+		
 		List<Map<String, String>> codes = new ArrayList<>();
 		Map<String, String> code = new HashMap<>();
-		code.put(FeatureKey.CODE, location.getData().getCode());
-		code.put(FeatureKey.CODE_TYPE_NAME, location.getData().getCodeType().getName());
+		code.put(FeatureKey.CODE, primCode);
+		code.put(FeatureKey.CODE_TYPE_NAME, codeType.getName());
 		codes.add(code);
 		properties.put(string, codes);
 

@@ -95,7 +95,7 @@ public class IntegrationTest {
 				tesCreateAuWithInvalidGeom();
 				tesCrudAuWithDuplication();
 				tesCrudcircle();
-				//testRelativeLocations();
+				testRelativeLocations();
 
 				transaction.rollback();
 			}
