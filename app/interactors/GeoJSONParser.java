@@ -1,22 +1,9 @@
 package interactors;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
-import models.exceptions.BadRequest;
-import models.geo.Circle;
-import models.geo.Feature;
-import models.geo.FeatureCollection;
-import models.geo.FeatureGeometry;
-import models.geo.GeometryCollection;
-import models.geo.MultiPolygon;
-import models.geo.Polygon;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -27,8 +14,14 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
 
-import dao.entities.AltName;
-import dao.entities.Code;
+import models.exceptions.BadRequest;
+import models.geo.Circle;
+import models.geo.Feature;
+import models.geo.FeatureCollection;
+import models.geo.FeatureGeometry;
+import models.geo.GeometryCollection;
+import models.geo.MultiPolygon;
+import models.geo.Polygon;
 
 public class GeoJSONParser {
 	private GeoJSONParser() {
@@ -38,19 +31,17 @@ public class GeoJSONParser {
 	public static FeatureCollection parse(JsonNode inputJsonNode) throws Exception {
 		FeatureCollection featureCollection = new FeatureCollection();
 		featureCollection.setType(inputJsonNode.get("type").textValue());
-		Map<String, Object> fcProperties = new HashMap<>();
-		toProperties(fcProperties, inputJsonNode);
+		Map<String, Object> fcProperties = toProperties(inputJsonNode);
 		featureCollection.setProperties(fcProperties);
 
 		JsonNode featuresArrayNode = inputJsonNode.withArray("features");
 		for (int i = 0; i < featuresArrayNode.size(); i++) {
-			Map<String, Object> properties = new HashMap<>();
 			FeatureGeometry geometry = null;
 
 			JsonNode currentNode = featuresArrayNode.get(i);
 			Feature feature = new Feature();
 			feature.setType(currentNode.get("type").textValue());
-			toProperties(properties, currentNode);
+			Map<String, Object> properties = toProperties(currentNode);
 
 			JsonNode currentGeometry = currentNode.get("geometry");
 			if (!currentGeometry.isNull()) {
@@ -98,47 +89,16 @@ public class GeoJSONParser {
 		return featureCollection;
 	}
 
-	private static void toProperties(Map<String, Object> map, JsonNode currentNode) {
-		JsonNode properties = currentNode.get("properties");
-		if (properties == null) {
-			return;
-		}
-
-		Iterator<Entry<String, JsonNode>> propertiesIterator = properties.fields();
-		while (propertiesIterator.hasNext()) {
-			Entry<String, JsonNode> mapping = propertiesIterator.next();
-			if (mapping.getValue().isArray())
-				toArrayProperties(map, mapping);
-			else
-				map.put(mapping.getKey(), mapping.getValue().textValue());
-		}
-
-		return;
-	}
-
-	private static void toArrayProperties(Map<String, Object> map, Entry<String, JsonNode> mapping) {
-		JsonNode arrayNode = mapping.getValue();
-		List<AltName> altNames = new ArrayList<>();
-		List<Code> codes = new ArrayList<>();
-		ObjectMapper om = new ObjectMapper();
-		for (int i = 0; i < arrayNode.size(); i++) {
-			JsonNode jsonNode = arrayNode.get(i);
-			try {
-				if (mapping.getKey().equals("otherNames")) {
-					AltName n = om.treeToValue(jsonNode, AltName.class);
-					altNames.add(n);
-				} else if (mapping.getKey().equals("otherCodes")) {
-					Code c = om.treeToValue(jsonNode, Code.class);
-					codes.add(c);
-				}
-			} catch (JsonProcessingException e) {
-				throw new RuntimeException(e);
-			}
-		}
-		if (mapping.getKey().equals("otherNames"))
-			map.put("otherNames", altNames);
-		else if (mapping.getKey().equals("otherCodes"))
-			map.put("otherCodes", codes);
+	private static Map<String, Object> toProperties(JsonNode inputJson) {
+		JsonNode propertiesNode = inputJson.get("properties");
+		if (propertiesNode == null)
+			return null;
+		
+		ObjectMapper mapper = new ObjectMapper();
+		@SuppressWarnings("unchecked")
+		Map<String, Object> result = (Map<String, Object>) mapper.convertValue(propertiesNode, Map.class);
+		
+		return result;
 	}
 
 	private static models.geo.Point parsePoint(JsonNode geometryNode) {
