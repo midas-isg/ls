@@ -294,13 +294,14 @@ public class GeoJsonRule {
 
 		for (Map<String, Object> e : otherCodes) {
 			String code = (String) e.get(FeatureKey.CODE);
-			CodeType codeType = findCodeType(((BigInteger) e.get(FeatureKey.CODE_TYPE_ID)).toString(),
+			CodeType codeType = findCodeType(e.get(FeatureKey.CODE_TYPE_ID).toString(),
 					(String) e.get(FeatureKey.CODE_TYPE_NAME));
 			if ((codeType == null && code != null) || (codeType != null && code == null))
 				throw new BadRequest("code type or code is null");
 			Code c = new Code();
 			c.setCode(code);
 			c.setCodeType(codeType);
+			c.setLocation(location);
 			codes.add(c);
 		}
 		location.setOtherCodes(codes);
