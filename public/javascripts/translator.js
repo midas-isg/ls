@@ -58,16 +58,28 @@
 				},
 				success: function(responseData, status, xhr) {
 					var i,
+						j,
+						codes,
 						codesLength,
-						maxCodesLength = 0;
+						maxCodesLength = 0,
+						codeTypes = [],
+						tempObject = {},
+						temp,
+						th;
 					
-					console.info(responseData);
+					//console.info(responseData);
 					
 					$("#query-results tbody").empty();
 					
 					for(i = 0; i < responseData.length; i++) {
 						if(responseData[i].features[0]) {
-							codesLength = responseData[i].features[0].properties.codes.length;
+							codes = responseData[i].features[0].properties.codes;
+							
+							codesLength = codes.length;
+							
+							for(j = 0; j < codes.length; j++) {
+								tempObject[codes[j].codeTypeName] = j;
+							}
 						}
 						else {
 							responseData[i].features.push({
@@ -85,8 +97,25 @@
 						}
 					}
 					
+					for(i in tempObject) {
+						if(tempObject.hasOwnProperty(i)) {
+							codeTypes.push(i);
+						}
+					}
+					
+					temp = $("table#query-results thead tr")[0];
+					th = $(temp).find("#results-names")[0];
+					$(temp).empty();
+					temp.appendChild(th);
+					
+					for(i = 0; i < codeTypes.length; i++) {
+						th = document.createElement("th");
+						th.innerHTML = codeTypes[i];
+						temp.appendChild(th);
+					}
+					
 					for(i = 0; i < responseData.length; i++) {
-						displayResult(responseData[i].features[0].properties, maxCodesLength);
+						displayResultRow(responseData[i].features[0].properties, maxCodesLength, codeTypes);
 					}
 				},
 				error: function(xhr,status,error) {
@@ -102,7 +131,7 @@
 			return;
 		}
 		
-		function displayResult(properties, maxCodesLength) {
+		function displayResultRow(properties, maxCodesLength, codeTypes) {
 			var name = properties.name,
 				codes = properties.codes,
 				row = document.createElement("tr"),
@@ -118,10 +147,20 @@
 				td = document.createElement("td");
 				
 				if(codes[i]) {
-					td.innerHTML = codes[i].codeTypeName + ": " + codes[i].code;
+					while(codes[i].codeTypeName !== codeTypes[row.children.length - 1]) {
+						row.appendChild(td);
+						td = document.createElement("td");
+					}
+					
+					td.innerHTML = codes[i].code;
 				}
 				
 				td.headers = "results-codes";
+				row.appendChild(td);
+			}
+			
+			while((row.children.length - 1) < codeTypes.length) {
+				td = document.createElement("td");
 				row.appendChild(td);
 			}
 			
