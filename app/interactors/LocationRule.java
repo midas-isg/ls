@@ -109,12 +109,18 @@ public class LocationRule {
 		return result;
 	}
 
-	public static Long update(long gid, Location location) {
+	public static Long update(long gid, Location toBeUpdated) {
 		if (gid <= 0)
 			throw new RuntimeException("id shall be more than 0 but got " + gid);
+		toBeUpdated.setGid(gid);
+		preserveOldAlternativeCodes(gid, toBeUpdated);
+		return new LocationDao().update(toBeUpdated);
+	}
+
+	private static void preserveOldAlternativeCodes(long gid, Location toBeUpdated) {
 		LocationDao dao = new LocationDao();
-		location.setGid(gid);
-		return dao.update(location);
+		Location current = dao.read(gid);
+		toBeUpdated.setOtherCodes(current.getOtherCodes());
 	}
 
 	public static Long deleteTogetherWithAllGeometries(long gid) {

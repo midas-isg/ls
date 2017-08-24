@@ -23,9 +23,8 @@ public class CodeTypeRule {
 
 	public static Code createApolloLocationCode(Location location) {
 		Code apolloLocationCode = new Code();
-		CodeType AlcType = new CodeType();
 		apolloLocationCode.setCode(Long.toString(location.getGid()));
-		AlcType.setId(APOLLO_LOCATION_CODE_TYPE_ID);
+		CodeType AlcType = CodeTypeRule.read(APOLLO_LOCATION_CODE_TYPE_ID);
 		apolloLocationCode.setCodeType(AlcType);
 		apolloLocationCode.setLocation(location);
 

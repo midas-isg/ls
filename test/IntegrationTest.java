@@ -481,9 +481,9 @@ public class IntegrationTest {
 	}
 
 	private void renderTemplate() {
-		Content html = views.html.create.render("ALS is ready.", "");
+		Content html = views.html.create.render("LS is ready.", "");
 		assertThat(html.contentType()).isEqualTo("text/html");
-		assertThat(contentAsString(html)).contains("ALS is ready.");
+		assertThat(contentAsString(html)).contains("LS is ready.");
 	}
 
 	private void tesCrudEz() throws Exception {
@@ -540,6 +540,7 @@ public class IntegrationTest {
 		assertCircleProperties(circle);
 
 		((Circle) fc.getFeatures().get(0).getGeometry()).setRadius(12345.0);
+		
 		long updatedGid = LocationServices.Wire.update(gid, fc);
 		assertThat(updatedGid).isEqualTo(gid);
 		Location updatedCircle = assertRead(fc, updatedGid);
