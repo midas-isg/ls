@@ -27,7 +27,6 @@ import dao.entities.AltName;
 import dao.entities.Location;
 import dao.entities.LocationGeometry;
 import interactors.LocationProxyRule;
-import interactors.LocationRule;
 import models.Request;
 import models.exceptions.PostgreSQLException;
 import play.Logger;
@@ -42,9 +41,11 @@ public class LocationDao {
 		createGeometry(location, em);
 		createAlternativeNames(location, em);
 		createAlternativeCodes(location, em);
+		
+		refreshToIncludeDbTriggerResults(location, em);
 
 		// TODO: decouple
-		LocationProxyRule.scheduleCacheUpdate(location);
+		LocationProxyRule.scheduleCacheUpdateOrInit(location);
 
 		Long gid = location.getGid();
 		Logger.info("persisted " + gid);
@@ -52,9 +53,12 @@ public class LocationDao {
 		return gid;
 	}
 
+	private void refreshToIncludeDbTriggerResults(Location location, EntityManager em) {
+		em.refresh(location);
+	}
+
 	private void createAlternativeCodes(Location location, EntityManager em) {
 		CodeDao codeDao = new CodeDao(em);
-		LocationRule.addApolloLocationCode(location);
 		codeDao.createAll(location.getOtherCodes());
 	}
 
@@ -96,7 +100,7 @@ public class LocationDao {
 		if (geometry.getCircleGeometry() != null)
 			em.merge(geometry.getCircleGeometry());
 		em.merge(location);
-		LocationProxyRule.scheduleCacheUpdate(location); // TODO: decouple
+		LocationProxyRule.scheduleCacheUpdateOrInit(location); // TODO: decouple
 		Long gid = location.getGid();
 		Logger.info("merged " + gid);
 
