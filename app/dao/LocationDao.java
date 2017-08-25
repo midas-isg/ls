@@ -41,13 +41,20 @@ public class LocationDao {
 		createGeometry(location, em);
 		createAlternativeNames(location, em);
 		createAlternativeCodes(location, em);
+		
+		refreshToIncludeDbTriggerResults(location, em);
 
-		LocationProxyRule.scheduleCacheUpdate(location); // TODO: decouple
+		// TODO: decouple
+		LocationProxyRule.scheduleCacheUpdateOrInit(location);
 
 		Long gid = location.getGid();
 		Logger.info("persisted " + gid);
 
 		return gid;
+	}
+
+	private void refreshToIncludeDbTriggerResults(Location location, EntityManager em) {
+		em.refresh(location);
 	}
 
 	private void createAlternativeCodes(Location location, EntityManager em) {
@@ -93,7 +100,7 @@ public class LocationDao {
 		if (geometry.getCircleGeometry() != null)
 			em.merge(geometry.getCircleGeometry());
 		em.merge(location);
-		LocationProxyRule.scheduleCacheUpdate(location); // TODO: decouple
+		LocationProxyRule.scheduleCacheUpdateOrInit(location); // TODO: decouple
 		Long gid = location.getGid();
 		Logger.info("merged " + gid);
 

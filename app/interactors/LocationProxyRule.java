@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 import dao.LocationDao;
 import dao.entities.AltName;
 import dao.entities.Location;
+import gateways.configuration.ConfReader;
 import models.FancyTreeNode;
 import play.Logger;
 import play.db.jpa.JPA;
@@ -25,27 +26,40 @@ public class LocationProxyRule {
 	private static List<FancyTreeNode> auTree = null;
 	private static Long defaultCacheDelay = 0L;
 
-	public static void scheduleCacheUpdate() {
-		scheduleCacheUpdate(null);
+	public static void initializeCache() {
+		scheduleCacheUpdateOrInit(null);
 	}
 
-	public static void scheduleCacheUpdate(Location location) {
+	public static void scheduleCacheUpdateOrInit(Location location) {
+		if(isSkipUpdateCache(location))
+			return;
 		Akka.system().scheduler().scheduleOnce(Duration.create(defaultCacheDelay, TimeUnit.MILLISECONDS),
 				new Runnable() {
 					@Override
 					public void run() {
 						JPA.withTransaction(() -> {
-							updateCache(location);
+							updateOrInitializeCache(location);
 						});
 					}
 				}, Akka.system().dispatcher());
 	}
+	
+	public static void initializeCacheIfConfigured() {
+		ConfReader confReader = new ConfReader();
+		String updateCache = confReader.readString("update.cache.on.start");
+		if(updateCache == null || updateCache.trim().toLowerCase().equals("true")){
+			LocationProxyRule.initializeCache();
+		}
+		else {
+			Logger.info("skipped cache-initialization!");
+		}
+	}
 
-	private static synchronized void updateCache(Location location) {
+	private static synchronized void updateOrInitializeCache(Location location) {
 
 		if (location != null) {
 			// DOES NOT UPDATE AUTREE
-			// ONLY EPIDEMIC ZONES ARE ALLOWED TO BE CREATED AT THIS MOMEMNT
+			// ONLY EPIDEMIC ZONES ARE ALLOWED TO BE CREATED AT THIS MOMENT
 			updateUniqueSortedLocationNames(location);
 			Logger.info("added names of location with gid = " + location.getGid()
 					+ " to UniqueSortedLocationNames cache ...");
@@ -255,5 +269,20 @@ public class LocationProxyRule {
 			for (AltName altName : altNames)
 				names.add(altName.getName());
 		return names;
+	}
+	
+	private static boolean isSkipUpdateCache(Location location){
+		boolean isSkipUpdateCache = false;
+		if(location != null){
+			ConfReader confReader = new ConfReader();
+			String confValue = confReader.readString("update.cache.on.crud");
+			if(confValue == null || confValue.trim().toLowerCase().equals("true"))
+				isSkipUpdateCache = false;
+			else {
+				Logger.info("skipped cache-update!");
+				isSkipUpdateCache = true;
+			}
+		}
+		return isSkipUpdateCache;
 	}
 }

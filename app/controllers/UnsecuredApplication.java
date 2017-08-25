@@ -10,30 +10,35 @@ import play.mvc.Controller;
 
 
 public class UnsecuredApplication extends Controller {
-
-   	private static String INFO = null;
-
-    public static String info() {
-    	init();
-        return INFO;
-    }
-
-   	private static void init(){
-   		if (INFO == null){
-	   	    final Configuration cfg = Play.application().configuration();
+	
+	private static String INFO = null;
+	
+	public static String info() {
+		init();
+		return INFO;
+	}
+	
+	private static void init() {
+		if (INFO == null) {
+			final Configuration cfg = Play.application().configuration();
 			String version = "Version: " + cfg.getString("app.version");
-	   	    String dbName = "Database: " + cfg.getString("db.default.url");
-	   	   	INFO = "Copyright 2014-2016 - University of Pittsburgh, " 
-	   	    + version + ", " + dbName;
-   		}
-   	}
-   	
-   	
-   	public Result about() {
+			String dbName = "Database: " + cfg.getString("db.default.url");
+			
+			INFO = "Copyright 2014-2017 - University of Pittsburgh, " 
+				+ version + ", " + dbName;
+		}
+	}
+	
+	
+	public Result about() {
 		return ok(views.html.about.render("about", info()));
 	}
-   	
-   	public Result index() {
+	
+	public Result error() {
+		return ok(views.html.error.render("error", info()));
+	}
+	
+	public Result index() {
 		return basicSearch();
 	}
 	

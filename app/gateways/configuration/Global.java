@@ -28,11 +28,7 @@ public class Global extends GlobalSettings {
 	@Override
 	public void onStart(Application app) {
 		Logger.info(appName + " has started");
-		ConfReader confReader = new ConfReader();
-		String updateCache = confReader.readString("update.cache.on.start");
-		if(updateCache == null || updateCache.trim().toLowerCase().equals("true")){
-			LocationProxyRule.scheduleCacheUpdate();
-		}
+		LocationProxyRule.initializeCacheIfConfigured();
 	}
 
 	@Override
