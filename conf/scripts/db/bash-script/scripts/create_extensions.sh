@@ -1,4 +1,0 @@
-#!/bin/bash
-
-psql -U $USERNAME -d $DBNAME -p $PORT -c "CREATE EXTENSION IF NOT EXISTS postgis;
-CREATE EXTENSION IF NOT EXISTS unaccent;"
