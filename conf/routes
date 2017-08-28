@@ -7,7 +7,6 @@ GET           /                                   controllers.Application.index(
 GET           /about                              controllers.UnsecuredApplication.about()
 GET           /error                              controllers.UnsecuredApplication.error()
 GET           /map-search                         controllers.Application.mapSearch()
-GET           /advanced-search                    controllers.Application.advancedSearch()
 GET           /read-only                          controllers.Application.browser()
 GET           /browser                            controllers.Application.browser()
 GET           /resolver                           controllers.Application.resolver()

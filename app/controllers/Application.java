@@ -46,10 +46,6 @@ public class Application extends UserController {
 		return ok(views.html.map_search.render("map search", info()));
 	}
 	
-	public Result advancedSearch() {
-		return ok(views.html.advanced_search.render("advanced search", info()));
-	}
-	
 	public Result translate() {
 		return ok(views.html.translate.render("translator", info()));
 	}
