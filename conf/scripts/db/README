@@ -1,5 +1,12 @@
-- In order to create Apollo Location Service database schema, run bash-script/run-me.sh
 
-- Use ls_schema_backup_command on Apollo-LS database server, if you want to backup the database schema_only
+## Create DB schema
 
-- Find in-development SQL scripts in sql directory
+In order to create Apollo Location Service database schema:
+
+1- If the schema has been updated, first re-write "scripts/create_schema.sh" by running "scripts/overwrite_create_schema_script.sh".
+
+2- If db extensions has been changed recently, "scripts/create_extensions.sh" should be updated accordingly.
+
+3- If a new spatial reference system has been added, update "scripts/update_spatial_ref_sys.sh" script.
+
+4- Run "run.sh", which calls "scripts/create_extensions.sh", "scripts/create_schema.sh", and "scripts/update_spatial_ref_sys.sh", respectively.

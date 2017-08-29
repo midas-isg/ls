@@ -31,6 +31,7 @@ import controllers.ApolloLocationServices;
 import controllers.LocationServices;
 import controllers.routes;
 import dao.entities.CircleGeometry;
+import dao.entities.Code;
 import dao.entities.Location;
 import dao.entities.LocationType;
 import integrations.app.App;
@@ -96,6 +97,7 @@ public class IntegrationTest {
 				tesCrudAuWithDuplication();
 				tesCrudcircle();
 				testRelativeLocations();
+				testCreateApolloLocationCode();
 
 				transaction.rollback();
 			}
@@ -481,9 +483,9 @@ public class IntegrationTest {
 	}
 
 	private void renderTemplate() {
-		Content html = views.html.create.render("ALS is ready.", "");
+		Content html = views.html.create.render("LS is ready.", "");
 		assertThat(html.contentType()).isEqualTo("text/html");
-		assertThat(contentAsString(html)).contains("ALS is ready.");
+		assertThat(contentAsString(html)).contains("LS is ready.");
 	}
 
 	private void tesCrudEz() throws Exception {
@@ -540,6 +542,7 @@ public class IntegrationTest {
 		assertCircleProperties(circle);
 
 		((Circle) fc.getFeatures().get(0).getGeometry()).setRadius(12345.0);
+
 		long updatedGid = LocationServices.Wire.update(gid, fc);
 		assertThat(updatedGid).isEqualTo(gid);
 		Location updatedCircle = assertRead(fc, updatedGid);
@@ -661,6 +664,26 @@ public class IntegrationTest {
 		jsonNode = mapper.readTree(req);
 		related = LocationRule.getRelative(jsonNode);
 		assertThat(related).containsOnly(1216L, 2192L);
+
+	}
+
+	private void testCreateApolloLocationCode() throws Exception {
+
+		String fileName = "test/AuMaridiTown.geojson";
+		FeatureCollection fc = readFeatureCollectionFromFile(fileName);
+		long gid = LocationServices.Wire.create(fc);
+		Location readLocation = LocationRule.read(gid);
+		List<Code> otherCodes = readLocation.getOtherCodes();
+		assertThat(readLocation).isNotNull();
+		Code alc = otherCodes.stream().filter(c -> c.getCodeType() != null && c.getCodeType().getId() == 14L).findAny()
+				.orElse(null);
+		assertThat(alc).isNotNull();
+		assertThat(alc.getCode()).isEqualTo(readLocation.getGid().toString());
+
+		Long deletedGid = LocationServices.Wire.delete(gid);
+		assertThat(deletedGid).isEqualTo(gid);
+		Location deletedLocation = LocationRule.read(gid);
+		assertThat(deletedLocation).isNull();
 
 	}
 

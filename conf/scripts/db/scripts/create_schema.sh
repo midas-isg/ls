@@ -1,0 +1,1721 @@
+#!/bin/bash
+
+psql -U $USERNAME -d $DBNAME -p $PORT -c "
+--
+-- PostgreSQL database dump
+--
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+
+SET search_path = public, pg_catalog;
+
+--
+-- Name: audit_location(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION audit_location() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+IF (TG_OP = 'UPDATE' OR TG_OP = 'DELETE') THEN
+	INSERT INTO audit_location(gid,name,start_date,end_date,protect,update_date,operation,user_id,parent_gid,location_type_id,code,code_type_id,description,gis_src_id,kml)
+	VALUES(OLD.gid,OLD.name,OLD.start_date,OLD.end_date,OLD.protect,CURRENT_DATE,TG_OP,OLD.user_id,OLD.parent_gid,OLD.location_type_id,OLD.code,OLD.code_type_id,OLD.description,OLD.gis_src_id,OLD.kml);
+END IF;
+RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: audit_location_geometry(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION audit_location_geometry() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+
+BEGIN
+IF (TG_OP = 'UPDATE' OR TG_OP = 'DELETE') THEN
+	INSERT INTO AUDIT_LOCATION_GEOMETRY(gid,multipolygon,area,operation,update_date)
+	VALUES(OLD.gid,OLD.multipolygon,OLD.area,TG_OP,CURRENT_DATE);
+END IF;
+RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: calc_area(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION calc_area() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+NEW.area := st_area(NEW.multipolygon,true);
+RETURN NEW;
+END;	
+$$;
+
+
+--
+-- Name: calc_area_envelope(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION calc_area_envelope() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+NEW.area := st_area(NEW.multipolygon,true);
+NEW.envelope := st_envelope(NEW.multipolygon);
+RETURN NEW;
+END;	
+$$;
+
+
+--
+-- Name: calc_area_envelope_reppoint(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION calc_area_envelope_reppoint() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+--new_geom Geometry(multipolygon,4326);
+validity text;
+BEGIN
+validity := ST_isValidReason(NEW.multipolygon);
+IF validity <> 'Valid Geometry' THEN
+	RAISE EXCEPTION 'Invalid Geometry: %', validity || ' ,gid= ' || new.gid::text;
+END IF;
+NEW.area := st_area(st_transform(NEW.multipolygon,922));
+NEW.envelope := st_envelope(NEW.multipolygon);
+NEW.update_date := CURRENT_DATE;
+NEW.rep_point := (
+with sub_geoms as(
+	select (st_dump(NEW.multipolygon)).geom as sub_geom
+	),
+areas as (
+	select sub_geom ,st_area(st_transform(sub_geom,922)) as area from sub_geoms
+	)
+select st_pointOnSurface(sub_geom) from areas
+where area = (select max(area) from areas)
+limit 1
+);
+RETURN NEW;
+-- EXCEPTION WHEN OTHERS THEN
+-- DO NOTHING
+END;	
+$$;
+
+
+--
+-- Name: create_forest_table(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION create_forest_table() RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+
+BEGIN
+
+EXECUTE 
+	'DROP TABLE IF EXISTS forest; 
+	CREATE TABLE forest (
+	root_gid bigint,
+	child_gid bigint,
+	admin_level int,
+	FOREIGN KEY (root_gid) REFERENCES location (gid) ON DELETE CASCADE,
+	FOREIGN KEY (child_gid) REFERENCES location (gid) ON DELETE CASCADE
+	);
+	DROP INDEX IF EXISTS forest_root_gid_idx;
+	CREATE INDEX forest_root_gid_idx ON forest (root_gid);
+	DROP INDEX IF EXISTS forest_child_gid_idx;
+	CREATE INDEX forest_child_gid_idx ON forest (child_gid);
+	';
+END;
+
+$$;
+
+
+--
+-- Name: delete_from_table(double precision); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION delete_from_table(id double precision) RETURNS void
+    LANGUAGE plpgsql
+    AS $_$
+begin
+	raise notice 'deleting gid=%', $1;
+	perform delete_from_table('alt_name',$1);
+	perform delete_from_table('alt_code',$1);
+	perform delete_from_table('location_definition',$1);
+	perform delete_from_table('location_geometry',$1);
+	perform delete_from_table('location',$1);
+end;
+$_$;
+
+
+--
+-- Name: delete_from_table(text, double precision); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION delete_from_table(tbl text, id double precision) RETURNS void
+    LANGUAGE plpgsql
+    AS $_$
+begin
+    execute
+        'delete from ' || $1 || ' where gid = ' || $2::text || ';';
+end;
+$_$;
+
+
+--
+-- Name: forest(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION forest() RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+
+BEGIN
+
+EXECUTE 'SELECT create_forest_table()';
+EXECUTE 'SELECT populate_forest()';
+
+END;
+
+$$;
+
+
+--
+-- Name: insert_alc_code(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION insert_alc_code() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+
+BEGIN
+	INSERT INTO public.alt_code(code, code_type_id, gid)
+	VALUES(NEW.gid::text, 14, NEW.gid);
+
+RETURN NEW;
+
+END;
+$$;
+
+
+--
+-- Name: internalid_formaltable_name_lookup(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION internalid_formaltable_name_lookup() RETURNS TABLE(count bigint)
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+   formal_table text;
+BEGIN
+   FOR formal_table IN
+      SELECT quote_ident(tablename)
+      FROM   pg_tables
+      WHERE  schemaname = 'public'
+      AND    tablename  NOT LIKE 'pg_%'
+   LOOP
+	raise notice 'tablename %', quote_ident(formal_table);--quote_ident(rec.tablename);
+
+      RETURN QUERY EXECUTE
+      'SELECT count(*)
+       FROM    ' || formal_table || ' ;' ;
+   END LOOP;
+END
+$$;
+
+
+--
+-- Name: placename_simplify(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION placename_simplify(text) RETURNS text
+    LANGUAGE plpgsql
+    AS $_$
+begin
+	return trim(lower(unaccent(replace($1,'_',' '))));
+end;
+$_$;
+
+
+--
+-- Name: populate_forest(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION populate_forest() RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+
+DECLARE
+root_gid bigint; 
+
+BEGIN
+
+FOR root_gid IN SELECT gid FROM location WHERE parent_gid IS NULL
+LOOP
+
+	INSERT INTO forest
+	WITH RECURSIVE group_by_admin_level(gid, admin_level) AS (
+				select gid,0 from location where gid = root_gid -- NON-Recursive term: put a location as root of the tree
+			UNION
+				select l.gid, g.admin_level + 1 from location l, group_by_admin_level g -- Recursive term: performs a breadth-first search for children and increase the level by one
+				where l.parent_gid = g.gid
+			)
+	SELECT root_gid, gid, admin_level FROM group_by_admin_level;
+END LOOP;
+
+END;
+
+$$;
+
+
+--
+-- Name: prevent_duplicate_location(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION prevent_duplicate_location() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+id integer;
+BEGIN
+id := (SELECT gid FROM LOCATION 
+	WHERE 
+            NEW.gid <> gid --No self comparison on updates
+            AND
+            lower(trim(NEW.name)) = lower(trim(name))
+            AND
+            NEW.location_type_id = location_type_id
+            AND
+            NEW.parent_gid IS NOT DISTINCT FROM parent_gid
+            AND
+            NEW.code IS NOT DISTINCT FROM code
+            AND
+            (
+            NEW.start_date BETWEEN start_date AND LEAST(end_date,CURRENT_DATE)
+            OR
+            LEAST(NEW.end_date,CURRENT_DATE) BETWEEN start_date AND LEAST(end_date,CURRENT_DATE)
+            )
+        LIMIT 1    
+	);
+IF (id IS NOT NULL)  
+                THEN
+		RAISE 'duplicate_violation: gid=%', id USING ERRCODE = 'unique_violation';
+                RETURN NULL;
+  -- DO NOTHING;
+  ELSE
+  RETURN NEW;
+END IF;
+END;
+$$;
+
+
+--
+-- Name: text_search(character varying); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION text_search(character varying) RETURNS TABLE(name1 character varying)
+    LANGUAGE plpgsql
+    AS $_$
+-- DECLARE
+--    formal_table text;
+BEGIN
+   RETURN QUERY EXECUTE
+   'select name from location
+    where name ilike' || E'\'%' || $1 || E'%\'';
+END
+$_$;
+
+
+--
+-- Name: unaccent_immutable(name); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION unaccent_immutable(text name) RETURNS text
+    LANGUAGE plpgsql IMMUTABLE
+    AS $$
+
+BEGIN
+RETURN unaccent(name);
+END;
+$$;
+
+
+--
+-- Name: unaccent_immutable(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION unaccent_immutable(name text) RETURNS text
+    LANGUAGE plpgsql IMMUTABLE
+    AS $$
+
+BEGIN
+RETURN unaccent(name);
+END;
+$$;
+
+
+--
+-- Name: update_forest(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION update_forest() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+
+DECLARE
+parent RECORD;
+
+BEGIN
+
+IF NEW.parent_gid IS NOT NULL THEN
+	EXECUTE 'SELECT * FROM public.forest WHERE child_gid = ' || NEW.parent_gid INTO parent;
+END IF;
+
+IF TG_OP = 'INSERT' THEN
+	IF NEW.parent_gid IS NOT NULL THEN
+		EXECUTE 'INSERT INTO public.forest(root_gid, child_gid, admin_level)
+			VALUES(' || parent.root_gid || ',' || NEW.gid || ',' || parent.admin_level + 1 || ')';
+	ELSE 
+		EXECUTE 'INSERT INTO public.forest(root_gid, child_gid, admin_level)
+			VALUES(' || NEW.gid || ',' || NEW.gid || ', 0 )';
+	END IF;
+END IF;
+	
+IF TG_OP = 'UPDATE' THEN
+	IF NEW.parent_gid IS NOT NULL THEN
+		EXECUTE 'UPDATE public.forest
+			SET root_gid = ' || parent.root_gid ||
+			' , admin_level = ' || parent.admin_level + 1 ||
+			' WHERE child_gid = ' || NEW.gid ;
+	ELSE
+		EXECUTE 'UPDATE public.forest
+			SET root_gid = ' || NEW.gid ||
+			' , admin_level = 0 ' ||
+			' WHERE child_gid = ' || NEW.gid ;
+	END IF;
+END IF;
+
+RETURN NEW;
+
+END;
+$$;
+
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- Name: alt_code; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE alt_code (
+    id bigint NOT NULL,
+    code character varying(255),
+    code_type_id bigint,
+    gid bigint
+);
+
+
+--
+-- Name: alt_code_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE alt_code_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: alt_code_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE alt_code_id_seq OWNED BY alt_code.id;
+
+
+--
+-- Name: alt_name; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE alt_name (
+    id bigint NOT NULL,
+    description character varying(4000),
+    lang character varying(3),
+    name character varying(255),
+    gis_src_id bigint,
+    gid bigint NOT NULL
+);
+
+
+--
+-- Name: alt_name_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE alt_name_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: alt_name_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE alt_name_id_seq OWNED BY alt_name.id;
+
+
+--
+-- Name: audit_location; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE audit_location (
+    id bigint NOT NULL,
+    code character varying(255),
+    gid_path character varying(255),
+    description character varying(2500),
+    end_date date,
+    name character varying(255),
+    protect boolean,
+    start_date date,
+    update_date date NOT NULL,
+    user_id bigint,
+    gid bigint,
+    operation character varying(255),
+    parent_gid bigint,
+    code_type_id bigint,
+    gis_src_id bigint NOT NULL,
+    location_type_id integer NOT NULL,
+    kml text,
+    area double precision
+);
+
+
+--
+-- Name: audit_location_geometry; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE audit_location_geometry (
+    id bigint NOT NULL,
+    gid bigint,
+    multipolygon geometry,
+    operation character varying(255),
+    update_date date,
+    area double precision
+);
+
+
+--
+-- Name: audit_location_geometry_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE audit_location_geometry_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: audit_location_geometry_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE audit_location_geometry_id_seq OWNED BY audit_location_geometry.id;
+
+
+--
+-- Name: audit_location_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE audit_location_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: audit_location_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE audit_location_id_seq OWNED BY audit_location.id;
+
+
+--
+-- Name: audit_location_location_type_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE audit_location_location_type_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: audit_location_location_type_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE audit_location_location_type_id_seq OWNED BY audit_location.location_type_id;
+
+
+--
+-- Name: circle_geometry; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE circle_geometry (
+    id bigint NOT NULL,
+    center geometry,
+    quad_segs integer NOT NULL,
+    radius double precision NOT NULL,
+    gid bigint NOT NULL
+);
+
+
+--
+-- Name: circle_geometry_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE circle_geometry_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: circle_geometry_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE circle_geometry_id_seq OWNED BY circle_geometry.id;
+
+
+--
+-- Name: code_type; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE code_type (
+    id bigint NOT NULL,
+    name character varying(255)
+);
+
+
+--
+-- Name: code_type_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE code_type_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: code_type_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE code_type_id_seq OWNED BY code_type.id;
+
+
+--
+-- Name: forest_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE forest_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: forest; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE forest (
+    root_gid bigint,
+    child_gid bigint,
+    admin_level integer,
+    id bigint DEFAULT nextval('forest_id_seq'::regclass) NOT NULL
+);
+
+
+--
+-- Name: gis_src; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE gis_src (
+    id bigint NOT NULL,
+    url character varying(255)
+);
+
+
+--
+-- Name: gis_src_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE gis_src_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: gis_src_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE gis_src_id_seq OWNED BY gis_src.id;
+
+
+--
+-- Name: hibernate_sequence; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE hibernate_sequence
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: location; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE location (
+    gid bigint NOT NULL,
+    code character varying(255),
+    description character varying(2500),
+    end_date date,
+    name character varying(255),
+    protect boolean,
+    start_date date NOT NULL,
+    update_date date NOT NULL,
+    user_id bigint,
+    code_type_id bigint,
+    gis_src_id bigint NOT NULL,
+    location_type_id integer NOT NULL,
+    parent_gid bigint,
+    kml text,
+    CONSTRAINT date_check CHECK ((end_date >= start_date))
+);
+
+
+--
+-- Name: location_definition; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE location_definition (
+    gid bigint NOT NULL,
+    included_gid bigint NOT NULL
+);
+
+
+--
+-- Name: location_geometry; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE location_geometry (
+    gid bigint NOT NULL,
+    multipolygon geometry(Geometry,4326),
+    area double precision,
+    update_date date,
+    envelope geometry,
+    rep_point geometry
+);
+
+
+--
+-- Name: location_gid_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE location_gid_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: location_gid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE location_gid_seq OWNED BY location.gid;
+
+
+--
+-- Name: location_location_type_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE location_location_type_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: location_location_type_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE location_location_type_id_seq OWNED BY location.location_type_id;
+
+
+--
+-- Name: location_low_resolution_geometry; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE location_low_resolution_geometry (
+    gid bigint NOT NULL,
+    multipolygon geometry,
+    area double precision,
+    update_date date,
+    rep_point geometry
+);
+
+
+--
+-- Name: location_type_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE location_type_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: location_type; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE location_type (
+    id bigint DEFAULT nextval('location_type_id_seq'::regclass) NOT NULL,
+    name character varying(255),
+    super_type_id integer NOT NULL,
+    user_definable boolean DEFAULT false NOT NULL,
+    composed_of_id integer
+);
+
+
+--
+-- Name: related_location; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE related_location (
+    gid1 bigint NOT NULL,
+    gid2 bigint NOT NULL
+);
+
+
+--
+-- Name: spew_link; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE spew_link (
+    id bigint NOT NULL,
+    url character varying(255) NOT NULL,
+    gid bigint NOT NULL
+);
+
+
+--
+-- Name: spew_link_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE spew_link_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: spew_link_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE spew_link_id_seq OWNED BY spew_link.id;
+
+
+--
+-- Name: super_type; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE super_type (
+    id integer NOT NULL,
+    name character varying(255),
+    user_definable boolean DEFAULT false NOT NULL
+);
+
+
+--
+-- Name: super_type_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE super_type_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: super_type_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE super_type_id_seq OWNED BY super_type.id;
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY alt_code ALTER COLUMN id SET DEFAULT nextval('alt_code_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY alt_name ALTER COLUMN id SET DEFAULT nextval('alt_name_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY audit_location ALTER COLUMN id SET DEFAULT nextval('audit_location_id_seq'::regclass);
+
+
+--
+-- Name: location_type_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY audit_location ALTER COLUMN location_type_id SET DEFAULT nextval('audit_location_location_type_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY audit_location_geometry ALTER COLUMN id SET DEFAULT nextval('audit_location_geometry_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY circle_geometry ALTER COLUMN id SET DEFAULT nextval('circle_geometry_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY code_type ALTER COLUMN id SET DEFAULT nextval('code_type_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY gis_src ALTER COLUMN id SET DEFAULT nextval('gis_src_id_seq'::regclass);
+
+
+--
+-- Name: gid; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY location ALTER COLUMN gid SET DEFAULT nextval('location_gid_seq'::regclass);
+
+
+--
+-- Name: location_type_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY location ALTER COLUMN location_type_id SET DEFAULT nextval('location_location_type_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY spew_link ALTER COLUMN id SET DEFAULT nextval('spew_link_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY super_type ALTER COLUMN id SET DEFAULT nextval('super_type_id_seq'::regclass);
+
+
+--
+-- Name: alt_code5_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY alt_code
+    ADD CONSTRAINT alt_code5_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: alt_name_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY alt_name
+    ADD CONSTRAINT alt_name_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: audit_location_geometry_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY audit_location_geometry
+    ADD CONSTRAINT audit_location_geometry_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: audit_location_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY audit_location
+    ADD CONSTRAINT audit_location_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: circle_geometry_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY circle_geometry
+    ADD CONSTRAINT circle_geometry_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: code_type_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY code_type
+    ADD CONSTRAINT code_type_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: gis_src_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY gis_src
+    ADD CONSTRAINT gis_src_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: location_geometry_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY location_geometry
+    ADD CONSTRAINT location_geometry_pkey PRIMARY KEY (gid);
+
+
+--
+-- Name: location_optimized_geometry_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY location_low_resolution_geometry
+    ADD CONSTRAINT location_optimized_geometry_pkey PRIMARY KEY (gid);
+
+
+--
+-- Name: location_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY location
+    ADD CONSTRAINT location_pkey PRIMARY KEY (gid);
+
+
+--
+-- Name: location_type_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY location_type
+    ADD CONSTRAINT location_type_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: spew_link_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY spew_link
+    ADD CONSTRAINT spew_link_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: super_type_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY super_type
+    ADD CONSTRAINT super_type_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: alt_code_gid_indx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX alt_code_gid_indx ON alt_code USING btree (gid);
+
+
+--
+-- Name: alt_code_tsvector_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX alt_code_tsvector_idx ON alt_code USING gin (to_tsvector('simple'::regconfig, (code)::text));
+
+
+--
+-- Name: alt_name_gid_indx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX alt_name_gid_indx ON alt_name USING btree (gid);
+
+
+--
+-- Name: alt_name_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX alt_name_idx ON alt_name USING gin (to_tsvector('simple'::regconfig, (name)::text));
+
+
+--
+-- Name: forest_child_gid_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX forest_child_gid_idx ON forest USING btree (child_gid);
+
+
+--
+-- Name: forest_root_gid_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX forest_root_gid_idx ON forest USING btree (root_gid);
+
+
+--
+-- Name: gid_location_geometry; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX gid_location_geometry ON location_geometry USING btree (gid);
+
+
+--
+-- Name: location_code_tsv_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX location_code_tsv_idx ON location USING gin (to_tsvector('simple'::regconfig, (code)::text));
+
+
+--
+-- Name: location_name_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX location_name_idx ON location USING gin (to_tsvector('simple'::regconfig, (name)::text));
+
+
+--
+-- Name: location_parent_gid_indx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX location_parent_gid_indx ON location USING btree (parent_gid);
+
+
+--
+-- Name: location_type_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX location_type_id ON location USING btree (location_type_id);
+
+
+--
+-- Name: location_type_id_indx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX location_type_id_indx ON location_type USING btree (id);
+
+
+--
+-- Name: multipolygon_index; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX multipolygon_index ON location_geometry USING gist (multipolygon);
+
+
+--
+-- Name: super_type_id_indx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX super_type_id_indx ON super_type USING btree (id);
+
+
+--
+-- Name: calc_area_envelope_reppoint; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER calc_area_envelope_reppoint BEFORE INSERT OR UPDATE ON location_geometry FOR EACH ROW EXECUTE PROCEDURE calc_area_envelope_reppoint();
+
+
+--
+-- Name: insert_alc_code_on_insert; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER insert_alc_code_on_insert AFTER INSERT ON location FOR EACH ROW EXECUTE PROCEDURE insert_alc_code();
+
+
+--
+-- Name: location_audit; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER location_audit AFTER DELETE OR UPDATE ON location FOR EACH ROW EXECUTE PROCEDURE audit_location();
+
+
+--
+-- Name: location_geometry_audit; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER location_geometry_audit AFTER DELETE OR UPDATE ON location_geometry FOR EACH ROW EXECUTE PROCEDURE audit_location_geometry();
+
+
+--
+-- Name: location_prevent_duplicates; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER location_prevent_duplicates BEFORE INSERT OR UPDATE ON location FOR EACH ROW EXECUTE PROCEDURE prevent_duplicate_location();
+
+
+--
+-- Name: update_forest; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_forest AFTER INSERT OR UPDATE OF parent_gid ON location FOR EACH ROW EXECUTE PROCEDURE update_forest();
+
+
+--
+-- Name: fk_1xy18vee7xaabypaj3n5jqee; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY location
+    ADD CONSTRAINT fk_1xy18vee7xaabypaj3n5jqee FOREIGN KEY (code_type_id) REFERENCES code_type(id);
+
+
+--
+-- Name: fk_2leen0ff20fa7il8bbq9mhm2l; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY location_definition
+    ADD CONSTRAINT fk_2leen0ff20fa7il8bbq9mhm2l FOREIGN KEY (gid) REFERENCES location(gid);
+
+
+--
+-- Name: fk_51gbbyih847jfqr0momn1g9af; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY related_location
+    ADD CONSTRAINT fk_51gbbyih847jfqr0momn1g9af FOREIGN KEY (gid2) REFERENCES location(gid);
+
+
+--
+-- Name: fk_5y6ym2e7nglngckppvle76u2v; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY related_location
+    ADD CONSTRAINT fk_5y6ym2e7nglngckppvle76u2v FOREIGN KEY (gid1) REFERENCES location(gid);
+
+
+--
+-- Name: fk_6gfgc1ctoxegveu867ft99m47; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY audit_location
+    ADD CONSTRAINT fk_6gfgc1ctoxegveu867ft99m47 FOREIGN KEY (code_type_id) REFERENCES code_type(id);
+
+
+--
+-- Name: fk_98vx00008pg9t1qt56o2pq0c5; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY audit_location
+    ADD CONSTRAINT fk_98vx00008pg9t1qt56o2pq0c5 FOREIGN KEY (location_type_id) REFERENCES location_type(id);
+
+
+--
+-- Name: fk_a37gs5po1sy9eyx3ahh4q319h; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY location
+    ADD CONSTRAINT fk_a37gs5po1sy9eyx3ahh4q319h FOREIGN KEY (location_type_id) REFERENCES location_type(id);
+
+
+--
+-- Name: fk_ccwo5xt7c67ngolc8x52ktb4f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY location
+    ADD CONSTRAINT fk_ccwo5xt7c67ngolc8x52ktb4f FOREIGN KEY (gis_src_id) REFERENCES gis_src(id);
+
+
+--
+-- Name: fk_ij5xyt7knxw3afjwy166vtag5; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY alt_code
+    ADD CONSTRAINT fk_ij5xyt7knxw3afjwy166vtag5 FOREIGN KEY (code_type_id) REFERENCES code_type(id);
+
+
+--
+-- Name: fk_ikm2wd63nt6wwbhlf2woecdd3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY alt_name
+    ADD CONSTRAINT fk_ikm2wd63nt6wwbhlf2woecdd3 FOREIGN KEY (gis_src_id) REFERENCES gis_src(id);
+
+
+--
+-- Name: fk_irgb8kn0swlgvaio7qaokrjt0; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY spew_link
+    ADD CONSTRAINT fk_irgb8kn0swlgvaio7qaokrjt0 FOREIGN KEY (gid) REFERENCES location(gid);
+
+
+--
+-- Name: fk_ki48nmbdcuh5m7ffobcsl7b57; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY audit_location
+    ADD CONSTRAINT fk_ki48nmbdcuh5m7ffobcsl7b57 FOREIGN KEY (gis_src_id) REFERENCES gis_src(id);
+
+
+--
+-- Name: fk_m089xv2vv9j4pedgn67xofepx; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY alt_name
+    ADD CONSTRAINT fk_m089xv2vv9j4pedgn67xofepx FOREIGN KEY (gid) REFERENCES location(gid);
+
+
+--
+-- Name: fk_pg779skam9gqirp7cudovman3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY location_definition
+    ADD CONSTRAINT fk_pg779skam9gqirp7cudovman3 FOREIGN KEY (included_gid) REFERENCES location(gid);
+
+
+--
+-- Name: fk_rulncca31o3ukf0sc9a1m8bx0; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY location
+    ADD CONSTRAINT fk_rulncca31o3ukf0sc9a1m8bx0 FOREIGN KEY (parent_gid) REFERENCES location(gid);
+
+
+--
+-- Name: fk_viafcrvev6kqmyjkfttipiwm; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY alt_code
+    ADD CONSTRAINT fk_viafcrvev6kqmyjkfttipiwm FOREIGN KEY (gid) REFERENCES location(gid);
+
+
+--
+-- Name: forest_child_gid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY forest
+    ADD CONSTRAINT forest_child_gid_fkey FOREIGN KEY (child_gid) REFERENCES location(gid) ON DELETE CASCADE;
+
+
+--
+-- Name: forest_root_gid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY forest
+    ADD CONSTRAINT forest_root_gid_fkey FOREIGN KEY (root_gid) REFERENCES location(gid) ON DELETE CASCADE;
+
+
+--
+-- Name: location_type_composed_of_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY location_type
+    ADD CONSTRAINT location_type_composed_of_id_fkey FOREIGN KEY (composed_of_id) REFERENCES location_type(id);
+
+
+--
+-- Name: location_type_super_type_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY location_type
+    ADD CONSTRAINT location_type_super_type_id_fkey FOREIGN KEY (super_type_id) REFERENCES super_type(id);
+
+
+--
+-- Name: public; Type: ACL; Schema: -; Owner: -
+--
+
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+REVOKE ALL ON SCHEMA public FROM postgres;
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO aus;
+GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+--
+-- Name: audit_location(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION audit_location() FROM PUBLIC;
+REVOKE ALL ON FUNCTION audit_location() FROM postgres;
+GRANT ALL ON FUNCTION audit_location() TO postgres;
+GRANT ALL ON FUNCTION audit_location() TO aus;
+GRANT ALL ON FUNCTION audit_location() TO PUBLIC;
+
+
+--
+-- Name: audit_location_geometry(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION audit_location_geometry() FROM PUBLIC;
+REVOKE ALL ON FUNCTION audit_location_geometry() FROM postgres;
+GRANT ALL ON FUNCTION audit_location_geometry() TO postgres;
+GRANT ALL ON FUNCTION audit_location_geometry() TO aus;
+GRANT ALL ON FUNCTION audit_location_geometry() TO PUBLIC;
+
+
+--
+-- Name: calc_area(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION calc_area() FROM PUBLIC;
+REVOKE ALL ON FUNCTION calc_area() FROM postgres;
+GRANT ALL ON FUNCTION calc_area() TO postgres;
+GRANT ALL ON FUNCTION calc_area() TO aus;
+GRANT ALL ON FUNCTION calc_area() TO PUBLIC;
+
+
+--
+-- Name: calc_area_envelope(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION calc_area_envelope() FROM PUBLIC;
+REVOKE ALL ON FUNCTION calc_area_envelope() FROM postgres;
+GRANT ALL ON FUNCTION calc_area_envelope() TO postgres;
+GRANT ALL ON FUNCTION calc_area_envelope() TO aus;
+GRANT ALL ON FUNCTION calc_area_envelope() TO PUBLIC;
+
+
+--
+-- Name: internalid_formaltable_name_lookup(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION internalid_formaltable_name_lookup() FROM PUBLIC;
+REVOKE ALL ON FUNCTION internalid_formaltable_name_lookup() FROM postgres;
+GRANT ALL ON FUNCTION internalid_formaltable_name_lookup() TO postgres;
+GRANT ALL ON FUNCTION internalid_formaltable_name_lookup() TO aus;
+GRANT ALL ON FUNCTION internalid_formaltable_name_lookup() TO PUBLIC;
+
+
+--
+-- Name: prevent_duplicate_location(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION prevent_duplicate_location() FROM PUBLIC;
+REVOKE ALL ON FUNCTION prevent_duplicate_location() FROM postgres;
+GRANT ALL ON FUNCTION prevent_duplicate_location() TO postgres;
+GRANT ALL ON FUNCTION prevent_duplicate_location() TO aus;
+GRANT ALL ON FUNCTION prevent_duplicate_location() TO PUBLIC;
+
+
+--
+-- Name: text_search(character varying); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION text_search(character varying) FROM PUBLIC;
+REVOKE ALL ON FUNCTION text_search(character varying) FROM postgres;
+GRANT ALL ON FUNCTION text_search(character varying) TO postgres;
+GRANT ALL ON FUNCTION text_search(character varying) TO aus;
+GRANT ALL ON FUNCTION text_search(character varying) TO PUBLIC;
+
+
+--
+-- Name: alt_code; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE alt_code FROM PUBLIC;
+REVOKE ALL ON TABLE alt_code FROM postgres;
+GRANT ALL ON TABLE alt_code TO postgres;
+GRANT ALL ON TABLE alt_code TO aus;
+
+
+--
+-- Name: alt_code_id_seq; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON SEQUENCE alt_code_id_seq FROM PUBLIC;
+REVOKE ALL ON SEQUENCE alt_code_id_seq FROM postgres;
+GRANT ALL ON SEQUENCE alt_code_id_seq TO postgres;
+GRANT ALL ON SEQUENCE alt_code_id_seq TO aus;
+
+
+--
+-- Name: alt_name; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE alt_name FROM PUBLIC;
+REVOKE ALL ON TABLE alt_name FROM postgres;
+GRANT SELECT,INSERT,UPDATE ON TABLE alt_name TO postgres;
+GRANT ALL ON TABLE alt_name TO aus;
+
+
+--
+-- Name: alt_name_id_seq; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON SEQUENCE alt_name_id_seq FROM PUBLIC;
+REVOKE ALL ON SEQUENCE alt_name_id_seq FROM postgres;
+GRANT ALL ON SEQUENCE alt_name_id_seq TO postgres;
+GRANT ALL ON SEQUENCE alt_name_id_seq TO aus;
+
+
+--
+-- Name: audit_location; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE audit_location FROM PUBLIC;
+REVOKE ALL ON TABLE audit_location FROM postgres;
+GRANT ALL ON TABLE audit_location TO postgres;
+GRANT ALL ON TABLE audit_location TO aus;
+
+
+--
+-- Name: audit_location_geometry; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE audit_location_geometry FROM PUBLIC;
+REVOKE ALL ON TABLE audit_location_geometry FROM postgres;
+GRANT ALL ON TABLE audit_location_geometry TO postgres;
+GRANT ALL ON TABLE audit_location_geometry TO aus;
+
+
+--
+-- Name: audit_location_geometry_id_seq; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON SEQUENCE audit_location_geometry_id_seq FROM PUBLIC;
+REVOKE ALL ON SEQUENCE audit_location_geometry_id_seq FROM postgres;
+GRANT ALL ON SEQUENCE audit_location_geometry_id_seq TO postgres;
+GRANT ALL ON SEQUENCE audit_location_geometry_id_seq TO aus;
+
+
+--
+-- Name: audit_location_id_seq; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON SEQUENCE audit_location_id_seq FROM PUBLIC;
+REVOKE ALL ON SEQUENCE audit_location_id_seq FROM postgres;
+GRANT ALL ON SEQUENCE audit_location_id_seq TO postgres;
+GRANT ALL ON SEQUENCE audit_location_id_seq TO aus;
+
+
+--
+-- Name: audit_location_location_type_id_seq; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON SEQUENCE audit_location_location_type_id_seq FROM PUBLIC;
+REVOKE ALL ON SEQUENCE audit_location_location_type_id_seq FROM postgres;
+GRANT ALL ON SEQUENCE audit_location_location_type_id_seq TO postgres;
+GRANT ALL ON SEQUENCE audit_location_location_type_id_seq TO aus;
+
+
+--
+-- Name: code_type; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE code_type FROM PUBLIC;
+REVOKE ALL ON TABLE code_type FROM postgres;
+GRANT ALL ON TABLE code_type TO postgres;
+GRANT ALL ON TABLE code_type TO aus;
+
+
+--
+-- Name: code_type_id_seq; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON SEQUENCE code_type_id_seq FROM PUBLIC;
+REVOKE ALL ON SEQUENCE code_type_id_seq FROM postgres;
+GRANT ALL ON SEQUENCE code_type_id_seq TO postgres;
+GRANT ALL ON SEQUENCE code_type_id_seq TO aus;
+
+
+--
+-- Name: gis_src; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE gis_src FROM PUBLIC;
+REVOKE ALL ON TABLE gis_src FROM postgres;
+GRANT ALL ON TABLE gis_src TO postgres;
+GRANT ALL ON TABLE gis_src TO aus;
+
+
+--
+-- Name: gis_src_id_seq; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON SEQUENCE gis_src_id_seq FROM PUBLIC;
+REVOKE ALL ON SEQUENCE gis_src_id_seq FROM postgres;
+GRANT ALL ON SEQUENCE gis_src_id_seq TO postgres;
+GRANT ALL ON SEQUENCE gis_src_id_seq TO aus;
+
+
+--
+-- Name: location; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE location FROM PUBLIC;
+REVOKE ALL ON TABLE location FROM postgres;
+GRANT ALL ON TABLE location TO postgres;
+GRANT ALL ON TABLE location TO aus;
+
+
+--
+-- Name: location_definition; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE location_definition FROM PUBLIC;
+REVOKE ALL ON TABLE location_definition FROM postgres;
+GRANT ALL ON TABLE location_definition TO postgres;
+GRANT ALL ON TABLE location_definition TO aus;
+
+
+--
+-- Name: location_geometry; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE location_geometry FROM PUBLIC;
+REVOKE ALL ON TABLE location_geometry FROM postgres;
+GRANT ALL ON TABLE location_geometry TO postgres;
+GRANT ALL ON TABLE location_geometry TO aus;
+
+
+--
+-- Name: location_gid_seq; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON SEQUENCE location_gid_seq FROM PUBLIC;
+REVOKE ALL ON SEQUENCE location_gid_seq FROM postgres;
+GRANT ALL ON SEQUENCE location_gid_seq TO postgres;
+GRANT ALL ON SEQUENCE location_gid_seq TO aus;
+
+
+--
+-- Name: location_location_type_id_seq; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON SEQUENCE location_location_type_id_seq FROM PUBLIC;
+REVOKE ALL ON SEQUENCE location_location_type_id_seq FROM postgres;
+GRANT ALL ON SEQUENCE location_location_type_id_seq TO postgres;
+GRANT ALL ON SEQUENCE location_location_type_id_seq TO aus;
+
+
+--
+-- Name: location_low_resolution_geometry; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE location_low_resolution_geometry FROM PUBLIC;
+REVOKE ALL ON TABLE location_low_resolution_geometry FROM postgres;
+GRANT ALL ON TABLE location_low_resolution_geometry TO postgres;
+GRANT ALL ON TABLE location_low_resolution_geometry TO aus;
+
+
+--
+-- Name: location_type_id_seq; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON SEQUENCE location_type_id_seq FROM PUBLIC;
+REVOKE ALL ON SEQUENCE location_type_id_seq FROM postgres;
+GRANT ALL ON SEQUENCE location_type_id_seq TO postgres;
+GRANT ALL ON SEQUENCE location_type_id_seq TO aus;
+
+
+--
+-- Name: location_type; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE location_type FROM PUBLIC;
+REVOKE ALL ON TABLE location_type FROM postgres;
+GRANT ALL ON TABLE location_type TO postgres;
+GRANT ALL ON TABLE location_type TO aus;
+
+
+--
+-- Name: related_location; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE related_location FROM PUBLIC;
+REVOKE ALL ON TABLE related_location FROM postgres;
+GRANT ALL ON TABLE related_location TO postgres;
+GRANT ALL ON TABLE related_location TO aus;
+
+
+--
+-- Name: super_type; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE super_type FROM PUBLIC;
+REVOKE ALL ON TABLE super_type FROM postgres;
+GRANT ALL ON TABLE super_type TO postgres;
+GRANT ALL ON TABLE super_type TO aus;
+
+
+--
+-- Name: super_type_id_seq; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON SEQUENCE super_type_id_seq FROM PUBLIC;
+REVOKE ALL ON SEQUENCE super_type_id_seq FROM postgres;
+GRANT ALL ON SEQUENCE super_type_id_seq TO postgres;
+GRANT ALL ON SEQUENCE super_type_id_seq TO aus;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+"

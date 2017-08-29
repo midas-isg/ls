@@ -16,8 +16,6 @@ import com.vividsolutions.jts.geom.Polygon;
 
 import dao.LocationDao;
 import dao.LocationTypeDao;
-import dao.entities.CodeType;
-import dao.entities.GisSource;
 import dao.entities.Location;
 import dao.entities.LocationGeometry;
 import dao.entities.LocationType;
@@ -31,11 +29,8 @@ public class LocationRule {
 	public static final long COMPOSITE_LOCATION_ID = 8L;
 
 	public static final long EPIDEMIC_ZONE_ID = 7L;
-	public static final long ISG_CODE_TYPE_ID = 2L;
-
+	
 	private static LocationType epidemicZoneLocationType = null;
-	private static CodeType isgCodeType = null;
-	private static GisSource alsGisSource = null;
 
 	static LocationType getEpidemicZoneLocationType() {
 		if (epidemicZoneLocationType == null) {
@@ -44,24 +39,6 @@ public class LocationRule {
 			epidemicZoneLocationType.setName("Epidemic Zone");
 		}
 		return epidemicZoneLocationType;
-	}
-
-	static CodeType getIsgCodeType() {
-		if (isgCodeType == null) {
-			isgCodeType = new CodeType();
-			isgCodeType.setId(ISG_CODE_TYPE_ID);
-			isgCodeType.setName("ISG");
-		}
-		return isgCodeType;
-	}
-
-	public static GisSource getAlsGisSource() {
-		if (alsGisSource == null) {
-			alsGisSource = new GisSource();
-			alsGisSource.setId(8L);
-			alsGisSource.setUrl("ALS");
-		}
-		return alsGisSource;
 	}
 
 	public static Long create(Location location) {
@@ -107,12 +84,18 @@ public class LocationRule {
 		return result;
 	}
 
-	public static Long update(long gid, Location location) {
+	public static Long update(long gid, Location toBeUpdated) {
 		if (gid <= 0)
 			throw new RuntimeException("id shall be more than 0 but got " + gid);
+		toBeUpdated.setGid(gid);
+		preserveOldAlternativeCodes(gid, toBeUpdated);
+		return new LocationDao().update(toBeUpdated);
+	}
+
+	private static void preserveOldAlternativeCodes(long gid, Location toBeUpdated) {
 		LocationDao dao = new LocationDao();
-		location.setGid(gid);
-		return dao.update(location);
+		Location current = dao.read(gid);
+		toBeUpdated.setOtherCodes(current.getOtherCodes());
 	}
 
 	public static Long deleteTogetherWithAllGeometries(long gid) {
@@ -244,4 +227,5 @@ public class LocationRule {
 		
 		return related;
 	}
+	
 }

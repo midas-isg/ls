@@ -1,0 +1,11 @@
+
+## backup ls_test db in custom format:
+pg_dump --username=postgres --dbname=ls_test --schema public --format custom --no-owner > ls_test_backup_custom.dump
+
+
+## restore ls_test db (cleans before restoring):
+pg_restore --username=postgres --dbname=ls_test --schema public --clean --no-owner ls_test_backup_custom.dump
+
+
+## backup only the db schema (no data) in plain format (editable):
+pg_dump --username=postgres --dbname=ls_test --schema public --schema-only --format plain --no-owner > ls_test_backup_no_data.dump

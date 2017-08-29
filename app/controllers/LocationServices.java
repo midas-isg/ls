@@ -949,7 +949,7 @@ public class LocationServices extends Controller {
 
 	@Transactional
 	public Result updateCache(){
-		LocationProxyRule.scheduleCacheUpdate();
+		LocationProxyRule.initializeCache();
 		return ok("An update-cache request was scheduled.");
 	}
 	
