@@ -331,7 +331,12 @@ public class LocationServices extends Controller {
 			+ "<li>location <em>area</em> in descending order</li>"
 			+ "<li><i>alphabetical order</i> of location name/code ascendingly."
 			+ "</ul>"
-			+ "For details of 'fuzzyMatch' feature refer to: https://www.postgresql.org/docs/9.3/static/pgtrgm.html",
+			+ "<b>FuzzyMatch feature:</b>:"
+			+ "<ul>"
+			+ "<li>Uses Postgresql pg_trgm extension to measure the similarity of two strings by counting the number of trigrams they share."
+			+ "<li>The threshold must be between 0 and 1 (default is 0.3)"
+			+ "<li>For details of 'fuzzyMatch' feature refer to: https://www.postgresql.org/docs/9.3/static/pgtrgm.html"
+			+ "</ul>",
 			response = FeatureCollection.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = OK, message = "Successfully returned", response = FeatureCollection.class),
