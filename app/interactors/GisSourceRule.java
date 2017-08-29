@@ -14,4 +14,8 @@ public class GisSourceRule {
 		GisSourceDao gsd = new GisSourceDao(JPA.em());
 		return gsd.create(s);
 	}
+
+	public static GisSource findByUrl(String url) {
+		return new GisSourceDao(JPA.em()).findByUrl(url);
+	}
 }

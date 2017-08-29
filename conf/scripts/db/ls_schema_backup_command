@@ -1,1 +1,0 @@
-pg_dump --username "USERNAME" --no-password  --format plain --schema-only --no-owner --no-privileges --create --verbose --file "ls_public_schema_only.backup" --schema "public" "ls_dev"

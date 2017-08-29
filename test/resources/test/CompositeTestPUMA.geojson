@@ -49,9 +49,10 @@
   ],
   "properties": {
 	"locationTypeId": "102",
-    "//locationTypeName": "PUMA 2010",
+    "locationTypeName": "PUMA 2010",
     "name": "Test Houston-Galveston Area Council--Brazoria County (North)--Pearland City PUMA",
     "startDate": "2010-01-01",
-    "parentGid": "1626"
+    "parentGid": "1626",
+    "gisSourceId": 999
   }
 }
