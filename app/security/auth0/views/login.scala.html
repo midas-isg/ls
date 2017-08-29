@@ -12,18 +12,20 @@
 		(function() {
 			var CONTEXT = '@http_context()',
 				auth0 = new Auth0({
-				domain: '@aid.domain',
-				clientID: '@aid.clientId',
-				callbackURL: '@callbackUrl'
-			}),
-			title = "Apollo LS",
-			message = "Please login to use the services",
-			hash = window.location.hash.substr(1),
-			link = location.origin + CONTEXT + '/about',
-			returnTitle = "About LS";
+					domain: '@aid.domain',
+					clientID: '@aid.clientId',
+					callbackURL: '@callbackUrl'
+				}),
+				title = "Apollo LS",
+				message = "Please login to use the services",
+				hash = window.location.hash.substr(1),
+				link = location.origin + CONTEXT + '/about',
+				returnTitle = "About LS",
+				loggedInUserId;
 
 			auth0.getSSOData(function (err, data) {
-				var loggedInUserId = '@userId';
+				loggedInUserId = '@userId';
+				
 				if (data && data.sso === true) {
 					console.log('SSO: an Auth0 SSO session already exists');
 					
