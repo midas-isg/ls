@@ -15,6 +15,7 @@ public class FeatureKey {
 	public final static String GID = "gid";
 	public final static String CODE = "code";
 	public final static String CODE_TYPE_NAME = "codeTypeName";
+	public final static String CODE_TYPE_ID = "codeTypeId";
 	public final static String LOCATION_DESCRIPTION = "locationDescription";
 	public final static String CHILDREN = "children";
 	public final static String GEOMETRY = "geometry";
@@ -24,9 +25,12 @@ public class FeatureKey {
 	public final static String RELATED = "related";
 	public final static String CODES = "codes";
 	public final static String OTHER_NAMES = "otherNames";
+	public final static String OTHER_CODES = "otherCodes";
 	public final static String KML = "kml";
 	public final static String SYNTHETIC_POPULATION = "syntheticPopulation";
-	
+	public final static String GIS_SOURCE_ID = "gisSourceId";
+	public final static String GIS_SOURCE_URL = "gisSourceURL";
+
 	public static String asFullPath(String key){
 		return PROPERTIES + "." + key;
 	}

@@ -7,7 +7,9 @@
     "locationDescription": "Maridi Town, Maridi, Western Equatoria State, Sudan",
     "parentGid": "1563",
     "startDate": "2015-01-01",
-    "endDate": "2015-01-02"
+    "endDate": "2015-01-02",
+    "gisSourceId": 1
+    
   },
   "features": [
     {

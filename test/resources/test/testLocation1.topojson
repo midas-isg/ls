@@ -12,13 +12,13 @@
 				"codes":[
 					{
 					"code":"test-code",
-					"codeTypeName":"ISG"},
+					"codeTypeName":"Test Code Type"},
 					{
 					"code":"code2",
-					"codeTypeName":"ISG"},
+					"codeTypeName":"Test Code Type"},
 					{
 					"code":"code1",
-					"codeTypeName":"ISG"
+					"codeTypeName":"Test Code Type"
 					}
 				],
 				"gid":"542946",
@@ -26,22 +26,23 @@
 					{
 					"name":"ñámé wíth áccéñt",
 					"description":null,
-					"language":"spa"},
+					"language":"spa", "gisSourceId": 999},
 					{
 					"name":"name without accent",
 					"description":null,
-					"language":"eng"},
+					"language":"eng", "gisSourceId": 999},
 					{
 					"name":"an otherName for test",
 					"description":null,
-					"language":null
+					"language":null, "gisSourceId": 999
 					}
 				],
 				"related":[],
 				"endDate":"2015-01-02",
 				"locationDescription":"test description",
 				"name":"Test Location 1",
-				"startDate":"2015-01-01"
+				"startDate":"2015-01-01", 
+				"gisSourceId": 999
 			},
 			"id":"542946",
 			"arcs":[
