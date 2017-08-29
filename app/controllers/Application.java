@@ -24,8 +24,13 @@ public class Application extends UserController {
 			final Configuration cfg = Play.application().configuration();
 			String version = "Version: " + cfg.getString("app.version");
 			String dbName = "Database: " + cfg.getString("db.default.url");
+			
 			INFO = "Copyright 2014-2017 - University of Pittsburgh, " 
-			+ version + ", " + dbName;
+				+ version;
+			
+			if(Play.isDev()) {
+				INFO += ", " + dbName;
+			}
 		}
 	}
 	
@@ -39,10 +44,6 @@ public class Application extends UserController {
 	
 	public Result mapSearch() {
 		return ok(views.html.map_search.render("map search", info()));
-	}
-	
-	public Result advancedSearch() {
-		return ok(views.html.advanced_search.render("advanced search", info()));
 	}
 	
 	public Result translate() {

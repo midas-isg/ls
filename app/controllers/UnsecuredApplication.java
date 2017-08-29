@@ -25,10 +25,13 @@ public class UnsecuredApplication extends Controller {
 			String dbName = "Database: " + cfg.getString("db.default.url");
 			
 			INFO = "Copyright 2014-2017 - University of Pittsburgh, " 
-				+ version + ", " + dbName;
+				+ version;
+			
+			if(Play.isDev()) {
+				INFO += ", " + dbName;
+			}
 		}
 	}
-	
 	
 	public Result about() {
 		return ok(views.html.about.render("about", info()));
@@ -48,10 +51,6 @@ public class UnsecuredApplication extends Controller {
 	
 	public Result mapSearch() {
 		return ok(views.html.map_search.render("map search", info()));
-	}
-	
-	public Result advancedSearch() {
-		return ok(views.html.advanced_search.render("advanced search", info()));
 	}
 	
 	public Result translate() {
