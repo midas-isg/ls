@@ -35,6 +35,7 @@ public class TestFindLocation {
 	private String basePath = "api/locations";
 	private String findBulkPath = basePath + "/find-bulk";
 	private String findByTermPath = basePath + "/find-by-term";
+	private String findByFilterPath = basePath + "/find-by-filter";
 	private long gidTest1;
 	private long gidTest2;
 	private String jsonContentType = "application/json; charset=utf-8";
@@ -60,8 +61,8 @@ public class TestFindLocation {
 		gidTest1 = createLocationFromFile("test/testLocation1.geojson");
 
 		try {
-			findByQueryTermTest2();
-			findByQueryTermTest();
+			findByFilterTest();
+			findByTermTest();
 			findByIdTest();
 			findByNameTest();
 			findBulkTest();
@@ -78,7 +79,21 @@ public class TestFindLocation {
 
 	}
 
-	private void findByQueryTermTest2() {
+	private void findByTermTest() {
+		
+		findByQueryTermOldVersion();
+		findByQueryTermTestCurrentVersion();
+		findByTermAndCountryTest();
+		findByTermAndAllFiltersTest();
+	}
+	
+	private void findByFilterTest() {
+		
+		findByLocationTypeTest();
+		findByCodeTypeIdTest();
+	}
+
+	private void findByQueryTermTestCurrentVersion() {
 		
 		String body = "{\"queryTerm\":\"testUnit 123\"," 
 						+ "\"limit\":10,"
@@ -155,8 +170,85 @@ public class TestFindLocation {
 		assertThat(name).isEqualTo("testUnit abc def ghi 123");
 		assertThat(rank).isEqualTo(1.0);
 	}
+	
+	private void findByTermAndCountryTest() {
+			
+			String body = "{\"queryTerm\":\"US\"," 
+							+ "\"limit\":0,"
+							+ "\"logic\":\"OR\","
+							+ "\"rooALC\":1216,"
+							+ "\"onlyFeatureFields\":"
+								+ "[\"properties.name\", "
+								+ "\"properties.matchedTerm\", "
+								+ "\"properties.rank\", "
+								+ "\"properties.headline\"]"
+							+ "}";
+			String url = Server.makeTestUrl(findByTermPath + "?_v=" + CURRENT_VERSION);
+			WSResponse response = post(url, body, jsonContentType);
+			assertStatus(response, OK);
+			JsonNode jsonResp = response.asJson();
+			assertAreEqual(jsonResp.size(), 3);
+			assertAreEqual(jsonResp.get("features").size(), 3);
+	}
+	
+	private void findByTermAndAllFiltersTest() {
+		
+		String body = "{\"queryTerm\":\"Pennsylvania Texas Allegheny America\"," 
+						+ "\"limit\":10,"
+						+ "\"logic\":\"OR\","
+						+ "\"locationTypeIds\":[16, 19],"
+						+ "\"codeTypeIds\":[1,7],"
+						+ "\"startDate\":\"1700\","
+						+ "\"endDate\":\"1800\","
+						+ "\"onlyFeatureFields\":"
+							+ "[\"properties.name\", "
+							+ "\"properties.matchedTerm\", "
+							+ "\"properties.rank\", "
+							+ "\"properties.headline\"]"
+						+ "}";
+		String url = Server.makeTestUrl(findByTermPath + "?_v=" + CURRENT_VERSION);
+		WSResponse response = post(url, body, jsonContentType);
+		assertStatus(response, OK);
+		JsonNode jsonResp = response.asJson();
+		assertAreEqual(jsonResp.size(), 3);
+		assertAreEqual(jsonResp.get("features").size(), 1);
+	}
+	
+	private void findByLocationTypeTest() {
+		String body = "{\"locationTypeIds\":[4, 19]," 
+						+ "\"limit\":10,"
+						+ "\"onlyFeatureFields\":"
+							+ "[\"properties.name\", "
+							+ "\"properties.matchedTerm\", "
+							+ "\"properties.rank\", "
+							+ "\"properties.headline\"]"
+						+ "}";
+		String url = Server.makeTestUrl(findByFilterPath);
+		WSResponse response = post(url, body, jsonContentType);
+		assertStatus(response, OK);
+		JsonNode jsonResp = response.asJson();
+		assertAreEqual(jsonResp.size(), 3);
+		assertAreEqual(jsonResp.get("features").size(), 4);
+	}
+	
+	private void findByCodeTypeIdTest() {
+		String body = "{\"codeTypeIds\":[7]," 
+						+ "\"limit\":10,"
+						+ "\"onlyFeatureFields\":"
+							+ "[\"properties.name\", "
+							+ "\"properties.matchedTerm\", "
+							+ "\"properties.rank\", "
+							+ "\"properties.headline\"]"
+						+ "}";
+		String url = Server.makeTestUrl(findByFilterPath);
+		WSResponse response = post(url, body, jsonContentType);
+		assertStatus(response, OK);
+		JsonNode jsonResp = response.asJson();
+		assertAreEqual(jsonResp.size(), 3);
+		assertAreEqual(jsonResp.get("features").size(), 9);
+	}
 
-	private void findByQueryTermTest() {
+	private void findByQueryTermOldVersion() {
 		String body = KmlRule.getStringFromFile(findByTermRequestFile1);
 		String url = Server.makeTestUrl(findByTermPath);
 		WSResponse response = post(url, body, jsonContentType);
