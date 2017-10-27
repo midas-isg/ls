@@ -115,7 +115,7 @@
 					}
 					
 					for(i = 0; i < responseData.length; i++) {
-						displayResultRow(responseData[i].features[0].properties, maxCodesLength, codeTypes);
+						displayResultRow(responseData[i].features[0].properties, codeTypes);
 					}
 				},
 				error: function(xhr,status,error) {
@@ -131,28 +131,31 @@
 			return;
 		}
 		
-		function displayResultRow(properties, maxCodesLength, codeTypes) {
+		function displayResultRow(properties, codeTypes) {
 			var name = properties.name,
 				codes = properties.codes,
 				row = document.createElement("tr"),
 				th = document.createElement("th"),
 				td,
-				i;
+				i,
+				j;
 			
 			th.innerHTML = name;
 			th.headers = "results-names";
 			row.appendChild(th);
 			
-			for(i = 0; i < maxCodesLength; i++) {
+			for(i = 0; i < codeTypes.length; i++) {
 				td = document.createElement("td");
 				
-				if(codes[i]) {
-					while(codes[i].codeTypeName !== codeTypes[row.children.length - 1]) {
-						row.appendChild(td);
-						td = document.createElement("td");
+				for(j = 0; j < codes.length; j++) {
+					if(codes[j].codeTypeName === codeTypes[i]) {
+						if(td.innerHTML.length === 0) {
+							td.innerHTML = codes[j].code;
+						}
+						else {
+							td.innerHTML += ", " + codes[j].code;
+						}
 					}
-					
-					td.innerHTML = codes[i].code;
 				}
 				
 				td.headers = "results-codes";
