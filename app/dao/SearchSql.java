@@ -281,7 +281,6 @@ public class SearchSql {
 				q += " SELECT gid, name, " + rankingStatement + " AS rank, "
 						+ headlineStatement + " AS headline " 
 						+ " FROM {h-schema}location "
-						//+ joinLocGeomStatement
 						+ " WHERE " + comparisonStatement;
 				if (containsFilters(req))
 					q += " AND " + toQueryConditionSQL(req);
@@ -352,9 +351,10 @@ public class SearchSql {
 		List<Long> typeIds = req.getLocationTypeIds();
 		Date start = req.getStartDate();
 		Date end = req.getEndDate();
-		if (typeIds != null && !typeIds.isEmpty())
-			return true;
-		if (start != null || end != null)
+		Long rootALC = req.getRootALC();
+		List<Long> codeTypeIds = req.getCodeTypeIds();
+		if ((typeIds != null && !typeIds.isEmpty()) || (codeTypeIds != null && !codeTypeIds.isEmpty()) 
+				|| start != null || end != null || rootALC != null)
 			return true;
 		return false;
 	}
