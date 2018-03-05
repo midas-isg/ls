@@ -529,6 +529,8 @@ MapDriver.prototype.formatGeoJSON = function(geoJSON) {
 		auParentGID = this.parent,
 		description = $("#description").val(),
 		dateTokens = HELPERS.validDate(startDate),
+		gisSourceID,
+		gisSourceURL,
 		useParent,
 		properties;
 
@@ -646,7 +648,9 @@ MapDriver.prototype.formatGeoJSON = function(geoJSON) {
 	properties["startDate"] = startDate;
 	properties["endDate"] = endDate;
 	properties["kml"] = this.kml;
-
+	properties["gisSourceURL"] = gisSourceURL;
+	properties["gisSourceId"] = gisSourceID;
+	
 	return geoJSON;
 }
 
