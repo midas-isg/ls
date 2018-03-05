@@ -58,6 +58,12 @@ $(document).ready(function() {
 			
 			if(tildeKey && altKey) {
 				$("#au-create").show();
+				$("#code-types").show();
+				$("#update-button").show();
+				$("#download-button").show();
+				
+				// are we still using this one...?
+				$("#au-list").show();
 			}
 			
 			return;
