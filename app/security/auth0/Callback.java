@@ -57,7 +57,14 @@ class Callback {
         return  request.get()
                 .map(WSResponse::asJson)
                 .map(this::jsonToMap)
+                .map(this::adapt)
                 .map(User::new);
+    }
+
+    private Map adapt(Map value) {
+        final Map<String, Object> map = (Map<String, Object>) value;
+        map.put("user_id", map.get("sub"));
+        return map;
     }
 
     private Credentials jsonToCredentials(JsonNode json) {
