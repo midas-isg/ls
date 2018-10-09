@@ -4,65 +4,65 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Log In - SPEW Web</title>
+		<title>Log In - LS</title>
 	</head>
 	<body>
-		<script src="https://cdn.auth0.com/w2/auth0-6.8.js"></script>
+		<script src="https://cdn.auth0.com/js/auth0/9.7.3/auth0.min.js"></script>
 		<script type="text/javascript">
 		(function() {
+			// debugger;
 			var CONTEXT = '@http_context()',
-				auth0 = new Auth0({
-					domain: '@aid.domain',
-					clientID: '@aid.clientId',
-					callbackURL: '@callbackUrl'
-				}),
-				title = "Apollo LS",
-				message = "Please login to use the services",
-				hash = window.location.hash.substr(1),
-				link = location.origin + CONTEXT + '/about',
-				returnTitle = "About LS",
-				loggedInUserId;
-
-			auth0.getSSOData(function (err, data) {
-				loggedInUserId = '@userId';
-				
+				auth0options = toAuth0Options();
+			new auth0.Authentication(auth0options).getSSOData(function (err, data) {
+				var message ="Please login to use the services",
+						loggedInUserId = '@userId';
 				if (data && data.sso === true) {
 					console.log('SSO: an Auth0 SSO session already exists');
-					
 					if (loggedInUserId !== data.lastUsedUserID) {
 						console.log("SSO Session but NOT locally authenticated ");
-						
-						auth0.login({
-							// state: '$ {state}',
-								scope: 'openid name email picture'
-							},
-							function (err) {
-								console.error('Error logging in: ' + err);
-							}
-						);
+						authorize();
 					}
 					else {
 						console.log("SSO Session and locally authenticated ");
 						window.location = CONTEXT;
 					}
-				}
-				else if (loggedInUserId){
+				} else if (loggedInUserId){
 					console.log("NO SSO Session but locally authenticated -> log them out locally");
 					window.location = CONTEXT + '/logout';
-				}
-				else {
+				} else {
 					console.log("NO SSO Session and NOT locally authenticated ");
-					
-					if (hash.match('^logout')) {
+					if (window.location.hash.substr(1).match('^logout')) {
 						message = "Logged out successfully.";
 					}
-					
-					window.location = '@aid.hubWsUrl/sso?returnToUrl=' +
-						encodeURIComponent(window.location) + '&title=' + title +
-						'&message=' + message + '&returnUrl=' + encodeURIComponent(link) +
-						'&returnTitle=' + returnTitle;
+					window.location = toMidasSso(message);
 				}
 			});
+			function authorize () {
+				console.log('Authorizing ...');
+				new auth0.WebAuth(auth0options).authorize({
+					prompt: 'none'
+				});
+			}
+			function toAuth0Options() {
+				var domain = '@aid.domain';
+				return {
+					responseType: 'code',
+					clientID: '@aid.clientId',
+					audience: 'https://' + domain + '/userinfo',
+					scope: 'openid profile email',
+					redirectUri: '@callbackUrl',
+					domain: domain
+				};
+			}
+			function toMidasSso(message) {
+			    var title = "Apollo LS",
+						aboutLink = location.origin + CONTEXT + '/about',
+						returnTitle = "About LS";
+				return '@aid.hubWsUrl/sso?returnToUrl=' +
+						encodeURIComponent(window.location) + '&title=' + title +
+						'&message=' + message + '&returnUrl=' + encodeURIComponent(aboutLink) +
+						'&returnTitle=' + returnTitle;
+			}
 		})();
 		</script>
 	</body>
