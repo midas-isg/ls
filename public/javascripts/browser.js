@@ -190,11 +190,34 @@ var crudPath = CONTEXT + "/api/locations",
 						return;
 					}
 					
-					children = properties.children;
+					function features2ChildrenProperties(features) {
+						var children = [features.length],
+							i;
+						
+						for(i = 0; i < features.length; i++) {
+							children[i] = features[i].properties;
+						}
+						
+						children.sort(function(a, b) {
+							var a_value = parseFloat(a.name),
+								b_value = parseFloat(b.name);
+							
+							if(a_value && b_value) {
+								return a_value - b_value;
+							}
+							
+							return a.name - b.name;
+						});
+						
+						return children;
+					}
+					
+					children = properties.children || features2ChildrenProperties(data.features);
 					if(children && (children.length > 0)) {
 						for(i = 0; i < children.length; i++) {
 							buckets[i] = children[i].locationTypeName;
 						}
+						
 						buckets.sort();
 
 						for(i = 0; i < buckets.length; i++) {
