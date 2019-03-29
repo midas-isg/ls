@@ -1,0 +1,34 @@
+auth0 = {
+  clientId=
+  domain=
+  clientSecret=
+  defaultTargetUrlPath=${play.http.context}
+}
+app.servers.hub.ws.url="https://betaweb.rods.pitt.edu/accounts"
+
+
+# Secret key
+# ~~~~~
+# The secret key is used to secure cryptographics functions.
+#
+# This must be changed for production, but we recommend not changing it in this file.
+#
+# See http://www.playframework.com/documentation/latest/ApplicationSecret for more details.
+//play.crypto.secret="changeme"
+play.crypto.secret=
+
+//db.default.url="jdbc:postgresql://localhost:5432/ls"
+db.default.url=
+db.default.username=
+db.default.password=
+
+
+# Application context so that we can proxy this in production
+play.http.context="/ls"
+
+# Swagger API docs
+//swagger.api.basepath="http://localhost:9000"${play.http.context}
+swagger.api.basepath=
+
+# SPEW base-url
+spew.base.url="spew.olympus.psc.edu/syneco/spe#"
