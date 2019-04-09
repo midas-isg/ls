@@ -42,10 +42,6 @@ public class UnsecuredApplication extends Controller {
 	}
 	
 	public Result index() {
-		return basicSearch();
-	}
-	
-	public Result basicSearch() {
 		return ok(views.html.index.render("search", info()));
 	}
 	

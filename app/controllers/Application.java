@@ -35,10 +35,6 @@ public class Application extends UserController {
 	}
 	
 	public Result index() {
-		return basicSearch();
-	}
-	
-	public Result basicSearch() {
 		return ok(views.html.index.render("search", info()));
 	}
 	
