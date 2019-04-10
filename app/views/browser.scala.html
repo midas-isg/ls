@@ -1,4 +1,4 @@
-@(message: String, version:String)
+@(message: String, version:String, credentials: Boolean)
 
 @imports = {
 <!-- External Packages -->
@@ -16,7 +16,7 @@
 	<script src='@routes.Assets.at("javascripts/browser.js")' defer></script>
 }
 
-@main(message, imports, version) {
+@main(message, imports, version, credentials) {
 	<div>
 		<div id="header-data" hidden>
 			<div>

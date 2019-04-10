@@ -7,6 +7,7 @@ import play.db.jpa.Transactional;
 import play.mvc.Controller;
 import play.mvc.Http.Context;
 import play.mvc.Result;
+import security.auth0.Auth0Aid;
 import security.controllers.UserController;
 
 
@@ -34,39 +35,27 @@ public class Application extends UserController {
 		}
 	}
 	
-	public Result index() {
-		return ok(views.html.index.render("search", info()));
-	}
-	
-	public Result mapSearch() {
-		return ok(views.html.map_search.render("map search", info()));
-	}
-	
-	public Result translate() {
-		return ok(views.html.translate.render("translator", info()));
-	}
-	
-	public Result results() {
-		return ok(views.html.results.render("refine search", info()));
-	}
-	
-	public Result browser() {
-		return ok(views.html.browser.render("browser", info()));
-	}
-	
-	@Transactional
-	public Result resolver() {
-		return ok(views.html.resolver.render("resolver", info()));
+	public static boolean hasCredentials() {
+		return (session(Auth0Aid.idTokenKey) != null);
 	}
 	
 	@Transactional
 	public Result create() {
-		return ok(views.html.create.render("creator", info()));
+		return ok(views.html.create.render("creator", info(), hasCredentials()));
 	}
 	
 	@Transactional
 	public Result concept() {
 		Logger.warn("\nWARNING! " + Context.current().request().uri() + " is deprecated and may stop being available in the future!\n");
-		return ok(views.html.concept.render("concept", info()));
+		return ok(views.html.concept.render("concept", info(), hasCredentials()));
+	}
+	
+	@Transactional
+	public Result resolver() {
+		return ok(views.html.resolver.render("resolver", info(), hasCredentials()));
+	}
+	
+	public Result translate() {
+		return ok(views.html.translate.render("translator", info(), hasCredentials()));
 	}
 }

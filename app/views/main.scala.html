@@ -1,4 +1,4 @@
-@(title: String, imports: Html = Html(""), version: String)(content: Html)
+@(title: String, imports: Html = Html(""), version: String, credentials: Boolean)(content: Html)
 
 <!DOCTYPE html>
 
@@ -21,7 +21,13 @@
 		<!-- END: EXTERNAL PACKAGES -->
 		
 		<script type="application/javascript">
-			var CONTEXT = '@http_context()';
+			var CONTEXT = '@http_context()',
+				logButton = document.getElementById('log-button');
+			
+			if(@credentials) {
+				logButton.href = '@http_context()/logout';
+				logButton.innerHTML = "Log out";
+			}
 		</script>
 		
 		<!-- BEGIN: GOOGLE ANALYTICS TRACKING -->
@@ -85,7 +91,7 @@
 							</li>
 							<li><a href="@http_context()/translate">Translate</a></li>
 							<li><a href="@http_context()/create">Create</a></li>
-							<li><a href="@http_context()/logout">Log out</a></li>
+							<li><a id="log-button" href="@http_context()/login">Log in</a></li>
 						</ul>
 					</div>
 				</div>

@@ -1,4 +1,4 @@
-@(message: String, version:String)
+@(message: String, version:String, credentials: Boolean)
 
 @imports = {
 	<!-- <script src='@routes.Assets.at("javascripts/browser.js")' defer></script> -->
@@ -6,6 +6,6 @@
 	<link href='@routes.Assets.at("stylesheets/about.css")' rel='stylesheet'>
 }
 
-@main(message, imports, version) {
+@main(message, imports, version, credentials) {
 	<iframe id="about-doc" class="center-block" src="https://docs.google.com/document/d/1aBj5Vkxmme6MiAPmAF71xDLKHxPfVK8gbf6l0eoxTSA/pub?embedded=true"></iframe>
 }

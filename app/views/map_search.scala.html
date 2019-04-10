@@ -1,4 +1,4 @@
-@(message: String, version: String)
+@(message: String, version: String, credentials: Boolean)
 
 @imports = {
 	<!-- External Packages -->
@@ -27,7 +27,7 @@
 	-->
 }
 
-@main(message, imports, version) {
+@main(message, imports, version, credentials) {
 	<div class="center-block">
 		<div id="map-div" class="vertical-spaced">
 			<div class="pull-left" style="width: calc(100% - 38px);">

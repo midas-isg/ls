@@ -1,4 +1,4 @@
-@(message: String, version:String)
+@(message: String, version:String, credentials: Boolean)
 
 @imports = {
 <!-- 
@@ -18,7 +18,7 @@
 -->
 }
 
-@main(message, imports, version) {
+@main(message, imports, version, credentials) {
 	<div hidden><a href="http://workshops.opengeo.org/postgis-intro/" target="_blank">PostGIS Intro</a></div>
 	
 	<div style="padding-left: 1%;">

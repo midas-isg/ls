@@ -1,0 +1,71 @@
+@import security.auth0.Auth0Aid
+@* @(aid:Auth0Aid, callbackUrl:String, userId:String) *@
+@(message: String, version: String, aid: String = "SPOOF!", callbackUrl: String = "YourMom", userId: String = "Manana")
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Log In - LS</title>
+	</head>
+	<body>
+		<script src="https://cdn.auth0.com/js/auth0/9.7.3/auth0.min.js"></script>
+		<script type="text/javascript">
+		(function() {
+			// debugger;
+			var CONTEXT = '@http_context()',
+				auth0options = toAuth0Options();
+			new auth0.Authentication(auth0options).getSSOData(function (err, data) {
+				var message ="Please login to use the services",
+						loggedInUserId = '@userId';
+				if (data && data.sso === true) {
+					console.log('SSO: an Auth0 SSO session already exists');
+					if (loggedInUserId !== data.lastUsedUserID) {
+						console.log("SSO Session but NOT locally authenticated ");
+						authorize();
+					}
+					else {
+						console.log("SSO Session and locally authenticated ");
+						window.location = CONTEXT;
+					}
+				} else if (loggedInUserId){
+					console.log("NO SSO Session but locally authenticated -> log them out locally");
+					window.location = CONTEXT + '/logout';
+				} else {
+					console.log("NO SSO Session and NOT locally authenticated ");
+					if (window.location.hash.substr(1).match('^logout')) {
+						message = "Logged out successfully.";
+					}
+					window.location = toMidasSso(message);
+				}
+			});
+			function authorize () {
+				console.log('Authorizing ...');
+				new auth0.WebAuth(auth0options).authorize({
+					prompt: 'none'
+				});
+			}
+			function toAuth0Options() {
+				var domain = '@aid@*.domain*@';
+				return {
+					responseType: 'code',
+					clientID: '@aid@*.clientId*@',
+					audience: 'https://' + domain + '/userinfo',
+					scope: 'openid profile email',
+					redirectUri: '@callbackUrl',
+					domain: domain
+				};
+			}
+			function toMidasSso(message) {
+			    var title = "Apollo LS",
+						aboutLink = location.origin + CONTEXT + '/about',
+						returnTitle = "About LS";
+				return '@aid@*.hubWsUrl*@/sso?returnToUrl=' +
+						encodeURIComponent(window.location) + '&title=' + title +
+						'&message=' + message + '&returnUrl=' + encodeURIComponent(aboutLink) +
+						'&returnTitle=' + returnTitle;
+			}
+		})();
+		</script>
+	</body>
+</html>
+

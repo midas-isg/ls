@@ -1,4 +1,4 @@
-@(message: String, version:String)
+@(message: String, version:String, credentials: Boolean)
 
 @imports = {
 <!-- External Packages -->
@@ -29,7 +29,7 @@
 	-->
 }
 
-@main(message, imports, version) {
+@main(message, imports, version, credentials) {
 	<div id="create-view">
 		<div id="creation-dialog" class="no-padding">
 			<div class="extra-bottom-space">

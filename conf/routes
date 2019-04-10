@@ -18,6 +18,7 @@ GET           /translate                          controllers.Application.transl
 # Deprecated
 GET           /concept                            controllers.Application.concept()
 
+GET           /login-test                         controllers.UnsecuredApplication.login()
 
 GET           /login                              security.auth0.Auth0Controller.login(targetPath?=null)
 GET           /logout                             security.auth0.Auth0Controller.logout

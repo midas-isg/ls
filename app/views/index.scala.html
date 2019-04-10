@@ -1,11 +1,11 @@
-@(message: String, version: String)
+@(message: String, version: String, credentials: Boolean)
 
 @imports = {
 	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'>
 	<link href='@routes.Assets.at("stylesheets/search.css")' rel='stylesheet'>
 }
 
-@main(message, imports, version) {
+@main(message, imports, version, credentials) {
 	<div class="center-block">
 		<h1 id="headline" class="centered-text">Apollo Location Services</h1>
 		

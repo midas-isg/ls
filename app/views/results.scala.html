@@ -1,4 +1,4 @@
-@(message: String, version: String)
+@(message: String, version: String, credentials: Boolean)
 
 @imports = {
 <!-- External Packages -->
@@ -26,7 +26,7 @@
 	-->
 }
 
-@main(message, imports, version) {
+@main(message, imports, version, credentials) {
 	<div class="vertical-spaced">
 		@searchbar()
 	</div>
