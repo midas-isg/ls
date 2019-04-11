@@ -21,13 +21,7 @@
 		<!-- END: EXTERNAL PACKAGES -->
 		
 		<script type="application/javascript">
-			var CONTEXT = '@http_context()',
-				logButton = document.getElementById('log-button');
-			
-			if(@credentials) {
-				logButton.href = '@http_context()/logout';
-				logButton.innerHTML = "Log out";
-			}
+			var CONTEXT = '@http_context()';
 		</script>
 		
 		<!-- BEGIN: GOOGLE ANALYTICS TRACKING -->
@@ -111,4 +105,20 @@
 			</div>
 		</footer>
 	</body>
+	
+	<script type="application/javascript">
+		(function() {
+			var logButton = document.getElementById('log-button');
+			
+			@if(credentials) {
+				logButton.href = "@http_context()/logout?targetPath=" + location.href;
+				logButton.innerHTML = "Log out";
+			} else {
+				logButton.href = "@http_context()/login?targetPath=" + location.href;
+				logButton.innerHTML = "Log in";
+			}
+			
+			return;
+		})();
+	</script>
 </html>

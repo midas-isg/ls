@@ -21,7 +21,7 @@ GET           /concept                            controllers.Application.concep
 GET           /login-test                         controllers.UnsecuredApplication.login()
 
 GET           /login                              security.auth0.Auth0Controller.login(targetPath?=null)
-GET           /logout                             security.auth0.Auth0Controller.logout
+GET           /logout                             security.auth0.Auth0Controller.logout(targetPath?=null)
 GET           /callback                           security.auth0.Auth0Controller.callback(code)
 
 GET           /api/au-tree                        controllers.TreeView.tree()
