@@ -38,7 +38,7 @@ public class Auth0Controller extends Controller {
         session().clear();
         
         if(currentURL != null) {
-            return redirect(currentURL);
+            return redirect(aid.toAuth0AbsoluteGlobalLogoutUrl(currentURL));
         }
         
         final String returnUrlAfterRelogin = aid.toAbsoluteLoginUrl(request());
