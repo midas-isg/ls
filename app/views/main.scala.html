@@ -1,4 +1,4 @@
-@(title: String, imports: Html = Html(""), version: String)(content: Html)
+@(title: String, imports: Html = Html(""), version: String, credentials: Boolean)(content: Html)
 
 <!DOCTYPE html>
 
@@ -55,7 +55,7 @@
 				<div class="container-fluid">
 					<div class="navbar-header">
 						<span class="navbar-brand">
-							<a href="@routes.Application.index">apollo location services</a> <span id="page-title">@title</span>
+							<a href="@routes.UnsecuredApplication.index">apollo location services</a> <span id="page-title">@title</span>
 						</span>
 
 						<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navigator">
@@ -85,7 +85,7 @@
 							</li>
 							<li><a href="@http_context()/translate">Translate</a></li>
 							<li><a href="@http_context()/create">Create</a></li>
-							<li><a href="@http_context()/logout">Log out</a></li>
+							<li><a id="log-button" href="@http_context()/login">Log in</a></li>
 						</ul>
 					</div>
 				</div>
@@ -105,4 +105,20 @@
 			</div>
 		</footer>
 	</body>
+	
+	<script type="application/javascript">
+		(function() {
+			var logButton = document.getElementById('log-button');
+			
+			@if(credentials) {
+				logButton.href = "@http_context()/logout?targetPath=" + location.href;
+				logButton.innerHTML = "Log out";
+			} else {
+				logButton.href = "@http_context()/login?targetPath=" + location.href;
+				logButton.innerHTML = "Log in";
+			}
+			
+			return;
+		})();
+	</script>
 </html>

@@ -3,23 +3,25 @@
 # ~~~~
 
 # Home page
-GET           /                                   controllers.Application.index()
+GET           /                                   controllers.UnsecuredApplication.index()
 GET           /about                              controllers.UnsecuredApplication.about()
 GET           /error                              controllers.UnsecuredApplication.error()
-GET           /map-search                         controllers.Application.mapSearch()
-GET           /read-only                          controllers.Application.browser()
-GET           /browser                            controllers.Application.browser()
+GET           /map-search                         controllers.UnsecuredApplication.mapSearch()
+GET           /read-only                          controllers.UnsecuredApplication.browser()
+GET           /browser                            controllers.UnsecuredApplication.browser()
+GET           /results                            controllers.UnsecuredApplication.results()
+
 GET           /resolver                           controllers.Application.resolver()
-GET           /results                            controllers.Application.results()
 GET           /create                             controllers.Application.create()
 GET           /translate                          controllers.Application.translate()
 
 # Deprecated
 GET           /concept                            controllers.Application.concept()
 
+GET           /login-test                         controllers.UnsecuredApplication.login()
 
 GET           /login                              security.auth0.Auth0Controller.login(targetPath?=null)
-GET           /logout                             security.auth0.Auth0Controller.logout
+GET           /logout                             security.auth0.Auth0Controller.logout(targetPath?=null)
 GET           /callback                           security.auth0.Auth0Controller.callback(code)
 
 GET           /api/au-tree                        controllers.TreeView.tree()

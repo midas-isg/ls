@@ -34,9 +34,15 @@ public class Auth0Controller extends Controller {
                 .map(user -> redirectBasingOnSession(capturedSession));
     }
 
-    public Result logout() {
+    public Result logout(String currentURL) {
         session().clear();
+        
+        if(currentURL != null) {
+            return redirect(aid.toAuth0AbsoluteGlobalLogoutUrl(currentURL));
+        }
+        
         final String returnUrlAfterRelogin = aid.toAbsoluteLoginUrl(request());
+        
         return redirect(aid.toAuth0AbsoluteGlobalLogoutUrl(returnUrlAfterRelogin));
     }
 

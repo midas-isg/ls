@@ -1,4 +1,4 @@
-@(message: String, version: String)
+@(message: String, version: String, credentials: Boolean)
 
 @imports = {
 	<link href='@routes.Assets.at("stylesheets/translate.css")' rel='stylesheet'>
@@ -6,7 +6,7 @@
 	<script src='@routes.Assets.at("javascripts/translator.js")'></script>
 }
 
-@main(message, imports, version) {
+@main(message, imports, version, credentials) {
 	<div class="center-block horizontal-padding extra-bottom-space">
 		<div class="roundbox extra-bottom-space">
 			<div class="form-group horizontal-padding">

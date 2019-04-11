@@ -1,4 +1,4 @@
-@(message: String, version: String)
+@(message: String, version: String, credentials: Boolean)
 
 @imports = {
 <!--
@@ -14,7 +14,7 @@
 -->
 }
 
-@main(message, imports, version) {
+@main(message, imports, version, credentials) {
 	<div class="no-padding">
 		<div>
 			<div class="extra-bottom-space" style="display: inline-block;">
