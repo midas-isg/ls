@@ -1,71 +1,82 @@
-@import security.auth0.Auth0Aid
-@* @(aid:Auth0Aid, callbackUrl:String, userId:String) *@
-@(message: String, version: String, aid: String = "SPOOF!", callbackUrl: String = "YourMom", userId: String = "Manana")
+@(message: String, version: String, credentials: Boolean)
 
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<title>Log In - LS</title>
-	</head>
-	<body>
-		<script src="https://cdn.auth0.com/js/auth0/9.7.3/auth0.min.js"></script>
-		<script type="text/javascript">
-		(function() {
-			// debugger;
-			var CONTEXT = '@http_context()',
-				auth0options = toAuth0Options();
-			new auth0.Authentication(auth0options).getSSOData(function (err, data) {
-				var message ="Please login to use the services",
-						loggedInUserId = '@userId';
-				if (data && data.sso === true) {
-					console.log('SSO: an Auth0 SSO session already exists');
-					if (loggedInUserId !== data.lastUsedUserID) {
-						console.log("SSO Session but NOT locally authenticated ");
-						authorize();
-					}
-					else {
-						console.log("SSO Session and locally authenticated ");
-						window.location = CONTEXT;
-					}
-				} else if (loggedInUserId){
-					console.log("NO SSO Session but locally authenticated -> log them out locally");
-					window.location = CONTEXT + '/logout';
-				} else {
-					console.log("NO SSO Session and NOT locally authenticated ");
-					if (window.location.hash.substr(1).match('^logout')) {
-						message = "Logged out successfully.";
-					}
-					window.location = toMidasSso(message);
-				}
-			});
-			function authorize () {
-				console.log('Authorizing ...');
-				new auth0.WebAuth(auth0options).authorize({
-					prompt: 'none'
-				});
-			}
-			function toAuth0Options() {
-				var domain = '@aid@*.domain*@';
-				return {
-					responseType: 'code',
-					clientID: '@aid@*.clientId*@',
-					audience: 'https://' + domain + '/userinfo',
-					scope: 'openid profile email',
-					redirectUri: '@callbackUrl',
-					domain: domain
-				};
-			}
-			function toMidasSso(message) {
-			    var title = "Apollo LS",
-						aboutLink = location.origin + CONTEXT + '/about',
-						returnTitle = "About LS";
-				return '@aid@*.hubWsUrl*@/sso?returnToUrl=' +
-						encodeURIComponent(window.location) + '&title=' + title +
-						'&message=' + message + '&returnUrl=' + encodeURIComponent(aboutLink) +
-						'&returnTitle=' + returnTitle;
-			}
-		})();
-		</script>
-	</body>
-</html>
+@imports = {
+	<link href='@routes.Assets.at("stylesheets/index.css")' rel='stylesheet'>
+	<link href='@routes.Assets.at("stylesheets/search.css")' rel='stylesheet'>
+}
 
+@main(message, imports, version, credentials) {
+	<div class="center-block">
+		<h1 id="headline" class="centered-text">Apollo Location Services</h1>
+		
+		<div class="vertical-spaced horizontal-padding">
+			<!--
+			<div class="roundbox">
+				@searchbar()
+			</div>
+			
+			<h4 class="centered-text">or</h4>
+			
+			<div class="roundbox">
+				@go_bar()
+			</div>
+			-->
+			
+			<form id="log-in" action="@routes.PublicApplication.login" method="post" class="roundbox half-width inline-block">
+				<div class="pre-spaced">
+					<div class=""><h4>Log in</h4></div>
+					
+					<div class="full-width input-group">
+						<div class="">Email</div>
+						<input id="user-email" type="email" class="form-control ui-autocomplete-input" placeholder="Email">
+					</div>
+					
+					<div class="full-width input-group">
+						<div class="">Password</div>
+						<input id="user-password" type="password" class="form-control ui-autocomplete-input" placeholder="Password">
+					</div>
+					
+					<div class="centered-text extra-top-space">
+						<button id="sign-in" class="btn btn-default full-width">Sign in</button>
+					</div>
+					
+					<div class="centered-text extra-bottom-space" >
+						<a onclick="$('#create-account').toggle();" style="cursor: pointer;">or create a new account</a>
+					</div>
+				</div>
+			</form>
+			
+			<form id="create-account" action="@routes.PublicApplication.createAccount" method="post" class="extra-top-space roundbox half-width inline-block" style="display: none;">
+				<div class="pre-spaced">
+					<div class=""><h4>Create new account</h4></div>
+					
+					<div class="roundbox">
+						<div class="full-width input-group">
+								<div class="">Email Address</div>
+								<input id="create-email" type="email" class="form-control ui-autocomplete-input" placeholder="Email">
+						</div>
+						
+						<div class="full-width input-group">
+								<div class="">Confirm Email Address</div>
+								<input id="confirm-email" name="user-email" type="email" class="form-control ui-autocomplete-input" placeholder="Re-enter Email">
+						</div>
+					</div>
+					
+					<div class="roundbox extra-top-space">
+						<div class="full-width input-group">
+							<div class="">Password</div>
+							<input id="create-password" type="password" class="form-control ui-autocomplete-input" placeholder="Password">
+						</div>
+						
+						<div class="full-width input-group">
+							<div class="">Confirm Password</div>
+							<input id="confirm-password" name="user-password" type="password" class="form-control ui-autocomplete-input" placeholder="Re-enter Password">
+						</div>
+					</div>
+					
+					<div class="centered-text extra-top-space extra-bottom-space"><button id="register" class="btn btn-default full-width">Register new account</button></div>
+				</div>
+			</form>
+		</div>
+	</div>
+}
